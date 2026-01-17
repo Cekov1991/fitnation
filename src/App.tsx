@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { IonApp } from '@ionic/react';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './components/WeeklyCalendar';
 import { MetricCard } from './components/MetricCard';
@@ -380,16 +381,21 @@ export function App() {
   }, [metrics]);
 
   if (loading) {
-    return <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading...</div>
-      </div>;
+    return <IonApp>
+        <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center">
+          <div className="text-gray-400 text-sm">Loading...</div>
+        </div>
+      </IonApp>;
   }
 
   if (!user) {
-    return <LoginPage />;
+    return <IonApp>
+        <LoginPage />
+      </IonApp>;
   }
 
-  return <div className="min-h-screen w-full bg-[#0a0a0a] text-white selection:bg-blue-500/30">
+  return <IonApp>
+      <div className="min-h-screen w-full bg-[#0a0a0a] text-white selection:bg-blue-500/30">
       {currentPage === 'dashboard' && <>
           {/* Background Gradients */}
           <div className="fixed inset-0 z-0 pointer-events-none">
@@ -485,5 +491,6 @@ export function App() {
       <BalanceModal isOpen={isBalanceModalOpen} onClose={() => setIsBalanceModalOpen(false)} />
       <WeeklyProgressModal isOpen={isProgressModalOpen} onClose={() => setIsProgressModalOpen(false)} />
       <WorkoutSelectionModal isOpen={isWorkoutModalOpen} onClose={() => setIsWorkoutModalOpen(false)} onSelectTemplate={handleSelectTemplate} />
-    </div>;
+      </div>
+    </IonApp>;
 }
