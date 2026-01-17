@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IonPage } from '@ionic/react';
 import { ArrowLeft, Clock, ChevronRight, TrendingUp, Check, Edit2, Info, Plus, Trash2, MoreVertical, X, Eye, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../hooks/useApi';
@@ -408,7 +409,8 @@ export function WorkoutSessionPage({
 
   // Don't return early - show empty state instead
 
-  return <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+  return <IonPage>
+      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -1129,5 +1131,6 @@ export function WorkoutSessionPage({
           scrollbar-width: none;
         }
       `}</style>
-    </div>;
+    </div>
+    </IonPage>;
 }

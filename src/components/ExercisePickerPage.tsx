@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IonPage } from '@ionic/react';
 import { X, Search, ChevronRight } from 'lucide-react';
 import { useExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
@@ -50,7 +51,8 @@ export function ExercisePickerPage({
     onSelectExercise(exercise);
     onClose();
   };
-  return <div className="fixed inset-0 bg-[#0a0a0a] text-white z-50">
+  return <IonPage>
+      <div className="fixed inset-0 bg-[#0a0a0a] text-white z-50">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -158,5 +160,6 @@ export function ExercisePickerPage({
           </AnimatePresence>
         </div>
       </div>
-    </div>;
+    </div>
+    </IonPage>;
 }

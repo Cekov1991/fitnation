@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import { IonPage } from '@ionic/react'
 import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 interface LoginPageProps {
@@ -25,7 +26,8 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
     }
   }
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center px-6">
+    <IonPage>
+      <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center px-6">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -233,5 +235,6 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
         </motion.p>
       </motion.div>
     </div>
+    </IonPage>
   )
 }

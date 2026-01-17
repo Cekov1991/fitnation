@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IonApp } from '@ionic/react';
+import { IonApp, IonPage } from '@ionic/react';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './components/WeeklyCalendar';
 import { MetricCard } from './components/MetricCard';
@@ -396,7 +396,8 @@ export function App() {
 
   return <IonApp>
       <div className="min-h-screen w-full bg-[#0a0a0a] text-white selection:bg-blue-500/30">
-      {currentPage === 'dashboard' && <>
+      {currentPage === 'dashboard' && <IonPage>
+          <>
           {/* Background Gradients */}
           <div className="fixed inset-0 z-0 pointer-events-none">
             <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -460,29 +461,30 @@ export function App() {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </motion.button>
           </main>
-        </>}
+          </>
+        </IonPage>}
 
-      {currentPage === 'plans' && <PlansPage onNavigateToCreate={handleNavigateToCreatePlan} onNavigateToEdit={handleNavigateToEditPlan} onNavigateToAddWorkout={handleNavigateToAddWorkout} onNavigateToEditWorkout={handleNavigateToEditWorkout} onNavigateToManageExercises={handleNavigateToManageExercises} />}
+      {currentPage === 'plans' && <IonPage><PlansPage onNavigateToCreate={handleNavigateToCreatePlan} onNavigateToEdit={handleNavigateToEditPlan} onNavigateToAddWorkout={handleNavigateToAddWorkout} onNavigateToEditWorkout={handleNavigateToEditWorkout} onNavigateToManageExercises={handleNavigateToManageExercises} /></IonPage>}
 
-      {currentPage === 'create-plan' && <CreatePlanPage mode="create" onBack={handleBackToPlans} onSubmit={handleCreatePlan} />}
+      {currentPage === 'create-plan' && <IonPage><CreatePlanPage mode="create" onBack={handleBackToPlans} onSubmit={handleCreatePlan} /></IonPage>}
 
-      {currentPage === 'edit-plan' && editingPlan && <CreatePlanPage mode="edit" initialData={editingPlan} onBack={handleBackToPlans} onSubmit={handleUpdatePlan} />}
+      {currentPage === 'edit-plan' && editingPlan && <IonPage><CreatePlanPage mode="edit" initialData={editingPlan} onBack={handleBackToPlans} onSubmit={handleUpdatePlan} /></IonPage>}
 
-      {currentPage === 'add-workout' && <AddWorkoutPage mode="create" planName={selectedPlanForWorkout} onBack={handleBackToPlans} onSubmit={handleCreateWorkout} />}
+      {currentPage === 'add-workout' && <IonPage><AddWorkoutPage mode="create" planName={selectedPlanForWorkout} onBack={handleBackToPlans} onSubmit={handleCreateWorkout} /></IonPage>}
 
-      {currentPage === 'edit-workout' && editingWorkout && <AddWorkoutPage mode="edit" initialData={editingWorkout} onBack={handleBackToPlans} onSubmit={handleUpdateWorkout} />}
+      {currentPage === 'edit-workout' && editingWorkout && <IonPage><AddWorkoutPage mode="edit" initialData={editingWorkout} onBack={handleBackToPlans} onSubmit={handleUpdateWorkout} /></IonPage>}
 
-      {currentPage === 'manage-exercises' && currentWorkoutForExercises && <EditWorkoutPage templateId={currentWorkoutForExercises.templateId} workoutName={currentWorkoutForExercises.name} workoutDescription={currentWorkoutForExercises.description} onBack={handleBackToPlans} onAddExercise={handleAddExercise} onSwapExercise={handleSwapExercise} onViewExerciseDetail={handleViewExerciseDetail} />}
+      {currentPage === 'manage-exercises' && currentWorkoutForExercises && <IonPage><EditWorkoutPage templateId={currentWorkoutForExercises.templateId} workoutName={currentWorkoutForExercises.name} workoutDescription={currentWorkoutForExercises.description} onBack={handleBackToPlans} onAddExercise={handleAddExercise} onSwapExercise={handleSwapExercise} onViewExerciseDetail={handleViewExerciseDetail} /></IonPage>}
 
-      {currentPage === 'pick-exercise' && <ExercisePickerPage mode={exercisePickerMode} onClose={handleBackToManageExercises} onSelectExercise={handleSelectExercise} />}
+      {currentPage === 'pick-exercise' && <IonPage><ExercisePickerPage mode={exercisePickerMode} onClose={handleBackToManageExercises} onSelectExercise={handleSelectExercise} /></IonPage>}
 
-      {currentPage === 'exercise-detail' && <ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToManageExercises} />}
+      {currentPage === 'exercise-detail' && <IonPage><ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToManageExercises} /></IonPage>}
 
-      {currentPage === 'workout-session' && activeSessionId && <WorkoutSessionPage sessionId={activeSessionId} workoutName={activeWorkoutName} onBack={handleBackToDashboard} onFinish={handleFinishWorkout} onViewExerciseDetail={handleViewExerciseDetailFromSession} />}
+      {currentPage === 'workout-session' && activeSessionId && <IonPage><WorkoutSessionPage sessionId={activeSessionId} workoutName={activeWorkoutName} onBack={handleBackToDashboard} onFinish={handleFinishWorkout} onViewExerciseDetail={handleViewExerciseDetailFromSession} /></IonPage>}
 
-      {currentPage === 'workout-session-exercise-detail' && <ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToWorkoutSession} />}
+      {currentPage === 'workout-session-exercise-detail' && <IonPage><ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToWorkoutSession} /></IonPage>}
 
-      {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
+      {currentPage === 'profile' && <IonPage><ProfilePage onLogout={handleLogout} /></IonPage>}
 
       <BottomNav currentPage={getBottomNavPage()} onPageChange={setCurrentPage} />
 

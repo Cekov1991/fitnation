@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { IonPage } from '@ionic/react';
 import { ArrowLeft, Check } from 'lucide-react';
 interface CreatePlanPageProps {
   mode?: 'create' | 'edit';
@@ -33,7 +34,8 @@ export function CreatePlanPage({
     });
     onBack();
   };
-  return <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+  return <IonPage>
+      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -149,5 +151,6 @@ export function CreatePlanPage({
           </motion.button>
         </form>
       </main>
-    </div>;
+    </div>
+    </IonPage>;
 }

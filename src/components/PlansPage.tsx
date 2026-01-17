@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { IonPage } from '@ionic/react';
 import { Plus, Info, MoreVertical, Dumbbell, CheckCircle2, Circle } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
@@ -163,7 +164,8 @@ export function PlansPage({
     if (!currentWorkout?.templateId) return;
     deleteTemplate.mutate(currentWorkout.templateId);
   };
-  return <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+  return <IonPage>
+      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -364,5 +366,6 @@ export function PlansPage({
 
       {/* Workout Menu */}
       {menuType === 'workout' && <WorkoutMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} onStartWorkout={handleStartWorkout} onAddExercises={handleAddExercises} onEdit={handleEditWorkout} onDelete={handleDeleteWorkout} />}
-    </div>;
+    </div>
+    </IonPage>;
 }

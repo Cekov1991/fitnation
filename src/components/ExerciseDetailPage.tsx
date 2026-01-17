@@ -1,5 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IonPage } from '@ionic/react';
 import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
@@ -141,7 +142,8 @@ export function ExerciseDetailPage({
       setIsVideoPlaying(!isVideoPlaying);
     }
   };
-  return <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+  return <IonPage>
+      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
@@ -456,5 +458,6 @@ export function ExerciseDetailPage({
           </AnimatePresence>
         </div>
       </main>
-    </div>;
+    </div>
+    </IonPage>;
 }
