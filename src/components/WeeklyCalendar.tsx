@@ -108,18 +108,27 @@ export function WeeklyCalendar() {
               duration: 1.5,
               ease: 'easeOut',
               delay: 0.2 + index * 0.1
-            }} cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="transparent" strokeLinecap="round" className="text-blue-500" style={{
-              pathLength: 0
+            }} cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="transparent" strokeLinecap="round" style={{
+              pathLength: 0,
+              color: 'var(--color-primary)'
             }} // Initial state for SSR
             />}
               </svg>
 
               {/* Today Indicator or Empty State */}
-              {item.isToday && <motion.div initial={{
-            scale: 0
-          }} animate={{
-            scale: 1
-          }} className="absolute w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
+              {item.isToday && <motion.div 
+            initial={{
+              scale: 0
+            }} 
+            animate={{
+              scale: 1
+            }} 
+            className="absolute w-2 h-2 rounded-full"
+            style={{
+              backgroundColor: 'var(--color-primary)',
+              boxShadow: '0 0 10px color-mix(in srgb, var(--color-primary) 50%, transparent)'
+            }}
+          />}
             </div>
           </div>)}
       </div>
@@ -127,7 +136,7 @@ export function WeeklyCalendar() {
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-400 font-medium">
           Ready to crush this week?{' '}
-          <span className="text-blue-400">Start your first workout!</span>
+          <span style={{ color: 'var(--color-primary)' }}>Start your first workout!</span>
         </p>
       </div>
     </motion.div>;

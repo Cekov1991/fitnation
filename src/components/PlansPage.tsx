@@ -169,8 +169,14 @@ export function PlansPage({
         <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
@@ -182,16 +188,27 @@ export function PlansPage({
         opacity: 1,
         y: 0
       }} className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-3xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             Plans
           </h1>
-          <motion.button whileHover={{
-          scale: 1.1,
-          rotate: 90
-        }} whileTap={{
-          scale: 0.9
-        }} onClick={onNavigateToCreate} className="p-2 rounded-full bg-blue-500/20 hover:bg-blue-500/30 transition-colors">
-            <Plus className="text-blue-400 w-6 h-6" />
+          <motion.button 
+            whileHover={{
+              scale: 1.1,
+              rotate: 90
+            }} 
+            whileTap={{
+              scale: 0.9
+            }} 
+            onClick={onNavigateToCreate} 
+            className="p-2 rounded-full transition-colors"
+            style={{ 
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
+            }}
+          >
+            <Plus className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
           </motion.button>
         </motion.div>
 
@@ -206,7 +223,7 @@ export function PlansPage({
         delay: 0.1
       }} className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
               Active Plan
             </h2>
             <button className="p-1 hover:bg-white/5 rounded-full transition-colors">
@@ -238,8 +255,14 @@ export function PlansPage({
 
             {/* Badges */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-full">
-                <span className="text-xs font-bold text-blue-400">
+              <div 
+                className="px-3 py-1.5 rounded-full"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                }}
+              >
+                <span className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>
                   {activePlanWorkouts.length} WORKOUT
                   {activePlanWorkouts.length !== 1 ? 'S' : ''}
                 </span>
@@ -267,10 +290,20 @@ export function PlansPage({
               delay: 0.2 + index * 0.1
             }} className="flex items-center justify-between p-4 bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-gray-800/60 transition-colors group cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/10 rounded-lg">
-                      <Dumbbell className="text-blue-400 w-4 h-4" />
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}
+                    >
+                      <Dumbbell className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                     </div>
-                    <span className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors">
+                    <span 
+                      className="text-sm font-medium text-white transition-colors"
+                      style={{ 
+                        color: 'white'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
+                    >
                       {workout.name}
                     </span>
                   </div>
@@ -301,7 +334,7 @@ export function PlansPage({
       }} transition={{
         delay: 0.3
       }}>
-          <h2 className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: 'var(--color-secondary)' }}>
             All Plans
           </h2>
 
@@ -316,7 +349,10 @@ export function PlansPage({
             delay: 0.4 + index * 0.1
           }} className="relative bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6 hover:bg-gray-800/60 transition-colors group cursor-pointer">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">
+                  <h3 
+                    className="text-lg font-bold text-white transition-colors"
+                    style={{ color: 'var(--color-secondary)' }}
+                  >
                     {plan.name}
                   </h3>
                   <button onClick={e => handlePlanMenuClick(e, `plan-${plan.id}`, plan)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
@@ -356,9 +392,17 @@ export function PlansPage({
         scale: 1.02
       }} whileTap={{
         scale: 0.98
-      }} onClick={onNavigateToCreate} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group">
+      }} onClick={onNavigateToCreate} className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
+        style={{
+          background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+          boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+        }}
+      >
           <span className="relative z-10">CREATE NEW</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
+            style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
+          />
         </motion.button>
       </main>
 

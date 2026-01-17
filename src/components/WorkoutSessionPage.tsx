@@ -414,8 +414,14 @@ export function WorkoutSessionPage({
         <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto">
@@ -436,7 +442,17 @@ export function WorkoutSessionPage({
               {formatTime(workoutDuration)}
             </span>
           </div>
-          <button onClick={() => setShowWorkoutOptionsMenu(true)} className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+          <button 
+            onClick={() => setShowWorkoutOptionsMenu(true)} 
+            className="text-sm font-semibold transition-colors"
+            style={{ color: 'var(--color-primary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '0.8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = '1';
+            }}
+          >
             Options
           </button>
         </motion.div>
@@ -460,7 +476,13 @@ export function WorkoutSessionPage({
                   scale: 1.02
                 }} whileTap={{
                   scale: 0.98
-                }} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/40 border border-white/5'}`}>
+                }} 
+                  className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'shadow-lg' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/40 border border-white/5'}`}
+                  style={isActive ? {
+                    background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                    boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                  } : {}}
+                >
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden">
                         <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
                       </div>
@@ -468,7 +490,10 @@ export function WorkoutSessionPage({
                         <h3 className={`text-sm font-bold ${isActive ? 'text-white' : 'text-gray-300'}`}>
                           {exercise.name.length > 20 ? exercise.name.substring(0, 20) + '...' : exercise.name}
                         </h3>
-                        <p className={`text-xs ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>
+                        <p 
+                          className="text-xs"
+                          style={{ color: isActive ? 'rgba(255, 255, 255, 0.9)' : '#6b7280' }}
+                        >
                           {status.completed}/{status.total} sets
                         </p>
                       </div>
@@ -499,8 +524,13 @@ export function WorkoutSessionPage({
               }}
               className="flex flex-col items-center justify-center py-20"
             >
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-3xl flex items-center justify-center mb-6">
-                <Plus className="text-blue-400 w-12 h-12" strokeWidth={2} />
+              <div 
+                className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
+                style={{ 
+                  background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 20%, transparent), color-mix(in srgb, var(--color-secondary) 20%, transparent))' 
+                }}
+              >
+                <Plus className="w-12 h-12" strokeWidth={2} style={{ color: 'var(--color-primary)' }} />
               </div>
               <h2 className="text-2xl font-bold text-white mb-3 text-center">
                 No Exercises Yet
@@ -516,7 +546,11 @@ export function WorkoutSessionPage({
                   scale: 0.98
                 }}
                 onClick={() => setShowWorkoutOptionsMenu(true)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-lg shadow-blue-500/20"
+                className="px-8 py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
+                style={{
+                  background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                  boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                }}
               >
                 Add Exercise
               </motion.button>
@@ -560,10 +594,10 @@ export function WorkoutSessionPage({
               {/* Max Weight Chart */}
               <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-semibold text-blue-400">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
                     Max Weight Lifted
                   </span>
-                  <TrendingUp className="text-blue-400 w-4 h-4" />
+                  <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                 </div>
                 <div className="mb-2">
                   <span className="text-3xl font-bold text-white">
@@ -595,19 +629,25 @@ export function WorkoutSessionPage({
             }} animate={{
               scale: 1,
               opacity: 1
-            }} className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-6 shadow-2xl shadow-blue-500/20">
-                    <p className="text-sm font-bold text-blue-100 mb-4">
+            }} 
+              className="rounded-3xl p-6 shadow-2xl"
+              style={{
+                background: 'linear-gradient(to bottom right, var(--color-primary), var(--color-secondary))',
+                boxShadow: '0 20px 50px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+              }}
+            >
+                    <p className="text-sm font-bold mb-4" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                       Log Your Set
                     </p>
                     <div className="flex items-center justify-between gap-4">
                       {/* Weight Input */}
                       <div className="flex-1">
-                        <label className="text-xs font-semibold text-blue-100 mb-2 block">
+                        <label className="text-xs font-semibold mb-2 block" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                           Weight
                         </label>
                         <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-                          <IonInput type="number" value={editingWeight?.toString() || ''} onIonInput={e => setEditingWeight(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
-                          <span className="text-sm font-semibold text-blue-100 ml-2">
+                          <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={editingWeight?.toString() || ''} onIonInput={e => setEditingWeight(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                             kg
                           </span>
                         </div>
@@ -615,12 +655,12 @@ export function WorkoutSessionPage({
 
                       {/* Reps Input */}
                       <div className="flex-1">
-                        <label className="text-xs font-semibold text-blue-100 mb-2 block">
+                        <label className="text-xs font-semibold mb-2 block" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                           Reps
                         </label>
                         <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-                          <IonInput type="number" value={editingReps?.toString() || ''} onIonInput={e => setEditingReps(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
-                          <span className="text-sm font-semibold text-blue-100 ml-2">
+                          <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={editingReps?.toString() || ''} onIonInput={e => setEditingReps(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                             reps
                           </span>
                         </div>
@@ -632,7 +672,11 @@ export function WorkoutSessionPage({
                 scale: 1.02
               }} whileTap={{
                 scale: 0.98
-              }} onClick={handleDidIt} className="w-full mt-4 px-6 py-4 bg-white rounded-2xl font-bold text-lg text-blue-600 shadow-lg">
+              }} 
+                onClick={handleDidIt} 
+                className="w-full mt-4 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg"
+                style={{ color: 'var(--color-primary)' }}
+              >
                       Log Set
                     </motion.button>
                   </motion.div>}
@@ -655,7 +699,7 @@ export function WorkoutSessionPage({
                           Weight
                         </label>
                         <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-                          <IonInput type="number" value={editingWeight?.toString() || ''} onIonInput={e => setEditingWeight(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={editingWeight?.toString() || ''} onIonInput={e => setEditingWeight(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
                           <span className="text-sm font-semibold text-orange-100 ml-2">
                             kg
                           </span>
@@ -668,7 +712,7 @@ export function WorkoutSessionPage({
                           Reps
                         </label>
                         <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-                          <IonInput type="number" value={editingReps?.toString() || ''} onIonInput={e => setEditingReps(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={editingReps?.toString() || ''} onIonInput={e => setEditingReps(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
                           <span className="text-sm font-semibold text-orange-100 ml-2">
                             reps
                           </span>
@@ -751,10 +795,20 @@ export function WorkoutSessionPage({
                       scale: 0.98,
                     }}
                     onClick={handleAddSet}
-                    className="w-full flex items-center justify-center gap-2 p-4 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl transition-colors"
+                    className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                      borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 20%, transparent)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
+                    }}
                   >
-                    <Plus className="text-blue-400 w-5 h-5" />
-                    <span className="text-sm font-bold text-blue-400">
+                    <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                    <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
                       Add Set
                     </span>
                   </motion.button>
@@ -851,8 +905,11 @@ export function WorkoutSessionPage({
                     onClick={handleAddExercise}
                     className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
                   >
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <Plus className="text-blue-400 w-5 h-5" />
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+                    >
+                      <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div className="flex-1 text-left">
                       <p className="text-sm font-bold text-white">
@@ -952,8 +1009,11 @@ export function WorkoutSessionPage({
                     onClick={handleViewExercise}
                     className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
                   >
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <Eye className="text-blue-400 w-5 h-5" />
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+                    >
+                      <Eye className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div className="flex-1 text-left">
                       <p className="text-sm font-bold text-white">
@@ -975,8 +1035,11 @@ export function WorkoutSessionPage({
                     onClick={handleSwapExercise}
                     className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
                   >
-                    <div className="p-2 bg-purple-500/20 rounded-lg">
-                      <RefreshCw className="text-purple-400 w-5 h-5" />
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+                    >
+                      <RefreshCw className="w-5 h-5" style={{ color: 'var(--color-secondary)' }} />
                     </div>
                     <div className="flex-1 text-left">
                       <p className="text-sm font-bold text-white">

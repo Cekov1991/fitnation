@@ -112,8 +112,14 @@ export function EditWorkoutPage({
         <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
@@ -133,7 +139,10 @@ export function EditWorkoutPage({
         }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="text-gray-400 w-6 h-6" />
           </motion.button>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-3xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             Edit Workout
           </h1>
         </motion.div>
@@ -171,7 +180,14 @@ export function EditWorkoutPage({
             scale: 1.1
           }} whileTap={{
             scale: 0.9
-          }} onClick={() => setIsEditMode(!isEditMode)} className={`p-2 rounded-full transition-colors ${isEditMode ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/5 text-gray-400'}`}>
+          }} 
+            onClick={() => setIsEditMode(!isEditMode)} 
+            className={`p-2 rounded-full transition-colors ${isEditMode ? '' : 'hover:bg-white/5 text-gray-400'}`}
+            style={isEditMode ? {
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
+              color: 'var(--color-primary)'
+            } : {}}
+          >
               <Edit2 className="w-5 h-5" />
             </motion.button>
           </div>
@@ -264,12 +280,29 @@ export function EditWorkoutPage({
           scale: 1.02
         }} whileTap={{
           scale: 0.98
-        }} onClick={onAddExercise} className="w-full py-6 border-2 border-dashed border-blue-500/30 rounded-2xl hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+        }} 
+          onClick={onAddExercise} 
+          className="w-full py-6 border-2 border-dashed rounded-2xl transition-all group"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+            e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 5%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 30%, transparent)';
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
             <div className="flex items-center justify-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                <Plus className="text-blue-400 w-5 h-5" />
+              <div 
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}
+              >
+                <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
               </div>
-              <span className="text-base font-semibold text-blue-400">
+              <span className="text-base font-semibold" style={{ color: 'var(--color-primary)' }}>
                 Add Exercise
               </span>
             </div>

@@ -19,10 +19,12 @@ import { WorkoutSessionPage } from './components/WorkoutSessionPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LoginPage } from './components/LoginPage';
 import { useAuth } from './hooks/useAuth';
+import { useBranding } from './hooks/useBranding';
 import { useFitnessMetrics, useStartSession, useCreatePlan, useUpdatePlan, useCreateTemplate, useUpdateTemplate, usePlans, useAddTemplateExercise, useTodayWorkout } from './hooks/useApi';
 type Page = 'dashboard' | 'plans' | 'progress' | 'profile' | 'create-plan' | 'edit-plan' | 'add-workout' | 'edit-workout' | 'manage-exercises' | 'pick-exercise' | 'exercise-detail' | 'workout-session' | 'workout-session-exercise-detail';
 export function App() {
   const { user, loading, logout } = useAuth();
+  const { logo, partnerName } = useBranding();
   const {
     data: metrics
   } = useFitnessMetrics();
@@ -395,13 +397,24 @@ export function App() {
   }
 
   return <IonApp>
-      <div className="min-h-screen w-full bg-[#0a0a0a] text-white selection:bg-blue-500/30">
+      <div 
+        className="min-h-screen w-full bg-[#0a0a0a] text-white"
+        style={{
+          '--selection-bg': 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+        } as React.CSSProperties & { '--selection-bg': string }}
+      >
       {currentPage === 'dashboard' && <IonPage>
           <IonContent>
             {/* Background Gradients */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-              <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-              <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+              <div 
+                className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+                style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+              />
+              <div 
+                className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+                style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+              />
             </div>
 
             <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
@@ -415,11 +428,22 @@ export function App() {
           }} transition={{
             duration: 0.6
           }} className="flex flex-col items-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/20 mb-4 flex items-center justify-center">
-                  <Dumbbell className="text-white w-8 h-8" />
-                </div>
+                {logo ? (
+                  <img 
+                    src={logo} 
+                    alt={partnerName || 'Partner logo'} 
+                    className="w-16 h-16 rounded-2xl shadow-lg mb-4 object-contain"
+                  />
+                ) : (
+                  <div 
+                    className="w-16 h-16 rounded-2xl shadow-lg mb-4 flex items-center justify-center"
+                    style={{ background: 'linear-gradient(to top right, var(--color-primary), var(--color-secondary))' }}
+                  >
+                    <Dumbbell className="text-white w-8 h-8" />
+                  </div>
+                )}
                 <h1 className="text-2xl font-bold tracking-tight text-center">
-                  Premium Sport Center
+                  {partnerName || 'Fit Nation'}
                 </h1>
                 <p className="text-gray-400 text-sm mt-1">
                   Welcome back, {user?.name || 'Athlete'}
@@ -456,9 +480,13 @@ export function App() {
             scale: 1.02
           }} whileTap={{
             scale: 0.98
-          }} onClick={handleStartWorkoutClick} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group">
+          }} onClick={handleStartWorkoutClick} className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
+              style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}>
                 <span className="relative z-10">{todayWorkout?.session?.id ? 'Continue Workout' : 'Start Workout'}</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
+                  style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
+                />
               </motion.button>
             </main>
           </IonContent>

@@ -6,6 +6,16 @@
 @import 'tailwindcss/utilities';
 /* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL - DO NOT DELETE THIS COMMENT */
 
+/* ============================================
+   Partner Branding CSS Variables
+   ============================================ */
+
+:root {
+  /* Default branding colors (used when no partner branding is set) */
+  --color-primary: #2563eb;      /* Blue-600 */
+  --color-secondary: #9333ea;    /* Purple-600 */
+}
+
 /* Remove pointer cursor from number inputs and hide spinner buttons */
 input[type="number"] {
   cursor: text !important;

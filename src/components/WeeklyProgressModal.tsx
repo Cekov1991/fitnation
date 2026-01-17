@@ -107,7 +107,10 @@ export function WeeklyProgressModal({
             <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
               {/* Header */}
               <div className="sticky top-0 bg-[#0f1419] border-b border-white/10 p-6 flex items-center justify-between rounded-t-3xl">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 
+                  className="text-2xl font-bold bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+                >
                   Weekly Progress
                 </h2>
                 <button
@@ -123,8 +126,26 @@ export function WeeklyProgressModal({
                 {/* Main Progress Card */}
                 <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`w-16 h-16 ${isPositive ? 'bg-green-500/20' : isNeutral ? 'bg-blue-500/20' : 'bg-red-500/20'} rounded-full flex items-center justify-center`}>
-                      <TrendingUp className={`${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'} w-8 h-8`} />
+                    <div 
+                      className="w-16 h-16 rounded-full flex items-center justify-center"
+                      style={{ 
+                        backgroundColor: isPositive 
+                          ? 'color-mix(in srgb, #10b981 20%, transparent)' 
+                          : isNeutral 
+                            ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)' 
+                            : 'color-mix(in srgb, #ef4444 20%, transparent)' 
+                      }}
+                    >
+                      <TrendingUp 
+                        className="w-8 h-8" 
+                        style={{ 
+                          color: isPositive 
+                            ? '#10b981' 
+                            : isNeutral 
+                              ? 'var(--color-primary)' 
+                              : '#ef4444' 
+                        }} 
+                      />
                     </div>
                     <div className="text-right">
                       <p className={`text-5xl font-black ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
@@ -133,8 +154,31 @@ export function WeeklyProgressModal({
                       <p className="text-sm text-gray-400 mt-1">vs Last Week</p>
                     </div>
                   </div>
-                  <div className={`inline-block px-4 py-2 ${isPositive ? 'bg-green-500/20 border-green-500/30' : isNeutral ? 'bg-blue-500/20 border-blue-500/30' : 'bg-red-500/20 border-red-500/30'} border rounded-full`}>
-                    <span className={`text-sm font-bold ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
+                  <div 
+                    className="inline-block px-4 py-2 border rounded-full"
+                    style={{
+                      backgroundColor: isPositive 
+                        ? 'color-mix(in srgb, #10b981 20%, transparent)' 
+                        : isNeutral 
+                          ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)' 
+                          : 'color-mix(in srgb, #ef4444 20%, transparent)',
+                      borderColor: isPositive 
+                        ? 'color-mix(in srgb, #10b981 30%, transparent)' 
+                        : isNeutral 
+                          ? 'color-mix(in srgb, var(--color-primary) 30%, transparent)' 
+                          : 'color-mix(in srgb, #ef4444 30%, transparent)'
+                    }}
+                  >
+                    <span 
+                      className="text-sm font-bold"
+                      style={{
+                        color: isPositive 
+                          ? '#10b981' 
+                          : isNeutral 
+                            ? 'var(--color-primary)' 
+                            : '#ef4444'
+                      }}
+                    >
                       {isPositive ? 'IMPROVING' : isNeutral ? 'STEADY' : 'DECLINING'}
                     </span>
                   </div>
@@ -143,7 +187,7 @@ export function WeeklyProgressModal({
                 {/* Stats Grid */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <Calendar className="text-blue-400 w-5 h-5 mb-2" />
+                    <Calendar className="w-5 h-5 mb-2" style={{ color: 'var(--color-primary)' }} />
                     <p className="text-2xl font-bold text-white">{currentWeekWorkouts}</p>
                     <p className="text-xs text-gray-400">Workouts</p>
                   </div>
@@ -194,10 +238,10 @@ export function WeeklyProgressModal({
                           <Line
                             type="monotone"
                             dataKey="volume"
-                            stroke="#3B82F6"
+                            stroke="var(--color-primary)"
                             strokeWidth={3}
                             dot={{
-                              fill: '#3B82F6',
+                              fill: 'var(--color-primary)',
                               r: 5,
                             }}
                             activeDot={{
@@ -220,7 +264,12 @@ export function WeeklyProgressModal({
                       {chartData.map((day) => (
                         <div
                           key={day.day}
-                          className={`flex items-center justify-between p-3 rounded-lg ${day.workouts > 0 ? 'bg-blue-500/10' : 'bg-gray-700/20'}`}
+                          className="flex items-center justify-between p-3 rounded-lg"
+                          style={{
+                            backgroundColor: day.workouts > 0 
+                              ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' 
+                              : 'color-mix(in srgb, #374151 20%, transparent)'
+                          }}
                         >
                           <span className="text-sm font-medium text-gray-300">
                             {day.day}

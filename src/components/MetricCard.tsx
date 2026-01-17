@@ -34,12 +34,23 @@ export function MetricCard({
     scale: 1.02
   }} onClick={onClick} className="relative group overflow-hidden rounded-2xl bg-gray-900/40 backdrop-blur-md border border-white/5 p-5 cursor-pointer hover:bg-gray-800/40 transition-colors">
       {/* Gradient glow effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ 
+          background: `linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 10%, transparent), color-mix(in srgb, var(--color-secondary) 10%, transparent))` 
+        }}
+      />
 
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div className="flex justify-between items-start mb-4">
-          <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:text-blue-300 transition-colors">
-            <Icon size={20} />
+          <div 
+            className="p-2 rounded-xl transition-colors"
+            style={{ 
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+              color: 'var(--color-primary)'
+            }}
+          >
+            <Icon size={20} className="group-hover:opacity-80 transition-opacity" />
           </div>
           <ChevronRight size={16} className="text-gray-500 group-hover:text-white transition-colors" />
         </div>

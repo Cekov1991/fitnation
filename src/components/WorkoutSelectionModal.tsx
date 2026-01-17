@@ -114,11 +114,27 @@ export function WorkoutSelectionModal({
               scale: 0.98
             }} onClick={() => onSelectTemplate(null, 'Blank Session')} className="w-full mb-6 relative group">
                   {/* Dashed border animation */}
-                  <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-blue-500/30 group-hover:border-blue-500/50 transition-colors" />
+                  <div 
+                    className="absolute inset-0 rounded-2xl border-2 border-dashed transition-colors"
+                    style={{ 
+                      borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                    }}
+                  />
 
-                  <div className="relative bg-gradient-to-br from-blue-500/5 to-purple-500/5 backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4">
+                  <div 
+                    className="relative backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4"
+                    style={{ 
+                      background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 5%, transparent), color-mix(in srgb, var(--color-secondary) 5%, transparent))' 
+                    }}
+                  >
                     {/* Plus Icon */}
-                    <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow">
+                    <div 
+                      className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-shadow"
+                      style={{ 
+                        background: 'linear-gradient(to bottom right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+                        boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+                      }}
+                    >
                       <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
                     </div>
 
@@ -172,7 +188,12 @@ export function WorkoutSelectionModal({
 
                         {/* Content */}
                         <div className="flex-1 text-left">
-                          <h3 className="text-base font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                          <h3 
+                            className="text-base font-bold text-white mb-1 transition-colors"
+                            style={{ 
+                              color: 'var(--color-primary)' 
+                            }}
+                          >
                             {template.name}
                           </h3>
                           <div className="flex items-center gap-3">

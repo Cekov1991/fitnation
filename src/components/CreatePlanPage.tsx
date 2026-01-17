@@ -39,8 +39,14 @@ export function CreatePlanPage({
         <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
@@ -60,7 +66,10 @@ export function CreatePlanPage({
         }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="text-gray-400 w-6 h-6" />
           </motion.button>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-3xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             {mode === 'create' ? 'Create Plan' : 'Edit Plan'}
           </h1>
         </motion.div>
@@ -79,7 +88,21 @@ export function CreatePlanPage({
             <label htmlFor="plan-name" className="block text-sm font-medium text-gray-400 mb-3">
               Plan Name *
             </label>
-            <input id="plan-name" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Bulking Plan" required className="w-full px-5 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+            <input 
+              id="plan-name" 
+              type="text" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              placeholder="e.g., Bulking Plan" 
+              required 
+              className="w-full px-5 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all" 
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            />
           </motion.div>
 
           {/* Description Textarea */}
@@ -95,7 +118,20 @@ export function CreatePlanPage({
             <label htmlFor="description" className="block text-sm font-medium text-gray-400 mb-3">
               Description
             </label>
-            <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" rows={4} className="w-full px-5 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none" />
+            <textarea 
+              id="description" 
+              value={description} 
+              onChange={e => setDescription(e.target.value)} 
+              placeholder="Optional description" 
+              rows={4} 
+              className="w-full px-5 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all resize-none" 
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            />
           </motion.div>
 
           {/* Active Plan Toggle */}
@@ -143,12 +179,22 @@ export function CreatePlanPage({
           scale: name.trim() ? 1.02 : 1
         }} whileTap={{
           scale: name.trim() ? 0.98 : 1
-        }} className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${name.trim() ? 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-blue-500/25 hover:shadow-blue-500/40' : 'bg-gray-700 cursor-not-allowed opacity-50'}`}>
+        }} className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${name.trim() ? '' : 'bg-gray-700 cursor-not-allowed opacity-50'}`}
+          style={name.trim() ? {
+            background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+            boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+          } : {}}
+        >
             <span className="relative z-10 flex items-center justify-center gap-2">
               <Check size={20} />
               {mode === 'create' ? 'CREATE PLAN' : 'SAVE CHANGES'}
             </span>
-            {name.trim() && <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />}
+            {name.trim() && (
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
+                style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
+              />
+            )}
           </motion.button>
         </form>
       </main>

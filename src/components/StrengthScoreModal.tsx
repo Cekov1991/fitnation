@@ -63,12 +63,12 @@ export function StrengthScoreModal({
   // Map muscle group names to colors
   const getMuscleGroupColor = (name: string): string => {
     const nameLower = name.toLowerCase()
-    if (nameLower.includes('chest')) return 'from-blue-500 to-blue-400'
-    if (nameLower.includes('back')) return 'from-purple-500 to-purple-400'
-    if (nameLower.includes('legs') || nameLower.includes('quad') || nameLower.includes('hamstring') || nameLower.includes('glute') || nameLower.includes('calve')) return 'from-green-500 to-green-400'
-    if (nameLower.includes('shoulder') || nameLower.includes('delt')) return 'from-orange-500 to-orange-400'
-    if (nameLower.includes('arm') || nameLower.includes('bicep') || nameLower.includes('tricep') || nameLower.includes('forearm')) return 'from-cyan-500 to-cyan-400'
-    return 'from-blue-500 to-blue-400'
+    if (nameLower.includes('chest')) return 'var(--color-primary)'
+    if (nameLower.includes('back')) return 'var(--color-secondary)'
+    if (nameLower.includes('legs') || nameLower.includes('quad') || nameLower.includes('hamstring') || nameLower.includes('glute') || nameLower.includes('calve')) return '#10b981'
+    if (nameLower.includes('shoulder') || nameLower.includes('delt')) return '#f97316'
+    if (nameLower.includes('arm') || nameLower.includes('bicep') || nameLower.includes('tricep') || nameLower.includes('forearm')) return '#06b6d4'
+    return 'var(--color-primary)'
   }
 
   // Sort muscle groups by score
@@ -116,7 +116,10 @@ export function StrengthScoreModal({
             <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
               {/* Header */}
               <div className="sticky top-0 bg-[#0f1419] border-b border-white/10 p-6 flex items-center justify-between rounded-t-3xl">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 
+                  className="text-2xl font-bold bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+                >
                   Strength Score Details
                 </h2>
                 <button
@@ -132,8 +135,11 @@ export function StrengthScoreModal({
                 {/* Main Score Card */}
                 <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center">
-                      <TrendingUp className="text-blue-400 w-8 h-8" />
+                    <div 
+                      className="w-16 h-16 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+                    >
+                      <TrendingUp className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div className="text-right">
                       <p className="text-5xl font-black text-white">{Math.round(current)}</p>
@@ -159,7 +165,7 @@ export function StrengthScoreModal({
                   </div>
                   <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
                     <p className="text-sm text-gray-400 mb-1">Ranking</p>
-                    <p className="text-2xl font-bold text-blue-400">
+                    <p className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
                       {rankingDisplay || '--'}
                     </p>
                   </div>
@@ -201,9 +207,10 @@ export function StrengthScoreModal({
                             </div>
                             <div className="h-2 bg-gray-700/50 rounded-full overflow-hidden">
                               <div
-                                className={`h-full bg-gradient-to-r ${getMuscleGroupColor(group.name)}`}
+                                className="h-full"
                                 style={{
                                   width: `${Math.min(100, Math.max(0, percentage))}%`,
+                                  background: `linear-gradient(to right, ${getMuscleGroupColor(group.name)}, color-mix(in srgb, ${getMuscleGroupColor(group.name)} 80%, transparent))`
                                 }}
                               />
                             </div>

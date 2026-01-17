@@ -147,8 +147,14 @@ export function ExerciseDetailPage({
         <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto">
@@ -168,7 +174,10 @@ export function ExerciseDetailPage({
         }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="text-gray-400 w-6 h-6" />
           </motion.button>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-2xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             {exercise?.name || exerciseName}
           </h1>
         </motion.div>
@@ -206,7 +215,18 @@ export function ExerciseDetailPage({
                     isVideoPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'
                   } bg-black/20 hover:bg-black/30`}
                 >
-                  <div className="p-4 bg-blue-500/80 rounded-full group-hover:bg-blue-500 transition-colors">
+                  <div 
+                    className="p-4 rounded-full transition-colors"
+                    style={{ 
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
+                    }}
+                  >
                     {isVideoPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
                   </div>
                 </button>
@@ -230,7 +250,11 @@ export function ExerciseDetailPage({
         delay: 0.2
       }} className="flex gap-2 px-6 mb-6">
           {(['instructions', 'muscles', 'history'] as const).map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative ${activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-gray-300'}`}>
-              {activeTab === tab && <motion.div layoutId="activeTab" className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl" transition={{
+              {activeTab === tab && <motion.div 
+                layoutId="activeTab" 
+                className="absolute inset-0 rounded-xl" 
+                style={{ background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' }}
+                transition={{
             type: 'spring',
             damping: 25,
             stiffness: 300
@@ -368,7 +392,7 @@ export function ExerciseDetailPage({
                         </div>
                         <div className="bg-gray-700/30 rounded-xl p-3 text-center">
                           <p className="text-xs text-gray-400 mb-1">Progress</p>
-                          <p className="text-lg font-bold text-blue-400">
+                          <p className="text-lg font-bold" style={{ color: 'var(--color-primary)' }}>
                             {formatProgress(historyData.stats.progress_percentage)}
                           </p>
                         </div>
@@ -442,7 +466,7 @@ export function ExerciseDetailPage({
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-sm font-bold text-blue-400">
+                                  <p className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
                                     {session.volume}
                                   </p>
                                   <p className="text-xs text-gray-400">volume</p>

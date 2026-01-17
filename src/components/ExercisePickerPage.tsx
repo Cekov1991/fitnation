@@ -1,6 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonPage, IonContent } from '@ionic/react';
 import { X, Search, ChevronRight } from 'lucide-react';
 import { useExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
@@ -51,16 +50,20 @@ export function ExercisePickerPage({
     onSelectExercise(exercise);
     onClose();
   };
-  return <IonPage>
-      <IonContent>
-        <div className="fixed inset-0 bg-[#0a0a0a] text-white z-50">
+  return <div className="fixed inset-0 z-[100] bg-[#0a0a0a]">
         {/* Background Gradients */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
-      <div className="relative z-10 h-full flex flex-col max-w-md mx-auto">
+      <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
         {/* Header */}
         <motion.div initial={{
         opacity: 0,
@@ -69,7 +72,10 @@ export function ExercisePickerPage({
         opacity: 1,
         y: 0
       }} className="flex items-center justify-between p-6 pb-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-2xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             {mode === 'add' ? 'Select Exercise' : 'Swap Exercise'}
           </h1>
           <motion.button whileHover={{
@@ -93,13 +99,25 @@ export function ExercisePickerPage({
         delay: 0.1
       }} className="px-6 pb-4">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5" />
-            <input type="text" value={searchQuery} onChange={e => handleSearch(e.target.value)} placeholder="Search exercises..." className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+            <input 
+              type="text" 
+              value={searchQuery} 
+              onChange={e => handleSearch(e.target.value)} 
+              placeholder="Search exercises..." 
+              className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all" 
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            />
           </div>
         </motion.div>
 
         {/* Exercise List */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 px-6 pb-6">
           <AnimatePresence mode="popLayout">
             {isLoading ? <motion.div initial={{
             opacity: 0
@@ -161,7 +179,5 @@ export function ExercisePickerPage({
           </AnimatePresence>
         </div>
       </div>
-    </div>
-      </IonContent>
-    </IonPage>;
+    </div>;
 }

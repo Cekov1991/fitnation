@@ -73,13 +73,13 @@ export function BalanceModal({
   // Map muscle group names to colors
   const getMuscleGroupColor = (name: string): string => {
     const nameLower = name.toLowerCase()
-    if (nameLower.includes('chest')) return 'from-blue-500 to-blue-400'
-    if (nameLower.includes('lats') || nameLower.includes('upper back') || nameLower.includes('lower back')) return 'from-purple-500 to-purple-400'
-    if (nameLower.includes('quad') || nameLower.includes('hamstring') || nameLower.includes('glute') || nameLower.includes('calve')) return 'from-green-500 to-green-400'
-    if (nameLower.includes('delt') || nameLower.includes('shoulder') || nameLower.includes('trap')) return 'from-orange-500 to-orange-400'
-    if (nameLower.includes('bicep') || nameLower.includes('tricep') || nameLower.includes('forearm')) return 'from-cyan-500 to-cyan-400'
-    if (nameLower.includes('abs') || nameLower.includes('oblique') || nameLower.includes('core')) return 'from-yellow-500 to-yellow-400'
-    return 'from-blue-500 to-blue-400'
+    if (nameLower.includes('chest')) return 'var(--color-primary)'
+    if (nameLower.includes('lats') || nameLower.includes('upper back') || nameLower.includes('lower back')) return 'var(--color-secondary)'
+    if (nameLower.includes('quad') || nameLower.includes('hamstring') || nameLower.includes('glute') || nameLower.includes('calve')) return '#10b981'
+    if (nameLower.includes('delt') || nameLower.includes('shoulder') || nameLower.includes('trap')) return '#f97316'
+    if (nameLower.includes('bicep') || nameLower.includes('tricep') || nameLower.includes('forearm')) return '#06b6d4'
+    if (nameLower.includes('abs') || nameLower.includes('oblique') || nameLower.includes('core')) return '#eab308'
+    return 'var(--color-primary)'
   }
 
   // Sort muscle groups by percentage
@@ -127,7 +127,10 @@ export function BalanceModal({
             <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
               {/* Header */}
               <div className="sticky top-0 bg-[#0f1419] border-b border-white/10 p-6 flex items-center justify-between rounded-t-3xl">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 
+                  className="text-2xl font-bold bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+                >
                   Strength Balance Details
                 </h2>
                 <button
@@ -170,7 +173,7 @@ export function BalanceModal({
                   </div>
                   <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
                     <p className="text-sm text-gray-400 mb-1">Muscle Balance</p>
-                    <p className="text-2xl font-bold text-blue-400">
+                    <p className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
                       {sortedMuscleGroups.length} Groups
                     </p>
                   </div>
@@ -210,9 +213,10 @@ export function BalanceModal({
                             </div>
                             <div className="h-2 bg-gray-700/50 rounded-full overflow-hidden">
                               <div
-                                className={`h-full bg-gradient-to-r ${getMuscleGroupColor(group.name)}`}
+                                className="h-full"
                                 style={{
                                   width: `${Math.min(100, Math.max(0, group.percentage))}%`,
+                                  background: `linear-gradient(to right, ${getMuscleGroupColor(group.name)}, color-mix(in srgb, ${getMuscleGroupColor(group.name)} 80%, transparent))`
                                 }}
                               />
                             </div>
