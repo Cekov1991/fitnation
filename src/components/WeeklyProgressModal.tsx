@@ -1,0 +1,276 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, TrendingUp, Calendar, Dumbbell } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
+import { useFitnessMetrics } from '../hooks/useApi'
+
+interface WeeklyProgressModalProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+function formatVolume(volume: number): string {
+  if (volume >= 1000) {
+    return `${(volume / 1000).toFixed(1)}k`
+  }
+  return volume.toString()
+}
+
+function formatVolumeFull(volume: number): string {
+  return volume.toLocaleString()
+}
+
+function minutesToHours(minutes: number): string {
+  const hours = minutes / 60
+  return `${hours.toFixed(1)}h`
+}
+
+export function WeeklyProgressModal({
+  isOpen,
+  onClose,
+}: WeeklyProgressModalProps) {
+  const { data: metrics } = useFitnessMetrics()
+  
+  const weeklyProgress = metrics?.weekly_progress
+  const percentage = weeklyProgress?.percentage ?? 0
+  const trend = weeklyProgress?.trend ?? 'same'
+  const currentWeekWorkouts = weeklyProgress?.current_week_workouts ?? 0
+  const currentWeekVolume = weeklyProgress?.current_week_volume ?? 0
+  const currentWeekTimeMinutes = weeklyProgress?.current_week_time_minutes ?? 0
+  const previousWeekVolume = weeklyProgress?.previous_week_volume ?? 0
+  const volumeDifference = weeklyProgress?.volume_difference ?? 0
+  const volumeDifferencePercent = weeklyProgress?.volume_difference_percent ?? 0
+  const dailyBreakdown = weeklyProgress?.daily_breakdown ?? []
+
+  const isPositive = trend === 'up'
+  const isNeutral = trend === 'same'
+
+  // Transform daily breakdown for chart
+  interface ChartDataItem {
+    day: string
+    volume: number
+    workouts: number
+  }
+  
+  const chartData: ChartDataItem[] = dailyBreakdown.map((day: { day_of_week: number; volume: number; workouts: number }) => ({
+    day: DAY_NAMES[day.day_of_week] || 'Unknown',
+    volume: day.volume,
+    workouts: day.workouts,
+  }))
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{
+              y: '100%',
+            }}
+            animate={{
+              y: 0,
+            }}
+            exit={{
+              y: '100%',
+            }}
+            transition={{
+              type: 'spring',
+              damping: 30,
+              stiffness: 300,
+            }}
+            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
+          >
+            <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 bg-[#0f1419] border-b border-white/10 p-6 flex items-center justify-between rounded-t-3xl">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Weekly Progress
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <X className="text-gray-400 w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Main Progress Card */}
+                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-16 h-16 ${isPositive ? 'bg-green-500/20' : isNeutral ? 'bg-blue-500/20' : 'bg-red-500/20'} rounded-full flex items-center justify-center`}>
+                      <TrendingUp className={`${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'} w-8 h-8`} />
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-5xl font-black ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{Math.round(percentage)}%
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">vs Last Week</p>
+                    </div>
+                  </div>
+                  <div className={`inline-block px-4 py-2 ${isPositive ? 'bg-green-500/20 border-green-500/30' : isNeutral ? 'bg-blue-500/20 border-blue-500/30' : 'bg-red-500/20 border-red-500/30'} border rounded-full`}>
+                    <span className={`text-sm font-bold ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
+                      {isPositive ? 'IMPROVING' : isNeutral ? 'STEADY' : 'DECLINING'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                    <Calendar className="text-blue-400 w-5 h-5 mb-2" />
+                    <p className="text-2xl font-bold text-white">{currentWeekWorkouts}</p>
+                    <p className="text-xs text-gray-400">Workouts</p>
+                  </div>
+                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                    <Dumbbell className="text-purple-400 w-5 h-5 mb-2" />
+                    <p className="text-2xl font-bold text-white">{formatVolume(currentWeekVolume)}</p>
+                    <p className="text-xs text-gray-400">Volume (kg)</p>
+                  </div>
+                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                    <TrendingUp className="text-green-400 w-5 h-5 mb-2" />
+                    <p className="text-2xl font-bold text-white">{minutesToHours(currentWeekTimeMinutes)}</p>
+                    <p className="text-xs text-gray-400">Total Time</p>
+                  </div>
+                </div>
+
+                {/* Weekly Volume Chart */}
+                {chartData.length > 0 && (
+                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                    <h3 className="text-sm font-bold text-white mb-4">
+                      Training Volume
+                    </h3>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis
+                            dataKey="day"
+                            stroke="#9CA3AF"
+                            style={{
+                              fontSize: '12px',
+                            }}
+                          />
+                          <YAxis
+                            stroke="#9CA3AF"
+                            style={{
+                              fontSize: '12px',
+                            }}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#1F2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: '#fff',
+                            }}
+                            formatter={(value: number) => [`${value} kg`, 'Volume']}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="volume"
+                            stroke="#3B82F6"
+                            strokeWidth={3}
+                            dot={{
+                              fill: '#3B82F6',
+                              r: 5,
+                            }}
+                            activeDot={{
+                              r: 7,
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Daily Breakdown */}
+                {chartData.length > 0 && (
+                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                    <h3 className="text-sm font-bold text-white mb-3">
+                      Daily Breakdown
+                    </h3>
+                    <div className="space-y-2">
+                      {chartData.map((day) => (
+                        <div
+                          key={day.day}
+                          className={`flex items-center justify-between p-3 rounded-lg ${day.workouts > 0 ? 'bg-blue-500/10' : 'bg-gray-700/20'}`}
+                        >
+                          <span className="text-sm font-medium text-gray-300">
+                            {day.day}
+                          </span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-gray-400">
+                              {day.workouts > 0 ? `${formatVolumeFull(day.volume)} kg` : 'Rest'}
+                            </span>
+                            {day.workouts > 0 && (
+                              <div className="w-2 h-2 bg-green-400 rounded-full" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Comparison */}
+                <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                  <h3 className="text-sm font-bold text-white mb-3">
+                    Comparison
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">This Week</span>
+                      <span className="text-sm font-bold text-white">
+                        {formatVolumeFull(currentWeekVolume)} kg
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">Last Week</span>
+                      <span className="text-sm font-bold text-gray-500">
+                        {formatVolumeFull(previousWeekVolume)} kg
+                      </span>
+                    </div>
+                    <div className="h-px bg-white/10" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">Difference</span>
+                      <span className={`text-sm font-bold ${volumeDifference >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {volumeDifference >= 0 ? '+' : ''}{formatVolumeFull(volumeDifference)} kg ({volumeDifferencePercent >= 0 ? '+' : ''}{Math.round(volumeDifferencePercent)}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
