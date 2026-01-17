@@ -320,6 +320,26 @@ export function useExercise(exerciseId: number) {
     enabled: isAuthenticated() && !!exerciseId
   });
 }
+export function useExerciseHistory(
+  exerciseId: number,
+  params?: {
+    limit?: number;
+    start_date?: string;
+    end_date?: string;
+  },
+  options?: {
+    enabled?: boolean;
+  }
+) {
+  return useQuery({
+    queryKey: ['exercises', exerciseId, 'history', params],
+    queryFn: async () => {
+      const response = await exercisesApi.getExerciseHistory(exerciseId, params);
+      return response.data;
+    },
+    enabled: (options?.enabled ?? true) && isAuthenticated() && !!exerciseId
+  });
+}
 
 // ============================================================================
 // MUSCLE GROUPS HOOKS

@@ -313,6 +313,98 @@ interface DeleteExerciseResponse {
 
 ---
 
+### Get Exercise Performance History
+```
+GET /api/exercises/{id}/history
+```
+*Requires authentication (owner only - user's own data)*
+
+**Query Parameters (optional):**
+```typescript
+interface ExerciseHistoryQueryParams {
+  limit?: number;        // Optional: Limit number of data points (default: all)
+  start_date?: string;   // Optional: Filter from date (YYYY-MM-DD)
+  end_date?: string;     // Optional: Filter to date (YYYY-MM-DD)
+}
+```
+
+**Response:**
+```typescript
+interface ExerciseHistoryResponse {
+  data: ExerciseHistoryResource;
+}
+
+interface ExerciseHistoryResource {
+  exercise_id: number;
+  exercise_name: string;
+  stats: ExerciseHistoryStats;
+  performance_data: PerformanceDataPoint[];
+}
+
+interface ExerciseHistoryStats {
+  current_weight: number;      // Most recent weight used (kg)
+  best_weight: number;         // Highest weight ever used (kg)
+  progress_percentage: number; // Percentage change from first to most recent (+28 means +28%)
+  total_sessions: number;       // Total number of completed sessions with this exercise
+  first_session_date: string | null; // ISO date string of first session (YYYY-MM-DD)
+  last_session_date: string | null; // ISO date string of most recent session (YYYY-MM-DD)
+}
+
+interface PerformanceDataPoint {
+  date: string;                // ISO date string (YYYY-MM-DD)
+  session_id: number;          // Workout session ID (for reference)
+  weight: number;              // Best/max weight used in that session (kg)
+  reps: number;                // Total reps across all sets in that session
+  volume: number;              // Total volume = sum of (weight × reps) for all sets
+  sets: number;                // Number of sets performed
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "exercise_id": 42,
+    "exercise_name": "Leg Press",
+    "stats": {
+      "current_weight": 32,
+      "best_weight": 32,
+      "progress_percentage": 28,
+      "total_sessions": 5,
+      "first_session_date": "2024-01-01",
+      "last_session_date": "2024-01-15"
+    },
+    "performance_data": [
+      {
+        "date": "2024-01-01",
+        "session_id": 101,
+        "weight": 25,
+        "reps": 30,
+        "volume": 750,
+        "sets": 3
+      },
+      {
+        "date": "2024-01-15",
+        "session_id": 120,
+        "weight": 32,
+        "reps": 30,
+        "volume": 960,
+        "sets": 3
+      }
+    ]
+  }
+}
+```
+
+**Notes:**
+- Only returns data from completed workout sessions (`completed_at IS NOT NULL`)
+- Performance data is ordered chronologically (oldest first)
+- Weight represents the maximum weight used in that session
+- Volume is calculated as the sum of (weight × reps) for each set
+- If no history exists, returns empty `performance_data` array with stats set to 0/null
+
+---
+
 ## Muscle Groups
 
 ### List All Muscle Groups
@@ -404,15 +496,15 @@ interface WeeklyProgress {
   trend: 'up' | 'down' | 'same';
   current_week_workouts: number;
   previous_week_workouts: number;
-  current_week_volume?: number;          // Total volume in lbs for current week (optional)
+  current_week_volume?: number;          // Total volume in lbs for current week (converted from KG stored in DB) (optional)
   current_week_time_minutes?: number;   // Total time in minutes for current week (optional)
-  previous_week_volume?: number;        // Total volume in lbs for previous week (optional)
+  previous_week_volume?: number;        // Total volume in lbs for previous week (converted from KG stored in DB) (optional)
   volume_difference?: number;           // Difference in volume between weeks (optional)
   volume_difference_percent?: number;   // Percentage difference in volume (optional)
   daily_breakdown?: Array<{              // Daily data for the current week (optional)
     day_of_week: number;                // 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
     date: string;                       // ISO date string (e.g., "2024-01-15")
-    volume: number;                     // Volume in lbs for that day
+    volume: number;                     // Volume in lbs for that day (converted from KG stored in DB)
     workouts: number;                   // Number of workouts
     time_minutes: number;                // Time spent in minutes
   }>;
@@ -1239,6 +1331,31 @@ interface ExerciseResource {
   updated_at: string;
 }
 
+interface ExerciseHistoryResource {
+  exercise_id: number;
+  exercise_name: string;
+  stats: ExerciseHistoryStats;
+  performance_data: PerformanceDataPoint[];
+}
+
+interface ExerciseHistoryStats {
+  current_weight: number;      // Most recent weight used (kg)
+  best_weight: number;         // Highest weight ever used (kg)
+  progress_percentage: number; // Percentage change from first to most recent
+  total_sessions: number;      // Total number of completed sessions
+  first_session_date: string | null; // ISO date string (YYYY-MM-DD)
+  last_session_date: string | null; // ISO date string (YYYY-MM-DD)
+}
+
+interface PerformanceDataPoint {
+  date: string;                // ISO date string (YYYY-MM-DD)
+  session_id: number;          // Workout session ID
+  weight: number;              // Best/max weight used in that session (kg)
+  reps: number;                // Total reps across all sets
+  volume: number;              // Total volume = sum of (weight × reps)
+  sets: number;                // Number of sets performed
+}
+
 interface CategoryResource {
   id: number;
   type: 'workout';
@@ -1473,6 +1590,7 @@ interface ValidationError {
 |--------|----------|-------------|
 | GET | `/api/exercises` | List all exercises |
 | GET | `/api/exercises/{id}` | Get single exercise |
+| GET | `/api/exercises/{id}/history` | Get exercise performance history |
 | POST | `/api/exercises` | Create exercise (admin) |
 | PUT/PATCH | `/api/exercises/{id}` | Update exercise (admin) |
 | DELETE | `/api/exercises/{id}` | Delete exercise (admin) |

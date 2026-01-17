@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Clock, ChevronRight, TrendingUp, Check, Edit2, Info } from 'lucide-react';
+import { ArrowLeft, Clock, ChevronRight, TrendingUp, Check, Edit2, Info, Plus, Trash2, MoreVertical, X, Eye, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession } from '../hooks/useApi';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import { ExercisePickerPage } from './ExercisePickerPage';
 interface Set {
   id: string;
   setLogId?: number;
@@ -14,11 +15,13 @@ interface Set {
 interface Exercise {
   id: string;
   exerciseId: number;
+  sessionExerciseId: number; // WorkoutSessionExercise ID for API calls
   name: string;
   type: string;
   muscleGroup: string;
   sets: Set[];
   targetReps: string;
+  targetSets: number;
   suggestedWeight: number;
   maxWeightLifted: number;
   imageUrl: string;
@@ -45,6 +48,10 @@ export function WorkoutSessionPage({
   const logSet = useLogSet();
   const updateSet = useUpdateSet();
   const completeSession = useCompleteSession();
+  const deleteSet = useDeleteSet();
+  const addSessionExercise = useAddSessionExercise();
+  const removeSessionExercise = useRemoveSessionExercise();
+  const updateSessionExercise = useUpdateSessionExercise();
 
   const exercises = useMemo<Exercise[]>(() => {
     if (!sessionData?.exercises) return [];
@@ -78,11 +85,13 @@ export function WorkoutSessionPage({
       return {
         id: `ex-${exDetail.session_exercise.id}`,
         exerciseId: exDetail.session_exercise.exercise_id,
+        sessionExerciseId: exDetail.session_exercise.id,
         name: exercise?.name || 'Unknown Exercise',
         type: exercise?.category?.type?.toUpperCase() || 'COMPOUND',
         muscleGroup: exercise?.primary_muscle_groups?.[0]?.name?.toUpperCase() || 'UNKNOWN',
         sets,
         targetReps: exDetail.session_exercise.target_reps ? String(exDetail.session_exercise.target_reps) : '0',
+        targetSets: exDetail.session_exercise.target_sets || 0,
         suggestedWeight: exDetail.session_exercise.target_weight || 0,
         maxWeightLifted: Math.max(...loggedSets.map(s => s.weight), 0),
         imageUrl: exercise?.image || '',
@@ -96,6 +105,12 @@ export function WorkoutSessionPage({
   const [editingWeight, setEditingWeight] = useState<number | null>(null);
   const [editingReps, setEditingReps] = useState<number | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
+  const [showWorkoutOptionsMenu, setShowWorkoutOptionsMenu] = useState(false);
+  const [showExerciseMenu, setShowExerciseMenu] = useState(false);
+  const [showSetMenu, setShowSetMenu] = useState(false);
+  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
   
   const currentExercise = exercises[currentExerciseIndex];
   const currentSet = currentExercise?.sets.find(s => !s.completed);
@@ -214,6 +229,175 @@ export function WorkoutSessionPage({
     }
   };
 
+  const handleAddSet = async () => {
+    if (!currentExercise) return;
+    try {
+      await updateSessionExercise.mutateAsync({
+        sessionId,
+        exerciseId: currentExercise.sessionExerciseId,
+        data: { target_sets: currentExercise.targetSets + 1 }
+      });
+    } catch (error) {
+      console.error('Failed to add set:', error);
+    }
+  };
+
+  const handleRemoveSet = async (setId: string) => {
+    if (!currentExercise) return;
+    
+    const set = currentExercise.sets.find(s => s.id === setId);
+    if (!set) return;
+
+    // Check if it's the last set
+    if (currentExercise.sets.length <= 1) {
+      alert('Cannot remove the last set. Remove the exercise instead.');
+      return;
+    }
+
+    try {
+      if (set.completed && set.setLogId) {
+        // Remove logged set
+        await deleteSet.mutateAsync({
+          sessionId,
+          setLogId: set.setLogId
+        });
+      } else {
+        // Remove unlogged set by decreasing target_sets
+        await updateSessionExercise.mutateAsync({
+          sessionId,
+          exerciseId: currentExercise.sessionExerciseId,
+          data: { target_sets: currentExercise.targetSets - 1 }
+        });
+      }
+      setShowSetMenu(false);
+      setSelectedSetId(null);
+    } catch (error) {
+      console.error('Failed to remove set:', error);
+    }
+  };
+
+  const handleOpenSetMenu = (setId: string) => {
+    setSelectedSetId(setId);
+    setShowSetMenu(true);
+  };
+
+  const handleEditSetFromMenu = () => {
+    if (selectedSetId && currentExercise) {
+      const set = currentExercise.sets.find(s => s.id === selectedSetId);
+      if (set) {
+        setEditingSetId(set.id);
+        setEditingWeight(set.weight);
+        setEditingReps(set.reps);
+      }
+    }
+    setShowSetMenu(false);
+    setSelectedSetId(null);
+  };
+
+  const handleRemoveSetFromMenu = () => {
+    if (selectedSetId) {
+      handleRemoveSet(selectedSetId);
+    }
+  };
+
+  const handleAddExercise = () => {
+    setShowWorkoutOptionsMenu(false);
+    setExercisePickerMode('add');
+    setShowExercisePicker(true);
+  };
+
+  const handleSelectExercise = async (exercise: { id: number; name: string; restTime: string; muscleGroups: string[]; imageUrl: string }) => {
+    if (exercisePickerMode === 'add') {
+      try {
+        await addSessionExercise.mutateAsync({
+          sessionId,
+          data: {
+            exercise_id: exercise.id,
+            target_sets: 3,
+            target_reps: 10,
+            target_weight: 0
+          }
+        });
+        setShowExercisePicker(false);
+      } catch (error) {
+        console.error('Failed to add exercise:', error);
+      }
+    } else if (exercisePickerMode === 'swap') {
+      // Remove current exercise first, then add new one
+      if (currentExercise) {
+        try {
+          await removeSessionExercise.mutateAsync({
+            sessionId,
+            exerciseId: currentExercise.sessionExerciseId
+          });
+          // Add new exercise
+          await addSessionExercise.mutateAsync({
+            sessionId,
+            data: {
+              exercise_id: exercise.id,
+              target_sets: currentExercise.targetSets,
+              target_reps: parseInt(currentExercise.targetReps) || 10,
+              target_weight: currentExercise.suggestedWeight
+            }
+          });
+          setShowExercisePicker(false);
+          setShowExerciseMenu(false);
+          // Adjust index if needed
+          if (currentExerciseIndex >= exercises.length - 1 && exercises.length > 1) {
+            setCurrentExerciseIndex(exercises.length - 2);
+          }
+        } catch (error) {
+          console.error('Failed to swap exercise:', error);
+        }
+      }
+    }
+  };
+
+  const handleRemoveExercise = async () => {
+    if (!currentExercise) return;
+    
+    if (exercises.length <= 1) {
+      alert('Cannot remove the last exercise.');
+      return;
+    }
+
+    try {
+      await removeSessionExercise.mutateAsync({
+        sessionId,
+        exerciseId: currentExercise.sessionExerciseId
+      });
+      setShowExerciseMenu(false);
+      
+      // Adjust current exercise index
+      const newExercises = exercises.filter(ex => ex.id !== currentExercise.id);
+      if (currentExerciseIndex >= newExercises.length) {
+        setCurrentExerciseIndex(newExercises.length - 1);
+      }
+    } catch (error) {
+      console.error('Failed to remove exercise:', error);
+    }
+  };
+
+  const handleSwapExercise = () => {
+    setShowExerciseMenu(false);
+    setExercisePickerMode('swap');
+    setShowExercisePicker(true);
+  };
+
+  const handleViewExercise = () => {
+    setShowExerciseMenu(false);
+    onViewExerciseDetail(currentExercise.name);
+  };
+
+  const handleFinishWorkout = () => {
+    setShowWorkoutOptionsMenu(false);
+    handleFinish();
+  };
+
+  const selectedSet = selectedSetId
+    ? currentExercise?.sets.find(s => s.id === selectedSetId)
+    : null;
+
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
   
   if (isLoading) {
@@ -222,11 +406,7 @@ export function WorkoutSessionPage({
     </div>;
   }
 
-  if (!currentExercise) {
-    return <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center">
-      <div className="text-gray-400 text-sm">No exercises in this session</div>
-    </div>;
-  }
+  // Don't return early - show empty state instead
 
   return <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
       {/* Background Gradients */}
@@ -253,70 +433,107 @@ export function WorkoutSessionPage({
               {formatTime(workoutDuration)}
             </span>
           </div>
-          <button onClick={handleFinish} className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">
-            Finish
+          <button onClick={() => setShowWorkoutOptionsMenu(true)} className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+            Options
           </button>
         </motion.div>
 
         {/* Exercise Navigation Tabs */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="px-6 pb-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {exercises.map((exercise, index) => {
-            const status = getExerciseCompletionStatus(exercise);
-            const isActive = index === currentExerciseIndex;
-            return <motion.button key={exercise.id} onClick={() => handleSwitchExercise(index)} whileHover={{
-              scale: 1.02
-            }} whileTap={{
-              scale: 0.98
-            }} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/40 border border-white/5'}`}>
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden">
-                    <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className={`text-sm font-bold ${isActive ? 'text-white' : 'text-gray-300'}`}>
-                      {exercise.name.length > 20 ? exercise.name.substring(0, 20) + '...' : exercise.name}
-                    </h3>
-                    <p className={`text-xs ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>
-                      {status.completed}/{status.total} sets
-                    </p>
-                  </div>
-                  {status.isComplete && <div className="flex-shrink-0 p-1 bg-green-500/20 rounded-full">
-                      <Check className="text-green-400 w-4 h-4" />
-                    </div>}
-                </motion.button>;
-          })}
-          </div>
-        </motion.div>
+        {exercises.length > 0 && (
+          <motion.div initial={{
+            opacity: 0,
+            y: 20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.1
+          }} className="px-6 pb-4">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {exercises.map((exercise, index) => {
+                const status = getExerciseCompletionStatus(exercise);
+                const isActive = index === currentExerciseIndex;
+                return <motion.button key={exercise.id} onClick={() => handleSwitchExercise(index)} whileHover={{
+                  scale: 1.02
+                }} whileTap={{
+                  scale: 0.98
+                }} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/40 border border-white/5'}`}>
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden">
+                        <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className={`text-sm font-bold ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                          {exercise.name.length > 20 ? exercise.name.substring(0, 20) + '...' : exercise.name}
+                        </h3>
+                        <p className={`text-xs ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>
+                          {status.completed}/{status.total} sets
+                        </p>
+                      </div>
+                      {status.isComplete && <div className="flex-shrink-0 p-1 bg-green-500/20 rounded-full">
+                          <Check className="text-green-400 w-4 h-4" />
+                        </div>}
+                    </motion.button>;
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* Exercise Content - with proper bottom padding */}
         <div className="px-6 pb-40">
-          <AnimatePresence mode="wait">
-            <motion.div key={currentExercise.id} initial={{
-            opacity: 0,
-            x: 100
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} exit={{
-            opacity: 0,
-            x: -100
-          }} transition={{
-            duration: 0.3
-          }} className="space-y-6">
-              {/* Exercise Header - Clickable */}
-              <motion.button onClick={() => onViewExerciseDetail(currentExercise.name)} whileHover={{
-              scale: 1.01
-            }} whileTap={{
-              scale: 0.99
-            }} className="w-full flex items-start gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-2xl transition-colors group">
+          {exercises.length === 0 ? (
+            /* Empty State */
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 20
+              }}
+              animate={{
+                opacity: 1,
+                y: 0
+              }}
+              transition={{
+                delay: 0.2
+              }}
+              className="flex flex-col items-center justify-center py-20"
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-3xl flex items-center justify-center mb-6">
+                <Plus className="text-blue-400 w-12 h-12" strokeWidth={2} />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3 text-center">
+                No Exercises Yet
+              </h2>
+              <p className="text-gray-400 text-center mb-8 max-w-sm">
+                Start your workout by adding exercises. Tap the Options button above to get started.
+              </p>
+              <motion.button
+                whileHover={{
+                  scale: 1.02
+                }}
+                whileTap={{
+                  scale: 0.98
+                }}
+                onClick={() => setShowWorkoutOptionsMenu(true)}
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-lg shadow-blue-500/20"
+              >
+                Add Exercise
+              </motion.button>
+            </motion.div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div key={currentExercise.id} initial={{
+                opacity: 0,
+                x: 100
+              }} animate={{
+                opacity: 1,
+                x: 0
+              }} exit={{
+                opacity: 0,
+                x: -100
+              }} transition={{
+                duration: 0.3
+              }} className="space-y-6">
+              {/* Exercise Header with Menu Button */}
+              <div className="relative flex items-start gap-4 p-4 bg-gray-800/40 border border-white/5 rounded-2xl">
                 <div className="flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden">
                   <ExerciseImage src={currentExercise.imageUrl} alt={currentExercise.name} className="w-full h-full" />
                 </div>
@@ -328,10 +545,14 @@ export function WorkoutSessionPage({
                     {currentExercise.muscleGroup}
                   </span>
                 </div>
-                <div className="flex-shrink-0 p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                  <Info className="text-blue-400 w-5 h-5" />
-                </div>
-              </motion.button>
+
+                <button
+                  onClick={() => setShowExerciseMenu(true)}
+                  className="flex-shrink-0 p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <MoreVertical className="text-gray-400 w-5 h-5" />
+                </button>
+              </div>
 
               {/* Max Weight Chart */}
               <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-4">
@@ -473,15 +694,22 @@ export function WorkoutSessionPage({
 
               {/* All Sets List */}
               <div className="space-y-2">
-                {currentExercise.sets.map((set, index) => <motion.button key={set.id} initial={{
-                opacity: 0,
-                x: -20
-              }} animate={{
-                opacity: 1,
-                x: 0
-              }} transition={{
-                delay: index * 0.1
-              }} onClick={() => set.completed && handleEditSet(set)} disabled={!set.completed} className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${editingSetId === set.id ? 'bg-orange-500/20 border-2 border-orange-500/40' : set.completed ? 'bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 cursor-pointer' : 'bg-gray-800/30 border border-white/5'}`}>
+                {currentExercise.sets.map((set, index) => (
+                  <motion.div
+                    key={set.id}
+                    initial={{
+                      opacity: 0,
+                      x: -20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      delay: index * 0.1,
+                    }}
+                    className={`flex items-center justify-between p-4 rounded-xl transition-colors ${editingSetId === set.id ? 'bg-orange-500/20 border-2 border-orange-500/40' : set.completed ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/30 border border-white/5'}`}
+                  >
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-bold text-gray-400">
                         Set {index + 1}
@@ -500,18 +728,38 @@ export function WorkoutSessionPage({
                         <span className="text-xs text-gray-500">reps</span>
                       </div>
                     </div>
-                    {editingSetId === set.id ? <div className="p-2 bg-orange-500/20 rounded-lg">
-                        <Edit2 className="text-orange-400 w-5 h-5" />
-                      </div> : set.completed ? <div className="flex items-center gap-2">
-                        <div className="p-2 bg-green-500/20 rounded-lg">
-                          <Check className="text-green-400 w-5 h-5" />
-                        </div>
-                        <Edit2 className="text-gray-500 w-4 h-4" />
-                      </div> : <ChevronRight className="text-gray-600 w-5 h-5" />}
-                  </motion.button>)}
+
+                    <button
+                      onClick={() => handleOpenSetMenu(set.id)}
+                      className="p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <MoreVertical className="text-gray-400 w-5 h-5" />
+                    </button>
+                  </motion.div>
+                ))}
+
+                {/* Add Set Button */}
+                {!editingSetId && (
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleAddSet}
+                    className="w-full flex items-center justify-center gap-2 p-4 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl transition-colors"
+                  >
+                    <Plus className="text-blue-400 w-5 h-5" />
+                    <span className="text-sm font-bold text-blue-400">
+                      Add Set
+                    </span>
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>
+          )}
         </div>
       </main>
 
@@ -540,6 +788,337 @@ export function WorkoutSessionPage({
             </motion.button>
           </motion.div>}
       </AnimatePresence>
+
+      {/* Workout Options Menu */}
+      <AnimatePresence>
+        {showWorkoutOptionsMenu && (
+          <>
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              onClick={() => setShowWorkoutOptionsMenu(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            />
+
+            <motion.div
+              initial={{
+                y: '100%',
+              }}
+              animate={{
+                y: 0,
+              }}
+              exit={{
+                y: '100%',
+              }}
+              transition={{
+                type: 'spring',
+                damping: 30,
+                stiffness: 300,
+              }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
+            >
+              <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl p-6 pb-32">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-white">
+                    Workout Options
+                  </h3>
+                  <button
+                    onClick={() => setShowWorkoutOptionsMenu(false)}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <X className="text-gray-400 w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleAddExercise}
+                    className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                  >
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <Plus className="text-blue-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-white">
+                        Add Exercise
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Add a new exercise to workout
+                      </p>
+                    </div>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleFinishWorkout}
+                    className="w-full flex items-center gap-4 p-4 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-xl transition-colors"
+                  >
+                    <div className="p-2 bg-green-500/20 rounded-lg">
+                      <Check className="text-green-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-green-400">
+                        Finish Workout
+                      </p>
+                      <p className="text-xs text-green-400/70">
+                        Complete and save workout
+                      </p>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Exercise Menu Modal */}
+      <AnimatePresence>
+        {showExerciseMenu && (
+          <>
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              onClick={() => setShowExerciseMenu(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            />
+
+            <motion.div
+              initial={{
+                y: '100%',
+              }}
+              animate={{
+                y: 0,
+              }}
+              exit={{
+                y: '100%',
+              }}
+              transition={{
+                type: 'spring',
+                damping: 30,
+                stiffness: 300,
+              }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
+            >
+              <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl p-6 pb-32">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-white">
+                    Exercise Options
+                  </h3>
+                  <button
+                    onClick={() => setShowExerciseMenu(false)}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <X className="text-gray-400 w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleViewExercise}
+                    className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                  >
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <Eye className="text-blue-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-white">
+                        View Exercise
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        See instructions and video
+                      </p>
+                    </div>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleSwapExercise}
+                    className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                  >
+                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                      <RefreshCw className="text-purple-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-white">
+                        Swap Exercise
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Replace with another exercise
+                      </p>
+                    </div>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleRemoveExercise}
+                    className="w-full flex items-center gap-4 p-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-colors"
+                  >
+                    <div className="p-2 bg-red-500/20 rounded-lg">
+                      <Trash2 className="text-red-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-red-400">
+                        Remove Exercise
+                      </p>
+                      <p className="text-xs text-red-400/70">
+                        Delete from workout
+                      </p>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Set Menu Modal */}
+      <AnimatePresence>
+        {showSetMenu && selectedSet && (
+          <>
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              onClick={() => setShowSetMenu(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            />
+
+            <motion.div
+              initial={{
+                y: '100%',
+              }}
+              animate={{
+                y: 0,
+              }}
+              exit={{
+                y: '100%',
+              }}
+              transition={{
+                type: 'spring',
+                damping: 30,
+                stiffness: 300,
+              }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
+            >
+              <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl p-6 pb-32">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-white">Set Options</h3>
+                  <button
+                    onClick={() => setShowSetMenu(false)}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <X className="text-gray-400 w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {selectedSet.completed && (
+                    <motion.button
+                      whileHover={{
+                        scale: 1.02,
+                      }}
+                      whileTap={{
+                        scale: 0.98,
+                      }}
+                      onClick={handleEditSetFromMenu}
+                      className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                    >
+                      <div className="p-2 bg-orange-500/20 rounded-lg">
+                        <Edit2 className="text-orange-400 w-5 h-5" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-bold text-white">Edit Set</p>
+                        <p className="text-xs text-gray-400">
+                          Modify weight and reps
+                        </p>
+                      </div>
+                    </motion.button>
+                  )}
+
+                  <motion.button
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={handleRemoveSetFromMenu}
+                    className="w-full flex items-center gap-4 p-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-colors"
+                  >
+                    <div className="p-2 bg-red-500/20 rounded-lg">
+                      <Trash2 className="text-red-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-red-400">
+                        Remove Set
+                      </p>
+                      <p className="text-xs text-red-400/70">Delete this set</p>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Exercise Picker */}
+      {showExercisePicker && (
+        <ExercisePickerPage
+          mode={exercisePickerMode}
+          onClose={() => setShowExercisePicker(false)}
+          onSelectExercise={handleSelectExercise}
+        />
+      )}
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {

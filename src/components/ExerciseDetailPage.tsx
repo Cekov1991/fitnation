@@ -1,19 +1,28 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises } from '../hooks/useApi';
+import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
+
 interface ExerciseDetailPageProps {
   exerciseName: string;
   onBack: () => void;
 }
-const performanceData: {
-  date: string;
-  weight: number;
-  reps: number;
-  volume: number;
-}[] = [];
+
+// Helper function to format ISO date string (YYYY-MM-DD) to display format (e.g., "Jan 15")
+function formatDateForDisplay(dateString: string): string {
+  const date = new Date(dateString);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[date.getMonth()]} ${date.getDate()}`;
+}
+
+// Helper function to format progress percentage with +/- sign
+function formatProgress(percentage: number): string {
+  const sign = percentage >= 0 ? '+' : '';
+  return `${sign}${percentage.toFixed(0)}%`;
+}
 export function ExerciseDetailPage({
   exerciseName,
   onBack
@@ -25,21 +34,54 @@ export function ExerciseDetailPage({
     data: exercises = []
   } = useExercises();
   const exercise = useMemo(() => {
-    return exercises.find(item => item.name.toLowerCase() === exerciseName.toLowerCase());
+    return exercises.find((item: ExerciseResource) => item.name.toLowerCase() === exerciseName.toLowerCase());
   }, [exerciseName, exercises]);
+
+  // Fetch exercise history when history tab is active and exercise exists
+  const {
+    data: historyData,
+    isLoading: isLoadingHistory,
+    error: historyError
+  } = useExerciseHistory(
+    exercise?.id || 0,
+    undefined,
+    {
+      enabled: activeTab === 'history' && !!exercise?.id
+    }
+  );
+
+  // Format performance data for chart
+  const chartData = useMemo(() => {
+    if (!historyData?.performance_data) return [];
+    return historyData.performance_data.map((point: PerformanceDataPoint) => ({
+      date: formatDateForDisplay(point.date),
+      weight: point.weight,
+      reps: point.reps,
+      volume: point.volume,
+      sets: point.sets
+    }));
+  }, [historyData]);
+
+  // Get recent sessions (last 3, most recent first)
+  const recentSessions = useMemo(() => {
+    if (!historyData?.performance_data) return [];
+    return [...historyData.performance_data]
+      .reverse()
+      .slice(0, 3);
+  }, [historyData]);
 
   const primaryMuscles = useMemo(() => {
     if (!exercise?.muscle_groups) return [];
     return exercise.muscle_groups
-      .filter(group => group.is_primary === true)
-      .map(group => group.name);
+      .filter((group: MuscleGroupResource) => group.is_primary === true)
+      .map((group: MuscleGroupResource) => group.name);
   }, [exercise]);
 
   const secondaryMuscles = useMemo(() => {
     if (!exercise?.muscle_groups) return [];
     return exercise.muscle_groups
-      .filter(group => group.is_primary === false)
-      .map(group => group.name);
+      .filter((group: MuscleGroupResource) => group.is_primary === false)
+      .map((group: MuscleGroupResource) => group.name);
   }, [exercise]);
 
   const instructions = exercise?.description || 'No instructions available yet.';
@@ -253,7 +295,7 @@ export function ExerciseDetailPage({
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {primaryMuscles.length > 0 ? primaryMuscles.map(muscle => <button key={muscle} className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/30 transition-colors">
+                      {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/30 transition-colors">
                           {muscle}
                         </button>) : <span className="text-xs text-gray-500">No primary muscles available.</span>}
                     </div>
@@ -268,7 +310,7 @@ export function ExerciseDetailPage({
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {secondaryMuscles.length > 0 ? secondaryMuscles.map(muscle => <button key={muscle} className="px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-xl text-sm font-medium text-orange-400 hover:bg-orange-500/30 transition-colors">
+                      {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-xl text-sm font-medium text-orange-400 hover:bg-orange-500/30 transition-colors">
                           {muscle}
                         </button>) : <span className="text-xs text-gray-500">No secondary muscles available.</span>}
                     </div>
@@ -293,62 +335,104 @@ export function ExerciseDetailPage({
                     Performance History
                   </h2>
 
-                  {performanceData.length === 0 ? <div className="text-sm text-gray-400">
+                  {isLoadingHistory ? (
+                    <div className="text-sm text-gray-400 text-center py-8">
+                      Loading history...
+                    </div>
+                  ) : historyError ? (
+                    <div className="text-sm text-red-400 text-center py-8">
+                      Error loading history. Please try again.
+                    </div>
+                  ) : !historyData || historyData.performance_data.length === 0 ? (
+                    <div className="text-sm text-gray-400 text-center py-8">
                       No history available yet.
-                    </div> : <>
+                    </div>
+                  ) : (
+                    <>
                       {/* Stats Summary */}
                       <div className="grid grid-cols-3 gap-3 mb-6">
                         <div className="bg-gray-700/30 rounded-xl p-3 text-center">
                           <p className="text-xs text-gray-400 mb-1">Current</p>
-                          <p className="text-lg font-bold text-white">32 kg</p>
+                          <p className="text-lg font-bold text-white">
+                            {historyData.stats.current_weight} kg
+                          </p>
                         </div>
                         <div className="bg-gray-700/30 rounded-xl p-3 text-center">
                           <p className="text-xs text-gray-400 mb-1">Best</p>
-                          <p className="text-lg font-bold text-green-400">32 kg</p>
+                          <p className="text-lg font-bold text-green-400">
+                            {historyData.stats.best_weight} kg
+                          </p>
                         </div>
                         <div className="bg-gray-700/30 rounded-xl p-3 text-center">
                           <p className="text-xs text-gray-400 mb-1">Progress</p>
-                          <p className="text-lg font-bold text-blue-400">+28%</p>
+                          <p className="text-lg font-bold text-blue-400">
+                            {formatProgress(historyData.stats.progress_percentage)}
+                          </p>
                         </div>
                       </div>
 
                       {/* Chart */}
-                      <div className="h-48 mb-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={performanceData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                            <XAxis dataKey="date" stroke="#9CA3AF" style={{
-                      fontSize: '12px'
-                    }} />
-                            <YAxis stroke="#9CA3AF" style={{
-                      fontSize: '12px'
-                    }} />
-                            <Tooltip contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: '#fff'
-                    }} />
-                            <Line type="monotone" dataKey="weight" stroke="#3B82F6" strokeWidth={2} dot={{
-                      fill: '#3B82F6',
-                      r: 4
-                    }} activeDot={{
-                      r: 6
-                    }} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                      {chartData.length > 0 && (
+                        <div className="h-48 mb-4">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                              <XAxis 
+                                dataKey="date" 
+                                stroke="#9CA3AF" 
+                                style={{ fontSize: '12px' }}
+                              />
+                              <YAxis 
+                                stroke="#9CA3AF" 
+                                style={{ fontSize: '12px' }}
+                              />
+                              <Tooltip 
+                                contentStyle={{
+                                  backgroundColor: '#1F2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                  color: '#fff'
+                                }}
+                                formatter={(value: number, name: string) => {
+                                  if (name === 'weight') return [`${value} kg`, 'Weight'];
+                                  if (name === 'reps') return [value, 'Reps'];
+                                  if (name === 'volume') return [value, 'Volume'];
+                                  return [value, name];
+                                }}
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="weight" 
+                                stroke="#3B82F6" 
+                                strokeWidth={2} 
+                                dot={{
+                                  fill: '#3B82F6',
+                                  r: 4
+                                }} 
+                                activeDot={{
+                                  r: 6
+                                }} 
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
 
                       {/* Recent Sessions */}
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-400 mb-3">
-                          Recent Sessions
-                        </h3>
-                        <div className="space-y-2">
-                          {performanceData.slice(-3).reverse().map((session, index) => <div key={index} className="flex items-center justify-between p-3 bg-gray-700/20 rounded-lg">
+                      {recentSessions.length > 0 && (
+                        <div>
+                          <h3 className="text-sm font-semibold text-gray-400 mb-3">
+                            Recent Sessions
+                          </h3>
+                          <div className="space-y-2">
+                            {recentSessions.map((session) => (
+                              <div 
+                                key={`${session.session_id}-${session.date}`} 
+                                className="flex items-center justify-between p-3 bg-gray-700/20 rounded-lg"
+                              >
                                 <div>
                                   <p className="text-sm font-medium text-white">
-                                    {session.date}
+                                    {formatDateForDisplay(session.date)}
                                   </p>
                                   <p className="text-xs text-gray-400">
                                     {session.weight} kg × {session.reps} reps
@@ -360,10 +444,13 @@ export function ExerciseDetailPage({
                                   </p>
                                   <p className="text-xs text-gray-400">volume</p>
                                 </div>
-                              </div>)}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </>}
+                      )}
+                    </>
+                  )}
                 </div>
               </motion.div>}
           </AnimatePresence>

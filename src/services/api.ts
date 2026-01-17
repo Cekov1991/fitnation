@@ -126,6 +126,28 @@ export const exercisesApi = {
   getExercise: async (exerciseId: number) => {
     return fetchWithAuth(`/exercises/${exerciseId}`);
   },
+  getExerciseHistory: async (
+    exerciseId: number,
+    params?: {
+      limit?: number;
+      start_date?: string;
+      end_date?: string;
+    }
+  ) => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit !== undefined) {
+      queryParams.append('limit', params.limit.toString());
+    }
+    if (params?.start_date) {
+      queryParams.append('start_date', params.start_date);
+    }
+    if (params?.end_date) {
+      queryParams.append('end_date', params.end_date);
+    }
+    const queryString = queryParams.toString();
+    const url = `/exercises/${exerciseId}/history${queryString ? `?${queryString}` : ''}`;
+    return fetchWithAuth(url);
+  },
   createExercise: async (data: {
     name: string;
     description?: string;
