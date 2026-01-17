@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IonPage } from '@ionic/react';
+import { IonPage, IonContent, IonInput } from '@ionic/react';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import type { FitnessGoal, Gender, TrainingExperience } from '../types/api';
@@ -72,12 +72,13 @@ export function ProfilePage({
     });
   };
   return <IonPage>
-      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
-      {/* Background Gradients */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
-      </div>
+      <IonContent>
+        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        {/* Background Gradients */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+        </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
@@ -171,9 +172,9 @@ export function ProfilePage({
           <div className="space-y-3">
             <div>
               <label className="text-xs text-gray-400 mb-2 block">Age</label>
-              <div className="relative">
+              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="number" value={age} onChange={e => setAge(parseInt(e.target.value) || 0)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <IonInput type="number" value={age.toString()} onIonInput={e => setAge(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
             <div>
@@ -192,18 +193,18 @@ export function ProfilePage({
               <label className="text-xs text-gray-400 mb-2 block">
                 Height (cm)
               </label>
-              <div className="relative">
+              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="number" value={height} onChange={e => setHeight(parseInt(e.target.value) || 0)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <IonInput type="number" value={height.toString()} onIonInput={e => setHeight(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
             <div>
               <label className="text-xs text-gray-400 mb-2 block">
                 Weight (kg)
               </label>
-              <div className="relative">
+              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <Weight className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="number" step="0.01" value={weight} onChange={e => setWeight(parseFloat(e.target.value) || 0)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <IonInput type="number" step="0.01" value={weight.toString()} onIonInput={e => setWeight(parseFloat(e.detail.value!) || 0)} />
               </div>
             </div>
           </div>
@@ -241,18 +242,18 @@ export function ProfilePage({
               <label className="text-xs text-gray-400 mb-2 block">
                 Training Days Per Week
               </label>
-              <div className="relative">
+              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="number" min="1" max="7" value={trainingDays} onChange={e => setTrainingDays(parseInt(e.target.value) || 1)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <IonInput type="number" min="1" max="7" value={trainingDays.toString()} onIonInput={e => setTrainingDays(parseInt(e.detail.value!) || 1)} />
               </div>
             </div>
             <div>
               <label className="text-xs text-gray-400 mb-2 block">
                 Workout Duration (minutes)
               </label>
-              <div className="relative">
+              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="number" value={workoutDuration} onChange={e => setWorkoutDuration(parseInt(e.target.value) || 0)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <IonInput type="number" value={workoutDuration.toString()} onIonInput={e => setWorkoutDuration(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
           </div>
@@ -294,5 +295,6 @@ export function ProfilePage({
         </motion.button>
       </main>
     </div>
+      </IonContent>
     </IonPage>;
 }

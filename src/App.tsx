@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IonApp, IonPage } from '@ionic/react';
+import { IonApp, IonPage, IonContent } from '@ionic/react';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './components/WeeklyCalendar';
 import { MetricCard } from './components/MetricCard';
@@ -397,94 +397,94 @@ export function App() {
   return <IonApp>
       <div className="min-h-screen w-full bg-[#0a0a0a] text-white selection:bg-blue-500/30">
       {currentPage === 'dashboard' && <IonPage>
-          <>
-          {/* Background Gradients */}
-          <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
-          </div>
-
-          <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
-            {/* Header */}
-            <motion.header initial={{
-          opacity: 0,
-          y: -20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.6
-        }} className="flex flex-col items-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/20 mb-4 flex items-center justify-center">
-                <Dumbbell className="text-white w-8 h-8" />
-              </div>
-              <h1 className="text-2xl font-bold tracking-tight text-center">
-                Premium Sport Center
-              </h1>
-              <p className="text-gray-400 text-sm mt-1">
-                Welcome back, {user?.name || 'Athlete'}
-              </p>
-            </motion.header>
-
-            {/* Calendar Section */}
-            <WeeklyCalendar />
-
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="col-span-1">
-                <MetricCard title="Strength Score" value={strengthScoreValue} icon={Dumbbell} delay={0.1} subtitle={strengthScoreSubtitle} onClick={() => setIsStrengthModalOpen(true)} />
-              </div>
-              <div className="col-span-1">
-                <MetricCard title="Balance" value={balanceValue} icon={TrendingUp} delay={0.2} subtitle={balanceSubtitle} onClick={() => setIsBalanceModalOpen(true)} />
-              </div>
-              <div className="col-span-2">
-                <MetricCard title="Weekly Progress" value={weeklyValue} icon={TrendingDown} delay={0.3} subtitle={weeklySubtitle} onClick={() => setIsProgressModalOpen(true)} />
-              </div>
+          <IonContent>
+            {/* Background Gradients */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+              <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
+              <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
             </div>
 
-            {/* CTA Button */}
-            <motion.button initial={{
-          opacity: 0,
-          scale: 0.9
-        }} animate={{
-          opacity: 1,
-          scale: 1
-        }} transition={{
-          delay: 0.4,
-          type: 'spring'
-        }} whileHover={{
-          scale: 1.02
-        }} whileTap={{
-          scale: 0.98
-        }} onClick={handleStartWorkoutClick} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group">
-              <span className="relative z-10">{todayWorkout?.session?.id ? 'Continue Workout' : 'Start Workout'}</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </motion.button>
-          </main>
-          </>
+            <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
+              {/* Header */}
+              <motion.header initial={{
+            opacity: 0,
+            y: -20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.6
+          }} className="flex flex-col items-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/20 mb-4 flex items-center justify-center">
+                  <Dumbbell className="text-white w-8 h-8" />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-center">
+                  Premium Sport Center
+                </h1>
+                <p className="text-gray-400 text-sm mt-1">
+                  Welcome back, {user?.name || 'Athlete'}
+                </p>
+              </motion.header>
+
+              {/* Calendar Section */}
+              <WeeklyCalendar />
+
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="col-span-1">
+                  <MetricCard title="Strength Score" value={strengthScoreValue} icon={Dumbbell} delay={0.1} subtitle={strengthScoreSubtitle} onClick={() => setIsStrengthModalOpen(true)} />
+                </div>
+                <div className="col-span-1">
+                  <MetricCard title="Balance" value={balanceValue} icon={TrendingUp} delay={0.2} subtitle={balanceSubtitle} onClick={() => setIsBalanceModalOpen(true)} />
+                </div>
+                <div className="col-span-2">
+                  <MetricCard title="Weekly Progress" value={weeklyValue} icon={TrendingDown} delay={0.3} subtitle={weeklySubtitle} onClick={() => setIsProgressModalOpen(true)} />
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <motion.button initial={{
+            opacity: 0,
+            scale: 0.9
+          }} animate={{
+            opacity: 1,
+            scale: 1
+          }} transition={{
+            delay: 0.4,
+            type: 'spring'
+          }} whileHover={{
+            scale: 1.02
+          }} whileTap={{
+            scale: 0.98
+          }} onClick={handleStartWorkoutClick} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group">
+                <span className="relative z-10">{todayWorkout?.session?.id ? 'Continue Workout' : 'Start Workout'}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </motion.button>
+            </main>
+          </IonContent>
         </IonPage>}
 
-      {currentPage === 'plans' && <IonPage><PlansPage onNavigateToCreate={handleNavigateToCreatePlan} onNavigateToEdit={handleNavigateToEditPlan} onNavigateToAddWorkout={handleNavigateToAddWorkout} onNavigateToEditWorkout={handleNavigateToEditWorkout} onNavigateToManageExercises={handleNavigateToManageExercises} /></IonPage>}
+      {currentPage === 'plans' && <PlansPage onNavigateToCreate={handleNavigateToCreatePlan} onNavigateToEdit={handleNavigateToEditPlan} onNavigateToAddWorkout={handleNavigateToAddWorkout} onNavigateToEditWorkout={handleNavigateToEditWorkout} onNavigateToManageExercises={handleNavigateToManageExercises} />}
 
-      {currentPage === 'create-plan' && <IonPage><CreatePlanPage mode="create" onBack={handleBackToPlans} onSubmit={handleCreatePlan} /></IonPage>}
+      {currentPage === 'create-plan' && <CreatePlanPage mode="create" onBack={handleBackToPlans} onSubmit={handleCreatePlan} />}
 
-      {currentPage === 'edit-plan' && editingPlan && <IonPage><CreatePlanPage mode="edit" initialData={editingPlan} onBack={handleBackToPlans} onSubmit={handleUpdatePlan} /></IonPage>}
+      {currentPage === 'edit-plan' && editingPlan && <CreatePlanPage mode="edit" initialData={editingPlan} onBack={handleBackToPlans} onSubmit={handleUpdatePlan} />}
 
-      {currentPage === 'add-workout' && <IonPage><AddWorkoutPage mode="create" planName={selectedPlanForWorkout} onBack={handleBackToPlans} onSubmit={handleCreateWorkout} /></IonPage>}
+      {currentPage === 'add-workout' && <AddWorkoutPage mode="create" planName={selectedPlanForWorkout} onBack={handleBackToPlans} onSubmit={handleCreateWorkout} />}
 
-      {currentPage === 'edit-workout' && editingWorkout && <IonPage><AddWorkoutPage mode="edit" initialData={editingWorkout} onBack={handleBackToPlans} onSubmit={handleUpdateWorkout} /></IonPage>}
+      {currentPage === 'edit-workout' && editingWorkout && <AddWorkoutPage mode="edit" initialData={editingWorkout} onBack={handleBackToPlans} onSubmit={handleUpdateWorkout} />}
 
-      {currentPage === 'manage-exercises' && currentWorkoutForExercises && <IonPage><EditWorkoutPage templateId={currentWorkoutForExercises.templateId} workoutName={currentWorkoutForExercises.name} workoutDescription={currentWorkoutForExercises.description} onBack={handleBackToPlans} onAddExercise={handleAddExercise} onSwapExercise={handleSwapExercise} onViewExerciseDetail={handleViewExerciseDetail} /></IonPage>}
+      {currentPage === 'manage-exercises' && currentWorkoutForExercises && <EditWorkoutPage templateId={currentWorkoutForExercises.templateId} workoutName={currentWorkoutForExercises.name} workoutDescription={currentWorkoutForExercises.description} onBack={handleBackToPlans} onAddExercise={handleAddExercise} onSwapExercise={handleSwapExercise} onViewExerciseDetail={handleViewExerciseDetail} />}
 
-      {currentPage === 'pick-exercise' && <IonPage><ExercisePickerPage mode={exercisePickerMode} onClose={handleBackToManageExercises} onSelectExercise={handleSelectExercise} /></IonPage>}
+      {currentPage === 'pick-exercise' && <ExercisePickerPage mode={exercisePickerMode} onClose={handleBackToManageExercises} onSelectExercise={handleSelectExercise} />}
 
-      {currentPage === 'exercise-detail' && <IonPage><ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToManageExercises} /></IonPage>}
+      {currentPage === 'exercise-detail' && <ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToManageExercises} />}
 
-      {currentPage === 'workout-session' && activeSessionId && <IonPage><WorkoutSessionPage sessionId={activeSessionId} workoutName={activeWorkoutName} onBack={handleBackToDashboard} onFinish={handleFinishWorkout} onViewExerciseDetail={handleViewExerciseDetailFromSession} /></IonPage>}
+      {currentPage === 'workout-session' && activeSessionId && <WorkoutSessionPage sessionId={activeSessionId} workoutName={activeWorkoutName} onBack={handleBackToDashboard} onFinish={handleFinishWorkout} onViewExerciseDetail={handleViewExerciseDetailFromSession} />}
 
-      {currentPage === 'workout-session-exercise-detail' && <IonPage><ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToWorkoutSession} /></IonPage>}
+      {currentPage === 'workout-session-exercise-detail' && <ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToWorkoutSession} />}
 
-      {currentPage === 'profile' && <IonPage><ProfilePage onLogout={handleLogout} /></IonPage>}
+      {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
 
       <BottomNav currentPage={getBottomNavPage()} onPageChange={setCurrentPage} />
 

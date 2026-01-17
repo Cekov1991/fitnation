@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonPage } from '@ionic/react';
+import { IonPage, IonContent, IonInput } from '@ionic/react';
 import { ArrowLeft, Clock, ChevronRight, TrendingUp, Check, Edit2, Info, Plus, Trash2, MoreVertical, X, Eye, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../hooks/useApi';
@@ -410,12 +410,13 @@ export function WorkoutSessionPage({
   // Don't return early - show empty state instead
 
   return <IonPage>
-      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
-      {/* Background Gradients */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
-      </div>
+      <IonContent>
+        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        {/* Background Gradients */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+        </div>
 
       <main className="relative z-10 max-w-md mx-auto">
         {/* Header */}
@@ -604,9 +605,9 @@ export function WorkoutSessionPage({
                         <label className="text-xs font-semibold text-blue-100 mb-2 block">
                           Weight
                         </label>
-                        <div className="relative">
-                          <input type="number" value={editingWeight} onChange={e => setEditingWeight(parseInt(e.target.value) || 0)} className="w-full text-4xl font-black text-white bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center focus:outline-none focus:border-white/40 transition-colors" />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-blue-100">
+                        <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
+                          <IonInput type="number" value={editingWeight?.toString() || ''} onIonInput={e => setEditingWeight(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <span className="text-sm font-semibold text-blue-100 ml-2">
                             kg
                           </span>
                         </div>
@@ -617,9 +618,9 @@ export function WorkoutSessionPage({
                         <label className="text-xs font-semibold text-blue-100 mb-2 block">
                           Reps
                         </label>
-                        <div className="relative">
-                          <input type="number" value={editingReps} onChange={e => setEditingReps(parseInt(e.target.value) || 0)} className="w-full text-4xl font-black text-white bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center focus:outline-none focus:border-white/40 transition-colors" />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-blue-100">
+                        <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
+                          <IonInput type="number" value={editingReps?.toString() || ''} onIonInput={e => setEditingReps(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <span className="text-sm font-semibold text-blue-100 ml-2">
                             reps
                           </span>
                         </div>
@@ -653,9 +654,9 @@ export function WorkoutSessionPage({
                         <label className="text-xs font-semibold text-orange-100 mb-2 block">
                           Weight
                         </label>
-                        <div className="relative">
-                          <input type="number" value={editingWeight} onChange={e => setEditingWeight(parseInt(e.target.value) || 0)} className="w-full text-4xl font-black text-white bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center focus:outline-none focus:border-white/40 transition-colors" />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-orange-100">
+                        <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
+                          <IonInput type="number" value={editingWeight?.toString() || ''} onIonInput={e => setEditingWeight(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <span className="text-sm font-semibold text-orange-100 ml-2">
                             kg
                           </span>
                         </div>
@@ -666,9 +667,9 @@ export function WorkoutSessionPage({
                         <label className="text-xs font-semibold text-orange-100 mb-2 block">
                           Reps
                         </label>
-                        <div className="relative">
-                          <input type="number" value={editingReps} onChange={e => setEditingReps(parseInt(e.target.value) || 0)} className="w-full text-4xl font-black text-white bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center focus:outline-none focus:border-white/40 transition-colors" />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-orange-100">
+                        <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
+                          <IonInput type="number" value={editingReps?.toString() || ''} onIonInput={e => setEditingReps(parseInt(e.detail.value!) || 0)} className="ionic-input-workout" />
+                          <span className="text-sm font-semibold text-orange-100 ml-2">
                             reps
                           </span>
                         </div>
@@ -1132,5 +1133,6 @@ export function WorkoutSessionPage({
         }
       `}</style>
     </div>
+      </IonContent>
     </IonPage>;
 }

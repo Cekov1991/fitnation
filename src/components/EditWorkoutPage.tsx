@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonPage } from '@ionic/react';
+import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
@@ -108,12 +108,13 @@ export function EditWorkoutPage({
     }
   };
   return <IonPage>
-      <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
-      {/* Background Gradients */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
-      </div>
+      <IonContent>
+        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        {/* Background Gradients */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+        </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
@@ -282,5 +283,6 @@ export function EditWorkoutPage({
       {/* Edit Sets/Reps Modal */}
       {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialReps={editingExercise.reps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} />}
     </div>
+      </IonContent>
     </IonPage>;
 }

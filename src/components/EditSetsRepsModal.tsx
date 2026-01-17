@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IonInput } from '@ionic/react';
 import { X, Check } from 'lucide-react';
 interface EditSetsRepsModalProps {
   isOpen: boolean;
@@ -76,19 +77,25 @@ export function EditSetsRepsModal({
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Sets
                     </label>
-                    <input type="number" value={sets} onChange={e => setSets(parseInt(e.target.value) || 0)} className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                    <div className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                      <IonInput type="number" value={sets.toString()} onIonInput={e => setSets(parseInt(e.detail.value!) || 0)} />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Reps
                     </label>
-                    <input type="text" value={reps} onChange={e => setReps(e.target.value)} placeholder="e.g., 8-10" className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                    <div className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                      <IonInput type="number" value={reps} onIonInput={e => setReps(e.detail.value || '')} placeholder="e.g., 8-10" />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
                       Weight
                     </label>
-                    <input type="text" value={weight} onChange={e => setWeight(e.target.value)} placeholder="e.g., 30 lb" className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                    <div className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                      <IonInput type="number" value={weight} onIonInput={e => setWeight(e.detail.value || '')} placeholder="e.g., 30" />
+                    </div>
                   </div>
                 </div>
 
