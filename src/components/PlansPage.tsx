@@ -5,7 +5,7 @@ import { Plus, Info, MoreVertical, Dumbbell, CheckCircle2, Circle } from 'lucide
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
 import { BackgroundGradients } from './BackgroundGradients';
-import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useTemplates, useUpdatePlan } from '../hooks/useApi';
+import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan } from '../hooks/useApi';
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 interface PlansPageProps {
@@ -56,9 +56,6 @@ export function PlansPage({
     data: plans = [],
     isLoading: isPlansLoading
   } = usePlans();
-  const {
-    data: templates = []
-  } = useTemplates();
   const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
   const deleteTemplate = useDeleteTemplate();
@@ -70,7 +67,7 @@ export function PlansPage({
 
   const activePlanWorkouts = useMemo(() => {
     if (!activePlan) return [];
-    const planTemplates = activePlan.workout_templates ?? templates.filter(template => template.plan_id === activePlan.id);
+    const planTemplates = activePlan.workout_templates ?? [];
     return planTemplates.map(template => ({
       templateId: template.id,
       name: template.name,
@@ -79,11 +76,11 @@ export function PlansPage({
       completed: false,
       plan: activePlan.name
     }));
-  }, [activePlan, templates]);
+  }, [activePlan]);
 
   const allPlans = useMemo(() => {
     return plans.map(plan => {
-      const planTemplates = plan.workout_templates ?? templates.filter(template => template.plan_id === plan.id);
+      const planTemplates = plan.workout_templates ?? [];
       const workouts = planTemplates.length;
       return {
         id: plan.id,
@@ -94,7 +91,7 @@ export function PlansPage({
         isActive: plan.is_active
       };
     });
-  }, [plans, templates]);
+  }, [plans]);
   const handlePlanMenuClick = (event: React.MouseEvent, menuId: string, plan: {
     id: number;
     name: string;
