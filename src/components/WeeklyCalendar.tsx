@@ -88,18 +88,7 @@ export function WeeklyCalendar() {
   >
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>This Week</h2>
-        <button 
-          className="p-2 rounded-full transition-colors"
-          style={{ color: 'var(--color-text-secondary)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-            e.currentTarget.style.color = 'var(--color-text-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
-          }}
-        >
+        <button className="btn-icon">
           <CalendarIcon size={20} />
         </button>
       </div>

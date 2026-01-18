@@ -432,14 +432,7 @@ export function WorkoutSessionPage({
       }} className="flex items-center justify-between p-6 pb-4">
           <button 
             onClick={onBack} 
-            className="text-sm font-semibold transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
+            className="text-sm font-semibold text-hover-primary"
           >
             Exit
           </button>
@@ -451,14 +444,8 @@ export function WorkoutSessionPage({
           </div>
           <button 
             onClick={() => setShowWorkoutOptionsMenu(true)} 
-            className="text-sm font-semibold transition-colors"
+            className="text-sm font-semibold transition-opacity hover:opacity-80"
             style={{ color: 'var(--color-primary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '0.8';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1';
-            }}
           >
             Options
           </button>
@@ -485,13 +472,12 @@ export function WorkoutSessionPage({
                   scale: 0.98
                 }} 
                   className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'shadow-lg' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'border'}`}
-                  style={!isActive && !status.isComplete ? {
-                    backgroundColor: 'var(--color-bg-surface)',
-                    borderColor: 'var(--color-border-subtle)'
-                  } : {}}
                   style={isActive ? {
                     background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
                     boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                  } : !status.isComplete ? {
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
                   } : {}}
                 >
                       <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden">
@@ -605,14 +591,7 @@ export function WorkoutSessionPage({
 
                 <button
                   onClick={() => setShowExerciseMenu(true)}
-                  className="flex-shrink-0 p-2 rounded-lg transition-colors"
-                  style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                  }}
+                  className="flex-shrink-0 p-2 rounded-lg bg-elevated-hover"
                 >
                   <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
@@ -766,12 +745,6 @@ export function WorkoutSessionPage({
                     color: 'var(--color-text-primary)',
                     backgroundColor: 'color-mix(in srgb, var(--color-text-primary) 20%, transparent)'
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-text-primary) 30%, transparent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-text-primary) 20%, transparent)';
-                  }}
                 >
                         Cancel
                       </motion.button>
@@ -835,14 +808,7 @@ export function WorkoutSessionPage({
 
                     <button
                       onClick={() => handleOpenSetMenu(set.id)}
-                      className="p-2 rounded-lg transition-colors"
-                      style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                      }}
+                      className="p-2 rounded-lg bg-elevated-hover"
                     >
                       <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                     </button>
@@ -863,12 +829,6 @@ export function WorkoutSessionPage({
                     style={{
                       backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
                       borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 20%, transparent)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
                     }}
                   >
                     <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
@@ -955,16 +915,9 @@ export function WorkoutSessionPage({
                   </h3>
                   <button
                     onClick={() => setShowWorkoutOptionsMenu(false)}
-                    className="p-2 rounded-full transition-colors"
-                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                    }}
+                    className="btn-icon"
                   >
-                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -981,12 +934,6 @@ export function WorkoutSessionPage({
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                     }}
                   >
                     <div 
@@ -1079,16 +1026,9 @@ export function WorkoutSessionPage({
                   </h3>
                   <button
                     onClick={() => setShowExerciseMenu(false)}
-                    className="p-2 rounded-full transition-colors"
-                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                    }}
+                    className="btn-icon"
                   >
-                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -1105,12 +1045,6 @@ export function WorkoutSessionPage({
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                     }}
                   >
                     <div 
@@ -1141,12 +1075,6 @@ export function WorkoutSessionPage({
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                     }}
                   >
                     <div 
@@ -1237,16 +1165,9 @@ export function WorkoutSessionPage({
                   <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Set Options</h3>
                   <button
                     onClick={() => setShowSetMenu(false)}
-                    className="p-2 rounded-full transition-colors"
-                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                    }}
+                    className="btn-icon"
                   >
-                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -1264,12 +1185,6 @@ export function WorkoutSessionPage({
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                     }}
                     >
                       <div className="p-2 bg-orange-500/20 rounded-lg">

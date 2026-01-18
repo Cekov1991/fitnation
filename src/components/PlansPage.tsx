@@ -216,16 +216,7 @@ export function PlansPage({
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
               Active Plan
             </h2>
-            <button 
-              className="p-1 rounded-full transition-colors"
-              style={{ backgroundColor: 'var(--color-border-subtle)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-border)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-              }}
-            >
+            <button className="btn-icon p-1">
               <Info className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
             </button>
           </div>
@@ -296,17 +287,7 @@ export function PlansPage({
             }} transition={{
               delay: 0.2 + index * 0.1
             }} 
-                className="flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl transition-colors group cursor-pointer"
-                style={{ 
-                  backgroundColor: 'var(--color-bg-surface)',
-                  borderColor: 'var(--color-border-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                }}
+                className="card-hover flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl group cursor-pointer"
               >
                   <div className="flex items-center gap-3">
                     <div 
@@ -316,12 +297,10 @@ export function PlansPage({
                       <Dumbbell className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <span 
-                      className="text-sm font-medium transition-colors"
+                      className="text-sm font-medium text-hover-primary"
                       style={{ 
                         color: 'var(--color-text-primary)'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
                     >
                       {workout.name}
                     </span>
@@ -367,17 +346,7 @@ export function PlansPage({
           }} transition={{
             delay: 0.4 + index * 0.1
           }} 
-            className="relative backdrop-blur-sm border rounded-2xl p-6 transition-colors group cursor-pointer"
-            style={{ 
-              backgroundColor: 'var(--color-bg-surface)',
-              borderColor: 'var(--color-border-subtle)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-            }}
+            className="card-hover relative backdrop-blur-sm border rounded-2xl p-6 group cursor-pointer"
           >
                 <div className="flex justify-between items-start mb-4">
                   <h3 

@@ -189,16 +189,6 @@ export function EditWorkoutPage({
             } : {
               color: 'var(--color-text-secondary)'
             }}
-            onMouseEnter={(e) => {
-              if (!isEditMode) {
-                e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isEditMode) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
           >
               <Edit2 className="w-5 h-5" />
             </motion.button>
@@ -224,12 +214,6 @@ export function EditWorkoutPage({
               style={{ 
                 backgroundColor: 'var(--color-bg-surface)',
                 borderColor: 'var(--color-border-subtle)'
-              }}
-              onMouseEnter={(e) => {
-                if (!isEditMode) e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
               }}
             >
                   <div className="flex items-center gap-4">
@@ -310,14 +294,6 @@ export function EditWorkoutPage({
           className="w-full py-6 border-2 border-dashed rounded-2xl transition-all group"
           style={{
             borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-            e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 5%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 30%, transparent)';
-            e.currentTarget.style.backgroundColor = 'transparent';
           }}
         >
             <div className="flex items-center justify-center gap-3">

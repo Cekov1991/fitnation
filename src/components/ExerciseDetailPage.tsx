@@ -220,12 +220,6 @@ export function ExerciseDetailPage({
                     style={{ 
                       backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)'
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
-                    }}
                   >
                     {isVideoPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
                   </div>
@@ -255,12 +249,6 @@ export function ExerciseDetailPage({
               className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative"
               style={{ 
                 color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== tab) e.currentTarget.style.color = 'var(--color-text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== tab) e.currentTarget.style.color = 'var(--color-text-secondary)';
               }}
             >
               {activeTab === tab && <motion.div 

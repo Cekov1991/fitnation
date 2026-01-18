@@ -425,14 +425,6 @@ export function ProfilePage({
           background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
           boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
         }}
-        onMouseEnter={(e) => {
-          if (!isLoading) {
-            e.currentTarget.style.boxShadow = '0 10px 25px color-mix(in srgb, var(--color-primary) 40%, transparent)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)';
-        }}
       >
           SAVE CHANGES
         </motion.button>

@@ -152,3 +152,80 @@ ion-input.ionic-input-workout .native-input {
   text-align: center !important;
   padding: 0 !important;
 }
+
+/* ============================================
+   INTERACTIVE ELEMENT STYLES
+   ============================================ */
+
+/* Base interactive button */
+.btn-interactive {
+  transition: all 0.2s ease;
+}
+
+/* Surface background with hover */
+.bg-surface-hover {
+  background-color: var(--color-bg-surface);
+  transition: background-color 0.2s ease;
+}
+.bg-surface-hover:hover {
+  background-color: var(--color-bg-elevated);
+}
+
+/* Elevated background with hover */
+.bg-elevated-hover {
+  background-color: var(--color-bg-elevated);
+  transition: background-color 0.2s ease;
+}
+.bg-elevated-hover:hover {
+  background-color: var(--color-bg-surface);
+}
+
+/* Border subtle with hover */
+.bg-border-subtle-hover {
+  background-color: var(--color-border-subtle);
+  transition: background-color 0.2s ease;
+}
+.bg-border-subtle-hover:hover {
+  background-color: var(--color-border);
+}
+
+/* Text secondary to primary on hover */
+.text-hover-primary {
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+.text-hover-primary:hover {
+  color: var(--color-text-primary);
+}
+
+/* Primary color hover effect */
+.bg-primary-hover {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  transition: background-color 0.2s ease;
+}
+.bg-primary-hover:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+/* Icon button (round) */
+.btn-icon {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+.btn-icon:hover {
+  background-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+/* Card hover effect */
+.card-hover {
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-border-subtle);
+  transition: all 0.2s ease;
+}
+.card-hover:hover {
+  background-color: var(--color-bg-elevated);
+}

@@ -87,16 +87,9 @@ export function AddWorkoutPage({
           scale: 0.9
         }} 
           onClick={onBack} 
-          className="p-2 rounded-full transition-colors"
-          style={{ backgroundColor: 'var(--color-border-subtle)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-border)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-          }}
+          className="btn-icon"
         >
-            <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
+            <ArrowLeft className="w-6 h-6" />
           </motion.button>
           <h1 
             className="text-3xl font-bold bg-clip-text text-transparent"
@@ -167,16 +160,6 @@ export function AddWorkoutPage({
                   color: 'var(--color-primary)'
                 } : {
                   color: 'var(--color-text-primary)'
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedPlan !== plan) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedPlan !== plan) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
                 }}
               >
                       {plan}
@@ -292,18 +275,6 @@ export function AddWorkoutPage({
                   backgroundColor: 'var(--color-bg-elevated)',
                   borderColor: 'var(--color-border)',
                   color: 'var(--color-text-secondary)'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                    e.currentTarget.style.borderColor = 'var(--color-border)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                    e.currentTarget.style.borderColor = 'var(--color-border)';
-                  }
                 }}
               >
                     {isSelected && <motion.div initial={{
