@@ -13,20 +13,7 @@ import '@ionic/react/css/display.css';
 import './index.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AppRoutes } from './routes';
-import { AuthProvider } from './hooks/useAuth';
-import { BrandingProvider } from './hooks/useBranding';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000
-    }
-  }
-});
+import { App } from './App';
 
 const rootElement = document.getElementById('root');
 
@@ -36,12 +23,6 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrandingProvider>
-          <AppRoutes />
-        </BrandingProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <App />
   </React.StrictMode>
 );
