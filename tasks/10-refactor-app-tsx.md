@@ -3,19 +3,18 @@
 ## Priority: 🟢 Later
 ## Estimated Time: 4-6 hours
 ## Type: Architecture / Maintainability
-## Status: ⏸️ BLOCKED - Waiting on Task 08/12 decision
+## Status: 🟢 READY - After Task 08 completes
 
 ---
 
 ## Prerequisites
 
-This task depends on completing one of:
-- **Task 08** (React Router) - Phases 3-6, OR
-- **Task 12** (Migrate to Ionic Components) - For full native feel
+This task depends on completing **Task 08** (React Router migration) - Phases 3-6.
 
-The approach differs significantly based on which path you choose:
-- **With Ionic Components:** App.tsx becomes minimal (~50 lines), routing handled by IonTabs
-- **Without Ionic Components:** Use Context-based navigation (see "Without Router" section below)
+**Decision made:** Using React Router with custom components (not full Ionic). This means:
+- App.tsx will be refactored using the "With React Router" approach
+- Navigation will use `useIonRouter()` and URL-based routing
+- Custom components (BottomNav, modals) will be preserved
 
 ---
 

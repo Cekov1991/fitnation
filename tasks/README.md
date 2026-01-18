@@ -17,7 +17,7 @@ This folder contains detailed task documents for improving the codebase. Each fi
 | 09 | [Split WorkoutSessionPage](./09-split-workout-session-page.md) | 🟢 Later | 2-3 hrs | Maintainability | |
 | 10 | [Refactor App.tsx](./10-refactor-app-tsx.md) | 🟢 Later | 4-6 hrs | Architecture | ⏸️ Blocked (on 08/12) |
 | 11 | [Add React Hook Form](./11-add-react-hook-form.md) | 🟢 Later | 3-4 hrs | DX | |
-| 12 | [Migrate to Ionic Components](./12-migrate-to-ionic-components.md) | 🟡 Medium | 2-4 hrs | Architecture | 🆕 New |
+| 12 | [Migrate to Ionic Components](./12-migrate-to-ionic-components.md) | 🟡 Medium | 2-4 hrs | Architecture | ❌ Skipped |
 
 ## Recommended Order
 
@@ -32,33 +32,21 @@ This folder contains detailed task documents for improving the codebase. Each fi
 6. **06** - Add proper types
 7. **07** - Replace inline hover handlers (can be incremental)
 
-### Phase 3: Architecture - DECISION REQUIRED
+### Phase 3: Architecture (DECISION MADE - Path B)
 
-**Current State:** Task 08 (Ionic Router) is partially complete (Phases 1-2). However, we hit z-index issues because custom components (BottomNav, modals) conflict with Ionic's stacking contexts.
+**Decision:** Keep custom components with React Router. Full Ionic migration (Task 12) was evaluated but caused too many styling conflicts.
 
-**Choose ONE path:**
-
-**Path A: Full Ionic Migration (Recommended for native feel)**
-- **12** - Migrate to Ionic Components (incremental, start with IonTabBar)
-- Then continue **08** (remaining phases)
-- Then **10** - Refactor App.tsx
-
-**Path B: Custom Components with Router Workarounds**
-- Continue **08** with z-index workarounds
-- **10** - Refactor App.tsx (without full Ionic benefits)
+**Current approach:**
+- Continue **08** phases 3-6 (React Router migration with z-index workarounds)
+- **10** - Refactor App.tsx
 - **09** - Split WorkoutSessionPage
 - **11** - Add react-hook-form
 
-### Why This Decision Matters
-
-| Feature | Path A (Full Ionic) | Path B (Custom + Workarounds) |
-|---------|---------------------|-------------------------------|
-| Native page transitions | ✅ Yes | ❌ No |
-| Swipe-to-go-back (iOS) | ✅ Yes | ❌ No |
-| View stacking | ✅ Yes | ❌ No |
-| Custom styling | ✅ Via CSS variables | ✅ Full control |
-| z-index issues | ✅ None | ⚠️ Workarounds needed |
-| Capacitor-ready | ✅ Full compatibility | ⚠️ Partial |
+**Trade-offs accepted:**
+- No native page transitions (using Framer Motion instead)
+- No swipe-to-go-back gesture
+- z-index workarounds for modals/nav (acceptable)
+- Full control over custom styling (preferred)
 
 ## How to Use These Documents
 
