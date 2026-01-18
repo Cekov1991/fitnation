@@ -4,6 +4,7 @@ import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
+import { BackgroundGradients } from './BackgroundGradients';
 import { useTemplate, useAddTemplateExercise, useUpdateTemplateExercise, useRemoveTemplateExercise } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 interface Exercise {
@@ -113,17 +114,7 @@ export function EditWorkoutPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        {/* Background Gradients */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div 
-            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-          />
-          <div 
-            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-          />
-        </div>
+        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}

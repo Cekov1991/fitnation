@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { IonPage, IonContent, IonInput } from '@ionic/react';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
+import { BackgroundGradients } from './BackgroundGradients';
 import type { FitnessGoal, Gender, TrainingExperience } from '../types/api';
 interface ProfilePageProps {
   onLogout: () => void;
@@ -77,17 +78,7 @@ export function ProfilePage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        {/* Background Gradients */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div 
-            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-          />
-          <div 
-            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-          />
-        </div>
+        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}

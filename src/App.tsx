@@ -5,6 +5,7 @@ import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './components/WeeklyCalendar';
 import { MetricCard } from './components/MetricCard';
 import { BottomNav } from './components/BottomNav';
+import { BackgroundGradients } from './components/BackgroundGradients';
 import { StrengthScoreModal } from './components/StrengthScoreModal';
 import { BalanceModal } from './components/BalanceModal';
 import { WeeklyProgressModal } from './components/WeeklyProgressModal';
@@ -410,17 +411,7 @@ export function App() {
       >
       {currentPage === 'dashboard' && <IonPage>
           <IonContent>
-            {/* Background Gradients */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-              <div 
-                className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-                style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-              />
-              <div 
-                className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-                style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-              />
-            </div>
+            <BackgroundGradients />
 
             <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
               {/* Header */}
