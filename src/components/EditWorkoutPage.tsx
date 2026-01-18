@@ -208,10 +208,6 @@ export function EditWorkoutPage({
                 e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
-            style={isEditMode ? {
-              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-              color: 'var(--color-primary)'
-            } : {}}
           >
               <Edit2 className="w-5 h-5" />
             </motion.button>

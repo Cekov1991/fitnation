@@ -208,10 +208,6 @@ export function AddWorkoutPage({
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }
                 }}
-                style={selectedPlan === plan ? {
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
-                  color: 'var(--color-primary)'
-                } : {}}
               >
                       {plan}
                     </button>)}
@@ -384,13 +380,12 @@ export function AddWorkoutPage({
           scale: name.trim() ? 0.98 : 1
         }} 
           className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${name.trim() ? '' : 'cursor-not-allowed opacity-50'}`}
-          style={!name.trim() ? {
-            backgroundColor: 'var(--color-bg-elevated)'
-          } : undefined}
           style={name.trim() ? {
             background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
             boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
-          } : {}}
+          } : {
+            backgroundColor: 'var(--color-bg-elevated)'
+          }}
         >
             <span className="relative z-10 flex items-center justify-center gap-2">
               <Check size={20} />
