@@ -6,8 +6,7 @@ import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
 import { BackgroundGradients } from './BackgroundGradients';
 import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan } from '../hooks/useApi';
-
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import { DAY_NAMES } from '../constants';
 interface PlansPageProps {
   onNavigateToCreate: () => void;
   onNavigateToEdit: (plan: {

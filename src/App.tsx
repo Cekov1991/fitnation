@@ -22,6 +22,7 @@ import { LoginPage } from './components/LoginPage';
 import { useAuth } from './hooks/useAuth';
 import { useBranding } from './hooks/useBranding';
 import { useFitnessMetrics, useStartSession, useCreatePlan, useUpdatePlan, useCreateTemplate, useUpdateTemplate, usePlans, useAddTemplateExercise, useTodayWorkout } from './hooks/useApi';
+import { dayNameToIndex, type DayName } from './constants';
 type Page = 'dashboard' | 'plans' | 'progress' | 'profile' | 'create-plan' | 'edit-plan' | 'add-workout' | 'edit-workout' | 'manage-exercises' | 'pick-exercise' | 'exercise-detail' | 'workout-session' | 'workout-session-exercise-detail';
 export function App() {
   const { user, loading, logout } = useAuth();
@@ -126,16 +127,15 @@ export function App() {
 
       // Convert daysOfWeek array to day_of_week number (0-6, Monday-Sunday)
       // API only accepts one day, so we'll take the first selected day
-      const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const dayOfWeek = data.daysOfWeek.length > 0 
-        ? DAY_NAMES.indexOf(data.daysOfWeek[0])
+        ? dayNameToIndex(data.daysOfWeek[0] as DayName)
         : undefined;
 
       const response = await createTemplate.mutateAsync({
         plan_id: plan.id,
         name: data.name,
         description: data.description || undefined,
-        day_of_week: dayOfWeek !== -1 ? dayOfWeek : undefined
+        day_of_week: dayOfWeek !== undefined && dayOfWeek !== -1 ? dayOfWeek : undefined
       });
 
       // Get the created template ID from response
@@ -178,9 +178,8 @@ export function App() {
 
       // Convert daysOfWeek array to day_of_week number (0-6, Monday-Sunday)
       // API only accepts one day, so we'll take the first selected day
-      const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const dayOfWeek = data.daysOfWeek.length > 0 
-        ? DAY_NAMES.indexOf(data.daysOfWeek[0])
+        ? dayNameToIndex(data.daysOfWeek[0] as DayName)
         : undefined;
 
       await updateTemplate.mutateAsync({
@@ -189,7 +188,7 @@ export function App() {
           plan_id: plan.id,
           name: data.name,
           description: data.description || undefined,
-          day_of_week: dayOfWeek !== -1 ? dayOfWeek : undefined
+          day_of_week: dayOfWeek !== undefined && dayOfWeek !== -1 ? dayOfWeek : undefined
         }
       });
 

@@ -2,13 +2,13 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useCalendar } from '../hooks/useApi';
+import { WEEKDAY_LABELS } from '../constants';
 interface DayStatus {
   day: string;
   date: number;
   progress: number; // 0-100
   isToday?: boolean;
 }
-const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function formatDate(date: Date) {
   const year = date.getFullYear();

@@ -4,6 +4,7 @@ import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { BackgroundGradients } from './BackgroundGradients';
 import { usePlans } from '../hooks/useApi';
+import { DAYS_OF_WEEK } from '../constants';
 interface AddWorkoutPageProps {
   mode?: 'create' | 'edit';
   planName?: string;
@@ -21,28 +22,6 @@ interface AddWorkoutPageProps {
     daysOfWeek: string[];
   }) => void;
 }
-const daysOfWeek = [{
-  short: 'M',
-  full: 'Monday'
-}, {
-  short: 'T',
-  full: 'Tuesday'
-}, {
-  short: 'W',
-  full: 'Wednesday'
-}, {
-  short: 'T',
-  full: 'Thursday'
-}, {
-  short: 'F',
-  full: 'Friday'
-}, {
-  short: 'S',
-  full: 'Saturday'
-}, {
-  short: 'S',
-  full: 'Sunday'
-}];
 export function AddWorkoutPage({
   mode = 'create',
   planName,
@@ -289,7 +268,7 @@ export function AddWorkoutPage({
               Days of Week
             </label>
             <div className="grid grid-cols-7 gap-2">
-              {daysOfWeek.map((day, index) => {
+              {DAYS_OF_WEEK.map((day, index) => {
               const isSelected = selectedDays.includes(day.full);
               return <motion.button key={day.full} type="button" initial={{
                 opacity: 0,
