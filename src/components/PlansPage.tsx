@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { IonPage, IonContent } from '@ionic/react';
 import { Plus, Info, MoreVertical, Dumbbell, CheckCircle2, Circle } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
@@ -171,27 +170,14 @@ export function PlansPage({
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8">
           <h1 
             className="text-3xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
           >
             Plans
           </h1>
-          <motion.button 
-            whileHover={{
-              scale: 1.1,
-              rotate: 90
-            }} 
-            whileTap={{
-              scale: 0.9
-            }} 
+          <button 
             onClick={onNavigateToCreate} 
             className="p-2 rounded-full transition-colors"
             style={{ 
@@ -199,19 +185,11 @@ export function PlansPage({
             }}
           >
             <Plus className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
         {/* Active Plan Section */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="mb-8">
+        <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
               Active Plan
@@ -276,17 +254,8 @@ export function PlansPage({
               {activePlanWorkouts.length === 0 && <div className="text-sm text-center py-4" style={{ color: 'var(--color-text-muted)' }}>
                   No workouts in this plan yet.
                 </div>}
-              {activePlanWorkouts.map((workout, index) => <motion.div 
+              {activePlanWorkouts.map((workout, index) => <div 
                 key={workout.templateId || `${workout.name}-${index}`} 
-                initial={{
-              opacity: 0,
-              x: -20
-            }} animate={{
-              opacity: 1,
-              x: 0
-            }} transition={{
-              delay: 0.2 + index * 0.1
-            }} 
                 className="card-hover flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl group cursor-pointer"
               >
                   <div className="flex items-center gap-3">
@@ -317,35 +286,19 @@ export function PlansPage({
                       <MoreVertical className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                     </button>
                   </div>
-                </motion.div>)}
+                </div>)}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* All Plans Section */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.3
-      }}>
+        <div>
           <h2 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: 'var(--color-secondary)' }}>
             All Plans
           </h2>
 
           <div className="space-y-4 mb-6">
-            {allPlans.map((plan, index) => <motion.div key={plan.id} initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.4 + index * 0.1
-          }} 
+            {allPlans.map((plan, index) => <div key={plan.id} 
             className="card-hover relative backdrop-blur-sm border rounded-2xl p-6 group cursor-pointer"
           >
                 <div className="flex justify-between items-start mb-4">
@@ -380,25 +333,12 @@ export function PlansPage({
                       No workout templates in this plan.
                     </p>
                   </>}
-              </motion.div>)}
+              </div>)}
           </div>
-        </motion.div>
+        </div>
 
         {/* Create New Button */}
-        <motion.button initial={{
-        opacity: 0,
-        scale: 0.9
-      }} animate={{
-        opacity: 1,
-        scale: 1
-      }} transition={{
-        delay: 0.6,
-        type: 'spring'
-      }} whileHover={{
-        scale: 1.02
-      }} whileTap={{
-        scale: 0.98
-      }} onClick={onNavigateToCreate} className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
+        <button onClick={onNavigateToCreate} className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
         style={{
           background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
           boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
@@ -409,7 +349,7 @@ export function PlansPage({
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
             style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
           />
-        </motion.button>
+        </button>
       </main>
 
       {/* Plan Menu */}

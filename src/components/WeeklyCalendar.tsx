@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useCalendar } from '../hooks/useApi';
 import { WEEKDAY_LABELS } from '../constants';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 interface DayStatus {
   day: string;
   date: number;
@@ -26,6 +27,7 @@ function getWeekStart(date: Date) {
   return start;
 }
 export function WeeklyCalendar() {
+  const shouldReduceMotion = useReducedMotion();
   // Calculate today only once when component mounts
   const today = useMemo(() => new Date(), []);
   const weekStart = useMemo(() => getWeekStart(today), [today]);
@@ -71,15 +73,7 @@ export function WeeklyCalendar() {
       };
     });
   }, [sessionsByDate, today, weekStart]);
-  return <motion.div initial={{
-    opacity: 0,
-    scale: 0.95
-  }} animate={{
-    opacity: 1,
-    scale: 1
-  }} transition={{
-    duration: 0.5
-  }} 
+  return <div 
     className="w-full backdrop-blur-xl border rounded-3xl p-6 mb-6"
     style={{ 
       backgroundColor: 'var(--color-bg-surface)',
@@ -118,29 +112,23 @@ export function WeeklyCalendar() {
                   style={{ color: 'var(--color-border-subtle)' }}
                 />
                 {/* Progress Ring */}
-                {item.progress > 0 && <motion.circle initial={{
-              pathLength: 0
-            }} animate={{
-              pathLength: item.progress / 100
-            }} transition={{
-              duration: 1.5,
-              ease: 'easeOut',
-              delay: 0.2 + index * 0.1
-            }} cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="transparent" strokeLinecap="round" style={{
-              pathLength: 0,
-              color: 'var(--color-primary)'
-            }} // Initial state for SSR
-            />}
+                {item.progress > 0 && <motion.circle 
+                  initial={{ pathLength: shouldReduceMotion ? item.progress / 100 : 0 }}
+                  animate={{ pathLength: item.progress / 100 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
+                  cx="20" 
+                  cy="20" 
+                  r="16" 
+                  stroke="currentColor" 
+                  strokeWidth="3" 
+                  fill="transparent" 
+                  strokeLinecap="round" 
+                  style={{ color: 'var(--color-primary)' }}
+                />}
               </svg>
 
               {/* Today Indicator or Empty State */}
-              {item.isToday && <motion.div 
-            initial={{
-              scale: 0
-            }} 
-            animate={{
-              scale: 1
-            }} 
+              {item.isToday && <div 
             className="absolute w-2 h-2 rounded-full"
             style={{
               backgroundColor: 'var(--color-primary)',
@@ -157,5 +145,5 @@ export function WeeklyCalendar() {
           <span style={{ color: 'var(--color-primary)' }}>Start your first workout!</span>
         </p>
       </div>
-    </motion.div>;
+    </div>;
 }

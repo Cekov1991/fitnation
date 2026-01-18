@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, TrendingUp } from 'lucide-react'
 import { useFitnessMetrics } from '../hooks/useApi'
+import { useModalTransition } from '../utils/animations'
 
 interface StrengthScoreModalProps {
   isOpen: boolean
@@ -12,6 +13,7 @@ export function StrengthScoreModal({
   onClose,
 }: StrengthScoreModalProps) {
   const { data: metrics } = useFitnessMetrics()
+  const modalTransition = useModalTransition()
   
   const strengthScore = metrics?.strength_score
   const current = strengthScore?.current ?? 0
@@ -82,15 +84,7 @@ export function StrengthScoreModal({
         <>
           {/* Backdrop */}
           <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            exit={{
-              opacity: 0,
-            }}
+            {...modalTransition}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             style={{ zIndex: 10000 }}
@@ -98,20 +92,7 @@ export function StrengthScoreModal({
 
           {/* Modal */}
           <motion.div
-            initial={{
-              y: '100%',
-            }}
-            animate={{
-              y: 0,
-            }}
-            exit={{
-              y: '100%',
-            }}
-            transition={{
-              type: 'spring',
-              damping: 30,
-              stiffness: 300,
-            }}
+            {...modalTransition}
             className="fixed bottom-0 left-0 right-0 max-w-md mx-auto"
             style={{ zIndex: 10001 }}
           >

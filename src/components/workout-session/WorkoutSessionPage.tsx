@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IonPage, IonContent } from '@ionic/react';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useSimpleTransition } from '../../utils/animations';
 import { Plus, Check } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
@@ -48,6 +50,8 @@ export function WorkoutSessionPage({
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
   const { formattedDuration } = useWorkoutTimer(sessionData?.session?.performed_at);
+  const shouldReduceMotion = useReducedMotion();
+  const simpleTransition = useSimpleTransition();
 
   // Prefetch exercise history for all exercises when session loads
   useEffect(() => {
@@ -374,12 +378,7 @@ export function WorkoutSessionPage({
             <div className="px-6 pb-40">
               {exercises.length === 0 ? (
                 /* Empty State */
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex flex-col items-center justify-center py-20"
-                >
+                <div className="flex flex-col items-center justify-center py-20">
                   <div 
                     className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
                     style={{ 
@@ -394,9 +393,7 @@ export function WorkoutSessionPage({
                   <p className="text-center mb-8 max-w-sm" style={{ color: 'var(--color-text-secondary)' }}>
                     Start your workout by adding exercises. Tap the Options button above to get started.
                   </p>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     onClick={() => setShowWorkoutOptionsMenu(true)}
                     className="px-8 py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
                     style={{
@@ -405,16 +402,16 @@ export function WorkoutSessionPage({
                     }}
                   >
                     Add Exercise
-                  </motion.button>
-                </motion.div>
+                  </button>
+                </div>
               ) : (
                 <AnimatePresence mode="wait">
                   <motion.div 
                     key={currentExercise.id} 
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                    transition={simpleTransition}
                     className="space-y-6"
                   >
                     <CurrentExerciseCard
@@ -460,29 +457,20 @@ export function WorkoutSessionPage({
           </main>
 
           {/* Finish Workout Button - Fixed above bottom nav */}
-          <AnimatePresence>
-            {allExercisesCompleted && (
-              <motion.div 
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 100 }}
-                className="fixed bottom-28 left-0 right-0 px-6 max-w-md mx-auto z-20"
+          {allExercisesCompleted && (
+            <div className="fixed bottom-28 left-0 right-0 px-6 max-w-md mx-auto z-20">
+              <button 
+                onClick={handleFinish} 
+                className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group"
               >
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleFinish} 
-                  className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Check className="w-6 h-6" />
-                    FINISH WORKOUT
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <Check className="w-6 h-6" />
+                  FINISH WORKOUT
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </button>
+            </div>
+          )}
 
           {/* Menus */}
           <WorkoutOptionsMenu

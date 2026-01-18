@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion } from 'framer-motion';
 import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { BackgroundGradients } from './BackgroundGradients';
@@ -103,35 +102,24 @@ export function AddWorkoutPage({
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
             {/* Header */}
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              className="flex items-center gap-4 mb-8"
-            >
-              <motion.button 
-                whileHover={{ scale: 1.1, x: -2 }} 
-                whileTap={{ scale: 0.9 }} 
+            <div className="flex items-center gap-4 mb-8">
+              <button 
                 onClick={onBack} 
                 className="btn-icon"
               >
                 <ArrowLeft className="w-6 h-6" />
-              </motion.button>
+              </button>
               <h1 
                 className="text-3xl font-bold bg-clip-text text-transparent"
                 style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
               >
                 {mode === 'create' ? 'Create Workout' : 'Edit Workout'}
               </h1>
-            </motion.div>
+            </div>
 
             <form onSubmit={handleSubmit(handleFormSubmit)}>
               {/* Plan Dropdown */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.1 }} 
-                className="mb-6"
-              >
+              <div className="mb-6">
                 <label className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Plan *
                 </label>
@@ -169,9 +157,7 @@ export function AddWorkoutPage({
                         </button>
 
                         {isPlanDropdownOpen && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: -10 }} 
-                            animate={{ opacity: 1, y: 0 }} 
+                          <div 
                             className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden z-10"
                             style={{ 
                               backgroundColor: 'var(--color-bg-modal)',
@@ -197,22 +183,17 @@ export function AddWorkoutPage({
                                 {plan}
                               </button>
                             ))}
-                          </motion.div>
+                          </div>
                         )}
                       </>
                     )}
                   />
                 </div>
                 {errors.plan && <p className="text-xs text-red-400 mt-1">{errors.plan.message}</p>}
-              </motion.div>
+              </div>
 
               {/* Workout Name Input */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.2 }} 
-                className="mb-6"
-              >
+              <div className="mb-6">
                 <label htmlFor="workout-name" className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Workout Name *
                 </label>
@@ -239,15 +220,10 @@ export function AddWorkoutPage({
                   }}
                 />
                 {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
-              </motion.div>
+              </div>
 
               {/* Description Textarea */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.3 }} 
-                className="mb-6"
-              >
+              <div className="mb-6">
                 <label htmlFor="description" className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Description
                 </label>
@@ -274,15 +250,10 @@ export function AddWorkoutPage({
                   }}
                 />
                 {errors.description && <p className="text-xs text-red-400 mt-1">{errors.description.message}</p>}
-              </motion.div>
+              </div>
 
               {/* Days of Week - Modern Checkboxes */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.4 }} 
-                className="mb-8"
-              >
+              <div className="mb-8">
                 <label className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Days of Week
                 </label>
@@ -290,14 +261,9 @@ export function AddWorkoutPage({
                   {DAYS_OF_WEEK.map((day, index) => {
                     const isSelected = selectedDays.includes(day.full);
                     return (
-                      <motion.button 
+                      <button 
                         key={day.full} 
                         type="button" 
-                        initial={{ opacity: 0, scale: 0.8 }} 
-                        animate={{ opacity: 1, scale: 1 }} 
-                        transition={{ delay: 0.5 + index * 0.05 }} 
-                        whileHover={{ scale: 1.1 }} 
-                        whileTap={{ scale: 0.95 }} 
                         onClick={() => toggleDay(day.full)} 
                         className={`relative aspect-square rounded-xl font-bold text-sm transition-all ${isSelected ? 'text-white shadow-lg' : 'border'}`}
                         style={isSelected ? {
@@ -310,43 +276,28 @@ export function AddWorkoutPage({
                         }}
                       >
                         {isSelected && (
-                          <motion.div 
-                            initial={{ scale: 0, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }} 
-                            exit={{ scale: 0, opacity: 0 }} 
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
+                          <div className="absolute inset-0 flex items-center justify-center">
                             <Check className="w-4 h-4" strokeWidth={3} />
-                          </motion.div>
+                          </div>
                         )}
                         <span className={isSelected ? 'opacity-0' : ''}>
                           {day.short}
                         </span>
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
                 {selectedDays.length > 0 && (
-                  <motion.p 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    className="text-xs mt-3" 
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
+                  <p className="text-xs mt-3" style={{ color: 'var(--color-text-muted)' }}>
                     Selected: {selectedDays.join(', ')}
-                  </motion.p>
+                  </p>
                 )}
-              </motion.div>
+              </div>
 
               {/* Submit Button */}
-              <motion.button 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.6 }} 
+              <button 
                 type="submit" 
                 disabled={!isValid || isSubmitting}
-                whileHover={{ scale: isValid ? 1.02 : 1 }} 
-                whileTap={{ scale: isValid ? 0.98 : 1 }} 
                 className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${isValid ? '' : 'cursor-not-allowed opacity-50'}`}
                 style={isValid ? {
                   background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
@@ -365,7 +316,7 @@ export function AddWorkoutPage({
                     style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
                   />
                 )}
-              </motion.button>
+              </button>
             </form>
           </main>
         </div>

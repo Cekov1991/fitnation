@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { X, Check } from 'lucide-react';
 import { setsRepsSchema, SetsRepsFormData } from '../schemas/setsReps';
+import { useModalTransition } from '../utils/animations';
 
 interface EditSetsRepsModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export function EditSetsRepsModal({
   initialWeight,
   onSave
 }: EditSetsRepsModalProps) {
+  const modalTransition = useModalTransition();
   const {
     handleSubmit,
     control,
@@ -60,9 +62,7 @@ export function EditSetsRepsModal({
         <>
           {/* Backdrop */}
           <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+            {...modalTransition}
             onClick={onClose} 
             className="fixed inset-0 bg-black/80 backdrop-blur-md" 
             style={{ zIndex: 10000 }} 
@@ -70,10 +70,7 @@ export function EditSetsRepsModal({
 
           {/* Modal */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-            animate={{ opacity: 1, scale: 1, y: 0 }} 
-            exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }} 
+            {...modalTransition}
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm" 
             style={{ zIndex: 10001 }}
           >
@@ -93,14 +90,12 @@ export function EditSetsRepsModal({
                   >
                     Edit Sets & Reps
                   </h2>
-                  <motion.button 
-                    whileHover={{ scale: 1.1, rotate: 90 }} 
-                    whileTap={{ scale: 0.9 }} 
+                  <button 
                     onClick={onClose} 
                     className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
                   >
                     <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
-                  </motion.button>
+                  </button>
                 </div>
 
                 {/* Form */}
@@ -196,11 +191,9 @@ export function EditSetsRepsModal({
                   </div>
 
                   {/* Save Button */}
-                  <motion.button 
+                  <button 
                     type="submit"
                     disabled={!isValid || isSubmitting}
-                    whileHover={{ scale: isValid ? 1.02 : 1 }} 
-                    whileTap={{ scale: isValid ? 0.98 : 1 }} 
                     className="w-full py-3 rounded-xl font-bold text-white shadow-lg transition-shadow relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background: isValid 
@@ -219,7 +212,7 @@ export function EditSetsRepsModal({
                         style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
                       />
                     )}
-                  </motion.button>
+                  </button>
                 </form>
               </div>
             </div>

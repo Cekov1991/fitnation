@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion } from 'framer-motion';
 import { IonPage, IonContent, IonInput } from '@ionic/react';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
@@ -90,27 +89,18 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
             {/* Header */}
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              className="mb-8"
-            >
+            <div className="mb-8">
               <h1 
                 className="text-3xl font-bold bg-clip-text text-transparent"
                 style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
               >
                 Profile
               </h1>
-            </motion.div>
+            </div>
 
             <form onSubmit={handleSubmit(onSubmit)}>
               {/* Account Information */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.1 }} 
-                className="mb-8"
-              >
+              <div className="mb-8">
                 <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                   Account Information
                 </h2>
@@ -174,15 +164,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                     {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Fitness Profile */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.2 }} 
-                className="mb-8"
-              >
+              <div className="mb-8">
                 <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Fitness Profile</h2>
                 <div>
                   <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
@@ -214,15 +199,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Personal Information */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.3 }} 
-                className="mb-8"
-              >
+              <div className="mb-8">
                 <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                   Personal Information
                 </h2>
@@ -353,15 +333,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                     {errors.weight && <p className="text-xs text-red-400 mt-1">{errors.weight.message}</p>}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Training Information */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.4 }} 
-                className="mb-8"
-              >
+              <div className="mb-8">
                 <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                   Training Information
                 </h2>
@@ -461,15 +436,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                     {errors.workout_duration_minutes && <p className="text-xs text-red-400 mt-1">{errors.workout_duration_minutes.message}</p>}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Save Changes Button */}
-              <motion.button 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.5 }} 
-                whileHover={{ scale: isDirty ? 1.02 : 1 }} 
-                whileTap={{ scale: isDirty ? 0.98 : 1 }} 
+              <button 
                 type="submit"
                 disabled={isLoading || isSubmitting || !isDirty}
                 className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -481,22 +451,17 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                 }}
               >
                 {isSubmitting ? 'SAVING...' : 'SAVE CHANGES'}
-              </motion.button>
+              </button>
             </form>
 
             {/* Log Out Button */}
-            <motion.button 
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              transition={{ delay: 0.6 }} 
-              whileHover={{ scale: 1.02 }} 
-              whileTap={{ scale: 0.98 }} 
+            <button 
               onClick={onLogout} 
               className="w-full py-4 bg-transparent border-2 border-red-500/30 rounded-2xl font-bold text-lg text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-all mb-8 flex items-center justify-center gap-2"
             >
               <LogOut className="w-5 h-5" />
               LOG OUT
-            </motion.button>
+            </button>
           </main>
         </div>
       </IonContent>

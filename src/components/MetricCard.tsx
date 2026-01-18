@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ChevronRight, BoxIcon } from 'lucide-react';
 interface MetricCardProps {
   title: string;
@@ -18,21 +17,7 @@ export function MetricCard({
   delay = 0,
   onClick
 }: MetricCardProps) {
-  return <motion.div initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    duration: 0.5,
-    delay,
-    type: 'spring',
-    stiffness: 100
-  }} whileHover={{
-    y: -5,
-    scale: 1.02
-  }} 
+  return <div 
     onClick={onClick} 
     className="relative group overflow-hidden rounded-2xl backdrop-blur-md border p-5 cursor-pointer transition-colors"
     style={{ 
@@ -97,5 +82,5 @@ export function MetricCard({
           {subtitle && <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{subtitle}</p>}
         </div>
       </div>
-    </motion.div>;
+    </div>;
 }
