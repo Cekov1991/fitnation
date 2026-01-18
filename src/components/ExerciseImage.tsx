@@ -23,8 +23,13 @@ export function ExerciseImage({ src, alt, className = '' }: ExerciseImageProps) 
           onError={() => setImageError(true)}
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700/50 to-gray-800/50">
-          <Dumbbell className="text-gray-500 w-8 h-8" />
+        <div 
+          className="w-full h-full flex items-center justify-center bg-gradient-to-br"
+          style={{ 
+            background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))'
+          }}
+        >
+          <Dumbbell className="w-8 h-8" style={{ color: 'var(--color-text-muted)' }} />
         </div>
       )}
     </div>

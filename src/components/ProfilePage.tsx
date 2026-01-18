@@ -73,7 +73,10 @@ export function ProfilePage({
   };
   return <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        <div 
+          className="min-h-screen w-full pb-32"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div 
@@ -113,21 +116,26 @@ export function ProfilePage({
       }} transition={{
         delay: 0.1
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Account Information
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <input 
                   type="text" 
                   value={fullName} 
                   onChange={e => setFullName(e.target.value)} 
-                  className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 transition-all" 
+                  className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }} 
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                   }}
@@ -138,16 +146,21 @@ export function ProfilePage({
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <input 
                   type="email" 
                   value={email} 
                   onChange={e => setEmail(e.target.value)} 
-                  className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 transition-all" 
+                  className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }} 
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                   }}
@@ -170,17 +183,22 @@ export function ProfilePage({
       }} transition={{
         delay: 0.2
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">Fitness Profile</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Fitness Profile</h2>
           <div>
-            <label className="text-xs text-gray-400 mb-2 block">
+            <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
               Physical Goal
             </label>
             <div className="relative">
-              <Target className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
+                <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
               <select 
                 value={physicalGoal} 
                 onChange={e => setPhysicalGoal(e.target.value as FitnessGoal)} 
-                className="w-full pl-12 pr-12 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                 }}
@@ -192,7 +210,7 @@ export function ProfilePage({
                     {option.label}
                   </option>)}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
             </div>
           </div>
         </motion.div>
@@ -207,14 +225,19 @@ export function ProfilePage({
       }} transition={{
         delay: 0.3
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Personal Information
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">Age</label>
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Age</label>
               <div 
-                className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:ring-2 transition-all"
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                 }}
@@ -222,18 +245,23 @@ export function ProfilePage({
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={age.toString()} onIonInput={e => setAge(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">Sex</label>
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Sex</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
                 <select 
                   value={sex} 
                   onChange={e => setSex(e.target.value as Gender)} 
-                  className="w-full pl-12 pr-12 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                  className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                   }}
@@ -245,15 +273,20 @@ export function ProfilePage({
                   <option value="female">Female</option>
                   <option value="other">Prefer not to say</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Height (cm)
               </label>
               <div 
-                className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:ring-2 transition-all"
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                 }}
@@ -261,16 +294,21 @@ export function ProfilePage({
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
-                <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={height.toString()} onIonInput={e => setHeight(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Weight (kg)
               </label>
               <div 
-                className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:ring-2 transition-all"
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                 }}
@@ -278,7 +316,7 @@ export function ProfilePage({
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
-                <Weight className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Weight className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <IonInput type="number" inputmode="decimal" pattern="[0-9.]*" step="0.01" value={weight.toString()} onIonInput={e => setWeight(parseFloat(e.detail.value!) || 0)} />
               </div>
             </div>
@@ -295,20 +333,25 @@ export function ProfilePage({
       }} transition={{
         delay: 0.4
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Training Information
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Experience Level
               </label>
               <div className="relative">
-                <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
+                <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
                 <select 
                   value={experienceLevel} 
                   onChange={e => setExperienceLevel(e.target.value as TrainingExperience)} 
-                  className="w-full pl-12 pr-12 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                  className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                   }}
@@ -320,15 +363,20 @@ export function ProfilePage({
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Training Days Per Week
               </label>
               <div 
-                className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:ring-2 transition-all"
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                 }}
@@ -336,16 +384,21 @@ export function ProfilePage({
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <IonInput type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="7" value={trainingDays.toString()} onIonInput={e => setTrainingDays(parseInt(e.detail.value!) || 1)} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Workout Duration (minutes)
               </label>
               <div 
-                className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:ring-2 transition-all"
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
                 }}
@@ -353,7 +406,7 @@ export function ProfilePage({
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
-                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={workoutDuration.toString()} onIonInput={e => setWorkoutDuration(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>

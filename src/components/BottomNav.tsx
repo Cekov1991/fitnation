@@ -27,7 +27,13 @@ export function BottomNav({
   onPageChange
 }: BottomNavProps) {
   return <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2">
-      <div className="max-w-md mx-auto bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50">
+      <div 
+        className="max-w-md mx-auto backdrop-blur-xl border rounded-2xl shadow-2xl shadow-black/50"
+        style={{ 
+          backgroundColor: 'var(--color-bg-modal)',
+          borderColor: 'var(--color-border)'
+        }}
+      >
         <div className="flex justify-around items-center p-2">
           {tabs.map(tab => {
           const Icon = tab.icon;
@@ -39,11 +45,23 @@ export function BottomNav({
               duration: 0.6
             }} />}
 
-                <span className={`relative z-10 transition-colors duration-300 ${isActive ? 'text-blue-400' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                <span 
+                  className="relative z-10 transition-colors duration-300"
+                  style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.currentTarget.style.color = 'var(--color-text-secondary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.currentTarget.style.color = 'var(--color-text-muted)';
+                  }}
+                >
                   <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                 </span>
 
-                <span className={`relative z-10 text-[10px] font-medium mt-1 transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                <span 
+                  className="relative z-10 text-[10px] font-medium mt-1 transition-colors duration-300"
+                  style={{ color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}
+                >
                   {tab.label}
                 </span>
               </button>;

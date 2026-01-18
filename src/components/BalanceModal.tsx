@@ -124,9 +124,18 @@ export function BalanceModal({
             }}
             className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
           >
-            <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div 
+              className="rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
+              style={{ backgroundColor: 'var(--color-bg-modal)' }}
+            >
               {/* Header */}
-              <div className="sticky top-0 bg-[#0f1419] border-b border-white/10 p-6 flex items-center justify-between rounded-t-3xl">
+              <div 
+                className="sticky top-0 border-b p-6 flex items-center justify-between rounded-t-3xl"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-modal)',
+                  borderColor: 'var(--color-border)'
+                }}
+              >
                 <h2 
                   className="text-2xl font-bold bg-clip-text text-transparent"
                   style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -135,23 +144,36 @@ export function BalanceModal({
                 </h2>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  className="p-2 rounded-full transition-colors"
+                  style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-border)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+                  }}
                 >
-                  <X className="text-gray-400 w-6 h-6" />
+                  <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
         </button>
       </div>
 
               {/* Content */}
               <div className="p-6 space-y-6">
                 {/* Main Balance Card */}
-                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-white/10">
+                <div 
+                  className="bg-gradient-to-br rounded-2xl p-6 border"
+                  style={{ 
+                    background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
+                    borderColor: 'var(--color-border)'
+                  }}
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className={`w-16 h-16 ${levelColors.iconBg} rounded-full flex items-center justify-center`}>
                       <Scale className={`${levelColors.iconText} w-8 h-8`} />
                     </div>
                     <div className="text-right">
-                      <p className="text-5xl font-black text-white">{Math.round(percentage)}%</p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-5xl font-black" style={{ color: 'var(--color-text-primary)' }}>{Math.round(percentage)}%</p>
+                      <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                         Balance Score
                       </p>
                     </div>
@@ -165,14 +187,26 @@ export function BalanceModal({
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <p className="text-sm text-gray-400 mb-1">Recent Change</p>
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Recent Change</p>
                     <p className={`text-2xl font-bold ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
                       {isPositive ? '+' : ''}{Math.round(recentChange)}%
                     </p>
                   </div>
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <p className="text-sm text-gray-400 mb-1">Muscle Balance</p>
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Muscle Balance</p>
                     <p className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
                       {sortedMuscleGroups.length} Groups
                     </p>
@@ -180,11 +214,17 @@ export function BalanceModal({
                 </div>
 
                 {/* Description */}
-                <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                  <h3 className="text-sm font-bold text-white mb-2">
+                <div 
+                  className="rounded-xl p-4 border"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
+                  }}
+                >
+                  <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                     What This Means
                   </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                     Your strength balance of {Math.round(percentage)}% indicates {level.toLowerCase()} muscle group distribution. 
                     {isPositive && ' You\'re improving your balance over time.'}
                     {isNeutral && ' Your balance has remained steady.'}
@@ -194,8 +234,14 @@ export function BalanceModal({
 
                 {/* Muscle Groups Distribution */}
                 {sortedMuscleGroups.length > 0 && (
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <h3 className="text-sm font-bold text-white mb-3">
+                  <div 
+                  className="rounded-xl p-4 border"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
+                  }}
+                >
+                    <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
                       Muscle Group Distribution
                     </h3>
                     <div className="space-y-3">
@@ -204,14 +250,17 @@ export function BalanceModal({
                         return (
                           <div key={group.name}>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm text-gray-300 capitalize">
+                              <span className="text-sm capitalize" style={{ color: 'var(--color-text-secondary)' }}>
                                 {displayName}
                               </span>
-                              <span className="text-sm font-bold text-white">
+                              <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                                 {Math.round(group.percentage)}%
                               </span>
                             </div>
-                            <div className="h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                            <div 
+                              className="h-2 rounded-full overflow-hidden"
+                              style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                            >
                               <div
                                 className="h-full"
                                 style={{

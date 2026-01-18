@@ -166,7 +166,10 @@ export function PlansPage({
   };
   return <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        <div 
+          className="min-h-screen w-full pb-32"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div 
@@ -226,20 +229,35 @@ export function PlansPage({
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
               Active Plan
             </h2>
-            <button className="p-1 hover:bg-white/5 rounded-full transition-colors">
-              <Info className="text-gray-500 w-4 h-4" />
+            <button 
+              className="p-1 rounded-full transition-colors"
+              style={{ backgroundColor: 'var(--color-border-subtle)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-border)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+              }}
+            >
+              <Info className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
             </button>
           </div>
 
           {/* Active Plan Card */}
-          <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/10 rounded-3xl p-6 shadow-xl">
+          <div 
+            className="relative bg-gradient-to-br backdrop-blur-sm border rounded-3xl p-6 shadow-xl"
+            style={{ 
+              background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
+              borderColor: 'var(--color-border)'
+            }}
+          >
             {/* Card Header */}
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                   {activePlan?.name || (isPlansLoading ? 'Loading...' : 'No active plan')}
                 </h3>
-                <p className="text-sm text-gray-400 leading-relaxed">
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                   {activePlan?.description || 'Create a plan to get started.'}
                 </p>
               </div>
@@ -248,8 +266,8 @@ export function PlansPage({
                 name: activePlan.name,
                 description: activePlan.description || '',
                 isActive: activePlan.is_active
-              })} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                <MoreVertical className="text-gray-400 w-5 h-5" />
+              })} className="p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
+                <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
               </button>}
             </div>
 
@@ -277,10 +295,12 @@ export function PlansPage({
 
             {/* Workouts List */}
             <div className="space-y-3">
-              {activePlanWorkouts.length === 0 && <div className="text-sm text-gray-500 text-center py-4">
+              {activePlanWorkouts.length === 0 && <div className="text-sm text-center py-4" style={{ color: 'var(--color-text-muted)' }}>
                   No workouts in this plan yet.
                 </div>}
-              {activePlanWorkouts.map((workout, index) => <motion.div key={workout.templateId || `${workout.name}-${index}`} initial={{
+              {activePlanWorkouts.map((workout, index) => <motion.div 
+                key={workout.templateId || `${workout.name}-${index}`} 
+                initial={{
               opacity: 0,
               x: -20
             }} animate={{
@@ -288,7 +308,19 @@ export function PlansPage({
               x: 0
             }} transition={{
               delay: 0.2 + index * 0.1
-            }} className="flex items-center justify-between p-4 bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-xl hover:bg-gray-800/60 transition-colors group cursor-pointer">
+            }} 
+                className="flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl transition-colors group cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border-subtle)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                }}
+              >
                   <div className="flex items-center gap-3">
                     <div 
                       className="p-2 rounded-lg"
@@ -297,26 +329,26 @@ export function PlansPage({
                       <Dumbbell className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <span 
-                      className="text-sm font-medium text-white transition-colors"
+                      className="text-sm font-medium transition-colors"
                       style={{ 
-                        color: 'white'
+                        color: 'var(--color-text-primary)'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
                     >
                       {workout.name}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {workout.completed ? <CheckCircle2 className="text-green-400 w-5 h-5" /> : <Circle className="text-gray-600 w-5 h-5" />}
+                    {workout.completed ? <CheckCircle2 className="text-green-400 w-5 h-5" /> : <Circle className="w-5 h-5" style={{ color: 'var(--color-border-subtle)' }} />}
                     <button onClick={e => handleWorkoutMenuClick(e, `workout-${index}`, {
                   templateId: workout.templateId,
                   plan: activePlan?.name || workout.plan,
                   name: workout.name,
                   description: workout.description,
                   daysOfWeek: workout.daysOfWeek
-                })} className="p-1 hover:bg-white/5 rounded-full transition-colors">
-                      <MoreVertical className="text-gray-500 w-4 h-4" />
+                })} className="p-1 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
+                      <MoreVertical className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
                     </button>
                   </div>
                 </motion.div>)}
@@ -347,22 +379,40 @@ export function PlansPage({
             y: 0
           }} transition={{
             delay: 0.4 + index * 0.1
-          }} className="relative bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6 hover:bg-gray-800/60 transition-colors group cursor-pointer">
+          }} 
+            className="relative backdrop-blur-sm border rounded-2xl p-6 transition-colors group cursor-pointer"
+            style={{ 
+              backgroundColor: 'var(--color-bg-surface)',
+              borderColor: 'var(--color-border-subtle)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+            }}
+          >
                 <div className="flex justify-between items-start mb-4">
                   <h3 
-                    className="text-lg font-bold text-white transition-colors"
+                    className="text-lg font-bold transition-colors"
                     style={{ color: 'var(--color-secondary)' }}
                   >
                     {plan.name}
                   </h3>
-                  <button onClick={e => handlePlanMenuClick(e, `plan-${plan.id}`, plan)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                    <MoreVertical className="text-gray-400 w-5 h-5" />
+                  <button onClick={e => handlePlanMenuClick(e, `plan-${plan.id}`, plan)} className="p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
+                    <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                   </button>
                 </div>
 
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="px-3 py-1.5 bg-gray-700/50 border border-gray-600/50 rounded-full">
-                    <span className="text-xs font-bold text-gray-400">
+                  <div 
+                    className="px-3 py-1.5 border rounded-full"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-elevated)',
+                      borderColor: 'var(--color-border)'
+                    }}
+                  >
+                    <span className="text-xs font-bold" style={{ color: 'var(--color-text-secondary)' }}>
                       {plan.workouts} WORKOUT{plan.workouts !== 1 ? 'S' : ''}
                     </span>
                   </div>
@@ -370,7 +420,7 @@ export function PlansPage({
 
                 {plan.isEmpty && <>
                     <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
-                    <p className="text-sm text-gray-500 text-center py-2">
+                    <p className="text-sm text-center py-2" style={{ color: 'var(--color-text-muted)' }}>
                       No workout templates in this plan.
                     </p>
                   </>}

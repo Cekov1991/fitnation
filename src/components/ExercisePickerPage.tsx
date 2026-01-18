@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, ChevronRight } from 'lucide-react';
 import { useExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import type { ExerciseResource } from '../types/api';
 interface Exercise {
   id: number;
   name: string;
@@ -26,11 +27,11 @@ export function ExercisePickerPage({
   } = useExercises();
   const [searchQuery, setSearchQuery] = useState('');
   const availableExercises = useMemo<Exercise[]>(() => {
-    return exercises.map(exercise => ({
+    return exercises.map((exercise: ExerciseResource) => ({
       id: exercise.id,
       name: exercise.name,
       restTime: `${Math.round(exercise.default_rest_sec / 60)}m`,
-      muscleGroups: (exercise.muscle_groups || []).map(group => group.name),
+      muscleGroups: (exercise.muscle_groups || []).map((group: { name: string }) => group.name),
       imageUrl: exercise.image || ''
     }));
   }, [exercises]);
@@ -50,7 +51,10 @@ export function ExercisePickerPage({
     onSelectExercise(exercise);
     onClose();
   };
-  return <div className="fixed inset-0 z-[100] bg-[#0a0a0a]">
+  return <div 
+    className="fixed inset-0 z-[100]"
+    style={{ backgroundColor: 'var(--color-bg-base)' }}
+  >
         {/* Background Gradients */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <div 
@@ -84,7 +88,7 @@ export function ExercisePickerPage({
         }} whileTap={{
           scale: 0.9
         }} onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            <X className="text-gray-400 w-6 h-6" />
+            <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
           </motion.button>
         </motion.div>
 
@@ -105,7 +109,12 @@ export function ExercisePickerPage({
               value={searchQuery} 
               onChange={e => handleSearch(e.target.value)} 
               placeholder="Search exercises..." 
-              className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all" 
+              className="w-full pl-12 pr-4 py-4 border rounded-2xl focus:outline-none focus:ring-2 transition-all"
+              style={{ 
+                backgroundColor: 'var(--color-bg-elevated)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)'
+              }} 
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
               }}
@@ -124,10 +133,13 @@ export function ExercisePickerPage({
           }} animate={{
             opacity: 1
           }} className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
-                  <Search className="text-gray-500 w-8 h-8" />
+                <div 
+                  className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                  style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                >
+                  <Search className="w-8 h-8" style={{ color: 'var(--color-text-muted)' }} />
                 </div>
-                <p className="text-gray-400 text-sm">Loading exercises...</p>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading exercises...</p>
               </motion.div> : filteredExercises.length > 0 ? <div className="space-y-2">
                 {filteredExercises.map((exercise, index) => <motion.button key={exercise.id} initial={{
               opacity: 0,
@@ -144,7 +156,20 @@ export function ExercisePickerPage({
               scale: 1.02
             }} whileTap={{
               scale: 0.98
-            }} onClick={() => handleSelectExercise(exercise)} className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-2xl transition-colors text-left">
+            }} 
+              onClick={() => handleSelectExercise(exercise)} 
+              className="w-full flex items-center gap-4 p-4 border rounded-2xl transition-colors text-left"
+              style={{ 
+                backgroundColor: 'var(--color-bg-surface)',
+                borderColor: 'var(--color-border-subtle)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+              }}
+            >
                     {/* Exercise Image/Muscle Diagram */}
                     <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
                       <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
@@ -152,27 +177,30 @@ export function ExercisePickerPage({
 
                     {/* Exercise Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-white mb-1 leading-tight">
+                      <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
                         {exercise.name}
                       </h3>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                         Rest: {exercise.restTime}
                       </p>
                     </div>
 
                     {/* Chevron */}
-                    <ChevronRight className="flex-shrink-0 text-gray-500 w-5 h-5" />
+                    <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                   </motion.button>)}
               </div> : <motion.div initial={{
             opacity: 0
           }} animate={{
             opacity: 1
           }} className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
-                  <Search className="text-gray-500 w-8 h-8" />
+                <div 
+                  className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                  style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                >
+                  <Search className="w-8 h-8" style={{ color: 'var(--color-text-muted)' }} />
                 </div>
-                <p className="text-gray-400 text-sm">No exercises found</p>
-                <p className="text-gray-500 text-xs mt-1">
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>No exercises found</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                   Try a different search term
                 </p>
               </motion.div>}

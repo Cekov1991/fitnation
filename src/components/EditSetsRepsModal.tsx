@@ -54,7 +54,13 @@ export function EditSetsRepsModal({
         damping: 25,
         stiffness: 300
       }} className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm z-50">
-            <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+            <div 
+              className="backdrop-blur-xl border rounded-3xl shadow-2xl overflow-hidden"
+              style={{ 
+                backgroundColor: 'var(--color-bg-modal)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               <div className="p-6">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
@@ -70,41 +76,53 @@ export function EditSetsRepsModal({
               }} whileTap={{
                 scale: 0.9
               }} onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-                    <X size={20} className="text-gray-400" />
+                    <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
                   </motion.button>
                 </div>
 
                 {/* Form */}
                 <div className="space-y-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Sets
                     </label>
                     <div 
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white transition-all"
-                      style={{
-                        '--focus-border': 'color-mix(in srgb, var(--color-primary) 50%, transparent)'
-                      } as React.CSSProperties & { '--focus-border': string }}
+                      className="w-full px-4 py-3 border rounded-xl transition-all"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-elevated)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)'
+                      }}
                     >
                       <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={sets.toString()} onIonInput={e => setSets(parseInt(e.detail.value!) || 0)} />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Reps
                     </label>
                     <div 
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white transition-all"
+                      className="w-full px-4 py-3 border rounded-xl transition-all"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-elevated)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)'
+                      }}
                     >
                       <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={reps} onIonInput={e => setReps(e.detail.value || '')} placeholder="e.g., 8-10" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Weight
                     </label>
                     <div 
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white transition-all"
+                      className="w-full px-4 py-3 border rounded-xl transition-all"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-elevated)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)'
+                      }}
                     >
                       <IonInput type="number" inputmode="decimal" pattern="[0-9.]*" value={weight} onIonInput={e => setWeight(e.detail.value || '')} placeholder="e.g., 30" />
                     </div>

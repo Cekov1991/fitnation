@@ -104,9 +104,18 @@ export function WeeklyProgressModal({
             }}
             className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
           >
-            <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div 
+              className="rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
+              style={{ backgroundColor: 'var(--color-bg-modal)' }}
+            >
               {/* Header */}
-              <div className="sticky top-0 bg-[#0f1419] border-b border-white/10 p-6 flex items-center justify-between rounded-t-3xl">
+              <div 
+                className="sticky top-0 border-b p-6 flex items-center justify-between rounded-t-3xl"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-modal)',
+                  borderColor: 'var(--color-border)'
+                }}
+              >
                 <h2 
                   className="text-2xl font-bold bg-clip-text text-transparent"
                   style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -117,14 +126,20 @@ export function WeeklyProgressModal({
                   onClick={onClose}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors"
                 >
-                  <X className="text-gray-400 w-6 h-6" />
+                  <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
               </div>
 
               {/* Content */}
               <div className="p-6 space-y-6">
                 {/* Main Progress Card */}
-                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-white/10">
+                <div 
+                  className="bg-gradient-to-br rounded-2xl p-6 border"
+                  style={{ 
+                    background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
+                    borderColor: 'var(--color-border)'
+                  }}
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div 
                       className="w-16 h-16 rounded-full flex items-center justify-center"
@@ -151,7 +166,7 @@ export function WeeklyProgressModal({
                       <p className={`text-5xl font-black ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
                         {isPositive ? '+' : ''}{Math.round(percentage)}%
                       </p>
-                      <p className="text-sm text-gray-400 mt-1">vs Last Week</p>
+                      <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>vs Last Week</p>
                     </div>
                   </div>
                   <div 
@@ -186,27 +201,51 @@ export function WeeklyProgressModal({
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
                     <Calendar className="w-5 h-5 mb-2" style={{ color: 'var(--color-primary)' }} />
-                    <p className="text-2xl font-bold text-white">{currentWeekWorkouts}</p>
-                    <p className="text-xs text-gray-400">Workouts</p>
+                    <p className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{currentWeekWorkouts}</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Workouts</p>
                   </div>
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <Dumbbell className="text-purple-400 w-5 h-5 mb-2" />
-                    <p className="text-2xl font-bold text-white">{formatVolume(currentWeekVolume)}</p>
-                    <p className="text-xs text-gray-400">Volume (kg)</p>
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <Dumbbell className="w-5 h-5 mb-2" style={{ color: 'var(--color-secondary)' }} />
+                    <p className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatVolume(currentWeekVolume)}</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Volume (kg)</p>
                   </div>
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
                     <TrendingUp className="text-green-400 w-5 h-5 mb-2" />
-                    <p className="text-2xl font-bold text-white">{minutesToHours(currentWeekTimeMinutes)}</p>
-                    <p className="text-xs text-gray-400">Total Time</p>
+                    <p className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{minutesToHours(currentWeekTimeMinutes)}</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Total Time</p>
                   </div>
                 </div>
 
                 {/* Weekly Volume Chart */}
                 {chartData.length > 0 && (
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <h3 className="text-sm font-bold text-white mb-4">
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                       Training Volume
                     </h3>
                     <div className="h-48">
@@ -256,8 +295,14 @@ export function WeeklyProgressModal({
 
                 {/* Daily Breakdown */}
                 {chartData.length > 0 && (
-                  <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                    <h3 className="text-sm font-bold text-white mb-3">
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
                       Daily Breakdown
                     </h3>
                     <div className="space-y-2">
@@ -268,14 +313,14 @@ export function WeeklyProgressModal({
                           style={{
                             backgroundColor: day.workouts > 0 
                               ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' 
-                              : 'color-mix(in srgb, #374151 20%, transparent)'
+                              : 'var(--color-bg-elevated)'
                           }}
                         >
-                          <span className="text-sm font-medium text-gray-300">
+                          <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
                             {day.day}
                           </span>
                           <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-400">
+                            <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                               {day.workouts > 0 ? `${formatVolumeFull(day.volume)} kg` : 'Rest'}
                             </span>
                             {day.workouts > 0 && (
@@ -289,26 +334,32 @@ export function WeeklyProgressModal({
                 )}
 
                 {/* Comparison */}
-                <div className="bg-gray-800/40 rounded-xl p-4 border border-white/5">
-                  <h3 className="text-sm font-bold text-white mb-3">
+                <div 
+                  className="rounded-xl p-4 border"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
+                  }}
+                >
+                  <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
                     Comparison
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">This Week</span>
-                      <span className="text-sm font-bold text-white">
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>This Week</span>
+                      <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                         {formatVolumeFull(currentWeekVolume)} kg
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Last Week</span>
-                      <span className="text-sm font-bold text-gray-500">
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Last Week</span>
+                      <span className="text-sm font-bold" style={{ color: 'var(--color-text-muted)' }}>
                         {formatVolumeFull(previousWeekVolume)} kg
                       </span>
                     </div>
-                    <div className="h-px bg-white/10" />
+                    <div className="h-px" style={{ backgroundColor: 'var(--color-border)' }} />
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Difference</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Difference</span>
                       <span className={`text-sm font-bold ${volumeDifference >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {volumeDifference >= 0 ? '+' : ''}{formatVolumeFull(volumeDifference)} kg ({volumeDifferencePercent >= 0 ? '+' : ''}{Math.round(volumeDifferencePercent)}%)
                       </span>

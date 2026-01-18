@@ -78,27 +78,55 @@ export function WeeklyCalendar() {
     scale: 1
   }} transition={{
     duration: 0.5
-  }} className="w-full bg-gray-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-6 mb-6">
+  }} 
+    className="w-full backdrop-blur-xl border rounded-3xl p-6 mb-6"
+    style={{ 
+      backgroundColor: 'var(--color-bg-surface)',
+      borderColor: 'var(--color-border-subtle)'
+    }}
+  >
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-white">This Week</h2>
-        <button className="p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+        <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>This Week</h2>
+        <button 
+          className="p-2 rounded-full transition-colors"
+          style={{ color: 'var(--color-text-secondary)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+            e.currentTarget.style.color = 'var(--color-text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'var(--color-text-secondary)';
+          }}
+        >
           <CalendarIcon size={20} />
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-2 md:gap-4">
         {weekData.map((item, index) => <div key={index} className="flex flex-col items-center gap-3">
-            <span className="text-xs font-medium text-gray-500">
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
               {item.day}
             </span>
-            <span className={`text-sm font-bold ${item.isToday ? 'text-white' : 'text-gray-400'}`}>
+            <span 
+              className="text-sm font-bold"
+              style={{ color: item.isToday ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
+            >
               {item.date}
             </span>
 
             <div className="relative w-10 h-10 flex items-center justify-center">
               {/* Background Ring */}
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-gray-800" />
+                <circle 
+                  cx="20" 
+                  cy="20" 
+                  r="16" 
+                  stroke="currentColor" 
+                  strokeWidth="3" 
+                  fill="transparent"
+                  style={{ color: 'var(--color-border-subtle)' }}
+                />
                 {/* Progress Ring */}
                 {item.progress > 0 && <motion.circle initial={{
               pathLength: 0
@@ -134,7 +162,7 @@ export function WeeklyCalendar() {
       </div>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-400 font-medium">
+        <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
           Ready to crush this week?{' '}
           <span style={{ color: 'var(--color-primary)' }}>Start your first workout!</span>
         </p>

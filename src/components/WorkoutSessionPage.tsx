@@ -402,8 +402,11 @@ export function WorkoutSessionPage({
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
   
   if (isLoading) {
-    return <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center">
-      <div className="text-gray-400 text-sm">Loading session...</div>
+    return <div 
+      className="min-h-screen w-full flex items-center justify-center"
+      style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+    >
+      <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading session...</div>
     </div>;
   }
 
@@ -411,7 +414,10 @@ export function WorkoutSessionPage({
 
   return <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        <div 
+          className="min-h-screen w-full pb-32"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div 
@@ -433,12 +439,22 @@ export function WorkoutSessionPage({
         opacity: 1,
         y: 0
       }} className="flex items-center justify-between p-6 pb-4">
-          <button onClick={onBack} className="text-sm font-semibold text-gray-400 hover:text-gray-300 transition-colors">
+          <button 
+            onClick={onBack} 
+            className="text-sm font-semibold transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
+          >
             Exit
           </button>
           <div className="flex items-center gap-2">
-            <Clock className="text-gray-500 w-4 h-4" />
-            <span className="text-sm text-gray-400">
+            <Clock className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+            <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
               {formatTime(workoutDuration)}
             </span>
           </div>
@@ -477,7 +493,11 @@ export function WorkoutSessionPage({
                 }} whileTap={{
                   scale: 0.98
                 }} 
-                  className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'shadow-lg' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/40 border border-white/5'}`}
+                  className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'shadow-lg' : status.isComplete ? 'bg-green-500/10 border border-green-500/20' : 'border'}`}
+                  style={!isActive && !status.isComplete ? {
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
+                  } : {}}
                   style={isActive ? {
                     background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
                     boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 20%, transparent)'
@@ -487,7 +507,10 @@ export function WorkoutSessionPage({
                         <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
                       </div>
                       <div className="text-left">
-                        <h3 className={`text-sm font-bold ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                        <h3 
+                          className="text-sm font-bold"
+                          style={{ color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
+                        >
                           {exercise.name.length > 20 ? exercise.name.substring(0, 20) + '...' : exercise.name}
                         </h3>
                         <p 
@@ -532,10 +555,10 @@ export function WorkoutSessionPage({
               >
                 <Plus className="w-12 h-12" strokeWidth={2} style={{ color: 'var(--color-primary)' }} />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3 text-center">
+              <h2 className="text-2xl font-bold mb-3 text-center" style={{ color: 'var(--color-text-primary)' }}>
                 No Exercises Yet
               </h2>
-              <p className="text-gray-400 text-center mb-8 max-w-sm">
+              <p className="text-center mb-8 max-w-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 Start your workout by adding exercises. Tap the Options button above to get started.
               </p>
               <motion.button
@@ -570,12 +593,18 @@ export function WorkoutSessionPage({
                 duration: 0.3
               }} className="space-y-6">
               {/* Exercise Header with Menu Button */}
-              <div className="relative flex items-start gap-4 p-4 bg-gray-800/40 border border-white/5 rounded-2xl">
+              <div 
+                className="relative flex items-start gap-4 p-4 border rounded-2xl"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border-subtle)'
+                }}
+              >
                 <div className="flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden">
                   <ExerciseImage src={currentExercise.imageUrl} alt={currentExercise.name} className="w-full h-full" />
                 </div>
                 <div className="flex-1 text-left">
-                  <h2 className="text-xl font-bold text-white mb-2">
+                  <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                     {currentExercise.name}
                   </h2>
                   <span className="inline-block px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs font-bold text-cyan-400">
@@ -585,14 +614,27 @@ export function WorkoutSessionPage({
 
                 <button
                   onClick={() => setShowExerciseMenu(true)}
-                  className="flex-shrink-0 p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="flex-shrink-0 p-2 rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  }}
                 >
-                  <MoreVertical className="text-gray-400 w-5 h-5" />
+                  <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
               </div>
 
               {/* Max Weight Chart */}
-              <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-4">
+              <div 
+                className="backdrop-blur-sm border rounded-2xl p-4"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border-subtle)'
+                }}
+              >
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
                     Max Weight Lifted
@@ -600,10 +642,10 @@ export function WorkoutSessionPage({
                   <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                 </div>
                 <div className="mb-2">
-                  <span className="text-3xl font-bold text-white">
+                  <span className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
                     {currentExercise.maxWeightLifted} kg
                   </span>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                     10 reps • 02/10/2025
                   </p>
                 </div>
@@ -726,14 +768,34 @@ export function WorkoutSessionPage({
                   scale: 1.02
                 }} whileTap={{
                   scale: 0.98
-                }} onClick={handleCancelEdit} className="flex-1 px-6 py-4 bg-white/20 rounded-2xl font-bold text-lg text-white">
+                }} 
+                  onClick={handleCancelEdit} 
+                  className="flex-1 px-6 py-4 rounded-2xl font-bold text-lg" 
+                  style={{ 
+                    color: 'var(--color-text-primary)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-text-primary) 20%, transparent)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-text-primary) 30%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-text-primary) 20%, transparent)';
+                  }}
+                >
                         Cancel
                       </motion.button>
                       <motion.button whileHover={{
                   scale: 1.02
                 }} whileTap={{
                   scale: 0.98
-                }} onClick={handleSaveEdit} className="flex-1 px-6 py-4 bg-white rounded-2xl font-bold text-lg text-orange-600 shadow-lg">
+                }} 
+                  onClick={handleSaveEdit} 
+                  className="flex-1 px-6 py-4 rounded-2xl font-bold text-lg shadow-lg"
+                  style={{ 
+                    color: '#ea580c', // orange-600 - semantic color for save action
+                    backgroundColor: 'var(--color-text-primary)'
+                  }}
+                >
                         Save
                       </motion.button>
                     </div>
@@ -755,32 +817,43 @@ export function WorkoutSessionPage({
                     transition={{
                       delay: index * 0.1,
                     }}
-                    className={`flex items-center justify-between p-4 rounded-xl transition-colors ${editingSetId === set.id ? 'bg-orange-500/20 border-2 border-orange-500/40' : set.completed ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/30 border border-white/5'}`}
+                    className={`flex items-center justify-between p-4 rounded-xl transition-colors border ${editingSetId === set.id ? 'bg-orange-500/20 border-2 border-orange-500/40' : set.completed ? 'bg-green-500/10 border border-green-500/20' : ''}`}
+                    style={!editingSetId && !set.completed ? {
+                      backgroundColor: 'var(--color-bg-elevated)',
+                      borderColor: 'var(--color-border-subtle)'
+                    } : {}}
                   >
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-bold text-gray-400">
+                      <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>
                         Set {index + 1}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-white">
+                        <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                           {set.weight}
                         </span>
-                        <span className="text-xs text-gray-500">kg</span>
+                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
                       </div>
-                      <span className="text-gray-600">×</span>
+                      <span style={{ color: 'var(--color-border)' }}>×</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-white">
+                        <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                           {set.reps}
                         </span>
-                        <span className="text-xs text-gray-500">reps</span>
+                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>reps</span>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleOpenSetMenu(set.id)}
-                      className="p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors"
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                      }}
                     >
-                      <MoreVertical className="text-gray-400 w-5 h-5" />
+                      <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                     </button>
                   </motion.div>
                 ))}
@@ -881,16 +954,26 @@ export function WorkoutSessionPage({
               }}
               className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
             >
-              <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl p-6 pb-32">
+              <div 
+                className="rounded-t-3xl shadow-2xl p-6 pb-32"
+                style={{ backgroundColor: 'var(--color-bg-modal)' }}
+              >
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                     Workout Options
                   </h3>
                   <button
                     onClick={() => setShowWorkoutOptionsMenu(false)}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    className="p-2 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+                    }}
                   >
-                    <X className="text-gray-400 w-5 h-5" />
+                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                   </button>
                 </div>
 
@@ -903,7 +986,17 @@ export function WorkoutSessionPage({
                       scale: 0.98,
                     }}
                     onClick={handleAddExercise}
-                    className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                    className="w-full flex items-center gap-4 p-4 border rounded-xl transition-colors"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                    }}
                   >
                     <div 
                       className="p-2 rounded-lg"
@@ -912,10 +1005,10 @@ export function WorkoutSessionPage({
                       <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-sm font-bold text-white">
+                      <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                         Add Exercise
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                         Add a new exercise to workout
                       </p>
                     </div>
@@ -985,16 +1078,26 @@ export function WorkoutSessionPage({
               }}
               className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
             >
-              <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl p-6 pb-32">
+              <div 
+                className="rounded-t-3xl shadow-2xl p-6 pb-32"
+                style={{ backgroundColor: 'var(--color-bg-modal)' }}
+              >
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                     Exercise Options
                   </h3>
                   <button
                     onClick={() => setShowExerciseMenu(false)}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    className="p-2 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+                    }}
                   >
-                    <X className="text-gray-400 w-5 h-5" />
+                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                   </button>
                 </div>
 
@@ -1007,7 +1110,17 @@ export function WorkoutSessionPage({
                       scale: 0.98,
                     }}
                     onClick={handleViewExercise}
-                    className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                    className="w-full flex items-center gap-4 p-4 border rounded-xl transition-colors"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                    }}
                   >
                     <div 
                       className="p-2 rounded-lg"
@@ -1016,10 +1129,10 @@ export function WorkoutSessionPage({
                       <Eye className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-sm font-bold text-white">
+                      <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                         View Exercise
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                         See instructions and video
                       </p>
                     </div>
@@ -1033,7 +1146,17 @@ export function WorkoutSessionPage({
                       scale: 0.98,
                     }}
                     onClick={handleSwapExercise}
-                    className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                    className="w-full flex items-center gap-4 p-4 border rounded-xl transition-colors"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                    }}
                   >
                     <div 
                       className="p-2 rounded-lg"
@@ -1042,10 +1165,10 @@ export function WorkoutSessionPage({
                       <RefreshCw className="w-5 h-5" style={{ color: 'var(--color-secondary)' }} />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-sm font-bold text-white">
+                      <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                         Swap Exercise
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                         Replace with another exercise
                       </p>
                     </div>
@@ -1115,14 +1238,24 @@ export function WorkoutSessionPage({
               }}
               className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
             >
-              <div className="bg-[#0f1419] rounded-t-3xl shadow-2xl p-6 pb-32">
+              <div 
+                className="rounded-t-3xl shadow-2xl p-6 pb-32"
+                style={{ backgroundColor: 'var(--color-bg-modal)' }}
+              >
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white">Set Options</h3>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Set Options</h3>
                   <button
                     onClick={() => setShowSetMenu(false)}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    className="p-2 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+                    }}
                   >
-                    <X className="text-gray-400 w-5 h-5" />
+                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                   </button>
                 </div>
 
@@ -1136,14 +1269,24 @@ export function WorkoutSessionPage({
                         scale: 0.98,
                       }}
                       onClick={handleEditSetFromMenu}
-                      className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 border border-white/5 rounded-xl transition-colors"
+                      className="w-full flex items-center gap-4 p-4 border rounded-xl transition-colors"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                    }}
                     >
                       <div className="p-2 bg-orange-500/20 rounded-lg">
                         <Edit2 className="text-orange-400 w-5 h-5" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="text-sm font-bold text-white">Edit Set</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>Edit Set</p>
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                           Modify weight and reps
                         </p>
                       </div>

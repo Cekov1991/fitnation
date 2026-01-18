@@ -32,7 +32,20 @@ export function MetricCard({
   }} whileHover={{
     y: -5,
     scale: 1.02
-  }} onClick={onClick} className="relative group overflow-hidden rounded-2xl bg-gray-900/40 backdrop-blur-md border border-white/5 p-5 cursor-pointer hover:bg-gray-800/40 transition-colors">
+  }} 
+    onClick={onClick} 
+    className="relative group overflow-hidden rounded-2xl backdrop-blur-md border p-5 cursor-pointer transition-colors"
+    style={{ 
+      backgroundColor: 'var(--color-bg-surface)',
+      borderColor: 'var(--color-border-subtle)'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+    }}
+  >
       {/* Gradient glow effect on hover */}
       <div 
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -52,17 +65,36 @@ export function MetricCard({
           >
             <Icon size={20} className="group-hover:opacity-80 transition-opacity" />
           </div>
-          <ChevronRight size={16} className="text-gray-500 group-hover:text-white transition-colors" />
+          <ChevronRight 
+            size={16} 
+            className="transition-colors" 
+            style={{ color: 'var(--color-text-muted)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-muted)';
+            }}
+          />
         </div>
 
         <div>
-          <h3 className="text-3xl font-bold text-white tracking-tight mb-1">
+          <h3 className="text-3xl font-bold tracking-tight mb-1" style={{ color: 'var(--color-text-primary)' }}>
             {value}
           </h3>
-          <p className="text-sm font-medium text-gray-400 group-hover:text-gray-300 transition-colors">
+          <p 
+            className="text-sm font-medium transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
+          >
             {title}
           </p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{subtitle}</p>}
         </div>
       </div>
     </motion.div>;

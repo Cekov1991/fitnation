@@ -384,8 +384,11 @@ export function App() {
 
   if (loading) {
     return <IonApp>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center">
-          <div className="text-gray-400 text-sm">Loading...</div>
+        <div 
+          className="min-h-screen w-full flex items-center justify-center"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
+          <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading...</div>
         </div>
       </IonApp>;
   }
@@ -398,8 +401,10 @@ export function App() {
 
   return <IonApp>
       <div 
-        className="min-h-screen w-full bg-[#0a0a0a] text-white"
+        className="min-h-screen w-full"
         style={{
+          backgroundColor: 'var(--color-bg-base)',
+          color: 'var(--color-text-primary)',
           '--selection-bg': 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
         } as React.CSSProperties & { '--selection-bg': string }}
       >
@@ -439,13 +444,13 @@ export function App() {
                     className="w-16 h-16 rounded-2xl shadow-lg mb-4 flex items-center justify-center"
                     style={{ background: 'linear-gradient(to top right, var(--color-primary), var(--color-secondary))' }}
                   >
-                    <Dumbbell className="text-white w-8 h-8" />
+                    <Dumbbell className="w-8 h-8" style={{ color: 'var(--color-text-primary)' }} />
                   </div>
                 )}
                 <h1 className="text-2xl font-bold tracking-tight text-center">
                   {partnerName || 'Fit Nation'}
                 </h1>
-                <p className="text-gray-400 text-sm mt-1">
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                   Welcome back, {user?.name || 'Athlete'}
                 </p>
               </motion.header>
