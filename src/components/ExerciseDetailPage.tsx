@@ -5,6 +5,7 @@ import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import { BackgroundGradients } from './BackgroundGradients';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
 
 interface ExerciseDetailPageProps {
@@ -148,17 +149,7 @@ export function ExerciseDetailPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        {/* Background Gradients */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div 
-            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-          />
-          <div 
-            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-          />
-        </div>
+        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto">
         {/* Header */}
@@ -229,12 +220,6 @@ export function ExerciseDetailPage({
                     style={{ 
                       backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)'
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
-                    }}
                   >
                     {isVideoPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
                   </div>
@@ -264,12 +249,6 @@ export function ExerciseDetailPage({
               className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative"
               style={{ 
                 color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== tab) e.currentTarget.style.color = 'var(--color-text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== tab) e.currentTarget.style.color = 'var(--color-text-secondary)';
               }}
             >
               {activeTab === tab && <motion.div 

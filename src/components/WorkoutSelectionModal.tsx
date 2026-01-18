@@ -59,7 +59,7 @@ export function WorkoutSelectionModal({
         opacity: 1
       }} exit={{
         opacity: 0
-      }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md z-50" />
+      }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md" style={{ zIndex: 10000 }} />
 
           {/* Modal */}
           <motion.div initial={{
@@ -75,7 +75,7 @@ export function WorkoutSelectionModal({
         type: 'spring',
         damping: 30,
         stiffness: 300
-      }} className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-hidden">
+      }} className="fixed inset-x-0 bottom-0 max-h-[85vh] overflow-hidden" style={{ zIndex: 10001 }}>
             <div 
               className="backdrop-blur-xl border-t rounded-t-3xl shadow-2xl"
               style={{ 

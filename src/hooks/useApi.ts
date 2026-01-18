@@ -1,5 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi, plansApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi } from '../services/api';
+import type {
+  CreatePlanInput,
+  UpdatePlanInput,
+  CreateTemplateInput,
+  UpdateTemplateInput,
+  AddTemplateExerciseInput,
+  UpdateTemplateExerciseInput,
+  LogSetInput,
+  UpdateSetInput,
+  AddSessionExerciseInput,
+  UpdateSessionExerciseInput,
+  UpdateProfileInput,
+} from '../types/api';
 
 // ============================================================================
 // AUTHENTICATION HELPER
@@ -26,7 +39,7 @@ export function useProfile() {
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: profileApi.updateProfile,
+    mutationFn: (data: UpdateProfileInput) => profileApi.updateProfile(data),
     onSuccess: response => {
       queryClient.setQueryData(['profile'], response.user);
       queryClient.invalidateQueries({
@@ -87,7 +100,7 @@ export function usePlan(planId: number) {
 export function useCreatePlan() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: plansApi.createPlan,
+    mutationFn: (data: CreatePlanInput) => plansApi.createPlan(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['plans']
@@ -103,7 +116,7 @@ export function useUpdatePlan() {
       data
     }: {
       planId: number;
-      data: any;
+      data: UpdatePlanInput;
     }) => plansApi.updatePlan(planId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -157,7 +170,7 @@ export function useTemplate(templateId: number) {
 export function useCreateTemplate() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: templatesApi.createTemplate,
+    mutationFn: (data: CreateTemplateInput) => templatesApi.createTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['templates']
@@ -179,7 +192,7 @@ export function useUpdateTemplate() {
       data
     }: {
       templateId: number;
-      data: any;
+      data: UpdateTemplateInput;
     }) => templatesApi.updateTemplate(templateId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -224,7 +237,7 @@ export function useAddTemplateExercise() {
       data
     }: {
       templateId: number;
-      data: any;
+      data: AddTemplateExerciseInput;
     }) => templatesApi.addExercise(templateId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -246,7 +259,7 @@ export function useUpdateTemplateExercise() {
     }: {
       templateId: number;
       pivotId: number;
-      data: any;
+      data: UpdateTemplateExerciseInput;
     }) => templatesApi.updateExercise(templateId, pivotId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -493,7 +506,7 @@ export function useLogSet() {
       data
     }: {
       sessionId: number;
-      data: any;
+      data: LogSetInput;
     }) => sessionsApi.logSet(sessionId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -512,7 +525,7 @@ export function useUpdateSet() {
     }: {
       sessionId: number;
       setLogId: number;
-      data: any;
+      data: UpdateSetInput;
     }) => sessionsApi.updateSet(sessionId, setLogId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -548,7 +561,7 @@ export function useAddSessionExercise() {
       data
     }: {
       sessionId: number;
-      data: any;
+      data: AddSessionExerciseInput;
     }) => sessionsApi.addExercise(sessionId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -567,7 +580,7 @@ export function useUpdateSessionExercise() {
     }: {
       sessionId: number;
       exerciseId: number;
-      data: any;
+      data: UpdateSessionExerciseInput;
     }) => sessionsApi.updateSessionExercise(sessionId, exerciseId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

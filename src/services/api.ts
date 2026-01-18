@@ -1,6 +1,20 @@
 // Fit Nation API Service Layer
 // Base URL configuration
 
+import type {
+  CreatePlanInput,
+  UpdatePlanInput,
+  CreateTemplateInput,
+  UpdateTemplateInput,
+  AddTemplateExerciseInput,
+  UpdateTemplateExerciseInput,
+  LogSetInput,
+  UpdateSetInput,
+  AddSessionExerciseInput,
+  UpdateSessionExerciseInput,
+  UpdateProfileInput,
+} from '../types/api';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Helper function for making authenticated requests
@@ -77,19 +91,7 @@ export const profileApi = {
   getProfile: async () => {
     return fetchWithAuth('/profile');
   },
-  updateProfile: async (data: {
-    name?: string;
-    email?: string;
-    profile_photo?: File;
-    fitness_goal?: 'fat_loss' | 'muscle_gain' | 'strength' | 'general_fitness';
-    age?: number;
-    gender?: 'male' | 'female' | 'other';
-    height?: number;
-    weight?: number;
-    training_experience?: 'beginner' | 'intermediate' | 'advanced';
-    training_days_per_week?: number;
-    workout_duration_minutes?: number;
-  }) => {
+  updateProfile: async (data: UpdateProfileInput) => {
     // Use FormData if profile_photo is included
     if (data.profile_photo) {
       const formData = new FormData();
@@ -221,21 +223,13 @@ export const plansApi = {
   getPlan: async (planId: number) => {
     return fetchWithAuth(`/plans/${planId}`);
   },
-  createPlan: async (data: {
-    name: string;
-    description?: string;
-    is_active?: boolean;
-  }) => {
+  createPlan: async (data: CreatePlanInput) => {
     return fetchWithAuth('/plans', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updatePlan: async (planId: number, data: {
-    name: string;
-    description?: string;
-    is_active?: boolean;
-  }) => {
+  updatePlan: async (planId: number, data: UpdatePlanInput) => {
     return fetchWithAuth(`/plans/${planId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -259,23 +253,13 @@ export const templatesApi = {
   getTemplate: async (templateId: number) => {
     return fetchWithAuth(`/workout-templates/${templateId}`);
   },
-  createTemplate: async (data: {
-    plan_id: number;
-    name: string;
-    description?: string;
-    day_of_week?: number; // 0-6 (Mon-Sun)
-  }) => {
+  createTemplate: async (data: CreateTemplateInput) => {
     return fetchWithAuth('/workout-templates', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateTemplate: async (templateId: number, data: {
-    plan_id?: number;
-    name: string;
-    description?: string;
-    day_of_week?: number;
-  }) => {
+  updateTemplate: async (templateId: number, data: UpdateTemplateInput) => {
     return fetchWithAuth(`/workout-templates/${templateId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -287,24 +271,13 @@ export const templatesApi = {
     });
   },
   // Template Exercise Management
-  addExercise: async (templateId: number, data: {
-    exercise_id: number;
-    target_sets?: number;
-    target_reps?: number;
-    target_weight?: number;
-    rest_seconds?: number;
-  }) => {
+  addExercise: async (templateId: number, data: AddTemplateExerciseInput) => {
     return fetchWithAuth(`/workout-templates/${templateId}/exercises`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateExercise: async (templateId: number, pivotId: number, data: {
-    target_sets?: number;
-    target_reps?: number;
-    target_weight?: number;
-    rest_seconds?: number;
-  }) => {
+  updateExercise: async (templateId: number, pivotId: number, data: UpdateTemplateExerciseInput) => {
     return fetchWithAuth(`/workout-templates/${templateId}/exercises/${pivotId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -388,22 +361,13 @@ export const sessionsApi = {
     });
   },
   // Set Logging
-  logSet: async (sessionId: number, data: {
-    exercise_id: number;
-    set_number: number;
-    weight: number;
-    reps: number;
-    rest_seconds?: number;
-  }) => {
+  logSet: async (sessionId: number, data: LogSetInput) => {
     return fetchWithAuth(`/workout-sessions/${sessionId}/sets`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateSet: async (sessionId: number, setLogId: number, data: {
-    weight: number;
-    reps: number;
-  }) => {
+  updateSet: async (sessionId: number, setLogId: number, data: UpdateSetInput) => {
     return fetchWithAuth(`/workout-sessions/${sessionId}/sets/${setLogId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -415,26 +379,13 @@ export const sessionsApi = {
     });
   },
   // Session Exercise Management
-  addExercise: async (sessionId: number, data: {
-    exercise_id: number;
-    order?: number;
-    target_sets?: number;
-    target_reps?: number;
-    target_weight?: number;
-    rest_seconds?: number;
-  }) => {
+  addExercise: async (sessionId: number, data: AddSessionExerciseInput) => {
     return fetchWithAuth(`/workout-sessions/${sessionId}/exercises`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateSessionExercise: async (sessionId: number, exerciseId: number, data: {
-    order?: number;
-    target_sets?: number;
-    target_reps?: number;
-    target_weight?: number;
-    rest_seconds?: number;
-  }) => {
+  updateSessionExercise: async (sessionId: number, exerciseId: number, data: UpdateSessionExerciseInput) => {
     return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/${exerciseId}`, {
       method: 'PUT',
       body: JSON.stringify(data)

@@ -4,9 +4,9 @@ import { IonPage, IonContent } from '@ionic/react';
 import { Plus, Info, MoreVertical, Dumbbell, CheckCircle2, Circle } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
-import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useTemplates, useUpdatePlan } from '../hooks/useApi';
-
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import { BackgroundGradients } from './BackgroundGradients';
+import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan } from '../hooks/useApi';
+import { DAY_NAMES } from '../constants';
 interface PlansPageProps {
   onNavigateToCreate: () => void;
   onNavigateToEdit: (plan: {
@@ -55,9 +55,6 @@ export function PlansPage({
     data: plans = [],
     isLoading: isPlansLoading
   } = usePlans();
-  const {
-    data: templates = []
-  } = useTemplates();
   const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
   const deleteTemplate = useDeleteTemplate();
@@ -69,7 +66,7 @@ export function PlansPage({
 
   const activePlanWorkouts = useMemo(() => {
     if (!activePlan) return [];
-    const planTemplates = activePlan.workout_templates ?? templates.filter(template => template.plan_id === activePlan.id);
+    const planTemplates = activePlan.workout_templates ?? [];
     return planTemplates.map(template => ({
       templateId: template.id,
       name: template.name,
@@ -78,11 +75,11 @@ export function PlansPage({
       completed: false,
       plan: activePlan.name
     }));
-  }, [activePlan, templates]);
+  }, [activePlan]);
 
   const allPlans = useMemo(() => {
     return plans.map(plan => {
-      const planTemplates = plan.workout_templates ?? templates.filter(template => template.plan_id === plan.id);
+      const planTemplates = plan.workout_templates ?? [];
       const workouts = planTemplates.length;
       return {
         id: plan.id,
@@ -93,7 +90,7 @@ export function PlansPage({
         isActive: plan.is_active
       };
     });
-  }, [plans, templates]);
+  }, [plans]);
   const handlePlanMenuClick = (event: React.MouseEvent, menuId: string, plan: {
     id: number;
     name: string;
@@ -170,17 +167,7 @@ export function PlansPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        {/* Background Gradients */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div 
-            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-          />
-          <div 
-            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-          />
-        </div>
+        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
@@ -229,16 +216,7 @@ export function PlansPage({
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
               Active Plan
             </h2>
-            <button 
-              className="p-1 rounded-full transition-colors"
-              style={{ backgroundColor: 'var(--color-border-subtle)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-border)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-              }}
-            >
+            <button className="btn-icon p-1">
               <Info className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
             </button>
           </div>
@@ -309,17 +287,7 @@ export function PlansPage({
             }} transition={{
               delay: 0.2 + index * 0.1
             }} 
-                className="flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl transition-colors group cursor-pointer"
-                style={{ 
-                  backgroundColor: 'var(--color-bg-surface)',
-                  borderColor: 'var(--color-border-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                }}
+                className="card-hover flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl group cursor-pointer"
               >
                   <div className="flex items-center gap-3">
                     <div 
@@ -329,12 +297,10 @@ export function PlansPage({
                       <Dumbbell className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <span 
-                      className="text-sm font-medium transition-colors"
+                      className="text-sm font-medium text-hover-primary"
                       style={{ 
                         color: 'var(--color-text-primary)'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
                     >
                       {workout.name}
                     </span>
@@ -380,17 +346,7 @@ export function PlansPage({
           }} transition={{
             delay: 0.4 + index * 0.1
           }} 
-            className="relative backdrop-blur-sm border rounded-2xl p-6 transition-colors group cursor-pointer"
-            style={{ 
-              backgroundColor: 'var(--color-bg-surface)',
-              borderColor: 'var(--color-border-subtle)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-            }}
+            className="card-hover relative backdrop-blur-sm border rounded-2xl p-6 group cursor-pointer"
           >
                 <div className="flex justify-between items-start mb-4">
                   <h3 

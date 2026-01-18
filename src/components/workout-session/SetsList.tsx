@@ -1,0 +1,87 @@
+import { motion } from 'framer-motion';
+import { Plus, MoreVertical } from 'lucide-react';
+import type { Set } from './types';
+import { formatWeight } from './utils';
+
+interface SetsListProps {
+  sets: Set[];
+  editingSetId: string | null;
+  onOpenSetMenu: (setId: string) => void;
+  onAddSet: () => void;
+}
+
+export function SetsList({
+  sets,
+  editingSetId,
+  onOpenSetMenu,
+  onAddSet,
+}: SetsListProps) {
+  return (
+    <div className="space-y-2">
+      {sets.map((set, index) => (
+        <motion.div
+          key={set.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className={`flex items-center justify-between p-4 rounded-xl transition-colors border ${
+            editingSetId === set.id 
+              ? 'bg-orange-500/20 border-2 border-orange-500/40' 
+              : set.completed 
+                ? 'bg-green-500/10 border border-green-500/20' 
+                : ''
+          }`}
+          style={!editingSetId && !set.completed ? {
+            backgroundColor: 'var(--color-bg-elevated)',
+            borderColor: 'var(--color-border-subtle)'
+          } : {}}
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>
+              Set {index + 1}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                {formatWeight(set.weight)}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
+            </div>
+            <span style={{ color: 'var(--color-border)' }}>×</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                {set.reps}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>reps</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onOpenSetMenu(set.id)}
+            className="p-2 rounded-lg bg-elevated-hover"
+          >
+            <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+          </button>
+        </motion.div>
+      ))}
+
+      {/* Add Set Button */}
+      {!editingSetId && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onAddSet}
+          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+          }}
+        >
+          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+          <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+            Add Set
+          </span>
+        </motion.button>
+      )}
+    </div>
+  );
+}

@@ -4,6 +4,7 @@ import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
+import { BackgroundGradients } from './BackgroundGradients';
 import { useTemplate, useAddTemplateExercise, useUpdateTemplateExercise, useRemoveTemplateExercise } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 interface Exercise {
@@ -113,17 +114,7 @@ export function EditWorkoutPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        {/* Background Gradients */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div 
-            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-          />
-          <div 
-            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-          />
-        </div>
+        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
@@ -198,20 +189,6 @@ export function EditWorkoutPage({
             } : {
               color: 'var(--color-text-secondary)'
             }}
-            onMouseEnter={(e) => {
-              if (!isEditMode) {
-                e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isEditMode) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-            style={isEditMode ? {
-              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-              color: 'var(--color-primary)'
-            } : {}}
           >
               <Edit2 className="w-5 h-5" />
             </motion.button>
@@ -237,12 +214,6 @@ export function EditWorkoutPage({
               style={{ 
                 backgroundColor: 'var(--color-bg-surface)',
                 borderColor: 'var(--color-border-subtle)'
-              }}
-              onMouseEnter={(e) => {
-                if (!isEditMode) e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
               }}
             >
                   <div className="flex items-center gap-4">
@@ -323,14 +294,6 @@ export function EditWorkoutPage({
           className="w-full py-6 border-2 border-dashed rounded-2xl transition-all group"
           style={{
             borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-            e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 5%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 30%, transparent)';
-            e.currentTarget.style.backgroundColor = 'transparent';
           }}
         >
             <div className="flex items-center justify-center gap-3">

@@ -51,7 +51,7 @@ export function ExerciseEditMenu({
         opacity: 1
       }} exit={{
         opacity: 0
-      }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
+      }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm" style={{ zIndex: 10000 }} />
 
           {/* Bottom Sheet */}
           <motion.div ref={menuRef} initial={{
@@ -65,8 +65,9 @@ export function ExerciseEditMenu({
         damping: 30,
         stiffness: 300
       }} 
-        className="fixed inset-x-0 bottom-0 z-50 backdrop-blur-xl border-t rounded-t-3xl shadow-2xl max-w-md mx-auto"
+        className="fixed inset-x-0 bottom-0 backdrop-blur-xl border-t rounded-t-3xl shadow-2xl max-w-md mx-auto"
         style={{ 
+          zIndex: 10001,
           backgroundColor: 'var(--color-bg-modal)',
           borderColor: 'var(--color-border)'
         }}

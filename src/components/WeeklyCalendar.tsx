@@ -2,13 +2,13 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useCalendar } from '../hooks/useApi';
+import { WEEKDAY_LABELS } from '../constants';
 interface DayStatus {
   day: string;
   date: number;
   progress: number; // 0-100
   isToday?: boolean;
 }
-const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -26,7 +26,8 @@ function getWeekStart(date: Date) {
   return start;
 }
 export function WeeklyCalendar() {
-  const today = new Date();
+  // Calculate today only once when component mounts
+  const today = useMemo(() => new Date(), []);
   const weekStart = useMemo(() => getWeekStart(today), [today]);
   const weekEnd = useMemo(() => {
     const end = new Date(weekStart);
@@ -87,18 +88,7 @@ export function WeeklyCalendar() {
   >
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>This Week</h2>
-        <button 
-          className="p-2 rounded-full transition-colors"
-          style={{ color: 'var(--color-text-secondary)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-            e.currentTarget.style.color = 'var(--color-text-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
-          }}
-        >
+        <button className="btn-icon">
           <CalendarIcon size={20} />
         </button>
       </div>
