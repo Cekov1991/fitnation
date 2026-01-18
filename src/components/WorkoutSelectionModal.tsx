@@ -76,14 +76,23 @@ export function WorkoutSelectionModal({
         damping: 30,
         stiffness: 300
       }} className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-hidden">
-            <div className="bg-gray-900/95 backdrop-blur-xl border-t border-white/10 rounded-t-3xl shadow-2xl">
+            <div 
+              className="backdrop-blur-xl border-t rounded-t-3xl shadow-2xl"
+              style={{ 
+                backgroundColor: 'var(--color-bg-modal)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               {/* Header */}
-              <div className="flex justify-between items-center p-6 border-b border-white/5">
+              <div 
+                className="flex justify-between items-center p-6 border-b"
+                style={{ borderColor: 'var(--color-border-subtle)' }}
+              >
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-1">
+                  <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
                     Choose Workout
                   </h2>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                     Select a workout to start or begin a blank session.
                   </p>
                 </div>
@@ -92,8 +101,8 @@ export function WorkoutSelectionModal({
               rotate: 90
             }} whileTap={{
               scale: 0.9
-            }} onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-                  <X size={20} className="text-gray-400" />
+            }} onClick={onClose} className="p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
+                  <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
                 </motion.button>
               </div>
 
@@ -114,33 +123,59 @@ export function WorkoutSelectionModal({
               scale: 0.98
             }} onClick={() => onSelectTemplate(null, 'Blank Session')} className="w-full mb-6 relative group">
                   {/* Dashed border animation */}
-                  <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-blue-500/30 group-hover:border-blue-500/50 transition-colors" />
+                  <div 
+                    className="absolute inset-0 rounded-2xl border-2 border-dashed transition-colors"
+                    style={{ 
+                      borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                    }}
+                  />
 
-                  <div className="relative bg-gradient-to-br from-blue-500/5 to-purple-500/5 backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4">
+                  <div 
+                    className="relative backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4"
+                    style={{ 
+                      background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 5%, transparent), color-mix(in srgb, var(--color-secondary) 5%, transparent))' 
+                    }}
+                  >
                     {/* Plus Icon */}
-                    <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow">
+                    <div 
+                      className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-shadow"
+                      style={{ 
+                        background: 'linear-gradient(to bottom right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+                        boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+                      }}
+                    >
                       <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 text-left">
-                      <h3 className="text-lg font-bold text-white mb-1">
+                      <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
                         Blank Session
                       </h3>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                         Start fresh and add exercises as you go
                       </p>
                     </div>
 
                     {/* Chevron */}
-                    <ChevronRight className="text-gray-500 group-hover:text-white transition-colors flex-shrink-0" size={20} />
+                    <ChevronRight 
+                      className="transition-colors flex-shrink-0" 
+                      size={20}
+                      style={{ color: 'var(--color-text-muted)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--color-text-muted)';
+                      }}
+                    />
                   </div>
                 </motion.button>
 
                 {/* Divider */}
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
                     Or Choose a Template
                   </span>
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
@@ -164,7 +199,19 @@ export function WorkoutSelectionModal({
                   x: 5
                 }} whileTap={{
                   scale: 0.98
-                }} className="w-full bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-5 flex items-center gap-4 hover:bg-gray-800/60 transition-colors group">
+                }} 
+                  className="w-full backdrop-blur-sm border rounded-2xl p-5 flex items-center gap-4 transition-colors group"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                  }}
+                >
                         {/* Icon */}
                         <div className={`flex-shrink-0 w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center`}>
                           <Icon className={`${colors.text} w-6 h-6`} />
@@ -172,21 +219,43 @@ export function WorkoutSelectionModal({
 
                         {/* Content */}
                         <div className="flex-1 text-left">
-                          <h3 className="text-base font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                          <h3 
+                            className="text-base font-bold mb-1 transition-colors"
+                            style={{ 
+                              color: 'var(--color-primary)' 
+                            }}
+                          >
                             {template.name}
                           </h3>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-gray-400">
+                            <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                               {template.exercises} exercises
                             </span>
-                            <span className="text-xs px-2 py-0.5 bg-gray-700/50 border border-gray-600/50 rounded-full text-gray-400">
+                            <span 
+                              className="text-xs px-2 py-0.5 border rounded-full"
+                              style={{ 
+                                backgroundColor: 'var(--color-bg-elevated)',
+                                borderColor: 'var(--color-border)',
+                                color: 'var(--color-text-secondary)'
+                              }}
+                            >
                               {template.plan}
                             </span>
                           </div>
                         </div>
 
                         {/* Chevron */}
-                        <ChevronRight className="text-gray-500 group-hover:text-white transition-colors flex-shrink-0" size={20} />
+                        <ChevronRight 
+                          className="transition-colors flex-shrink-0" 
+                          size={20}
+                          style={{ color: 'var(--color-text-muted)' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = 'var(--color-text-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'var(--color-text-muted)';
+                          }}
+                        />
                       </motion.button>;
               })}
                 </div>

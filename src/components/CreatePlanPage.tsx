@@ -36,11 +36,20 @@ export function CreatePlanPage({
   };
   return <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        <div 
+          className="min-h-screen w-full pb-32"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
@@ -58,9 +67,12 @@ export function CreatePlanPage({
         }} whileTap={{
           scale: 0.9
         }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            <ArrowLeft className="text-gray-400 w-6 h-6" />
+            <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
           </motion.button>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-3xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             {mode === 'create' ? 'Create Plan' : 'Edit Plan'}
           </h1>
         </motion.div>
@@ -76,10 +88,29 @@ export function CreatePlanPage({
         }} transition={{
           delay: 0.1
         }} className="mb-6">
-            <label htmlFor="plan-name" className="block text-sm font-medium text-gray-400 mb-3">
+            <label htmlFor="plan-name" className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
               Plan Name *
             </label>
-            <input id="plan-name" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Bulking Plan" required className="w-full px-5 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+            <input 
+              id="plan-name" 
+              type="text" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              placeholder="e.g., Bulking Plan" 
+              required 
+              className="w-full px-5 py-4 border rounded-2xl focus:outline-none focus:ring-2 transition-all"
+              style={{ 
+                backgroundColor: 'var(--color-bg-elevated)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)'
+              }} 
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            />
           </motion.div>
 
           {/* Description Textarea */}
@@ -92,10 +123,28 @@ export function CreatePlanPage({
         }} transition={{
           delay: 0.2
         }} className="mb-6">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-400 mb-3">
+            <label htmlFor="description" className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
               Description
             </label>
-            <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" rows={4} className="w-full px-5 py-4 bg-gray-800/50 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none" />
+            <textarea 
+              id="description" 
+              value={description} 
+              onChange={e => setDescription(e.target.value)} 
+              placeholder="Optional description" 
+              rows={4} 
+              className="w-full px-5 py-4 border rounded-2xl focus:outline-none focus:ring-2 transition-all resize-none"
+              style={{ 
+                backgroundColor: 'var(--color-bg-elevated)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)'
+              }} 
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            />
           </motion.div>
 
           {/* Active Plan Toggle */}
@@ -108,22 +157,38 @@ export function CreatePlanPage({
         }} transition={{
           delay: 0.3
         }} className="mb-8">
-            <div className="bg-gray-800/40 border border-white/5 rounded-2xl p-5">
+            <div 
+              className="border rounded-2xl p-5"
+              style={{ 
+                backgroundColor: 'var(--color-bg-surface)',
+                borderColor: 'var(--color-border-subtle)'
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-base font-semibold text-white">
+                <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                   Active Plan
                 </span>
-                <button type="button" onClick={() => setIsActive(!isActive)} className={`relative w-14 h-8 rounded-full transition-colors duration-300 ${isActive ? 'bg-green-500' : 'bg-gray-600'}`}>
-                  <motion.div animate={{
-                  x: isActive ? 24 : 2
-                }} transition={{
-                  type: 'spring',
-                  stiffness: 500,
-                  damping: 30
-                }} className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg" />
+                <button 
+                  type="button" 
+                  onClick={() => setIsActive(!isActive)} 
+                  className="relative w-14 h-8 rounded-full transition-colors duration-300"
+                  style={{ backgroundColor: isActive ? '#22c55e' : 'var(--color-bg-elevated)' }}
+                >
+                  <motion.div 
+                    animate={{
+                      x: isActive ? 24 : 2
+                    }} 
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 30
+                    }} 
+                    className="absolute top-1 w-6 h-6 rounded-full shadow-lg"
+                    style={{ backgroundColor: 'var(--color-text-primary)' }}
+                  />
                 </button>
               </div>
-              <p className="text-sm text-gray-400 leading-relaxed">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                 Active plans are highlighted and used as the default when
                 creating workouts.
               </p>
@@ -143,12 +208,26 @@ export function CreatePlanPage({
           scale: name.trim() ? 1.02 : 1
         }} whileTap={{
           scale: name.trim() ? 0.98 : 1
-        }} className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${name.trim() ? 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-blue-500/25 hover:shadow-blue-500/40' : 'bg-gray-700 cursor-not-allowed opacity-50'}`}>
+        }} 
+          className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${name.trim() ? '' : 'cursor-not-allowed opacity-50'}`}
+          style={!name.trim() ? {
+            backgroundColor: 'var(--color-bg-elevated)'
+          } : undefined}
+          style={name.trim() ? {
+            background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+            boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+          } : {}}
+        >
             <span className="relative z-10 flex items-center justify-center gap-2">
               <Check size={20} />
               {mode === 'create' ? 'CREATE PLAN' : 'SAVE CHANGES'}
             </span>
-            {name.trim() && <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />}
+            {name.trim() && (
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
+                style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
+              />
+            )}
           </motion.button>
         </form>
       </main>

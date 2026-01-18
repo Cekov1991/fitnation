@@ -28,11 +28,20 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
   return (
     <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white flex items-center justify-center px-6">
+        <div 
+          className="min-h-screen w-full flex items-center justify-center px-6"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <motion.div
@@ -71,7 +80,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
           <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Welcome Back
           </h1>
-          <p className="text-gray-400 text-sm">
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             Sign in to continue your fitness journey
           </p>
         </motion.div>
@@ -90,7 +99,11 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             delay: 0.2,
             duration: 0.5,
           }}
-          className="bg-gray-800/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl"
+          className="backdrop-blur-xl border rounded-3xl p-8 shadow-2xl"
+          style={{ 
+            backgroundColor: 'var(--color-bg-surface)',
+            borderColor: 'var(--color-border)'
+          }}
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
@@ -115,12 +128,13 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <div>
               <label
                 htmlFor="email"
-                className="text-sm font-semibold text-gray-300 mb-2 block"
+                className="text-sm font-semibold mb-2 block"
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <input
                   id="email"
                   type="email"
@@ -128,7 +142,18 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-elevated)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-border)';
+                  }}
                 />
               </div>
             </div>
@@ -137,12 +162,13 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <div>
               <label
                 htmlFor="password"
-                className="text-sm font-semibold text-gray-300 mb-2 block"
+                className="text-sm font-semibold mb-2 block"
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -150,12 +176,30 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full pl-12 pr-12 py-4 bg-gray-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full pl-12 pr-12 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-elevated)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-border)';
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: 'var(--color-text-muted)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--color-text-secondary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--color-text-muted)';
+                  }}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -170,7 +214,14 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-sm transition-colors"
+                style={{ color: 'var(--color-primary)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.8';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
               >
                 Forgot password?
               </button>
@@ -190,7 +241,10 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div 
+                    className="w-5 h-5 border-2 border-t-white rounded-full animate-spin"
+                    style={{ borderColor: 'var(--color-border)' }}
+                  />
                   <span>Signing in...</span>
                 </div>
               ) : (
@@ -205,11 +259,18 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
           {/* Register Link */}
           {onNavigateToRegister && (
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 Don't have an account?{' '}
                 <button
                   onClick={onNavigateToRegister}
-                  className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+                  className="font-semibold transition-colors"
+                  style={{ color: 'var(--color-primary)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--color-primary)';
+                  }}
                 >
                   Sign up
                 </button>
@@ -230,7 +291,8 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             delay: 0.4,
             duration: 0.5,
           }}
-          className="text-center text-sm text-gray-500 mt-8"
+          className="text-center text-sm mt-8"
+          style={{ color: 'var(--color-text-muted)' }}
         >
           By signing in, you agree to our Terms of Service and Privacy Policy
         </motion.p>

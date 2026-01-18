@@ -73,11 +73,20 @@ export function ProfilePage({
   };
   return <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        <div 
+          className="min-h-screen w-full pb-32"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
@@ -89,7 +98,10 @@ export function ProfilePage({
         opacity: 1,
         y: 0
       }} className="mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-3xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             Profile
           </h1>
         </motion.div>
@@ -104,26 +116,58 @@ export function ProfilePage({
       }} transition={{
         delay: 0.1
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Account Information
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <input 
+                  type="text" 
+                  value={fullName} 
+                  onChange={e => setFullName(e.target.value)} 
+                  className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }} 
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <input 
+                  type="email" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
+                  className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }} 
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -139,19 +183,34 @@ export function ProfilePage({
       }} transition={{
         delay: 0.2
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">Fitness Profile</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Fitness Profile</h2>
           <div>
-            <label className="text-xs text-gray-400 mb-2 block">
+            <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
               Physical Goal
             </label>
             <div className="relative">
-              <Target className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
-              <select value={physicalGoal} onChange={e => setPhysicalGoal(e.target.value as FitnessGoal)} className="w-full pl-12 pr-12 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer">
+                <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
+              <select 
+                value={physicalGoal} 
+                onChange={e => setPhysicalGoal(e.target.value as FitnessGoal)} 
+                className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
                 {goalOptions.map(option => <option key={option.value} value={option.value}>
                     {option.label}
                   </option>)}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
             </div>
           </div>
         </motion.div>
@@ -166,45 +225,99 @@ export function ProfilePage({
       }} transition={{
         delay: 0.3
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Personal Information
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">Age</label>
-              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <IonInput type="number" value={age.toString()} onIonInput={e => setAge(parseInt(e.detail.value!) || 0)} />
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Age</label>
+              <div 
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={age.toString()} onIonInput={e => setAge(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">Sex</label>
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Sex</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
-                <select value={sex} onChange={e => setSex(e.target.value as Gender)} className="w-full pl-12 pr-12 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
+                <select 
+                  value={sex} 
+                  onChange={e => setSex(e.target.value as Gender)} 
+                  className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Prefer not to say</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Height (cm)
               </label>
-              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <IonInput type="number" value={height.toString()} onIonInput={e => setHeight(parseInt(e.detail.value!) || 0)} />
+              <div 
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={height.toString()} onIonInput={e => setHeight(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Weight (kg)
               </label>
-              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                <Weight className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <IonInput type="number" step="0.01" value={weight.toString()} onIonInput={e => setWeight(parseFloat(e.detail.value!) || 0)} />
+              <div 
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                <Weight className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <IonInput type="number" inputmode="decimal" pattern="[0-9.]*" step="0.01" value={weight.toString()} onIonInput={e => setWeight(parseFloat(e.detail.value!) || 0)} />
               </div>
             </div>
           </div>
@@ -220,40 +333,81 @@ export function ProfilePage({
       }} transition={{
         delay: 0.4
       }} className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
             Training Information
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Experience Level
               </label>
               <div className="relative">
-                <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 z-10" />
-                <select value={experienceLevel} onChange={e => setExperienceLevel(e.target.value as TrainingExperience)} className="w-full pl-12 pr-12 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white appearance-none focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer">
+                <Dumbbell className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
+                <select 
+                  value={experienceLevel} 
+                  onChange={e => setExperienceLevel(e.target.value as TrainingExperience)} 
+                  className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Training Days Per Week
               </label>
-              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <IonInput type="number" min="1" max="7" value={trainingDays.toString()} onIonInput={e => setTrainingDays(parseInt(e.detail.value!) || 1)} />
+              <div 
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <IonInput type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="7" value={trainingDays.toString()} onIonInput={e => setTrainingDays(parseInt(e.detail.value!) || 1)} />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400 mb-2 block">
+              <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                 Workout Duration (minutes)
               </label>
-              <div className="relative flex items-center w-full pl-12 pr-4 py-4 bg-gray-800/40 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                <IonInput type="number" value={workoutDuration.toString()} onIonInput={e => setWorkoutDuration(parseInt(e.detail.value!) || 0)} />
+              <div 
+                className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
+                style={{ 
+                  backgroundColor: 'var(--color-bg-surface)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={workoutDuration.toString()} onIonInput={e => setWorkoutDuration(parseInt(e.detail.value!) || 0)} />
               </div>
             </div>
           </div>
@@ -272,7 +426,23 @@ export function ProfilePage({
         scale: 1.02
       }} whileTap={{
         scale: 0.98
-      }} onClick={handleSaveChanges} disabled={isLoading} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow mb-4 disabled:opacity-60 disabled:cursor-not-allowed">
+      }} 
+        onClick={handleSaveChanges} 
+        disabled={isLoading} 
+        className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
+        style={{
+          background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+          boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+        }}
+        onMouseEnter={(e) => {
+          if (!isLoading) {
+            e.currentTarget.style.boxShadow = '0 10px 25px color-mix(in srgb, var(--color-primary) 40%, transparent)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)';
+        }}
+      >
           SAVE CHANGES
         </motion.button>
 

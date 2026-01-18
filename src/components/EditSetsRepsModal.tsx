@@ -54,11 +54,20 @@ export function EditSetsRepsModal({
         damping: 25,
         stiffness: 300
       }} className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm z-50">
-            <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+            <div 
+              className="backdrop-blur-xl border rounded-3xl shadow-2xl overflow-hidden"
+              style={{ 
+                backgroundColor: 'var(--color-bg-modal)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               <div className="p-6">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  <h2 
+                    className="text-xl font-bold bg-clip-text text-transparent"
+                    style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+                  >
                     Edit Sets & Reps
                   </h2>
                   <motion.button whileHover={{
@@ -67,34 +76,55 @@ export function EditSetsRepsModal({
               }} whileTap={{
                 scale: 0.9
               }} onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-                    <X size={20} className="text-gray-400" />
+                    <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
                   </motion.button>
                 </div>
 
                 {/* Form */}
                 <div className="space-y-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Sets
                     </label>
-                    <div className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                      <IonInput type="number" value={sets.toString()} onIonInput={e => setSets(parseInt(e.detail.value!) || 0)} />
+                    <div 
+                      className="w-full px-4 py-3 border rounded-xl transition-all"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-elevated)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)'
+                      }}
+                    >
+                      <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={sets.toString()} onIonInput={e => setSets(parseInt(e.detail.value!) || 0)} />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Reps
                     </label>
-                    <div className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                      <IonInput type="number" value={reps} onIonInput={e => setReps(e.detail.value || '')} placeholder="e.g., 8-10" />
+                    <div 
+                      className="w-full px-4 py-3 border rounded-xl transition-all"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-elevated)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)'
+                      }}
+                    >
+                      <IonInput type="number" inputmode="numeric" pattern="[0-9]*" value={reps} onIonInput={e => setReps(e.detail.value || '')} placeholder="e.g., 8-10" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Weight
                     </label>
-                    <div className="w-full px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                      <IonInput type="number" value={weight} onIonInput={e => setWeight(e.detail.value || '')} placeholder="e.g., 30" />
+                    <div 
+                      className="w-full px-4 py-3 border rounded-xl transition-all"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-elevated)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)'
+                      }}
+                    >
+                      <IonInput type="number" inputmode="decimal" pattern="[0-9.]*" value={weight} onIonInput={e => setWeight(e.detail.value || '')} placeholder="e.g., 30" />
                     </div>
                   </div>
                 </div>
@@ -104,12 +134,20 @@ export function EditSetsRepsModal({
               scale: 1.02
             }} whileTap={{
               scale: 0.98
-            }} onClick={handleSave} className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl font-bold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group">
+            }} onClick={handleSave} className="w-full py-3 rounded-xl font-bold text-white shadow-lg transition-shadow relative overflow-hidden group"
+              style={{
+                background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
+                boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+              }}
+            >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     <Check size={20} />
                     Save Changes
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
+                    style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
+                  />
                 </motion.button>
               </div>
             </div>

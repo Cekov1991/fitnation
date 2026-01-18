@@ -144,11 +144,20 @@ export function ExerciseDetailPage({
   };
   return <IonPage>
       <IonContent>
-        <div className="min-h-screen w-full bg-[#0a0a0a] text-white pb-32">
+        <div 
+          className="min-h-screen w-full pb-32"
+          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+        >
         {/* Background Gradients */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] opacity-30" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] opacity-30" />
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" 
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
+          />
         </div>
 
       <main className="relative z-10 max-w-md mx-auto">
@@ -166,9 +175,12 @@ export function ExerciseDetailPage({
         }} whileTap={{
           scale: 0.9
         }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            <ArrowLeft className="text-gray-400 w-6 h-6" />
+            <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
           </motion.button>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 
+            className="text-2xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             {exercise?.name || exerciseName}
           </h1>
         </motion.div>
@@ -183,7 +195,13 @@ export function ExerciseDetailPage({
       }} transition={{
         delay: 0.1
       }} className="mx-6 mb-6">
-          <div className="relative aspect-video bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl overflow-hidden border border-white/10">
+          <div 
+            className="relative aspect-video bg-gradient-to-br rounded-2xl overflow-hidden border"
+            style={{ 
+              background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
+              borderColor: 'var(--color-border)'
+            }}
+          >
             {exercise?.video ? (
               <>
                 <video 
@@ -206,14 +224,25 @@ export function ExerciseDetailPage({
                     isVideoPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'
                   } bg-black/20 hover:bg-black/30`}
                 >
-                  <div className="p-4 bg-blue-500/80 rounded-full group-hover:bg-blue-500 transition-colors">
+                  <div 
+                    className="p-4 rounded-full transition-colors"
+                    style={{ 
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
+                    }}
+                  >
                     {isVideoPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
                   </div>
                 </button>
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <div className="text-gray-500 text-sm">No video available</div>
+                <div className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No video available</div>
               </div>
             )}
           </div>
@@ -229,8 +258,25 @@ export function ExerciseDetailPage({
       }} transition={{
         delay: 0.2
       }} className="flex gap-2 px-6 mb-6">
-          {(['instructions', 'muscles', 'history'] as const).map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative ${activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-gray-300'}`}>
-              {activeTab === tab && <motion.div layoutId="activeTab" className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl" transition={{
+          {(['instructions', 'muscles', 'history'] as const).map(tab => <button 
+              key={tab} 
+              onClick={() => setActiveTab(tab)} 
+              className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative"
+              style={{ 
+                color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab) e.currentTarget.style.color = 'var(--color-text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab) e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
+            >
+              {activeTab === tab && <motion.div 
+                layoutId="activeTab" 
+                className="absolute inset-0 rounded-xl" 
+                style={{ background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' }}
+                transition={{
             type: 'spring',
             damping: 25,
             stiffness: 300
@@ -256,11 +302,17 @@ export function ExerciseDetailPage({
           }}>
                 <div className="space-y-6">
                   {/* Instructions/Description */}
-                  <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold text-white mb-4">
+                  <div 
+                    className="backdrop-blur-sm border rounded-2xl p-6"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                       Instructions
                     </h2>
-                    <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
+                    <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--color-text-secondary)' }}>
                       {instructions}
                     </div>
                   </div>
@@ -281,7 +333,13 @@ export function ExerciseDetailPage({
           }}>
                 <div className="space-y-6">
                   {/* Muscle Group Image */}
-                  <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl overflow-hidden">
+                  <div 
+                    className="backdrop-blur-sm border rounded-2xl overflow-hidden"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
                     <ExerciseImage 
                       src={exercise?.muscle_group_image || null} 
                       alt={`${exercise?.name || 'Exercise'} muscle groups`} 
@@ -290,32 +348,44 @@ export function ExerciseDetailPage({
                   </div>
 
                   {/* Primary Muscles */}
-                  <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
+                  <div 
+                    className="backdrop-blur-sm border rounded-2xl p-6"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-3 h-3 bg-red-500 rounded-full" />
-                      <span className="text-sm font-semibold text-white">
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                         Primary
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/30 transition-colors">
                           {muscle}
-                        </button>) : <span className="text-xs text-gray-500">No primary muscles available.</span>}
+                        </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No primary muscles available.</span>}
                     </div>
                   </div>
 
                   {/* Secondary Muscles */}
-                  <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
+                  <div 
+                    className="backdrop-blur-sm border rounded-2xl p-6"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-3 h-3 bg-orange-500 rounded-full" />
-                      <span className="text-sm font-semibold text-white">
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                         Secondary
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-xl text-sm font-medium text-orange-400 hover:bg-orange-500/30 transition-colors">
                           {muscle}
-                        </button>) : <span className="text-xs text-gray-500">No secondary muscles available.</span>}
+                        </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No secondary muscles available.</span>}
                     </div>
                   </div>
                 </div>
@@ -333,13 +403,19 @@ export function ExerciseDetailPage({
           }} transition={{
             duration: 0.2
           }}>
-                <div className="bg-gray-800/40 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-                  <h2 className="text-lg font-bold text-white mb-4">
+                <div 
+                  className="backdrop-blur-sm border rounded-2xl p-6"
+                  style={{ 
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)'
+                  }}
+                >
+                  <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                     Performance History
                   </h2>
 
                   {isLoadingHistory ? (
-                    <div className="text-sm text-gray-400 text-center py-8">
+                    <div className="text-sm text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                       Loading history...
                     </div>
                   ) : historyError ? (
@@ -347,28 +423,37 @@ export function ExerciseDetailPage({
                       Error loading history. Please try again.
                     </div>
                   ) : !historyData || historyData.performance_data.length === 0 ? (
-                    <div className="text-sm text-gray-400 text-center py-8">
+                    <div className="text-sm text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                       No history available yet.
                     </div>
                   ) : (
                     <>
                       {/* Stats Summary */}
                       <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div className="bg-gray-700/30 rounded-xl p-3 text-center">
-                          <p className="text-xs text-gray-400 mb-1">Current</p>
-                          <p className="text-lg font-bold text-white">
+                        <div 
+                          className="rounded-xl p-3 text-center"
+                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                        >
+                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current</p>
+                          <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                             {historyData.stats.current_weight} kg
                           </p>
                         </div>
-                        <div className="bg-gray-700/30 rounded-xl p-3 text-center">
-                          <p className="text-xs text-gray-400 mb-1">Best</p>
+                        <div 
+                          className="rounded-xl p-3 text-center"
+                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                        >
+                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Best</p>
                           <p className="text-lg font-bold text-green-400">
                             {historyData.stats.best_weight} kg
                           </p>
                         </div>
-                        <div className="bg-gray-700/30 rounded-xl p-3 text-center">
-                          <p className="text-xs text-gray-400 mb-1">Progress</p>
-                          <p className="text-lg font-bold text-blue-400">
+                        <div 
+                          className="rounded-xl p-3 text-center"
+                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                        >
+                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Progress</p>
+                          <p className="text-lg font-bold" style={{ color: 'var(--color-primary)' }}>
                             {formatProgress(historyData.stats.progress_percentage)}
                           </p>
                         </div>
@@ -424,28 +509,29 @@ export function ExerciseDetailPage({
                       {/* Recent Sessions */}
                       {recentSessions.length > 0 && (
                         <div>
-                          <h3 className="text-sm font-semibold text-gray-400 mb-3">
+                          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                             Recent Sessions
                           </h3>
                           <div className="space-y-2">
                             {recentSessions.map((session) => (
                               <div 
                                 key={`${session.session_id}-${session.date}`} 
-                                className="flex items-center justify-between p-3 bg-gray-700/20 rounded-lg"
+                                className="flex items-center justify-between p-3 rounded-lg"
+                                style={{ backgroundColor: 'var(--color-bg-elevated)' }}
                               >
                                 <div>
-                                  <p className="text-sm font-medium text-white">
+                                  <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
                                     {formatDateForDisplay(session.date)}
                                   </p>
-                                  <p className="text-xs text-gray-400">
+                                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                                     {session.weight} kg × {session.reps} reps
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-sm font-bold text-blue-400">
+                                  <p className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
                                     {session.volume}
                                   </p>
-                                  <p className="text-xs text-gray-400">volume</p>
+                                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>volume</p>
                                 </div>
                               </div>
                             ))}

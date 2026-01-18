@@ -6,6 +6,53 @@
 @import 'tailwindcss/utilities';
 /* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL - DO NOT DELETE THIS COMMENT */
 
+/* ============================================
+   Partner Branding CSS Variables
+   ============================================ */
+
+:root {
+  /* Default branding colors (used when no partner branding is set) */
+  --color-primary: #2563eb;      /* Blue-600 */
+  --color-secondary: #9333ea;    /* Purple-600 */
+  
+  /* Theme Colors - Dark (default) */
+  --color-bg-base: #0a0a0a;
+  --color-bg-surface: rgba(31, 41, 55, 0.4);      /* gray-800/40 */
+  --color-bg-elevated: rgba(17, 24, 39, 0.5);     /* gray-900/50 */
+  --color-bg-modal: #0f1419;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9ca3af;                /* gray-400 */
+  --color-text-muted: #6b7280;                     /* gray-500 */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --color-bg-base: #f2f2f2;                        /* gray-50 */
+  --color-bg-surface: rgba(255, 255, 255, 0.8);
+  --color-bg-elevated: #ffffff;
+  --color-bg-modal: #f2f2f2;
+  --color-text-primary: #111827;                  /* gray-900 */
+  --color-text-secondary: #4b5563;                  /* gray-600 */
+  --color-text-muted: #9ca3af;                     /* gray-400 */
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-subtle: rgba(0, 0, 0, 0.05);
+}
+
+/* Explicit Dark Theme (matches :root but allows explicit setting) */
+[data-theme="dark"] {
+  --color-bg-base: #0a0a0a;
+  --color-bg-surface: rgba(31, 41, 55, 0.4);
+  --color-bg-elevated: rgba(17, 24, 39, 0.5);
+  --color-bg-modal: #0f1419;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+}
+
 /* Remove pointer cursor from number inputs and hide spinner buttons */
 input[type="number"] {
   cursor: text !important;
@@ -29,7 +76,7 @@ input[type="number"]::-webkit-outer-spin-button {
 /* Dark theme for IonContent */
 ion-content {
   --background: transparent;
-  --color: white;
+  --color: var(--color-text-primary);
 }
 
 /* ============================================
@@ -39,8 +86,8 @@ ion-content {
 /* Reset IonInput wrapper to behave like a normal input */
 ion-input {
   --background: transparent !important;
-  --color: white !important;
-  --placeholder-color: rgb(107 114 128) !important;
+  --color: var(--color-text-primary) !important;
+  --placeholder-color: var(--color-text-muted) !important;
   --padding-start: 0 !important;
   --padding-end: 0 !important;
   --padding-top: 0 !important;
@@ -74,7 +121,7 @@ ion-input .native-input {
   padding: 1rem !important;
   font-size: inherit !important;
   font-weight: inherit !important;
-  color: white !important;
+  color: var(--color-text-primary) !important;
   background: transparent !important;
   border: none !important;
   outline: none !important;

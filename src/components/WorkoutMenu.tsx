@@ -71,15 +71,31 @@ export function WorkoutMenu({
         type: 'spring',
         damping: 30,
         stiffness: 300
-      }} className="fixed inset-x-0 bottom-0 z-50 bg-gray-900/95 backdrop-blur-xl border-t border-white/10 rounded-t-3xl shadow-2xl max-w-md mx-auto">
+      }} 
+        className="fixed inset-x-0 bottom-0 z-50 backdrop-blur-xl border-t rounded-t-3xl shadow-2xl max-w-md mx-auto"
+        style={{ 
+          backgroundColor: 'var(--color-bg-modal)',
+          borderColor: 'var(--color-border)'
+        }}
+      >
             <div className="p-6">
               {/* Header */}
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-400">
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
                   Workout Actions
                 </h3>
-                <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                  <X className="text-gray-400 w-5 h-5" />
+                <button 
+                  onClick={onClose} 
+                  className="p-2 rounded-full transition-colors"
+                  style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-border)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+                  }}
+                >
+                  <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
               </div>
 
@@ -98,11 +114,35 @@ export function WorkoutMenu({
               }} onClick={() => {
                 item.onClick?.();
                 onClose();
-              }} className="w-full flex items-center gap-4 p-4 bg-gray-800/40 hover:bg-gray-800/60 rounded-xl transition-colors text-left group">
-                      <div className={`p-2 bg-gray-700/50 rounded-lg group-hover:bg-gray-700 transition-colors`}>
-                        <Icon className={`${item.color} w-5 h-5`} />
+              }} 
+                className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors text-left group"
+                style={{ backgroundColor: 'var(--color-bg-surface)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                }}
+              >
+                      <div 
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                        }}
+                      >
+                        <Icon 
+                          className="w-5 h-5" 
+                          style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
+                        />
                       </div>
-                      <span className={`text-base font-medium ${item.color}`}>
+                      <span 
+                        className="text-base font-medium"
+                        style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
+                      >
                         {item.label}
                       </span>
                     </motion.button>;
@@ -116,7 +156,20 @@ export function WorkoutMenu({
             opacity: 1
           }} transition={{
             delay: 0.3
-          }} onClick={onClose} className="w-full py-4 bg-gray-800/60 hover:bg-gray-800/80 rounded-xl font-semibold text-white transition-colors">
+          }} 
+            onClick={onClose} 
+            className="w-full py-4 rounded-xl font-semibold transition-colors"
+            style={{ 
+              backgroundColor: 'var(--color-bg-elevated)',
+              color: 'var(--color-text-primary)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+            }}
+          >
                 Cancel
               </motion.button>
 
