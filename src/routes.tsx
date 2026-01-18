@@ -403,7 +403,12 @@ function ExercisePickerPageWrapper() {
   const templateId = searchParams.get('templateId');
 
   const handleClose = () => {
-    history.goBack();
+    // Navigate back to the workout edit page if we have a templateId, otherwise just go back
+    if (templateId) {
+      history.push(`/workouts/${templateId}/exercises`);
+    } else {
+      history.goBack();
+    }
   };
 
   const handleSelectExercise = async (exercise: { id: number; name: string }) => {
@@ -413,7 +418,8 @@ function ExercisePickerPageWrapper() {
           templateId: parseInt(templateId),
           data: { exercise_id: exercise.id }
         });
-        history.goBack();
+        // Navigate back to the workout edit page after successfully adding exercise
+        history.push(`/workouts/${templateId}/exercises`);
       } catch (error) {
         console.error('Failed to add exercise:', error);
       }

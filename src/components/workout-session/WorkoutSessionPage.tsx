@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IonPage, IonContent } from '@ionic/react';
 import { Plus, Check } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
+import { exercisesApi } from '../../services/api';
 import { ExercisePickerPage } from '../ExercisePickerPage';
 import { BackgroundGradients } from '../BackgroundGradients';
 import { WorkoutHeader } from './WorkoutHeader';
@@ -35,6 +37,7 @@ export function WorkoutSessionPage({
   onViewExerciseDetail
 }: WorkoutSessionPageProps) {
   const { data: sessionData, isLoading } = useSession(sessionId);
+  const queryClient = useQueryClient();
   const logSet = useLogSet();
   const updateSet = useUpdateSet();
   const completeSession = useCompleteSession();
@@ -45,6 +48,23 @@ export function WorkoutSessionPage({
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
   const { formattedDuration } = useWorkoutTimer(sessionData?.session?.performed_at);
+
+  // Prefetch exercise history for all exercises when session loads
+  useEffect(() => {
+    if (exercises.length > 0) {
+      exercises.forEach((exercise) => {
+        if (exercise.exerciseId) {
+          queryClient.prefetchQuery({
+            queryKey: ['exercises', exercise.exerciseId, 'history', { limit: 10 }],
+            queryFn: async () => {
+              const response = await exercisesApi.getExerciseHistory(exercise.exerciseId, { limit: 10 });
+              return response.data;
+            },
+          });
+        }
+      });
+    }
+  }, [exercises, queryClient]);
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [editingWeight, setEditingWeight] = useState<number | null>(null);
