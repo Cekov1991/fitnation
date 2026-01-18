@@ -12,7 +12,7 @@ import { AddWorkoutPage } from './components/AddWorkoutPage';
 import { EditWorkoutPage } from './components/EditWorkoutPage';
 import { ExercisePickerPage } from './components/ExercisePickerPage';
 import { ExerciseDetailPage } from './components/ExerciseDetailPage';
-import { WorkoutSessionPage } from './components/WorkoutSessionPage';
+import { WorkoutSessionPage } from './components/workout-session';
 import { WeeklyCalendar } from './components/WeeklyCalendar';
 import { MetricCard } from './components/MetricCard';
 import { StrengthScoreModal } from './components/StrengthScoreModal';
