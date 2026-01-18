@@ -14,7 +14,7 @@ import './index.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { App } from './App';
+import { AppRoutes } from './routes';
 import { AuthProvider } from './hooks/useAuth';
 import { BrandingProvider } from './hooks/useBranding';
 
@@ -39,7 +39,7 @@ createRoot(rootElement).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrandingProvider>
-          <App />
+          <AppRoutes />
         </BrandingProvider>
       </AuthProvider>
     </QueryClientProvider>

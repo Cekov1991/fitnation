@@ -79,6 +79,31 @@ ion-content {
   --color: var(--color-text-primary);
 }
 
+/* Fix z-index stacking for IonPage to allow fixed elements above */
+ion-page {
+  z-index: auto !important;
+  contain: layout style !important;
+}
+
+/* Ensure IonContent doesn't create blocking stacking context */
+ion-content::part(scroll) {
+  z-index: auto;
+}
+
+/* ============================================
+   Fixed Element Z-Index Overrides
+   ============================================ */
+
+/* Bottom navigation should be above everything */
+.fixed.bottom-0.z-50 {
+  z-index: 9999 !important;
+}
+
+/* Modal backdrop and content */
+.fixed.inset-0[style*="z-index"] {
+  z-index: 10000 !important;
+}
+
 /* ============================================
    Ionic Input Global Overrides
    ============================================ */

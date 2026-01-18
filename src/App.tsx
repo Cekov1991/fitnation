@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IonApp, IonPage, IonContent } from '@ionic/react';
+import { IonPage, IonContent } from '@ionic/react';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './components/WeeklyCalendar';
 import { MetricCard } from './components/MetricCard';
@@ -17,15 +17,13 @@ import { EditWorkoutPage } from './components/EditWorkoutPage';
 import { ExercisePickerPage } from './components/ExercisePickerPage';
 import { ExerciseDetailPage } from './components/ExerciseDetailPage';
 import { WorkoutSessionPage } from './components/WorkoutSessionPage';
-import { ProfilePage } from './components/ProfilePage';
-import { LoginPage } from './components/LoginPage';
 import { useAuth } from './hooks/useAuth';
 import { useBranding } from './hooks/useBranding';
 import { useFitnessMetrics, useStartSession, useCreatePlan, useUpdatePlan, useCreateTemplate, useUpdateTemplate, usePlans, useAddTemplateExercise, useTodayWorkout } from './hooks/useApi';
 import { dayNameToIndex, type DayName } from './constants';
 type Page = 'dashboard' | 'plans' | 'progress' | 'profile' | 'create-plan' | 'edit-plan' | 'add-workout' | 'edit-workout' | 'manage-exercises' | 'pick-exercise' | 'exercise-detail' | 'workout-session' | 'workout-session-exercise-detail';
 export function App() {
-  const { user, loading, logout } = useAuth();
+  const { user } = useAuth();
   const { logo, partnerName } = useBranding();
   const {
     data: metrics
@@ -322,9 +320,6 @@ export function App() {
     // Refetch today's workout after finishing to update the button
     refetchTodayWorkout();
   };
-  const handleLogout = async () => {
-    await logout();
-  };
   const handleBackToPlans = () => {
     setCurrentPage('plans');
     setEditingPlan(null);
@@ -382,24 +377,10 @@ export function App() {
     return `${metrics.weekly_progress.current_week_workouts} workouts`;
   }, [metrics]);
 
-  if (loading) {
-    return <IonApp>
-        <div 
-          className="min-h-screen w-full flex items-center justify-center"
-          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
-        >
-          <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading...</div>
-        </div>
-      </IonApp>;
-  }
+  // Note: Loading and auth checks are now handled by AuthGuard in routes.tsx
+  // This component only renders when user is authenticated
 
-  if (!user) {
-    return <IonApp>
-        <LoginPage />
-      </IonApp>;
-  }
-
-  return <IonApp>
+  return <>
       <div 
         className="min-h-screen w-full"
         style={{
@@ -507,7 +488,7 @@ export function App() {
 
       {currentPage === 'workout-session-exercise-detail' && <ExerciseDetailPage exerciseName={selectedExerciseName} onBack={handleBackToWorkoutSession} />}
 
-      {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
+      {/* Profile page is now handled by routes.tsx */}
 
       <BottomNav currentPage={getBottomNavPage()} onPageChange={setCurrentPage} />
 
@@ -517,5 +498,5 @@ export function App() {
       <WeeklyProgressModal isOpen={isProgressModalOpen} onClose={() => setIsProgressModalOpen(false)} />
       <WorkoutSelectionModal isOpen={isWorkoutModalOpen} onClose={() => setIsWorkoutModalOpen(false)} onSelectTemplate={handleSelectTemplate} />
       </div>
-    </IonApp>;
+    </>;
 }

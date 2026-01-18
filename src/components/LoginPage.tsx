@@ -1,24 +1,38 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { IonPage, IonContent } from '@ionic/react'
+import { useIonRouter } from '@ionic/react'
+import { useLocation } from 'react-router-dom'
 import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+
+interface LocationState {
+  from?: { pathname: string }
+}
+
 interface LoginPageProps {
   onNavigateToRegister?: () => void
 }
+
 export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
   const { login } = useAuth()
+  const router = useIonRouter()
+  const location = useLocation<LocationState>()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
     try {
       await login(email, password)
+      // Redirect to the page they tried to visit or home
+      const from = location.state?.from?.pathname || '/'
+      router.push(from, 'forward', 'replace')
     } catch (err: any) {
       setError(err.message || 'Invalid email or password')
     } finally {

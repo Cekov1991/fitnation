@@ -83,7 +83,8 @@ export function WeeklyProgressModal({
               opacity: 0,
             }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: 10000 }}
           />
 
           {/* Modal */}
@@ -102,7 +103,8 @@ export function WeeklyProgressModal({
               damping: 30,
               stiffness: 300,
             }}
-            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
+            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto"
+            style={{ zIndex: 10001 }}
           >
             <div 
               className="rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"

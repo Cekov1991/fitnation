@@ -3,6 +3,19 @@
 ## Priority: 🟢 Later
 ## Estimated Time: 4-6 hours
 ## Type: Architecture / Maintainability
+## Status: ⏸️ BLOCKED - Waiting on Task 08/12 decision
+
+---
+
+## Prerequisites
+
+This task depends on completing one of:
+- **Task 08** (React Router) - Phases 3-6, OR
+- **Task 12** (Migrate to Ionic Components) - For full native feel
+
+The approach differs significantly based on which path you choose:
+- **With Ionic Components:** App.tsx becomes minimal (~50 lines), routing handled by IonTabs
+- **Without Ionic Components:** Use Context-based navigation (see "Without Router" section below)
 
 ---
 

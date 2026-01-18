@@ -34,7 +34,7 @@ export function EditSetsRepsModal({
         opacity: 1
       }} exit={{
         opacity: 0
-      }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md z-50" />
+      }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md" style={{ zIndex: 10000 }} />
 
           {/* Modal */}
           <motion.div initial={{
@@ -53,7 +53,7 @@ export function EditSetsRepsModal({
         type: 'spring',
         damping: 25,
         stiffness: 300
-      }} className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm z-50">
+      }} className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm" style={{ zIndex: 10001 }}>
             <div 
               className="backdrop-blur-xl border rounded-3xl shadow-2xl overflow-hidden"
               style={{ 
