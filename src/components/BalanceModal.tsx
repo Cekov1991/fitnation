@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Scale } from 'lucide-react'
 import { useFitnessMetrics } from '../hooks/useApi'
+import { useModalTransition } from '../utils/animations'
 
 interface BalanceModalProps {
   isOpen: boolean
@@ -12,6 +13,7 @@ export function BalanceModal({
   onClose,
 }: BalanceModalProps) {
   const { data: metrics } = useFitnessMetrics()
+  const modalTransition = useModalTransition()
   
   const balance = metrics?.strength_balance
   const percentage = balance?.percentage ?? 0
@@ -93,31 +95,15 @@ export function BalanceModal({
         <>
           {/* Backdrop */}
     <motion.div
-      initial={{
-        opacity: 0,
-      }}
-      animate={{
-        opacity: 1,
-            }}
-            exit={{
-              opacity: 0,
-            }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            style={{ zIndex: 10000 }}
+      {...modalTransition}
+      onClick={onClose}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+      style={{ zIndex: 10000 }}
           />
 
           {/* Modal */}
           <motion.div
-            initial={{
-              y: '100%',
-            }}
-            animate={{
-              y: 0,
-            }}
-            exit={{
-              y: '100%',
-      }}
+            {...modalTransition}
       transition={{
               type: 'spring',
               damping: 30,

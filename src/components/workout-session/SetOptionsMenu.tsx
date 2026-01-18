@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Edit2, Trash2 } from 'lucide-react';
+import { useModalTransition } from '../../utils/animations';
 import type { Set } from './types';
 
 interface SetOptionsMenuProps {
@@ -18,6 +19,7 @@ export function SetOptionsMenu({
   onEditSet,
   onRemoveSet,
 }: SetOptionsMenuProps) {
+  const modalTransition = useModalTransition();
   if (!selectedSet) return null;
 
   return (
@@ -25,18 +27,13 @@ export function SetOptionsMenu({
       {isOpen && selectedSet && (
         <>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            {...modalTransition}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           />
 
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            {...modalTransition}
             className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
           >
             <div 
@@ -98,9 +95,7 @@ function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default
   };
   
   return (
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <button
       onClick={onClick}
       className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${styles[variant]}`}
       style={variant === 'default' ? {
@@ -123,6 +118,6 @@ function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default
           {subtitle}
         </p>
       </div>
-    </motion.button>
+    </button>
   );
 }

@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { IonPage, IonContent, useIonRouter } from '@ionic/react';
-import { motion } from 'framer-motion';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './WeeklyCalendar';
 import { MetricCard } from './MetricCard';
@@ -99,12 +98,7 @@ export function DashboardPage() {
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
             {/* Header */}
-            <motion.header 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="flex flex-col items-center mb-8"
-            >
+            <header className="flex flex-col items-center mb-8">
               {logo ? (
                 <img 
                   src={logo} 
@@ -125,7 +119,7 @@ export function DashboardPage() {
               <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                 Welcome back, {user?.name || 'Athlete'}
               </p>
-            </motion.header>
+            </header>
 
             {/* Calendar Section */}
             <WeeklyCalendar />
@@ -165,12 +159,7 @@ export function DashboardPage() {
             </div>
 
             {/* CTA Button */}
-            <motion.button 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, type: 'spring' }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button 
               onClick={handleStartWorkoutClick} 
               className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
               style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -182,7 +171,7 @@ export function DashboardPage() {
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
                 style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
               />
-            </motion.button>
+            </button>
           </main>
         </IonContent>
       </IonPage>

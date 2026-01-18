@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion } from 'framer-motion';
 import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Check } from 'lucide-react';
 import { planSchema, PlanFormData } from '../schemas/plan';
@@ -74,35 +73,24 @@ export function CreatePlanPage({
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
             {/* Header */}
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              className="flex items-center gap-4 mb-8"
-            >
-              <motion.button 
-                whileHover={{ scale: 1.1, x: -2 }} 
-                whileTap={{ scale: 0.9 }} 
+            <div className="flex items-center gap-4 mb-8">
+              <button 
                 onClick={onBack} 
                 className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
               >
                 <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-              </motion.button>
+              </button>
               <h1 
                 className="text-3xl font-bold bg-clip-text text-transparent"
                 style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
               >
                 {mode === 'create' ? 'Create Plan' : 'Edit Plan'}
               </h1>
-            </motion.div>
+            </div>
 
             <form onSubmit={handleSubmit(handleFormSubmit)}>
               {/* Plan Name Input */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.1 }} 
-                className="mb-6"
-              >
+              <div className="mb-6">
                 <label htmlFor="plan-name" className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Plan Name *
                 </label>
@@ -129,15 +117,10 @@ export function CreatePlanPage({
                   }}
                 />
                 {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
-              </motion.div>
+              </div>
 
               {/* Description Textarea */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.2 }} 
-                className="mb-6"
-              >
+              <div className="mb-6">
                 <label htmlFor="description" className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Description
                 </label>
@@ -164,15 +147,10 @@ export function CreatePlanPage({
                   }}
                 />
                 {errors.description && <p className="text-xs text-red-400 mt-1">{errors.description.message}</p>}
-              </motion.div>
+              </div>
 
               {/* Active Plan Toggle */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.3 }} 
-                className="mb-8"
-              >
+              <div className="mb-8">
                 <div 
                   className="border rounded-2xl p-5"
                   style={{ 
@@ -190,11 +168,12 @@ export function CreatePlanPage({
                       className="relative w-14 h-8 rounded-full transition-colors duration-300"
                       style={{ backgroundColor: isActive ? '#22c55e' : 'var(--color-bg-elevated)' }}
                     >
-                      <motion.div 
-                        animate={{ x: isActive ? 24 : 2 }} 
-                        transition={{ type: 'spring', stiffness: 500, damping: 30 }} 
-                        className="absolute top-1 w-6 h-6 rounded-full shadow-lg"
-                        style={{ backgroundColor: 'var(--color-text-primary)' }}
+                      <div 
+                        className="absolute top-1 w-6 h-6 rounded-full shadow-lg transition-transform duration-200"
+                        style={{ 
+                          backgroundColor: 'var(--color-text-primary)',
+                          transform: isActive ? 'translateX(24px)' : 'translateX(2px)'
+                        }}
                       />
                     </button>
                   </div>
@@ -203,17 +182,12 @@ export function CreatePlanPage({
                     creating workouts.
                   </p>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Submit Button */}
-              <motion.button 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.4 }} 
+              <button 
                 type="submit" 
                 disabled={!isValid || isSubmitting}
-                whileHover={{ scale: isValid ? 1.02 : 1 }} 
-                whileTap={{ scale: isValid ? 0.98 : 1 }} 
                 className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${isValid ? '' : 'cursor-not-allowed opacity-50'}`}
                 style={isValid ? {
                   background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
@@ -232,7 +206,7 @@ export function CreatePlanPage({
                     style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
                   />
                 )}
-              </motion.button>
+              </button>
             </form>
           </main>
         </div>

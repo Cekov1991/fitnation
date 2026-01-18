@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion } from 'framer-motion';
 import { IonPage, IonContent } from '@ionic/react';
 import { useIonRouter } from '@ionic/react';
 import { useLocation } from 'react-router-dom';
@@ -67,19 +66,9 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             />
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative z-10 w-full max-w-md"
-          >
+          <div className="relative z-10 w-full max-w-md">
             {/* Logo and Header */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="flex flex-col items-center mb-8"
-            >
+            <div className="flex flex-col items-center mb-8">
               <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-3xl shadow-2xl shadow-blue-500/30 mb-6 flex items-center justify-center">
                 <Dumbbell className="text-white w-10 h-10" />
               </div>
@@ -89,14 +78,10 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
               <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 Sign in to continue your fitness journey
               </p>
-            </motion.div>
+            </div>
 
             {/* Login Form */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="backdrop-blur-xl border rounded-3xl p-8 shadow-2xl"
+            <div className="backdrop-blur-xl border rounded-3xl p-8 shadow-2xl"
               style={{ 
                 backgroundColor: 'var(--color-bg-surface)',
                 borderColor: 'var(--color-border)'
@@ -105,14 +90,10 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Error Message */}
                 {error && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
-                  >
+                  <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                     <AlertCircle className="text-red-400 w-5 h-5 flex-shrink-0" />
                     <p className="text-sm text-red-400">{error}</p>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* Email Field */}
@@ -225,11 +206,9 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 </div>
 
                 {/* Login Button */}
-                <motion.button
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                  whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                   className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
                 >
                   {isSubmitting ? (
@@ -246,7 +225,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </>
                   )}
-                </motion.button>
+                </button>
               </form>
 
               {/* Register Link */}
@@ -270,19 +249,13 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                   </p>
                 </div>
               )}
-            </motion.div>
+            </div>
 
             {/* Footer */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-center text-sm mt-8"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <p className="text-center text-sm mt-8" style={{ color: 'var(--color-text-muted)' }}>
               By signing in, you agree to our Terms of Service and Privacy Policy
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
         </div>
       </IonContent>
     </IonPage>

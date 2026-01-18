@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useIonRouter } from '@ionic/react';
 import { Home, ClipboardList, BarChart3, User } from 'lucide-react';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const tabs = [{
   id: 'dashboard',
@@ -34,6 +35,7 @@ export function BottomNav({
   onPageChange
 }: BottomNavProps) {
   const router = useIonRouter();
+  const shouldReduceMotion = useReducedMotion();
 
   const handleNavigation = (tab: typeof tabs[0]) => {
     // Skip if already on this page
@@ -79,13 +81,9 @@ export function BottomNav({
               >
                 {isActive && (
                   <motion.div 
-                    layoutId="nav-indicator" 
+                    layoutId={shouldReduceMotion ? undefined : "nav-indicator"} 
                     className="absolute inset-0 bg-white/5 rounded-xl" 
-                    transition={{
-                      type: 'spring',
-                      bounce: 0.2,
-                      duration: 0.6
-                    }} 
+                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: 'easeOut' }} 
                   />
                 )}
 
