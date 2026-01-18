@@ -26,7 +26,8 @@ function getWeekStart(date: Date) {
   return start;
 }
 export function WeeklyCalendar() {
-  const today = new Date();
+  // Calculate today only once when component mounts
+  const today = useMemo(() => new Date(), []);
   const weekStart = useMemo(() => getWeekStart(today), [today]);
   const weekEnd = useMemo(() => {
     const end = new Date(weekStart);
