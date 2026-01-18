@@ -343,6 +343,101 @@ export interface ExerciseHistoryResponse {
 }
 
 // ============================================
+// INPUT/REQUEST TYPES
+// ============================================
+
+// Plan mutations
+export interface CreatePlanInput {
+  name: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface UpdatePlanInput {
+  name: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+// Template mutations
+export interface CreateTemplateInput {
+  plan_id: number;
+  name: string;
+  description?: string;
+  day_of_week?: number; // 0-6 (Mon=0, Sun=6)
+}
+
+export interface UpdateTemplateInput {
+  plan_id?: number;
+  name: string;
+  description?: string;
+  day_of_week?: number; // 0-6 (Mon=0, Sun=6)
+}
+
+// Template exercise mutations
+export interface AddTemplateExerciseInput {
+  exercise_id: number;
+  target_sets?: number;
+  target_reps?: number;
+  target_weight?: number;
+  rest_seconds?: number;
+}
+
+export interface UpdateTemplateExerciseInput {
+  target_sets?: number;
+  target_reps?: number;
+  target_weight?: number;
+  rest_seconds?: number;
+}
+
+// Session mutations
+export interface LogSetInput {
+  exercise_id: number;
+  set_number: number;
+  weight: number;
+  reps: number;
+  rest_seconds?: number;
+}
+
+export interface UpdateSetInput {
+  weight: number;
+  reps: number;
+}
+
+// Session exercise mutations
+export interface AddSessionExerciseInput {
+  exercise_id: number;
+  order?: number;
+  target_sets?: number;
+  target_reps?: number;
+  target_weight?: number;
+  rest_seconds?: number;
+}
+
+export interface UpdateSessionExerciseInput {
+  order?: number;
+  target_sets?: number;
+  target_reps?: number;
+  target_weight?: number;
+  rest_seconds?: number;
+}
+
+// Profile mutations
+export interface UpdateProfileInput {
+  name?: string;
+  email?: string;
+  profile_photo?: File;
+  fitness_goal?: FitnessGoal;
+  age?: number;
+  gender?: Gender;
+  height?: number;
+  weight?: number;
+  training_experience?: TrainingExperience;
+  training_days_per_week?: number;
+  workout_duration_minutes?: number;
+}
+
+// ============================================
 // ERROR TYPES
 // ============================================
 
