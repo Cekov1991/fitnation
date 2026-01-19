@@ -46,18 +46,25 @@ export function useInstallPrompt() {
   // Note: Currently disabled - always show install button
   const isDismissed = false;
 
-  // iOS Safari detection
-  // Check for iOS devices that are NOT running in standalone mode
-  const isIOS = typeof navigator !== 'undefined' && 
-    /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-    !window.MSStream;
+  // iOS Safari detection - initialized in useEffect to avoid SSR/iOS crashes
+  const [isIOS, setIsIOS] = useState(false);
 
   // Check if app is already running in standalone mode (installed)
-  const isStandalone = typeof window !== 'undefined' && (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    // iOS Safari standalone mode check
-    (navigator as Navigator & { standalone?: boolean }).standalone === true
-  );
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  // Detect platform after mount (avoids window access during initial render)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // iOS detection
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    setIsIOS(iOS);
+    
+    // Standalone detection
+    const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    setIsStandalone(standalone);
+  }, []);
 
   // Listen for the beforeinstallprompt event (Android/Chrome only)
   useEffect(() => {
