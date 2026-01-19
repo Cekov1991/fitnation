@@ -16,10 +16,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 
 // Register Service Worker for PWA functionality
-// Skip on iOS - service workers can cause issues on iOS Safari
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-if ('serviceWorker' in navigator && !isIOS) {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
@@ -29,13 +26,6 @@ if ('serviceWorker' in navigator && !isIOS) {
       .catch((error) => {
         console.log('SW registration failed:', error);
       });
-  });
-}
-
-// Unregister any existing service workers on iOS (cleanup from previous visits)
-if ('serviceWorker' in navigator && isIOS) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    registrations.forEach((registration) => registration.unregister());
   });
 }
 
