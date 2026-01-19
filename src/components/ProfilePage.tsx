@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IonPage, IonContent, IonInput } from '@ionic/react';
-import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown } from 'lucide-react';
+import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown, Download } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { BackgroundGradients } from './BackgroundGradients';
+import { InstallInstructionsModal } from './InstallInstructionsModal';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
 
 interface ProfilePageProps {
@@ -14,6 +16,13 @@ interface ProfilePageProps {
 export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  
+  // PWA Install prompt hook
+  const { canInstall, isIOS, promptInstall, dismissInstall } = useInstallPrompt();
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  
+  // Show install button if native prompt available (Android) or on iOS
+  const showInstallButton = canInstall || isIOS;
 
   const {
     register,
@@ -454,6 +463,30 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               </button>
             </form>
 
+            {/* Install App Button - Only shown when installation is available */}
+            {showInstallButton && (
+              <button 
+                onClick={() => {
+                  if (isIOS) {
+                    // iOS: Show instructions modal
+                    setShowInstallModal(true);
+                  } else {
+                    // Android/Chrome: Trigger native install prompt
+                    promptInstall();
+                  }
+                }}
+                className="w-full py-4 border-2 rounded-2xl font-bold text-lg transition-all mb-4 flex items-center justify-center gap-2"
+                style={{
+                  borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 5%, transparent)',
+                }}
+              >
+                <Download className="w-5 h-5" />
+                INSTALL APP
+              </button>
+            )}
+
             {/* Log Out Button */}
             <button 
               onClick={onLogout} 
@@ -464,6 +497,13 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
             </button>
           </main>
         </div>
+
+        {/* iOS Install Instructions Modal */}
+        <InstallInstructionsModal 
+          isOpen={showInstallModal}
+          onClose={() => setShowInstallModal(false)}
+          onDismiss={dismissInstall}
+        />
       </IonContent>
     </IonPage>
   );
