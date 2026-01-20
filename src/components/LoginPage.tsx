@@ -5,6 +5,7 @@ import { useLocation, useHistory } from 'react-router-dom';
 import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { loginSchema, LoginFormData } from '../schemas/login';
+import { LoadingButton } from './ui';
 
 interface LocationState {
   from?: { pathname: string };
@@ -204,26 +205,15 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 </div>
 
                 {/* Login Button */}
-                <button
+                <LoadingButton
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+                  isLoading={isSubmitting}
+                  loadingText="Signing in..."
+                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group"
                 >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div 
-                        className="w-5 h-5 border-2 border-t-white rounded-full animate-spin"
-                        style={{ borderColor: 'var(--color-border)' }}
-                      />
-                      <span>Signing in...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="relative z-10">Sign In</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </>
-                  )}
-                </button>
+                  <span className="relative z-10">Sign In</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </LoadingButton>
               </form>
 
               {/* Register Link */}

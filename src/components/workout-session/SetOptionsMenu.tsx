@@ -10,6 +10,7 @@ interface SetOptionsMenuProps {
   onClose: () => void;
   onEditSet: () => void;
   onRemoveSet: () => void;
+  isRemoveLoading?: boolean;
 }
 
 export function SetOptionsMenu({
@@ -18,6 +19,7 @@ export function SetOptionsMenu({
   onClose,
   onEditSet,
   onRemoveSet,
+  isRemoveLoading = false,
 }: SetOptionsMenuProps) {
   const modalTransition = useModalTransition();
   if (!selectedSet) return null;
@@ -67,6 +69,7 @@ export function SetOptionsMenu({
                   subtitle="Delete this set"
                   onClick={onRemoveSet}
                   variant="danger"
+                  isLoading={isRemoveLoading}
                 />
               </div>
             </div>
@@ -85,9 +88,10 @@ interface MenuButtonProps {
   subtitle: string;
   onClick: () => void;
   variant?: 'default' | 'success' | 'danger';
+  isLoading?: boolean;
 }
 
-function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default' }: MenuButtonProps) {
+function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default', isLoading = false }: MenuButtonProps) {
   const styles = {
     default: 'card-hover border',
     success: 'bg-green-500/10 hover:bg-green-500/20 border border-green-500/20',
@@ -97,20 +101,27 @@ function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${styles[variant]}`}
+      disabled={isLoading}
+      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${styles[variant]}`}
       style={variant === 'default' ? {
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)'
       } : undefined}
     >
       <div className="p-2 rounded-lg" style={{ backgroundColor: iconBg }}>
-        {icon}
+        {isLoading ? (
+          <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ 
+            color: variant === 'success' ? '#4ade80' : variant === 'danger' ? '#f87171' : 'var(--color-text-primary)' 
+          }} />
+        ) : (
+          icon
+        )}
       </div>
       <div className="flex-1 text-left">
         <p className="text-sm font-bold" style={{ 
           color: variant === 'success' ? '#4ade80' : variant === 'danger' ? '#f87171' : 'var(--color-text-primary)' 
         }}>
-          {title}
+          {isLoading ? 'Processing...' : title}
         </p>
         <p className="text-xs" style={{ 
           color: variant === 'success' ? 'rgb(74 222 128 / 0.7)' : variant === 'danger' ? 'rgb(248 113 113 / 0.7)' : 'var(--color-text-secondary)' 

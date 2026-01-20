@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
+import { LoadingButton } from '../ui';
 import { formatWeight } from './utils';
 import { useSlideTransition } from '../../utils/animations';
 
@@ -10,6 +11,7 @@ interface SetEditCardProps {
   onRepsChange: (reps: number) => void;
   onSave: () => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 export function SetEditCard({
@@ -19,6 +21,7 @@ export function SetEditCard({
   onRepsChange,
   onSave,
   onCancel,
+  isLoading = false,
 }: SetEditCardProps) {
   const slideTransition = useSlideTransition()
   return (
@@ -93,10 +96,11 @@ export function SetEditCard({
         >
           Cancel
         </motion.button>
-        <motion.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onSave} 
+        <LoadingButton
+          onClick={onSave}
+          isLoading={isLoading}
+          loadingText="Saving..."
+          disabled={isLoading}
           className="flex-1 px-6 py-4 rounded-2xl font-bold text-lg shadow-lg"
           style={{ 
             color: '#ea580c',
@@ -104,7 +108,7 @@ export function SetEditCard({
           }}
         >
           Save
-        </motion.button>
+        </LoadingButton>
       </div>
     </motion.div>
   );

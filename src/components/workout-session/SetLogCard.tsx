@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
+import { LoadingButton } from '../ui';
 import { formatWeight } from './utils';
 
 interface SetLogCardProps {
@@ -8,6 +9,7 @@ interface SetLogCardProps {
   onWeightChange: (weight: number) => void;
   onRepsChange: (reps: number) => void;
   onLogSet: () => void;
+  isLoading?: boolean;
 }
 
 export function SetLogCard({
@@ -16,6 +18,7 @@ export function SetLogCard({
   onWeightChange,
   onRepsChange,
   onLogSet,
+  isLoading = false,
 }: SetLogCardProps) {
   return (
     <motion.div 
@@ -81,15 +84,16 @@ export function SetLogCard({
       </div>
 
       {/* Log Set Button */}
-      <motion.button 
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onLogSet} 
+      <LoadingButton
+        onClick={onLogSet}
+        isLoading={isLoading}
+        loadingText="Logging..."
+        disabled={isLoading}
         className="w-full mt-4 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg"
         style={{ color: 'var(--color-primary)' }}
       >
         Log Set
-      </motion.button>
+      </LoadingButton>
     </motion.div>
   );
 }
