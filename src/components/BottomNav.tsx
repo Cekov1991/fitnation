@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useIonRouter } from '@ionic/react';
+import { useHistory } from 'react-router-dom';
 import { Home, ClipboardList, BarChart3, User } from 'lucide-react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
@@ -35,30 +35,18 @@ export function BottomNav({
   currentPage = 'dashboard',
   onPageChange
 }: BottomNavProps) {
-  const router = useIonRouter();
+  const history = useHistory();
   const shouldReduceMotion = useReducedMotion();
 
   const handleNavigation = (tab: typeof tabs[0]) => {
     // Skip if already on this page
     if (tab.id === currentPage) return;
 
-    // Use router navigation for profile (fully migrated)
-    // For other pages, use router but App.tsx will handle the internal state
-    const direction = getNavigationDirection(currentPage, tab.id);
-    router.push(tab.path, direction, 'push');
+    history.push(tab.path);
     
     // Also call legacy onPageChange for backward compatibility during migration
     // This will be removed once all pages are migrated
     onPageChange?.(tab.id as 'dashboard' | 'plans' | 'progress' | 'profile');
-  };
-
-  // Determine animation direction based on tab order
-  const getNavigationDirection = (from: string, to: string): 'forward' | 'back' | 'none' => {
-    const fromIndex = tabs.findIndex(t => t.id === from);
-    const toIndex = tabs.findIndex(t => t.id === to);
-    if (toIndex > fromIndex) return 'forward';
-    if (toIndex < fromIndex) return 'back';
-    return 'none';
   };
 
   return (

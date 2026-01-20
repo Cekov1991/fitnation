@@ -53,8 +53,8 @@ export function CreatePlanPage({
   };
 
   return (
-    <IonPage>
-      <IonContent>
+    <div>
+      <div>
         <div 
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
@@ -210,7 +210,7 @@ export function CreatePlanPage({
             </form>
           </main>
         </div>
-      </IonContent>
-    </IonPage>
+      </div>
+    </div>
   );
 }

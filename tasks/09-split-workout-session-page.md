@@ -427,8 +427,8 @@ export function WorkoutSessionPage({ sessionId, /* ... */ }: WorkoutSessionPageP
   if (isLoading) return <LoadingState />;
   
   return (
-    <IonPage>
-      <IonContent>
+    <div>
+      <div>
         <div className="min-h-screen w-full pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
           <BackgroundGradients />
           
@@ -482,8 +482,8 @@ export function WorkoutSessionPage({ sessionId, /* ... */ }: WorkoutSessionPageP
             // ... other props
           />
         </div>
-      </IonContent>
-    </IonPage>
+      </div>
+    </div>
   );
 }
 ```

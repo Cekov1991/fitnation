@@ -160,8 +160,8 @@ export function PlansPage({
     if (!currentWorkout?.templateId) return;
     deleteTemplate.mutate(currentWorkout.templateId);
   };
-  return <IonPage>
-      <IonContent>
+  return <div>
+      <div>
         <div 
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
@@ -358,6 +358,6 @@ export function PlansPage({
       {/* Workout Menu */}
       {menuType === 'workout' && <WorkoutMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} onStartWorkout={handleStartWorkout} onAddExercises={handleAddExercises} onEdit={handleEditWorkout} onDelete={handleDeleteWorkout} />}
     </div>
-      </IonContent>
-    </IonPage>;
+      </div>
+    </div>;
 }

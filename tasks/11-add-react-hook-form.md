@@ -438,8 +438,8 @@ export function CreatePlanPage({ mode = 'create', initialData, onBack, onSubmit 
   };
 
   return (
-    <IonPage>
-      <IonContent>
+    <div>
+      <div>
         <div className="min-h-screen w-full pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
           <BackgroundGradients />
           
@@ -521,8 +521,8 @@ export function CreatePlanPage({ mode = 'create', initialData, onBack, onSubmit 
             </form>
           </main>
         </div>
-      </IonContent>
-    </IonPage>
+      </div>
+    </div>
   );
 }
 ```
