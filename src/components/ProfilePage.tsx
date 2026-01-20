@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IonInput } from '@ionic/react';
@@ -6,7 +6,6 @@ import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, C
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { BackgroundGradients } from './BackgroundGradients';
-import { InstallInstructionsModal } from './InstallInstructionsModal';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
 
 interface ProfilePageProps {
@@ -18,11 +17,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
   const updateProfile = useUpdateProfile();
   
   // PWA Install prompt hook
-  const { canInstall, isIOS, promptInstall, dismissInstall } = useInstallPrompt();
-  const [showInstallModal, setShowInstallModal] = useState(false);
+  const { canInstall, promptInstall } = useInstallPrompt();
   
-  // Show install button if native prompt available (Android) or on iOS
-  const showInstallButton = canInstall || isIOS;
+  // Show install button if native prompt available (Android/Chrome)
+  const showInstallButton = canInstall;
 
   const {
     register,
@@ -466,15 +464,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
             {/* Install App Button - Only shown when installation is available */}
             {showInstallButton && (
               <button 
-                onClick={() => {
-                  if (isIOS) {
-                    // iOS: Show instructions modal
-                    setShowInstallModal(true);
-                  } else {
-                    // Android/Chrome: Trigger native install prompt
-                    promptInstall();
-                  }
-                }}
+                onClick={promptInstall}
                 className="w-full py-4 border-2 rounded-2xl font-bold text-lg transition-all mb-4 flex items-center justify-center gap-2"
                 style={{
                   borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
@@ -496,13 +486,6 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               LOG OUT
             </button>
           </main>
-
-          {/* iOS Install Instructions Modal */}
-          <InstallInstructionsModal
-            isOpen={showInstallModal}
-            onClose={() => setShowInstallModal(false)}
-            onDismiss={dismissInstall}
-          />
         </div>
       </div>
     </div>
