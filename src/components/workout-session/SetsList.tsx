@@ -9,6 +9,7 @@ interface SetsListProps {
   editingSetId: string | null;
   onOpenSetMenu: (setId: string) => void;
   onAddSet: () => void;
+  isAddSetLoading?: boolean;
 }
 
 export function SetsList({
@@ -16,6 +17,7 @@ export function SetsList({
   editingSetId,
   onOpenSetMenu,
   onAddSet,
+  isAddSetLoading = false,
 }: SetsListProps) {
   const modalTransition = useModalTransition();
   return (
@@ -68,16 +70,28 @@ export function SetsList({
       {!editingSetId && (
         <button
           onClick={onAddSet}
-          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border"
+          disabled={isAddSetLoading}
+          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
             borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
           }}
         >
-          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-          <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-            Add Set
-          </span>
+          {isAddSetLoading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: 'var(--color-primary)' }} />
+              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                Adding...
+              </span>
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                Add Set
+              </span>
+            </>
+          )}
         </button>
       )}
     </div>

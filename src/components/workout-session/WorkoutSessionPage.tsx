@@ -8,6 +8,7 @@ import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, 
 import { exercisesApi } from '../../services/api';
 import { ExercisePickerPage } from '../ExercisePickerPage';
 import { BackgroundGradients } from '../BackgroundGradients';
+import { LoadingButton } from '../ui';
 import { WorkoutHeader } from './WorkoutHeader';
 import { ExerciseNavTabs } from './ExerciseNavTabs';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
@@ -428,6 +429,7 @@ export function WorkoutSessionPage({
                         onWeightChange={setEditingWeight}
                         onRepsChange={setEditingReps}
                         onLogSet={handleDidIt}
+                        isLoading={logSet.isPending}
                       />
                     )}
 
@@ -440,6 +442,7 @@ export function WorkoutSessionPage({
                         onRepsChange={setEditingReps}
                         onSave={handleSaveEdit}
                         onCancel={handleCancelEdit}
+                        isLoading={updateSet.isPending}
                       />
                     )}
 
@@ -448,6 +451,7 @@ export function WorkoutSessionPage({
                       editingSetId={editingSetId}
                       onOpenSetMenu={handleOpenSetMenu}
                       onAddSet={handleAddSet}
+                      isAddSetLoading={updateSessionExercise.isPending}
                     />
                   </motion.div>
                 </AnimatePresence>
@@ -458,8 +462,11 @@ export function WorkoutSessionPage({
           {/* Finish Workout Button - Fixed above bottom nav */}
           {allExercisesCompleted && (
             <div className="fixed bottom-28 left-0 right-0 px-6 max-w-md mx-auto z-20">
-              <button 
-                onClick={handleFinish} 
+              <LoadingButton
+                onClick={handleFinish}
+                isLoading={completeSession.isPending}
+                loadingText="Finishing..."
+                disabled={completeSession.isPending}
                 className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -467,7 +474,7 @@ export function WorkoutSessionPage({
                   FINISH WORKOUT
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </button>
+              </LoadingButton>
             </div>
           )}
 
@@ -485,6 +492,8 @@ export function WorkoutSessionPage({
             onViewExercise={handleViewExercise}
             onSwapExercise={handleSwapExercise}
             onRemoveExercise={handleRemoveExercise}
+            isSwapLoading={addSessionExercise.isPending}
+            isRemoveLoading={removeSessionExercise.isPending && !addSessionExercise.isPending}
           />
 
           <SetOptionsMenu
@@ -496,6 +505,7 @@ export function WorkoutSessionPage({
             }}
             onEditSet={handleEditSetFromMenu}
             onRemoveSet={handleRemoveSetFromMenu}
+            isRemoveLoading={deleteSet.isPending || updateSessionExercise.isPending}
           />
 
           {/* Exercise Picker */}
@@ -504,6 +514,7 @@ export function WorkoutSessionPage({
               mode={exercisePickerMode}
               onClose={() => setShowExercisePicker(false)}
               onSelectExercise={handleSelectExercise}
+              isLoading={addSessionExercise.isPending || removeSessionExercise.isPending}
             />
           )}
 

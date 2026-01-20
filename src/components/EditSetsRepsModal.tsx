@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { X, Check } from 'lucide-react';
+import { LoadingButton } from './ui';
 import { setsRepsSchema, SetsRepsFormData } from '../schemas/setsReps';
 import { useModalTransition } from '../utils/animations';
 
@@ -14,6 +15,7 @@ interface EditSetsRepsModalProps {
   initialReps: string;
   initialWeight: string;
   onSave: (sets: number, reps: string, weight: string) => void;
+  isLoading?: boolean;
 }
 
 export function EditSetsRepsModal({
@@ -22,7 +24,8 @@ export function EditSetsRepsModal({
   initialSets,
   initialReps,
   initialWeight,
-  onSave
+  onSave,
+  isLoading = false
 }: EditSetsRepsModalProps) {
   const modalTransition = useModalTransition();
   const {
@@ -51,8 +54,8 @@ export function EditSetsRepsModal({
     }
   }, [isOpen, initialSets, initialReps, initialWeight, reset]);
 
-  const onSubmit = (data: SetsRepsFormData) => {
-    onSave(data.sets, data.reps, data.weight || '');
+  const onSubmit = async (data: SetsRepsFormData) => {
+    await onSave(data.sets, data.reps, data.weight || '');
     onClose();
   };
 
@@ -191,9 +194,11 @@ export function EditSetsRepsModal({
                   </div>
 
                   {/* Save Button */}
-                  <button 
+                  <LoadingButton
                     type="submit"
-                    disabled={!isValid || isSubmitting}
+                    isLoading={isSubmitting || isLoading}
+                    loadingText="Saving..."
+                    disabled={!isValid || isSubmitting || isLoading}
                     className="w-full py-3 rounded-xl font-bold text-white shadow-lg transition-shadow relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background: isValid 
@@ -204,7 +209,7 @@ export function EditSetsRepsModal({
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       <Check size={20} />
-                      {isSubmitting ? 'Saving...' : 'Save Changes'}
+                      Save Changes
                     </span>
                     {isValid && (
                       <div 
@@ -212,7 +217,7 @@ export function EditSetsRepsModal({
                         style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
                       />
                     )}
-                  </button>
+                  </LoadingButton>
                 </form>
               </div>
             </div>

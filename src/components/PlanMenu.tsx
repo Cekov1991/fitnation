@@ -10,6 +10,8 @@ interface PlanMenuProps {
   onEdit?: () => void;
   onToggleActive?: () => void;
   onDelete?: () => void;
+  isToggleLoading?: boolean;
+  isDeleteLoading?: boolean;
 }
 export function PlanMenu({
   isOpen,
@@ -18,7 +20,9 @@ export function PlanMenu({
   onAddWorkout,
   onEdit,
   onToggleActive,
-  onDelete
+  onDelete,
+  isToggleLoading = false,
+  isDeleteLoading = false
 }: PlanMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
@@ -36,22 +40,30 @@ export function PlanMenu({
     label: 'Add Workout',
     icon: Plus,
     onClick: onAddWorkout,
-    color: 'text-blue-400'
+    color: 'text-blue-400',
+    isLoading: false,
+    disabled: false
   }, {
     label: 'Edit',
     icon: Edit3,
     onClick: onEdit,
-    color: 'text-gray-300'
+    color: 'text-gray-300',
+    isLoading: false,
+    disabled: false
   }, {
     label: isActive ? 'Deactivate' : 'Activate',
     icon: isActive ? PowerOff : Power,
     onClick: onToggleActive,
-    color: isActive ? 'text-orange-400' : 'text-green-400'
+    color: isActive ? 'text-orange-400' : 'text-green-400',
+    isLoading: isToggleLoading,
+    disabled: isToggleLoading
   }, {
     label: 'Delete',
     icon: Trash2,
     onClick: onDelete,
-    color: 'text-red-400'
+    color: 'text-red-400',
+    isLoading: isDeleteLoading,
+    disabled: isDeleteLoading
   }];
   return <AnimatePresence>
       {isOpen && <>
@@ -99,16 +111,25 @@ export function PlanMenu({
               <div className="space-y-2 mb-6">
                 {menuItems.map((item) => {
               const Icon = item.icon;
+              // For items with loading states, don't close immediately - parent handles closing
+              const shouldCloseImmediately = !item.isLoading && item.label !== 'Delete' && item.label !== 'Activate' && item.label !== 'Deactivate';
               return <button 
                 key={item.label} 
                 onClick={() => {
-                item.onClick?.();
-                onClose();
+                if (!item.disabled) {
+                  item.onClick?.();
+                  if (shouldCloseImmediately) {
+                    onClose();
+                  }
+                }
               }} 
-                className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors text-left group"
+                disabled={item.disabled}
+                className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: 'var(--color-bg-surface)' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  if (!item.disabled) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
@@ -118,22 +139,28 @@ export function PlanMenu({
                         className="p-2 rounded-lg transition-colors"
                         style={{ backgroundColor: 'var(--color-bg-elevated)' }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                          if (!item.disabled) {
+                            e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                          }
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
                         }}
                       >
-                        <Icon 
-                          className="w-5 h-5" 
-                          style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
-                        />
+                        {item.isLoading ? (
+                          <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }} />
+                        ) : (
+                          <Icon 
+                            className="w-5 h-5" 
+                            style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
+                          />
+                        )}
                       </div>
                       <span 
                         className="text-base font-medium"
                         style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
                       >
-                        {item.label}
+                        {item.isLoading ? 'Processing...' : item.label}
                       </span>
                     </button>;
             })}

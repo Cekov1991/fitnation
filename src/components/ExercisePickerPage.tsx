@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, ChevronRight } from 'lucide-react';
+import { X, Search, ChevronRight, Loader2 } from 'lucide-react';
 import { useExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { BackgroundGradients } from './BackgroundGradients';
@@ -18,11 +18,13 @@ interface ExercisePickerPageProps {
   mode: 'add' | 'swap';
   onClose: () => void;
   onSelectExercise: (exercise: Exercise) => void;
+  isLoading?: boolean;
 }
 export function ExercisePickerPage({
   mode,
   onClose,
-  onSelectExercise
+  onSelectExercise,
+  isLoading: isSelecting = false
 }: ExercisePickerPageProps) {
   const modalTransition = useModalTransition();
   const slideTransition = useSlideTransition();
@@ -31,6 +33,7 @@ export function ExercisePickerPage({
     isLoading
   } = useExercises();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const availableExercises = useMemo<Exercise[]>(() => {
     return exercises.map((exercise: ExerciseResource) => ({
       id: exercise.id,
@@ -53,6 +56,8 @@ export function ExercisePickerPage({
     setSearchQuery(query);
   };
   const handleSelectExercise = (exercise: Exercise) => {
+    if (isSelecting) return;
+    setSelectedExerciseId(exercise.id);
     onSelectExercise(exercise);
     // Don't call onClose here - let the parent handle closing after async operations complete
   };
@@ -113,38 +118,55 @@ export function ExercisePickerPage({
                 </div>
                 <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading exercises...</p>
               </motion.div> : filteredExercises.length > 0 ? <div className="space-y-2">
-                {filteredExercises.map((exercise, index) => <button key={exercise.id} {...modalTransition}
-              onClick={() => handleSelectExercise(exercise)} 
-              className="w-full flex items-center gap-4 p-4 border rounded-2xl transition-colors text-left"
-              style={{ 
-                backgroundColor: 'var(--color-bg-surface)',
-                borderColor: 'var(--color-border-subtle)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-              }}
-            >
-                    {/* Exercise Image/Muscle Diagram */}
-                    <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
-                      <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-                    </div>
+                {filteredExercises.map((exercise) => {
+                  const isThisLoading = isSelecting && selectedExerciseId === exercise.id;
+                  return (
+                    <button 
+                      key={exercise.id} 
+                      {...modalTransition}
+                      onClick={() => handleSelectExercise(exercise)} 
+                      disabled={isSelecting}
+                      className="w-full flex items-center gap-4 p-4 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border-subtle)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelecting) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                      }}
+                    >
+                      {/* Exercise Image/Muscle Diagram */}
+                      <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden relative">
+                        <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
+                        {isThisLoading && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
+                            <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Exercise Info */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
-                        {exercise.name}
-                      </h3>
-                      <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                        Rest: {exercise.restTime}
-                      </p>
-                    </div>
+                      {/* Exercise Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+                          {isThisLoading ? 'Adding...' : exercise.name}
+                        </h3>
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                          Rest: {exercise.restTime}
+                        </p>
+                      </div>
 
-                    {/* Chevron */}
-                    <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                  </button>)}
+                      {/* Chevron or nothing when loading */}
+                      {!isThisLoading && (
+                        <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                      )}
+                    </button>
+                  );
+                })}
               </div> : <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
                   className="w-16 h-16 rounded-full flex items-center justify-center mb-4"

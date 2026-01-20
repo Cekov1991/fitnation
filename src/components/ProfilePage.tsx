@@ -7,6 +7,7 @@ import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { BackgroundGradients } from './BackgroundGradients';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
+import { LoadingButton } from './ui';
 
 interface ProfilePageProps {
   onLogout: () => void;
@@ -446,10 +447,12 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               </div>
 
               {/* Save Changes Button */}
-              <button 
+              <LoadingButton
                 type="submit"
-                disabled={isLoading || isSubmitting || !isDirty}
-                className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
+                isLoading={isSubmitting}
+                loadingText="SAVING..."
+                disabled={isLoading || !isDirty}
+                className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow mb-4"
                 style={{
                   background: isDirty 
                     ? 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))'
@@ -457,8 +460,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                   boxShadow: isDirty ? '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)' : 'none'
                 }}
               >
-                {isSubmitting ? 'SAVING...' : 'SAVE CHANGES'}
-              </button>
+                SAVE CHANGES
+              </LoadingButton>
             </form>
 
             {/* Install App Button - Only shown when installation is available */}
