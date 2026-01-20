@@ -19,6 +19,7 @@ export function ExerciseImage({ src, alt, className = '' }: ExerciseImageProps) 
         <img
           src={src}
           alt={alt}
+          loading="lazy"
           className="w-full h-full object-cover"
           onError={() => setImageError(true)}
         />

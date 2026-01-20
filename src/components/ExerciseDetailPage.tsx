@@ -1,6 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
@@ -8,6 +7,9 @@ import { ExerciseImage } from './ExerciseImage';
 import { BackgroundGradients } from './BackgroundGradients';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
 import { useModalTransition } from '../utils/animations';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+
+const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 interface ExerciseDetailPageProps {
   exerciseName: string;
@@ -34,6 +36,7 @@ export function ExerciseDetailPage({
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const modalTransition = useModalTransition();
+  const shouldReduceMotion = useReducedMotion();
   const {
     data: exercises = []
   } = useExercises();
@@ -230,7 +233,7 @@ export function ExerciseDetailPage({
             >
               {activeTab === tab && <motion.div 
               {...modalTransition}
-                layoutId="activeTab" 
+                layoutId={shouldReduceMotion || isIOS ? undefined : "activeTab"} 
                 className="absolute inset-0 rounded-xl" 
                 style={{ background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' }}
                  />}

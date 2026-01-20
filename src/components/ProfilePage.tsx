@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IonPage, IonContent, IonInput } from '@ionic/react';
+import { IonInput } from '@ionic/react';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { BackgroundGradients } from './BackgroundGradients';

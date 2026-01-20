@@ -1,11 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { BackgroundGradients } from './BackgroundGradients';
-import { useTemplate, useAddTemplateExercise, useUpdateTemplateExercise, useRemoveTemplateExercise } from '../hooks/useApi';
+import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
 interface Exercise {

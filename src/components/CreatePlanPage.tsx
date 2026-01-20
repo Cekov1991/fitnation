@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Check } from 'lucide-react';
 import { planSchema, PlanFormData } from '../schemas/plan';
 

@@ -12,7 +12,6 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@ionic/react": "^8.7.17",
-    "@ionic/react-router": "^8.7.17",
     "@tanstack/react-query": "^5.56.2",
     "@types/react-router-dom": "^5.3.3",
     "framer-motion": "^11.5.4",

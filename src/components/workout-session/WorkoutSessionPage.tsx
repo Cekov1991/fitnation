@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonPage, IonContent } from '@ionic/react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useSimpleTransition } from '../../utils/animations';
 import { Plus, Check } from 'lucide-react';

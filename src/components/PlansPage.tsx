@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { IonPage, IonContent } from '@ionic/react';
 import { Plus, Info, MoreVertical, Dumbbell, CheckCircle2, Circle } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';

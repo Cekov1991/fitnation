@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IonPage, IonContent } from '@ionic/react';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { BackgroundGradients } from './BackgroundGradients';
 import { usePlans } from '../hooks/useApi';
