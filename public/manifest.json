@@ -9,8 +9,8 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/icon-512.png",
-      "sizes": "any",
+      "src": "/icons/fit-nation.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
