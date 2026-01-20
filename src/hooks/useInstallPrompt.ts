@@ -48,7 +48,8 @@ export function useInstallPrompt() {
 
   // iOS Safari detection
   // Check for iOS devices that are NOT running in standalone mode
-  const isIOS = typeof navigator !== 'undefined' && 
+  const isIOS = typeof window !== 'undefined' &&
+    typeof navigator !== 'undefined' && 
     /iPad|iPhone|iPod/.test(navigator.userAgent) && 
     !window.MSStream;
 
