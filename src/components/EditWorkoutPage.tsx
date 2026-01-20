@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { motion, Reorder } from 'framer-motion';
+import { motion, Reorder, useDragControls } from 'framer-motion';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
@@ -20,6 +20,73 @@ interface Exercise {
   muscleGroups: string[];
   primaryMuscle: string;
   imageUrl: string;
+}
+
+// Separate component for draggable exercise item to use its own useDragControls hook
+interface DraggableExerciseItemProps {
+  exercise: Exercise;
+  onEditClick: (exercise: Exercise) => void;
+}
+
+function DraggableExerciseItem({ exercise, onEditClick }: DraggableExerciseItemProps) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      key={exercise.id}
+      value={exercise}
+      dragListener={false}
+      dragControls={controls}
+      className="border rounded-2xl p-4 transition-colors"
+      style={{ 
+        backgroundColor: 'var(--color-bg-surface)',
+        borderColor: 'var(--color-border-subtle)'
+      }}
+      whileDrag={{ 
+        scale: 1.02, 
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        cursor: 'grabbing'
+      }}
+    >
+      <div className="flex items-center gap-4">
+        {/* Drag Handle - only this triggers drag */}
+        <div 
+          onPointerDown={(e) => controls.start(e)}
+          className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors touch-none" 
+          style={{ backgroundColor: 'var(--color-border-subtle)' }}
+        >
+          <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+        </div>
+
+        {/* Exercise Image */}
+        <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
+          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
+        </div>
+
+        {/* Exercise Info */}
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-bold mb-1 leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
+            {exercise.name}
+          </h4>
+          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+            {exercise.sets} sets × {exercise.reps} reps × {exercise.weight} kg
+          </p>
+        </div>
+
+        {/* Edit Button */}
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditClick(exercise);
+          }} 
+          className="flex-shrink-0 p-2 rounded-full transition-colors" 
+          style={{ backgroundColor: 'var(--color-border-subtle)' }}
+        >
+          <Edit2 className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
+        </button>
+      </div>
+    </Reorder.Item>
+  );
 }
 interface EditWorkoutPageProps {
   templateId: number;
@@ -224,57 +291,11 @@ export function EditWorkoutPage({
                   className="space-y-3"
                 >
                   {exercises.map((exercise) => (
-                    <Reorder.Item
+                    <DraggableExerciseItem
                       key={exercise.id}
-                      value={exercise}
-                      className="border rounded-2xl p-4 transition-colors"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: 'var(--color-border-subtle)'
-                      }}
-                      whileDrag={{ 
-                        scale: 1.02, 
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                        cursor: 'grabbing'
-                      }}
-                    >
-                      <div className="flex items-center gap-4">
-                        {/* Drag Handle */}
-                        <div 
-                          className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors touch-none" 
-                          style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                        >
-                          <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                        </div>
-
-                        {/* Exercise Image */}
-                        <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden pointer-events-none">
-                          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-                        </div>
-
-                        {/* Exercise Info */}
-                        <div className="flex-1 min-w-0 pointer-events-none">
-                          <h4 className="text-sm font-bold mb-1 leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
-                            {exercise.name}
-                          </h4>
-                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                            {exercise.sets} sets × {exercise.reps} reps × {exercise.weight} kg
-                          </p>
-                        </div>
-
-                        {/* Edit Button */}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleExerciseEditClick(exercise);
-                          }} 
-                          className="flex-shrink-0 p-2 rounded-full transition-colors" 
-                          style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                        >
-                          <Edit2 className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-                        </button>
-                      </div>
-                    </Reorder.Item>
+                      exercise={exercise}
+                      onEditClick={handleExerciseEditClick}
+                    />
                   ))}
                 </Reorder.Group>
               ) : (
