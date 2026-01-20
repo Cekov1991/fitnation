@@ -30,8 +30,15 @@ export function AuthProvider({
         try {
           const response = await authApi.getCurrentUser();
           setUser(response.user);
+          // Save partner slug for PWA manifest selection
+          if (response.user.partner?.slug) {
+            localStorage.setItem('partner-slug', response.user.partner.slug);
+          } else {
+            localStorage.removeItem('partner-slug');
+          }
         } catch (error) {
           localStorage.removeItem('authToken');
+          localStorage.removeItem('partner-slug');
         }
       }
       setLoading(false);
@@ -42,6 +49,12 @@ export function AuthProvider({
     const response = await authApi.login(email, password);
     localStorage.setItem('authToken', response.token);
     setUser(response.user);
+    // Save partner slug for PWA manifest selection
+    if (response.user.partner?.slug) {
+      localStorage.setItem('partner-slug', response.user.partner.slug);
+    } else {
+      localStorage.removeItem('partner-slug');
+    }
   };
   const logout = async () => {
     try {
@@ -51,6 +64,7 @@ export function AuthProvider({
       console.error('Logout error:', error);
     }
     localStorage.removeItem('authToken');
+    localStorage.removeItem('partner-slug');
     setUser(null);
   };
   const register = async (data: {
@@ -63,6 +77,12 @@ export function AuthProvider({
     const response = await authApi.register(data);
     localStorage.setItem('authToken', response.token);
     setUser(response.user);
+    // Save partner slug for PWA manifest selection
+    if (response.user.partner?.slug) {
+      localStorage.setItem('partner-slug', response.user.partner.slug);
+    } else {
+      localStorage.removeItem('partner-slug');
+    }
   };
   return <AuthContext.Provider value={{
     user,

@@ -7,6 +7,36 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Fit Nation</title>
+    
+    <!-- PWA Manifest (default, may be swapped by script below) -->
+    <link rel="manifest" href="/manifest.json" id="pwa-manifest" />
+    <meta name="theme-color" content="#2563eb" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Fit Nation" />
+    <link rel="apple-touch-icon" href="/icons/fit-nation.png" id="apple-touch-icon" />
+    
+    <!-- Partner-specific PWA manifest selection -->
+    <script>
+      (function() {
+        var partnerSlug = localStorage.getItem('partner-slug');
+        if (partnerSlug) {
+          // Swap manifest to partner-specific version
+          var manifestLink = document.getElementById('pwa-manifest');
+          if (manifestLink) {
+            manifestLink.href = '/manifest-' + partnerSlug + '.json';
+          }
+          // Swap apple-touch-icon to partner-specific version
+          var appleIcon = document.getElementById('apple-touch-icon');
+          if (appleIcon) {
+            appleIcon.href = '/icons/' + partnerSlug + '.png';
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
