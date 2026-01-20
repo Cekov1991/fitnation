@@ -78,7 +78,6 @@ export function DashboardPage() {
   };
 
   const handleSelectTemplate = async (templateId: number | null, templateName: string) => {
-    closeWorkoutSelection();
     try {
       const response = await startSession.mutateAsync(templateId || undefined);
       const session = response.data?.session || response.data;
@@ -87,6 +86,8 @@ export function DashboardPage() {
       }
     } catch (error) {
       console.error('Failed to start session:', error);
+    } finally {
+      closeWorkoutSelection();
     }
   };
 
@@ -183,7 +184,8 @@ export function DashboardPage() {
       <WorkoutSelectionModal 
         isOpen={isWorkoutSelectionOpen} 
         onClose={closeWorkoutSelection} 
-        onSelectTemplate={handleSelectTemplate} 
+        onSelectTemplate={handleSelectTemplate}
+        isLoading={startSession.isPending}
       />
     </>
   );

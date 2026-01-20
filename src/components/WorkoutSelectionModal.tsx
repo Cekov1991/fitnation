@@ -1,12 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
+import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp, Loader2 } from 'lucide-react';
 import { useTemplates } from '../hooks/useApi';
 import { useModalTransition } from '../utils/animations';
 interface WorkoutSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectTemplate: (templateId: number | null, templateName: string) => void;
+  isLoading?: boolean;
 }
 const colorClasses = {
   blue: {
@@ -33,12 +34,27 @@ const colorClasses = {
 export function WorkoutSelectionModal({
   isOpen,
   onClose,
-  onSelectTemplate
+  onSelectTemplate,
+  isLoading = false
 }: WorkoutSelectionModalProps) {
   const modalTransition = useModalTransition();
+  const [selectedId, setSelectedId] = useState<number | null | undefined>(undefined);
   const {
     data: templates = []
   } = useTemplates();
+
+  // Reset selected state when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedId(undefined);
+    }
+  }, [isOpen]);
+
+  const handleSelect = (templateId: number | null, templateName: string) => {
+    if (isLoading) return;
+    setSelectedId(templateId);
+    onSelectTemplate(templateId, templateName);
+  };
 
   const workoutTemplates = useMemo(() => {
     const icons = [Dumbbell, Zap, Target, TrendingUp];
@@ -87,7 +103,7 @@ export function WorkoutSelectionModal({
               {/* Content - Scrollable */}
               <div className="overflow-y-auto max-h-[calc(85vh-100px)] p-6">
                 {/* Blank Session Card */}
-                <button onClick={() => onSelectTemplate(null, 'Blank Session')} className="w-full mb-6 relative group">
+                <button onClick={() => handleSelect(null, 'Blank Session')} disabled={isLoading} className="w-full mb-6 relative group disabled:opacity-50 disabled:cursor-not-allowed">
                   {/* Dashed border animation */}
                   <div 
                     className="absolute inset-0 rounded-2xl border-2 border-dashed transition-colors"
@@ -102,7 +118,7 @@ export function WorkoutSelectionModal({
                       background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 5%, transparent), color-mix(in srgb, var(--color-secondary) 5%, transparent))' 
                     }}
                   >
-                    {/* Plus Icon */}
+                    {/* Plus Icon or Loading */}
                     <div 
                       className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-shadow"
                       style={{ 
@@ -110,13 +126,17 @@ export function WorkoutSelectionModal({
                         boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
                       }}
                     >
-                      <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
+                      {isLoading && selectedId === null ? (
+                        <Loader2 className="text-white w-7 h-7 animate-spin" />
+                      ) : (
+                        <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
+                      )}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 text-left">
                       <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                        Blank Session
+                        {isLoading && selectedId === null ? 'Starting Session...' : 'Blank Session'}
                       </h3>
                       <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                         Start fresh and add exercises as you go
@@ -124,17 +144,19 @@ export function WorkoutSelectionModal({
                     </div>
 
                     {/* Chevron */}
-                    <ChevronRight 
-                      className="transition-colors flex-shrink-0" 
-                      size={20}
-                      style={{ color: 'var(--color-text-muted)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-muted)';
-                      }}
-                    />
+                    {!(isLoading && selectedId === null) && (
+                      <ChevronRight 
+                        className="transition-colors flex-shrink-0" 
+                        size={20}
+                        style={{ color: 'var(--color-text-muted)' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--color-text-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--color-text-muted)';
+                        }}
+                      />
+                    )}
                   </div>
                 </button>
 
@@ -149,11 +171,12 @@ export function WorkoutSelectionModal({
 
                 {/* Template Cards */}
                 <div className="space-y-3">
-                  {workoutTemplates.map((template, index) => {
+                  {workoutTemplates.map((template) => {
                 const Icon = template.icon;
                 const colors = colorClasses[template.color as keyof typeof colorClasses];
-                return <button key={template.id} onClick={() => onSelectTemplate(template.id, template.name)}
-                  className="w-full   border rounded-2xl p-5 flex items-center gap-4 transition-colors group"
+                const isThisLoading = isLoading && selectedId === template.id;
+                return <button key={template.id} onClick={() => handleSelect(template.id, template.name)} disabled={isLoading}
+                  className="w-full   border rounded-2xl p-5 flex items-center gap-4 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ 
                     backgroundColor: 'var(--color-bg-surface)',
                     borderColor: 'var(--color-border-subtle)'
@@ -167,7 +190,11 @@ export function WorkoutSelectionModal({
                 >
                         {/* Icon */}
                         <div className={`flex-shrink-0 w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center`}>
-                          <Icon className={`${colors.text} w-6 h-6`} />
+                          {isThisLoading ? (
+                            <Loader2 className={`${colors.text} w-6 h-6 animate-spin`} />
+                          ) : (
+                            <Icon className={`${colors.text} w-6 h-6`} />
+                          )}
                         </div>
 
                         {/* Content */}
@@ -178,7 +205,7 @@ export function WorkoutSelectionModal({
                               color: 'var(--color-primary)' 
                             }}
                           >
-                            {template.name}
+                            {isThisLoading ? 'Starting...' : template.name}
                           </h3>
                           <div className="flex items-center gap-3">
                             <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
@@ -197,18 +224,20 @@ export function WorkoutSelectionModal({
                           </div>
                         </div>
 
-                        {/* Chevron */}
-                        <ChevronRight 
-                          className="transition-colors flex-shrink-0" 
-                          size={20}
-                          style={{ color: 'var(--color-text-muted)' }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = 'var(--color-text-primary)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = 'var(--color-text-muted)';
-                          }}
-                        />
+                        {/* Chevron or nothing when loading */}
+                        {!isThisLoading && (
+                          <ChevronRight 
+                            className="transition-colors flex-shrink-0" 
+                            size={20}
+                            style={{ color: 'var(--color-text-muted)' }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = 'var(--color-text-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = 'var(--color-text-muted)';
+                            }}
+                          />
+                        )}
                       </button>;
               })}
                 </div>

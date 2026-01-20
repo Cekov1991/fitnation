@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { BackgroundGradients } from './BackgroundGradients';
+import { LoadingButton } from './ui';
 import { usePlans } from '../hooks/useApi';
 import { DAYS_OF_WEEK } from '../constants';
 import { workoutSchema, WorkoutFormData } from '../schemas/workout';
@@ -23,6 +24,7 @@ interface AddWorkoutPageProps {
     description: string;
     daysOfWeek: string[];
   }) => void;
+  isLoading?: boolean;
 }
 
 export function AddWorkoutPage({
@@ -30,7 +32,8 @@ export function AddWorkoutPage({
   planName,
   initialData,
   onBack,
-  onSubmit
+  onSubmit,
+  isLoading = false
 }: AddWorkoutPageProps) {
   const { data: plans = [] } = usePlans();
   const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
@@ -87,7 +90,6 @@ export function AddWorkoutPage({
       description: data.description || '',
       daysOfWeek: data.daysOfWeek || [],
     });
-    onBack();
   };
 
   return (
@@ -294,9 +296,11 @@ export function AddWorkoutPage({
               </div>
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
+              <LoadingButton
+                type="submit"
+                isLoading={isSubmitting || isLoading}
+                loadingText="Saving..."
+                disabled={!isValid || isSubmitting || isLoading}
                 className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${isValid ? '' : 'cursor-not-allowed opacity-50'}`}
                 style={isValid ? {
                   background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
@@ -307,7 +311,7 @@ export function AddWorkoutPage({
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   <Check size={20} />
-                  {isSubmitting ? 'Saving...' : mode === 'create' ? 'CREATE WORKOUT' : 'SAVE CHANGES'}
+                  {mode === 'create' ? 'CREATE WORKOUT' : 'SAVE CHANGES'}
                 </span>
                 {isValid && (
                   <div 
@@ -315,7 +319,7 @@ export function AddWorkoutPage({
                     style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
                   />
                 )}
-              </button>
+              </LoadingButton>
             </form>
           </main>
         </div>

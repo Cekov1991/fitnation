@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check } from 'lucide-react';
+import { LoadingButton } from './ui';
 import { planSchema, PlanFormData } from '../schemas/plan';
 
 interface CreatePlanPageProps {
@@ -16,13 +17,15 @@ interface CreatePlanPageProps {
     description: string;
     isActive: boolean;
   }) => void;
+  isLoading?: boolean;
 }
 
 export function CreatePlanPage({
   mode = 'create',
   initialData,
   onBack,
-  onSubmit
+  onSubmit,
+  isLoading = false
 }: CreatePlanPageProps) {
   const {
     register,
@@ -48,7 +51,6 @@ export function CreatePlanPage({
       description: data.description || '',
       isActive: data.is_active,
     });
-    onBack();
   };
 
   return (
@@ -184,9 +186,11 @@ export function CreatePlanPage({
               </div>
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
+              <LoadingButton
+                type="submit"
+                isLoading={isSubmitting || isLoading}
+                loadingText="Saving..."
+                disabled={!isValid || isSubmitting || isLoading}
                 className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${isValid ? '' : 'cursor-not-allowed opacity-50'}`}
                 style={isValid ? {
                   background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
@@ -197,7 +201,7 @@ export function CreatePlanPage({
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   <Check size={20} />
-                  {isSubmitting ? 'Saving...' : mode === 'create' ? 'CREATE PLAN' : 'SAVE CHANGES'}
+                  {mode === 'create' ? 'CREATE PLAN' : 'SAVE CHANGES'}
                 </span>
                 {isValid && (
                   <div 
@@ -205,7 +209,7 @@ export function CreatePlanPage({
                     style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
                   />
                 )}
-              </button>
+              </LoadingButton>
             </form>
           </main>
         </div>

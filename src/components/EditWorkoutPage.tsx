@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { BackgroundGradients } from './BackgroundGradients';
+import { LoadingContent } from './ui';
 import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
@@ -36,7 +37,7 @@ export function EditWorkoutPage({
   onSwapExercise,
   onViewExerciseDetail
 }: EditWorkoutPageProps) {
-  const { data: template, isLoading } = useTemplate(templateId);
+  const { data: template, isLoading, isFetching, isError, error, refetch } = useTemplate(templateId);
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
   const modalTransition = useModalTransition()
@@ -166,51 +167,90 @@ export function EditWorkoutPage({
 
           {/* Exercise List */}
           <div className="space-y-3 mb-4">
-            {isLoading ? <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>Loading exercises...</div> : <AnimatePresence>
-              {exercises.map((exercise, index) => <motion.div key={exercise.id} {...modalTransition}
-              onClick={() => handleExerciseClick(exercise)} 
-              className={`  border rounded-2xl p-4 transition-colors ${!isEditMode ? 'cursor-pointer' : ''}`}
-              style={{ 
-                backgroundColor: 'var(--color-bg-surface)',
-                borderColor: 'var(--color-border-subtle)'
-              }}
+            {/* Loading indicator when refetching */}
+            {isFetching && !isLoading && (
+              <div className="flex items-center justify-center gap-2 py-2 mb-2">
+                <div 
+                  className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
+                  style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }}
+                />
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  Updating exercises...
+                </span>
+              </div>
+            )}
+            <LoadingContent
+              isLoading={isLoading}
+              isError={isError}
+              error={error}
+              onRetry={() => refetch()}
             >
-                  <div className="flex items-center gap-4">
-                    {/* Drag Handle (only visible in edit mode) */}
-                    <AnimatePresence>
-                      {isEditMode && <button className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
-                          <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                        </button>}
-                    </AnimatePresence>
-
-                    {/* Exercise Image */}
-                    <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
-                      <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-                    </div>
-
-                    {/* Exercise Info */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-bold mb-1 leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
-                        {exercise.name}
-                      </h4>
-                      <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                        {exercise.sets} sets × {exercise.reps} reps ×{' '}
-                        {exercise.weight}
-                      </p>
-                    </div>
-
-                    {/* Edit Button (only visible in edit mode) */}
-                    <AnimatePresence>
-                      {isEditMode && <button onClick={e => {
-                    e.stopPropagation();
-                    handleExerciseEditClick(exercise);
-                  }} className="flex-shrink-0 p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
-                          <Edit2 className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-                        </button>}
-                    </AnimatePresence>
+              <AnimatePresence>
+                {exercises.length === 0 ? (
+                  <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+                    No exercises in this workout yet.
                   </div>
-                </motion.div>)}
-            </AnimatePresence>}
+                ) : (
+                  exercises.map((exercise, index) => (
+                    <motion.div 
+                      key={exercise.id} 
+                      {...modalTransition}
+                      onClick={() => handleExerciseClick(exercise)} 
+                      className={`  border rounded-2xl p-4 transition-colors ${!isEditMode ? 'cursor-pointer' : ''}`}
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border-subtle)'
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Drag Handle (only visible in edit mode) */}
+                        <AnimatePresence>
+                          {isEditMode && (
+                            <button 
+                              className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors" 
+                              style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                            >
+                              <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                            </button>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Exercise Image */}
+                        <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
+                          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
+                        </div>
+
+                        {/* Exercise Info */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-bold mb-1 leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
+                            {exercise.name}
+                          </h4>
+                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                            {exercise.sets} sets × {exercise.reps} reps × {exercise.weight}
+                          </p>
+                        </div>
+
+                        {/* Edit Button (only visible in edit mode) */}
+                        <AnimatePresence>
+                          {isEditMode && (
+                            <button 
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleExerciseEditClick(exercise);
+                              }} 
+                              className="flex-shrink-0 p-2 rounded-full transition-colors" 
+                              style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                            >
+                              <Edit2 className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
+                            </button>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            </LoadingContent>
           </div>
 
           {/* Add Exercise Button */}
@@ -237,10 +277,10 @@ export function EditWorkoutPage({
       </main>
 
       {/* Exercise Edit Menu */}
-      <ExerciseEditMenu isOpen={isEditMenuOpen} onClose={() => setIsEditMenuOpen(false)} onEditSetsReps={handleEditSetsReps} onSwap={handleSwapExerciseClick} onRemove={handleRemoveExercise} />
+      <ExerciseEditMenu isOpen={isEditMenuOpen} onClose={() => setIsEditMenuOpen(false)} onEditSetsReps={handleEditSetsReps} onSwap={handleSwapExerciseClick} onRemove={handleRemoveExercise} isRemoveLoading={removeExercise.isPending} />
 
       {/* Edit Sets/Reps Modal */}
-      {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialReps={editingExercise.reps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} />}
+      {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialReps={editingExercise.reps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} isLoading={updateExercise.isPending} />}
     </div>
       </div>
     </div>;

@@ -8,13 +8,15 @@ interface ExerciseEditMenuProps {
   onEditSetsReps?: () => void;
   onSwap?: () => void;
   onRemove?: () => void;
+  isRemoveLoading?: boolean;
 }
 export function ExerciseEditMenu({
   isOpen,
   onClose,
   onEditSetsReps,
   onSwap,
-  onRemove
+  onRemove,
+  isRemoveLoading = false
 }: ExerciseEditMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
@@ -32,17 +34,23 @@ export function ExerciseEditMenu({
     label: 'Edit Sets & Reps',
     icon: Edit3,
     onClick: onEditSetsReps,
-    color: 'text-blue-400'
+    color: 'text-blue-400',
+    isLoading: false,
+    disabled: false
   }, {
     label: 'Swap Exercise',
     icon: ArrowUpDown,
     onClick: onSwap,
-    color: 'text-gray-300'
+    color: 'text-gray-300',
+    isLoading: false,
+    disabled: false
   }, {
     label: 'Remove',
     icon: Trash2,
     onClick: onRemove,
-    color: 'text-red-400'
+    color: 'text-red-400',
+    isLoading: isRemoveLoading,
+    disabled: isRemoveLoading
   }];
   return <AnimatePresence>
       {isOpen && <>
@@ -93,13 +101,23 @@ export function ExerciseEditMenu({
               return <button 
                 key={item.label} 
                 onClick={() => {
-                item.onClick?.();
-                onClose();
+                if (!item.disabled) {
+                  item.onClick?.();
+                  // Only close menu immediately for non-async operations
+                  // Async operations (like remove) will close the menu themselves when done
+                  // Don't close if it's loading or if it's the Remove action (which is async)
+                  if (!item.isLoading && item.label !== 'Remove') {
+                    onClose();
+                  }
+                }
               }} 
-                className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors text-left group"
+                disabled={item.disabled}
+                className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: 'var(--color-bg-surface)' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  if (!item.disabled) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
@@ -109,22 +127,28 @@ export function ExerciseEditMenu({
                         className="p-2 rounded-lg transition-colors"
                         style={{ backgroundColor: 'var(--color-bg-elevated)' }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                          if (!item.disabled) {
+                            e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                          }
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
                         }}
                       >
-                        <Icon 
-                          className="w-5 h-5" 
-                          style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
-                        />
+                        {item.isLoading ? (
+                          <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }} />
+                        ) : (
+                          <Icon 
+                            className="w-5 h-5" 
+                            style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
+                          />
+                        )}
                       </div>
                       <span 
                         className="text-base font-medium"
                         style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }}
                       >
-                        {item.label}
+                        {item.isLoading ? 'Processing...' : item.label}
                       </span>
                     </button>;
             })}

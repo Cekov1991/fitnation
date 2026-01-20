@@ -151,7 +151,7 @@ function CreatePlanPageWrapper() {
 
   return (
     <AuthenticatedLayout currentPage={currentPage}>
-      <CreatePlanPage mode="create" onBack={handleBack} onSubmit={handleSubmit} />
+      <CreatePlanPage mode="create" onBack={handleBack} onSubmit={handleSubmit} isLoading={createPlan.isPending} />
     </AuthenticatedLayout>
   );
 }
@@ -213,7 +213,7 @@ function EditPlanPageWrapper() {
 
   return (
     <AuthenticatedLayout currentPage={currentPage}>
-      <CreatePlanPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} />
+      <CreatePlanPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} isLoading={updatePlan.isPending} />
     </AuthenticatedLayout>
   );
 }
@@ -270,7 +270,7 @@ function CreateWorkoutPageWrapper() {
 
   return (
     <AuthenticatedLayout currentPage={currentPage}>
-      <AddWorkoutPage mode="create" planName={planName} onBack={handleBack} onSubmit={handleSubmit} />
+      <AddWorkoutPage mode="create" planName={planName} onBack={handleBack} onSubmit={handleSubmit} isLoading={createTemplate.isPending} />
     </AuthenticatedLayout>
   );
 }
@@ -341,7 +341,7 @@ function EditWorkoutPageWrapper() {
 
   return (
     <AuthenticatedLayout currentPage={currentPage}>
-      <AddWorkoutPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} />
+      <AddWorkoutPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} isLoading={updateTemplate.isPending} />
     </AuthenticatedLayout>
   );
 }
@@ -432,6 +432,7 @@ function ExercisePickerPageWrapper() {
       mode={mode}
       onClose={handleClose}
       onSelectExercise={handleSelectExercise}
+      isLoading={addTemplateExercise.isPending}
     />
   );
 }
