@@ -284,9 +284,10 @@ function EditWorkoutPageWrapper() {
   const { data: template } = useTemplate(parseInt(templateId));
   const updateTemplate = useUpdateTemplate();
   const currentPage = useCurrentNavPage();
+  const templateIdNum = parseInt(templateId);
 
-  // Get data from route state or API
-  const workoutFromState = location.state;
+  // Get data from API (preferred) or route state as fallback while loading
+  // Always prefer API data to ensure we have the latest values
   const workoutFromApi = template ? {
     templateId: template.id,
     plan: plans.find((p: { id: number }) => p.id === template.plan_id)?.name || '',
@@ -294,8 +295,10 @@ function EditWorkoutPageWrapper() {
     description: template.description || '',
     daysOfWeek: template.day_of_week !== null ? [['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][template.day_of_week]] : []
   } : null;
+  const workoutFromState = location.state;
 
-  const initialData = workoutFromState || workoutFromApi;
+  // Prefer API data (fresh) over route state (potentially stale)
+  const initialData = workoutFromApi || workoutFromState;
 
   const handleBack = () => {
     history.goBack();
@@ -329,6 +332,49 @@ function EditWorkoutPageWrapper() {
     }
   };
 
+  const handleSwap = async (data: { currentWorkoutDay: string; targetDay: string; targetWorkoutId: number }) => {
+    const id = parseInt(templateId);
+    if (!id) return;
+
+    try {
+      // Get the day indices
+      const currentDayIndex = data.currentWorkoutDay 
+        ? dayNameToIndex(data.currentWorkoutDay as DayName)
+        : null;
+      const targetDayIndex = dayNameToIndex(data.targetDay as DayName);
+
+      // Find the target workout to get its name (required by backend)
+      const targetWorkout = plans
+        .flatMap((p: { workout_templates?: { id: number; name: string }[] }) => p.workout_templates || [])
+        .find((t: { id: number }) => t.id === data.targetWorkoutId);
+      
+      if (!targetWorkout) {
+        console.error('Target workout not found');
+        return;
+      }
+
+      // Update the target workout to take the current workout's day (or unassign if no current day)
+      await updateTemplate.mutateAsync({
+        templateId: data.targetWorkoutId,
+        data: {
+          name: targetWorkout.name,
+          day_of_week: currentDayIndex !== null && currentDayIndex !== -1 ? currentDayIndex : undefined
+        }
+      });
+
+      // Update the current workout to take the target day
+      await updateTemplate.mutateAsync({
+        templateId: id,
+        data: {
+          name: initialData?.name || template?.name || '',
+          day_of_week: targetDayIndex !== -1 ? targetDayIndex : undefined
+        }
+      });
+    } catch (error) {
+      console.error('Failed to swap workouts:', error);
+    }
+  };
+
   if (!initialData) {
     return (
       <AuthenticatedLayout currentPage={currentPage}>
@@ -341,7 +387,14 @@ function EditWorkoutPageWrapper() {
 
   return (
     <AuthenticatedLayout currentPage={currentPage}>
-      <AddWorkoutPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} />
+      <AddWorkoutPage 
+        mode="edit" 
+        templateId={templateIdNum}
+        initialData={initialData} 
+        onBack={handleBack} 
+        onSubmit={handleSubmit} 
+        onSwap={handleSwap}
+      />
     </AuthenticatedLayout>
   );
 }

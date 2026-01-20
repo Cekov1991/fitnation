@@ -5,6 +5,7 @@ import { WorkoutMenu } from './WorkoutMenu';
 import { BackgroundGradients } from './BackgroundGradients';
 import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan } from '../hooks/useApi';
 import { DAY_NAMES } from '../constants';
+import type { PlanResource, WorkoutTemplateResource } from '../types/api';
 interface PlansPageProps {
   onNavigateToCreate: () => void;
   onNavigateToEdit: (plan: {
@@ -59,36 +60,70 @@ export function PlansPage({
   const startSession = useStartSession();
 
   const activePlan = useMemo(() => {
-    return plans.find(plan => plan.is_active) || plans[0] || null;
+    return plans.find((plan: PlanResource) => plan.is_active) || null;
   }, [plans]);
 
   const activePlanWorkouts = useMemo(() => {
     if (!activePlan) return [];
     const planTemplates = activePlan.workout_templates ?? [];
-    return planTemplates.map(template => ({
-      templateId: template.id,
-      name: template.name,
-      description: template.description || '',
-      daysOfWeek: template.day_of_week !== null ? [DAY_NAMES[template.day_of_week]] : [],
-      completed: false,
-      plan: activePlan.name
-    }));
+    return planTemplates
+      .slice() // Create a copy to avoid mutating original
+      .sort((a: WorkoutTemplateResource, b: WorkoutTemplateResource) => {
+        // Sort by day_of_week, null values go last
+        if (a.day_of_week === null && b.day_of_week === null) return 0;
+        if (a.day_of_week === null) return 1;
+        if (b.day_of_week === null) return -1;
+        return a.day_of_week - b.day_of_week;
+      })
+      .map((template: WorkoutTemplateResource) => ({
+        templateId: template.id,
+        name: template.name,
+        description: template.description || '',
+        daysOfWeek: template.day_of_week !== null ? [DAY_NAMES[template.day_of_week]] : [],
+        completed: false,
+        plan: activePlan.name
+      }));
   }, [activePlan]);
 
   const allPlans = useMemo(() => {
-    return plans.map(plan => {
-      const planTemplates = plan.workout_templates ?? [];
-      const workouts = planTemplates.length;
-      return {
-        id: plan.id,
-        name: plan.name,
-        description: plan.description || '',
-        workouts,
-        isEmpty: workouts === 0,
-        isActive: plan.is_active
-      };
-    });
+    return plans
+      .filter((plan: PlanResource) => !plan.is_active) // Exclude active plan (shown separately above)
+      .map((plan: PlanResource) => {
+        const planTemplates = plan.workout_templates ?? [];
+        const workouts = planTemplates.length;
+        const sortedTemplates = planTemplates
+          .slice() // Create a copy to avoid mutating original
+          .sort((a: WorkoutTemplateResource, b: WorkoutTemplateResource) => {
+            // Sort by day_of_week, null values go last
+            if (a.day_of_week === null && b.day_of_week === null) return 0;
+            if (a.day_of_week === null) return 1;
+            if (b.day_of_week === null) return -1;
+            return a.day_of_week - b.day_of_week;
+          });
+        return {
+          id: plan.id,
+          name: plan.name,
+          description: plan.description || '',
+          workouts,
+          isEmpty: workouts === 0,
+          isActive: plan.is_active,
+          workoutList: sortedTemplates.map((template: WorkoutTemplateResource) => ({
+            templateId: template.id,
+            name: template.name,
+            description: template.description || '',
+            daysOfWeek: template.day_of_week !== null ? [DAY_NAMES[template.day_of_week]] : []
+          }))
+        };
+      });
   }, [plans]);
+
+  const handleWorkoutClick = (templateId: number, name: string, description: string) => {
+    onNavigateToManageExercises({
+      templateId,
+      name,
+      description
+    });
+  };
   const handlePlanMenuClick = (event: React.MouseEvent, menuId: string, plan: {
     id: number;
     name: string;
@@ -255,7 +290,8 @@ export function PlansPage({
                 </div>}
               {activePlanWorkouts.map((workout, index) => <div 
                 key={workout.templateId || `${workout.name}-${index}`} 
-                className="card-hover flex items-center justify-between p-4   border rounded-xl group cursor-pointer"
+                className="card-hover flex items-center justify-between p-4 border rounded-xl group cursor-pointer"
+                onClick={() => workout.templateId && handleWorkoutClick(workout.templateId, workout.name, workout.description)}
               >
                   <div className="flex items-center gap-3">
                     <div 
@@ -274,7 +310,6 @@ export function PlansPage({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {workout.completed ? <CheckCircle2 className="text-green-400 w-5 h-5" /> : <Circle className="w-5 h-5" style={{ color: 'var(--color-border-subtle)' }} />}
                     <button onClick={e => handleWorkoutMenuClick(e, `workout-${index}`, {
                   templateId: workout.templateId,
                   plan: activePlan?.name || workout.plan,
@@ -297,16 +332,26 @@ export function PlansPage({
           </h2>
 
           <div className="space-y-4 mb-6">
-            {allPlans.map((plan, index) => <div key={plan.id} 
-            className="card-hover relative   border rounded-2xl p-6 group cursor-pointer"
-          >
+            {allPlans.map((plan) => <div 
+              key={plan.id} 
+              className="relative border rounded-2xl p-6"
+              style={{ 
+                backgroundColor: 'var(--color-bg-surface)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
                 <div className="flex justify-between items-start mb-4">
-                  <h3 
-                    className="text-lg font-bold transition-colors"
-                    style={{ color: 'var(--color-secondary)' }}
-                  >
-                    {plan.name}
-                  </h3>
+                  <div>
+                    <h3 
+                      className="text-lg font-bold transition-colors"
+                      style={{ color: 'var(--color-secondary)' }}
+                    >
+                      {plan.name}
+                    </h3>
+                    {plan.isActive && (
+                      <span className="text-xs font-bold text-green-400">ACTIVE</span>
+                    )}
+                  </div>
                   <button onClick={e => handlePlanMenuClick(e, `plan-${plan.id}`, plan)} className="p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
                     <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                   </button>
@@ -326,12 +371,62 @@ export function PlansPage({
                   </div>
                 </div>
 
-                {plan.isEmpty && <>
+                {/* Workouts List */}
+                {plan.workoutList.length > 0 && (
+                  <>
+                    <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
+                    <div className="space-y-2">
+                      {plan.workoutList.map((workout, idx) => (
+                        <div 
+                          key={workout.templateId || `${workout.name}-${idx}`}
+                          className="card-hover flex items-center justify-between p-3 border rounded-xl cursor-pointer"
+                          style={{ 
+                            backgroundColor: 'var(--color-bg-elevated)',
+                            borderColor: 'var(--color-border-subtle)'
+                          }}
+                          onClick={() => handleWorkoutClick(workout.templateId, workout.name, workout.description)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="p-2 rounded-lg"
+                              style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)' }}
+                            >
+                              <Dumbbell className="w-4 h-4" style={{ color: 'var(--color-secondary)' }} />
+                            </div>
+                            <span 
+                              className="text-sm font-medium"
+                              style={{ color: 'var(--color-text-primary)' }}
+                            >
+                              {workout.name}
+                            </span>
+                          </div>
+                          <button 
+                            onClick={e => handleWorkoutMenuClick(e, `plan-${plan.id}-workout-${idx}`, {
+                              templateId: workout.templateId,
+                              plan: plan.name,
+                              name: workout.name,
+                              description: workout.description,
+                              daysOfWeek: workout.daysOfWeek
+                            })} 
+                            className="p-1 rounded-full transition-colors" 
+                            style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                          >
+                            <MoreVertical className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {plan.isEmpty && (
+                  <>
                     <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
                     <p className="text-sm text-center py-2" style={{ color: 'var(--color-text-muted)' }}>
                       No workout templates in this plan.
                     </p>
-                  </>}
+                  </>
+                )}
               </div>)}
           </div>
         </div>
