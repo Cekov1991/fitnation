@@ -64,7 +64,7 @@ export function EditSetsRepsModal({
           <motion.div 
             {...modalTransition}
             onClick={onClose} 
-            className="fixed inset-0 bg-black/80 backdrop-blur-md" 
+            className="fixed inset-0 bg-black/80  " 
             style={{ zIndex: 10000 }} 
           />
 
@@ -75,7 +75,7 @@ export function EditSetsRepsModal({
             style={{ zIndex: 10001 }}
           >
             <div 
-              className="backdrop-blur-xl border rounded-3xl shadow-2xl overflow-hidden"
+              className="  border rounded-3xl shadow-2xl overflow-hidden"
               style={{ 
                 backgroundColor: 'var(--color-bg-modal)',
                 borderColor: 'var(--color-border)'

@@ -7,6 +7,7 @@ import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { BackgroundGradients } from './BackgroundGradients';
 import { useTemplate, useAddTemplateExercise, useUpdateTemplateExercise, useRemoveTemplateExercise } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import { useModalTransition } from '../utils/animations';
 interface Exercise {
   id: string;
   pivotId: number;
@@ -37,9 +38,9 @@ export function EditWorkoutPage({
   onViewExerciseDetail
 }: EditWorkoutPageProps) {
   const { data: template, isLoading } = useTemplate(templateId);
-  const addExercise = useAddTemplateExercise();
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
+  const modalTransition = useModalTransition()
 
   const exercises = useMemo<Exercise[]>(() => {
     if (!template?.exercises) return [];
@@ -118,21 +119,10 @@ export function EditWorkoutPage({
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="flex items-center gap-4 mb-8">
-          <motion.button whileHover={{
-          scale: 1.1,
-          x: -2
-        }} whileTap={{
-          scale: 0.9
-        }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+        <motion.div {...modalTransition} className="flex items-center gap-4 mb-8">
+          <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-          </motion.button>
+          </button>
           <h1 
             className="text-3xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -142,16 +132,9 @@ export function EditWorkoutPage({
         </motion.div>
 
         {/* Workout Info Card */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} 
-        className="bg-gradient-to-br backdrop-blur-sm border rounded-3xl p-8 mb-8 text-center"
+        <motion.div 
+        {...modalTransition}  
+        className="bg-gradient-to-br   border rounded-3xl p-8 mb-8 text-center"
         style={{ 
           background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
           borderColor: 'var(--color-border)'
@@ -164,23 +147,11 @@ export function EditWorkoutPage({
         </motion.div>
 
         {/* Exercises Section */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.2
-      }}>
+        <motion.div {...modalTransition}>
           {/* Exercises Header with Edit Toggle */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Exercises</h3>
-            <motion.button whileHover={{
-            scale: 1.1
-          }} whileTap={{
-            scale: 0.9
-          }} 
+            <button 
             onClick={() => setIsEditMode(!isEditMode)} 
             className="p-2 rounded-full transition-colors"
             style={isEditMode ? {
@@ -189,28 +160,17 @@ export function EditWorkoutPage({
             } : {
               color: 'var(--color-text-secondary)'
             }}
-          >
+            >
               <Edit2 className="w-5 h-5" />
-            </motion.button>
+            </button>
           </div>
 
           {/* Exercise List */}
           <div className="space-y-3 mb-4">
             {isLoading ? <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>Loading exercises...</div> : <AnimatePresence>
-              {exercises.map((exercise, index) => <motion.div key={exercise.id} initial={{
-              opacity: 0,
-              x: -20
-            }} animate={{
-              opacity: 1,
-              x: 0
-            }} exit={{
-              opacity: 0,
-              x: 20
-            }} transition={{
-              delay: index * 0.1
-            }} 
+              {exercises.map((exercise, index) => <motion.div key={exercise.id} {...modalTransition}
               onClick={() => handleExerciseClick(exercise)} 
-              className={`backdrop-blur-sm border rounded-2xl p-4 transition-colors ${!isEditMode ? 'cursor-pointer' : ''}`}
+              className={`  border rounded-2xl p-4 transition-colors ${!isEditMode ? 'cursor-pointer' : ''}`}
               style={{ 
                 backgroundColor: 'var(--color-bg-surface)',
                 borderColor: 'var(--color-border-subtle)'
@@ -219,18 +179,9 @@ export function EditWorkoutPage({
                   <div className="flex items-center gap-4">
                     {/* Drag Handle (only visible in edit mode) */}
                     <AnimatePresence>
-                      {isEditMode && <motion.button initial={{
-                    opacity: 0,
-                    scale: 0.8
-                  }} animate={{
-                    opacity: 1,
-                    scale: 1
-                  }} exit={{
-                    opacity: 0,
-                    scale: 0.8
-                  }} className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
+                      {isEditMode && <button className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
                           <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                        </motion.button>}
+                        </button>}
                     </AnimatePresence>
 
                     {/* Exercise Image */}
@@ -251,25 +202,12 @@ export function EditWorkoutPage({
 
                     {/* Edit Button (only visible in edit mode) */}
                     <AnimatePresence>
-                      {isEditMode && <motion.button initial={{
-                    opacity: 0,
-                    scale: 0.8
-                  }} animate={{
-                    opacity: 1,
-                    scale: 1
-                  }} exit={{
-                    opacity: 0,
-                    scale: 0.8
-                  }} whileHover={{
-                    scale: 1.1
-                  }} whileTap={{
-                    scale: 0.9
-                  }} onClick={e => {
+                      {isEditMode && <button onClick={e => {
                     e.stopPropagation();
                     handleExerciseEditClick(exercise);
                   }} className="flex-shrink-0 p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
                           <Edit2 className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-                        </motion.button>}
+                        </button>}
                     </AnimatePresence>
                   </div>
                 </motion.div>)}
@@ -277,19 +215,7 @@ export function EditWorkoutPage({
           </div>
 
           {/* Add Exercise Button */}
-          <motion.button initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.3
-        }} whileHover={{
-          scale: 1.02
-        }} whileTap={{
-          scale: 0.98
-        }} 
+          <button
           onClick={onAddExercise} 
           className="w-full py-6 border-2 border-dashed rounded-2xl transition-all group"
           style={{
@@ -307,7 +233,7 @@ export function EditWorkoutPage({
                 Add Exercise
               </span>
             </div>
-          </motion.button>
+          </button>
         </motion.div>
       </main>
 

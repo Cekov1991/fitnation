@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Plus, MoreVertical } from 'lucide-react';
 import type { Set } from './types';
 import { formatWeight } from './utils';
+import { useModalTransition } from '../../utils/animations';
 
 interface SetsListProps {
   sets: Set[];
@@ -16,14 +17,13 @@ export function SetsList({
   onOpenSetMenu,
   onAddSet,
 }: SetsListProps) {
+  const modalTransition = useModalTransition();
   return (
     <div className="space-y-2">
       {sets.map((set, index) => (
         <motion.div
           key={set.id}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.1 }}
+        {...modalTransition}
           className={`flex items-center justify-between p-4 rounded-xl transition-colors border ${
             editingSetId === set.id 
               ? 'bg-orange-500/20 border-2 border-orange-500/40' 
@@ -66,9 +66,7 @@ export function SetsList({
 
       {/* Add Set Button */}
       {!editingSetId && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={onAddSet}
           className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border"
           style={{
@@ -80,7 +78,7 @@ export function SetsList({
           <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
             Add Set
           </span>
-        </motion.button>
+        </button>
       )}
     </div>
   );

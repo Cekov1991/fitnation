@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
 import { useTemplates } from '../hooks/useApi';
+import { useModalTransition } from '../utils/animations';
 interface WorkoutSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,6 +35,7 @@ export function WorkoutSelectionModal({
   onClose,
   onSelectTemplate
 }: WorkoutSelectionModalProps) {
+  const modalTransition = useModalTransition();
   const {
     data: templates = []
   } = useTemplates();
@@ -53,31 +55,12 @@ export function WorkoutSelectionModal({
   return <AnimatePresence>
       {isOpen && <>
           {/* Backdrop */}
-          <motion.div initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} exit={{
-        opacity: 0
-      }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md" style={{ zIndex: 10000 }} />
+          <motion.div {...modalTransition} onClick={onClose} className="fixed inset-0 bg-black/80  " style={{ zIndex: 10000 }} />
 
           {/* Modal */}
-          <motion.div initial={{
-        opacity: 0,
-        y: 100
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} exit={{
-        opacity: 0,
-        y: 100
-      }} transition={{
-        type: 'spring',
-        damping: 30,
-        stiffness: 300
-      }} className="fixed inset-x-0 bottom-0 max-h-[85vh] overflow-hidden" style={{ zIndex: 10001 }}>
+          <motion.div {...modalTransition} className="fixed inset-x-0 bottom-0 max-h-[85vh] overflow-hidden" style={{ zIndex: 10001 }}>
             <div 
-              className="backdrop-blur-xl border-t rounded-t-3xl shadow-2xl"
+              className="  border-t rounded-t-3xl shadow-2xl"
               style={{ 
                 backgroundColor: 'var(--color-bg-modal)',
                 borderColor: 'var(--color-border)'
@@ -96,32 +79,15 @@ export function WorkoutSelectionModal({
                     Select a workout to start or begin a blank session.
                   </p>
                 </div>
-                <motion.button whileHover={{
-              scale: 1.1,
-              rotate: 90
-            }} whileTap={{
-              scale: 0.9
-            }} onClick={onClose} className="p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
+                <button onClick={onClose} className="p-2 rounded-full transition-colors" style={{ backgroundColor: 'var(--color-border-subtle)' }}>
                   <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
-                </motion.button>
+                </button>
               </div>
 
               {/* Content - Scrollable */}
               <div className="overflow-y-auto max-h-[calc(85vh-100px)] p-6">
                 {/* Blank Session Card */}
-                <motion.button initial={{
-              opacity: 0,
-              y: 20
-            }} animate={{
-              opacity: 1,
-              y: 0
-            }} transition={{
-              delay: 0.1
-            }} whileHover={{
-              scale: 1.02
-            }} whileTap={{
-              scale: 0.98
-            }} onClick={() => onSelectTemplate(null, 'Blank Session')} className="w-full mb-6 relative group">
+                <button onClick={() => onSelectTemplate(null, 'Blank Session')} className="w-full mb-6 relative group">
                   {/* Dashed border animation */}
                   <div 
                     className="absolute inset-0 rounded-2xl border-2 border-dashed transition-colors"
@@ -131,7 +97,7 @@ export function WorkoutSelectionModal({
                   />
 
                   <div 
-                    className="relative backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4"
+                    className="relative   rounded-2xl p-6 flex items-center gap-4"
                     style={{ 
                       background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 5%, transparent), color-mix(in srgb, var(--color-secondary) 5%, transparent))' 
                     }}
@@ -170,7 +136,7 @@ export function WorkoutSelectionModal({
                       }}
                     />
                   </div>
-                </motion.button>
+                </button>
 
                 {/* Divider */}
                 <div className="flex items-center gap-4 mb-6">
@@ -186,21 +152,8 @@ export function WorkoutSelectionModal({
                   {workoutTemplates.map((template, index) => {
                 const Icon = template.icon;
                 const colors = colorClasses[template.color as keyof typeof colorClasses];
-                return <motion.button key={template.id} onClick={() => onSelectTemplate(template.id, template.name)} initial={{
-                  opacity: 0,
-                  x: -20
-                }} animate={{
-                  opacity: 1,
-                  x: 0
-                }} transition={{
-                  delay: 0.2 + index * 0.1
-                }} whileHover={{
-                  scale: 1.02,
-                  x: 5
-                }} whileTap={{
-                  scale: 0.98
-                }} 
-                  className="w-full backdrop-blur-sm border rounded-2xl p-5 flex items-center gap-4 transition-colors group"
+                return <button key={template.id} onClick={() => onSelectTemplate(template.id, template.name)}
+                  className="w-full   border rounded-2xl p-5 flex items-center gap-4 transition-colors group"
                   style={{ 
                     backgroundColor: 'var(--color-bg-surface)',
                     borderColor: 'var(--color-border-subtle)'
@@ -256,7 +209,7 @@ export function WorkoutSelectionModal({
                             e.currentTarget.style.color = 'var(--color-text-muted)';
                           }}
                         />
-                      </motion.button>;
+                      </button>;
               })}
                 </div>
 

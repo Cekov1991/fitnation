@@ -7,6 +7,7 @@ import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { BackgroundGradients } from './BackgroundGradients';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
+import { useModalTransition } from '../utils/animations';
 
 interface ExerciseDetailPageProps {
   exerciseName: string;
@@ -32,6 +33,7 @@ export function ExerciseDetailPage({
   const [activeTab, setActiveTab] = useState<'instructions' | 'muscles' | 'history'>('instructions');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const modalTransition = useModalTransition();
   const {
     data: exercises = []
   } = useExercises();
@@ -153,21 +155,11 @@ export function ExerciseDetailPage({
 
       <main className="relative z-10 max-w-md mx-auto">
         {/* Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="flex items-center gap-4 p-6 pb-4">
-          <motion.button whileHover={{
-          scale: 1.1,
-          x: -2
-        }} whileTap={{
-          scale: 0.9
-        }} onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+        <motion.div {...modalTransition}
+        className="flex items-center gap-4 p-6 pb-4">
+          <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-          </motion.button>
+          </button>
           <h1 
             className="text-2xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -177,15 +169,8 @@ export function ExerciseDetailPage({
         </motion.div>
 
         {/* Video Player Section - Always show, autoplay if video exists */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="mx-6 mb-6">
+        <motion.div {...modalTransition}
+        className="mx-6 mb-6">
           <div 
             className="relative aspect-video bg-gradient-to-br rounded-2xl overflow-hidden border"
             style={{ 
@@ -234,15 +219,7 @@ export function ExerciseDetailPage({
         </motion.div>
 
         {/* Tabs */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.2
-      }} className="flex gap-2 px-6 mb-6">
+        <motion.div {...modalTransition} className="flex gap-2 px-6 mb-6">
           {(['instructions', 'muscles', 'history'] as const).map(tab => <button 
               key={tab} 
               onClick={() => setActiveTab(tab)} 
@@ -252,14 +229,11 @@ export function ExerciseDetailPage({
               }}
             >
               {activeTab === tab && <motion.div 
+              {...modalTransition}
                 layoutId="activeTab" 
                 className="absolute inset-0 rounded-xl" 
                 style={{ background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' }}
-                transition={{
-            type: 'spring',
-            damping: 25,
-            stiffness: 300
-          }} />}
+                 />}
               <span className="relative z-10 capitalize">{tab}</span>
             </button>)}
         </motion.div>
@@ -267,22 +241,11 @@ export function ExerciseDetailPage({
         {/* Tab Content */}
         <div className="px-6">
           <AnimatePresence mode="wait">
-            {activeTab === 'instructions' && <motion.div key="instructions" initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} exit={{
-            opacity: 0,
-            y: -20
-          }} transition={{
-            duration: 0.2
-          }}>
+            {activeTab === 'instructions' && <motion.div key="instructions" {...modalTransition}>
                 <div className="space-y-6">
                   {/* Instructions/Description */}
                   <div 
-                    className="backdrop-blur-sm border rounded-2xl p-6"
+                    className="  border rounded-2xl p-6"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
@@ -298,22 +261,11 @@ export function ExerciseDetailPage({
                 </div>
               </motion.div>}
 
-            {activeTab === 'muscles' && <motion.div key="muscles" initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} exit={{
-            opacity: 0,
-            y: -20
-          }} transition={{
-            duration: 0.2
-          }}>
+            {activeTab === 'muscles' && <motion.div key="muscles" {...modalTransition}>
                 <div className="space-y-6">
                   {/* Muscle Group Image */}
                   <div 
-                    className="backdrop-blur-sm border rounded-2xl overflow-hidden"
+                    className="  border rounded-2xl overflow-hidden"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
@@ -328,7 +280,7 @@ export function ExerciseDetailPage({
 
                   {/* Primary Muscles */}
                   <div 
-                    className="backdrop-blur-sm border rounded-2xl p-6"
+                    className="  border rounded-2xl p-6"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
@@ -349,7 +301,7 @@ export function ExerciseDetailPage({
 
                   {/* Secondary Muscles */}
                   <div 
-                    className="backdrop-blur-sm border rounded-2xl p-6"
+                    className="  border rounded-2xl p-6"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
@@ -370,20 +322,9 @@ export function ExerciseDetailPage({
                 </div>
               </motion.div>}
 
-            {activeTab === 'history' && <motion.div key="history" initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} exit={{
-            opacity: 0,
-            y: -20
-          }} transition={{
-            duration: 0.2
-          }}>
+            {activeTab === 'history' && <motion.div key="history" {...modalTransition}>
                 <div 
-                  className="backdrop-blur-sm border rounded-2xl p-6"
+                  className="  border rounded-2xl p-6"
                   style={{ 
                     backgroundColor: 'var(--color-bg-surface)',
                     borderColor: 'var(--color-border-subtle)'

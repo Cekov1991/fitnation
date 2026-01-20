@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { ExerciseImage } from '../ExerciseImage';
 import type { Exercise, ExerciseCompletionStatus } from './types';
+import { useModalTransition } from '../../utils/animations';
 
 interface ExerciseNavTabsProps {
   exercises: Exercise[];
@@ -17,13 +18,12 @@ export function ExerciseNavTabs({
   onSelectExercise,
   getCompletionStatus,
 }: ExerciseNavTabsProps) {
+  const modalTransition = useModalTransition();
   if (exercises.length === 0) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
+    {...modalTransition}
       className="px-6 pb-4"
     >
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -32,11 +32,9 @@ export function ExerciseNavTabs({
           const isActive = index === currentIndex;
           
           return (
-            <motion.button
+            <button
               key={exercise.id}
               onClick={() => onSelectExercise(index)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 isActive 
                   ? 'shadow-lg' 
@@ -72,7 +70,7 @@ export function ExerciseNavTabs({
                   <Check className="text-green-400 w-4 h-4" />
                 </div>
               )}
-            </motion.button>
+            </button>
           );
         })}
       </div>

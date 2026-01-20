@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { formatWeight } from './utils';
+import { useSlideTransition } from '../../utils/animations';
 
 interface SetEditCardProps {
   weight: number;
@@ -19,10 +20,10 @@ export function SetEditCard({
   onSave,
   onCancel,
 }: SetEditCardProps) {
+  const slideTransition = useSlideTransition()
   return (
     <motion.div 
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      {...slideTransition}
       className="bg-gradient-to-br from-orange-600 to-orange-500 rounded-3xl p-6 shadow-2xl shadow-orange-500/20"
     >
       <p className="text-sm font-bold text-orange-100 mb-4">

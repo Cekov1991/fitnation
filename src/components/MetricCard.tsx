@@ -19,7 +19,7 @@ export function MetricCard({
 }: MetricCardProps) {
   return <div 
     onClick={onClick} 
-    className="relative group overflow-hidden rounded-2xl backdrop-blur-md border p-5 cursor-pointer transition-colors"
+    className="relative group overflow-hidden rounded-2xl   border p-5 cursor-pointer transition-colors"
     style={{ 
       backgroundColor: 'var(--color-bg-surface)',
       borderColor: 'var(--color-border-subtle)'

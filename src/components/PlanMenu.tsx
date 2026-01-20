@@ -59,7 +59,7 @@ export function PlanMenu({
           <motion.div 
             {...modalTransition}
             onClick={onClose} 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+            className="fixed inset-0 bg-black/60  " 
             style={{ zIndex: 10000 }} 
           />
 
@@ -67,7 +67,7 @@ export function PlanMenu({
           <motion.div 
             ref={menuRef} 
             {...modalTransition}
-            className="fixed inset-x-0 bottom-0 backdrop-blur-xl border-t rounded-t-3xl shadow-2xl max-w-md mx-auto"
+            className="fixed inset-x-0 bottom-0   border-t rounded-t-3xl shadow-2xl max-w-md mx-auto"
         style={{ 
           zIndex: 10001,
           backgroundColor: 'var(--color-bg-modal)',

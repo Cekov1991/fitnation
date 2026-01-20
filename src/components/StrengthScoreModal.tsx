@@ -86,7 +86,7 @@ export function StrengthScoreModal({
           <motion.div
             {...modalTransition}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60  "
             style={{ zIndex: 10000 }}
           />
 

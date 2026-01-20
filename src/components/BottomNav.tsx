@@ -3,6 +3,7 @@ import { useIonRouter } from '@ionic/react';
 import { Home, ClipboardList, BarChart3, User } from 'lucide-react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const tabs = [{
   id: 'dashboard',
   label: 'Dashboard',
@@ -63,7 +64,7 @@ export function BottomNav({
   return (
     <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 pt-2" style={{ zIndex: 9999 }}>
       <div 
-        className="max-w-md mx-auto backdrop-blur-xl border rounded-2xl shadow-2xl shadow-black/50"
+        className="max-w-md mx-auto   border rounded-2xl shadow-2xl shadow-black/50"
         style={{ 
           backgroundColor: 'var(--color-bg-modal)',
           borderColor: 'var(--color-border)'
@@ -81,7 +82,7 @@ export function BottomNav({
               >
                 {isActive && (
                   <motion.div 
-                    layoutId={shouldReduceMotion ? undefined : "nav-indicator"} 
+                    layoutId={shouldReduceMotion || isIOS ? undefined : "nav-indicator"} 
                     className="absolute inset-0 bg-white/5 rounded-xl" 
                     transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: 'easeOut' }} 
                   />

@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useFitnessMetrics } from '../hooks/useApi'
+import { useModalTransition } from '../utils/animations'
 
 interface WeeklyProgressModalProps {
   isOpen: boolean
@@ -50,6 +51,7 @@ export function WeeklyProgressModal({
   const volumeDifference = weeklyProgress?.volume_difference ?? 0
   const volumeDifferencePercent = weeklyProgress?.volume_difference_percent ?? 0
   const dailyBreakdown = weeklyProgress?.daily_breakdown ?? []
+  const modalTransition = useModalTransition()
 
   const isPositive = trend === 'up'
   const isNeutral = trend === 'same'
@@ -73,36 +75,15 @@ export function WeeklyProgressModal({
         <>
           {/* Backdrop */}
           <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            exit={{
-              opacity: 0,
-            }}
+          {...modalTransition}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60  "
             style={{ zIndex: 10000 }}
           />
 
           {/* Modal */}
           <motion.div
-            initial={{
-              y: '100%',
-            }}
-            animate={{
-              y: 0,
-            }}
-            exit={{
-              y: '100%',
-            }}
-            transition={{
-              type: 'spring',
-              damping: 30,
-              stiffness: 300,
-            }}
+           {...modalTransition}
             className="fixed bottom-0 left-0 right-0 max-w-md mx-auto"
             style={{ zIndex: 10001 }}
           >

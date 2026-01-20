@@ -69,6 +69,14 @@ input[type="number"]::-webkit-outer-spin-button {
   pointer-events: none;
 }
 
+/* Add to index.css */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+  
+button, a, [role="button"], .cursor-pointer {
+  touch-action: manipulation;
+}
 /* ============================================
    Ionic Content Overrides
    ============================================ */

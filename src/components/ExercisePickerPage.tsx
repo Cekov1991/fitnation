@@ -5,6 +5,8 @@ import { useExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { BackgroundGradients } from './BackgroundGradients';
 import type { ExerciseResource } from '../types/api';
+import { useModalTransition, useSlideTransition } from '../utils/animations';
+
 interface Exercise {
   id: number;
   name: string;
@@ -22,6 +24,8 @@ export function ExercisePickerPage({
   onClose,
   onSelectExercise
 }: ExercisePickerPageProps) {
+  const modalTransition = useModalTransition();
+  const slideTransition = useSlideTransition();
   const {
     data: exercises = [],
     isLoading
@@ -60,39 +64,20 @@ export function ExercisePickerPage({
 
       <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
         {/* Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="flex items-center justify-between p-6 pb-4">
+        <motion.div {...slideTransition} className="flex items-center justify-between p-6 pb-4">
           <h1 
             className="text-2xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
           >
             {mode === 'add' ? 'Select Exercise' : 'Swap Exercise'}
           </h1>
-          <motion.button whileHover={{
-          scale: 1.1,
-          rotate: 90
-        }} whileTap={{
-          scale: 0.9
-        }} onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-          </motion.button>
+          </button>
         </motion.div>
 
         {/* Search Bar */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="px-6 pb-4">
+        <motion.div {...modalTransition} className="px-6 pb-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-primary)' }} />
             <input 
@@ -119,11 +104,7 @@ export function ExercisePickerPage({
         {/* Exercise List */}
         <div className="flex-1 px-6 pb-6">
           <AnimatePresence mode="popLayout">
-            {isLoading ? <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} className="flex flex-col items-center justify-center py-12 text-center">
+            {isLoading ? <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
                   className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
                   style={{ backgroundColor: 'var(--color-bg-elevated)' }}
@@ -132,22 +113,7 @@ export function ExercisePickerPage({
                 </div>
                 <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading exercises...</p>
               </motion.div> : filteredExercises.length > 0 ? <div className="space-y-2">
-                {filteredExercises.map((exercise, index) => <motion.button key={exercise.id} initial={{
-              opacity: 0,
-              x: -20
-            }} animate={{
-              opacity: 1,
-              x: 0
-            }} exit={{
-              opacity: 0,
-              x: 20
-            }} transition={{
-              delay: index * 0.05
-            }} whileHover={{
-              scale: 1.02
-            }} whileTap={{
-              scale: 0.98
-            }} 
+                {filteredExercises.map((exercise, index) => <button key={exercise.id} {...modalTransition}
               onClick={() => handleSelectExercise(exercise)} 
               className="w-full flex items-center gap-4 p-4 border rounded-2xl transition-colors text-left"
               style={{ 
@@ -178,12 +144,8 @@ export function ExercisePickerPage({
 
                     {/* Chevron */}
                     <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                  </motion.button>)}
-              </div> : <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} className="flex flex-col items-center justify-center py-12 text-center">
+                  </button>)}
+              </div> : <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
                   className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
                   style={{ backgroundColor: 'var(--color-bg-elevated)' }}
