@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IonInput } from '@ionic/react';
-import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown } from 'lucide-react';
+import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown, Download } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { BackgroundGradients } from './BackgroundGradients';
@@ -31,7 +31,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     control,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as any,
     mode: 'onBlur',
     defaultValues: {
       name: '',
@@ -496,6 +496,13 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               LOG OUT
             </button>
           </main>
+
+          {/* iOS Install Instructions Modal */}
+          <InstallInstructionsModal
+            isOpen={showInstallModal}
+            onClose={() => setShowInstallModal(false)}
+            onDismiss={dismissInstall}
+          />
         </div>
       </div>
     </div>
