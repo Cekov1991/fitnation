@@ -81,7 +81,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             </div>
 
             {/* Login Form */}
-            <div className="backdrop-blur-xl border rounded-3xl p-8 shadow-2xl"
+            <div className="  border rounded-3xl p-8 shadow-2xl"
               style={{ 
                 backgroundColor: 'var(--color-bg-surface)',
                 borderColor: 'var(--color-border)'

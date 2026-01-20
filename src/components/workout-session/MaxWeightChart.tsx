@@ -58,7 +58,7 @@ export function MaxWeightChart({ exercise }: MaxWeightChartProps) {
 
   return (
     <div 
-      className="backdrop-blur-sm border rounded-2xl p-4"
+      className="  border rounded-2xl p-4"
       style={{ 
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)'

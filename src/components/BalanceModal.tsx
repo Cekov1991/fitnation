@@ -97,18 +97,13 @@ export function BalanceModal({
     <motion.div
       {...modalTransition}
       onClick={onClose}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 bg-black/60  "
       style={{ zIndex: 10000 }}
           />
 
           {/* Modal */}
           <motion.div
             {...modalTransition}
-      transition={{
-              type: 'spring',
-              damping: 30,
-              stiffness: 300,
-            }}
             className="fixed bottom-0 left-0 right-0 max-w-md mx-auto"
             style={{ zIndex: 10001 }}
           >

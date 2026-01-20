@@ -200,9 +200,7 @@ export function ExerciseNavTabs({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
+    {...modalTransition}
       className="px-6 pb-4"
     >
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -289,14 +287,11 @@ export function WorkoutOptionsMenu({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/60   z-40"
           />
 
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          {...modalTransition}
             className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
           >
             <div 

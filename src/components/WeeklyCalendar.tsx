@@ -74,7 +74,7 @@ export function WeeklyCalendar() {
     });
   }, [sessionsByDate, today, weekStart]);
   return <div 
-    className="w-full backdrop-blur-xl border rounded-3xl p-6 mb-6"
+    className="w-full   border rounded-3xl p-6 mb-6"
     style={{ 
       backgroundColor: 'var(--color-bg-surface)',
       borderColor: 'var(--color-border-subtle)'

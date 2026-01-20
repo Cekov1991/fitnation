@@ -201,7 +201,7 @@ export function PlansPage({
 
           {/* Active Plan Card */}
           <div 
-            className="relative bg-gradient-to-br backdrop-blur-sm border rounded-3xl p-6 shadow-xl"
+            className="relative bg-gradient-to-br   border rounded-3xl p-6 shadow-xl"
             style={{ 
               background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
               borderColor: 'var(--color-border)'
@@ -256,7 +256,7 @@ export function PlansPage({
                 </div>}
               {activePlanWorkouts.map((workout, index) => <div 
                 key={workout.templateId || `${workout.name}-${index}`} 
-                className="card-hover flex items-center justify-between p-4 backdrop-blur-sm border rounded-xl group cursor-pointer"
+                className="card-hover flex items-center justify-between p-4   border rounded-xl group cursor-pointer"
               >
                   <div className="flex items-center gap-3">
                     <div 
@@ -299,7 +299,7 @@ export function PlansPage({
 
           <div className="space-y-4 mb-6">
             {allPlans.map((plan, index) => <div key={plan.id} 
-            className="card-hover relative backdrop-blur-sm border rounded-2xl p-6 group cursor-pointer"
+            className="card-hover relative   border rounded-2xl p-6 group cursor-pointer"
           >
                 <div className="flex justify-between items-start mb-4">
                   <h3 

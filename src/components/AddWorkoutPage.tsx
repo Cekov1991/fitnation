@@ -158,7 +158,7 @@ export function AddWorkoutPage({
 
                         {isPlanDropdownOpen && (
                           <div 
-                            className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden z-10"
+                            className="absolute top-full left-0 right-0 mt-2   border rounded-2xl shadow-2xl overflow-hidden z-10"
                             style={{ 
                               backgroundColor: 'var(--color-bg-modal)',
                               borderColor: 'var(--color-border)'
