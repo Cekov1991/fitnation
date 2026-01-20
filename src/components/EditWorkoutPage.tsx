@@ -109,8 +109,8 @@ export function EditWorkoutPage({
       }
     }
   };
-  return <IonPage>
-      <IonContent>
+  return <div>
+      <div>
         <div 
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
@@ -243,6 +243,6 @@ export function EditWorkoutPage({
       {/* Edit Sets/Reps Modal */}
       {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialReps={editingExercise.reps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} />}
     </div>
-      </IonContent>
-    </IonPage>;
+      </div>
+    </div>;
 }

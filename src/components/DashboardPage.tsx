@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { IonPage, IonContent, useIonRouter } from '@ionic/react';
+import { useHistory } from 'react-router-dom';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { WeeklyCalendar } from './WeeklyCalendar';
 import { MetricCard } from './MetricCard';
@@ -16,7 +16,7 @@ import { useModals } from '../contexts/ModalsContext';
 export function DashboardPage() {
   const { user } = useAuth();
   const { logo, partnerName } = useBranding();
-  const router = useIonRouter();
+  const history = useHistory();
   const { data: metrics } = useFitnessMetrics();
   const { data: todayWorkout, refetch: refetchTodayWorkout } = useTodayWorkout();
   const startSession = useStartSession();
@@ -71,7 +71,7 @@ export function DashboardPage() {
   const handleStartWorkoutClick = () => {
     const ongoingSession = todayWorkout?.session;
     if (ongoingSession?.id) {
-      router.push(`/session/${ongoingSession.id}`, 'forward', 'push');
+      history.push(`/session/${ongoingSession.id}`);
     } else {
       openWorkoutSelection();
     }
@@ -83,7 +83,7 @@ export function DashboardPage() {
       const response = await startSession.mutateAsync(templateId || undefined);
       const session = response.data?.session || response.data;
       if (session?.id) {
-        router.push(`/session/${session.id}`, 'forward', 'push');
+        history.push(`/session/${session.id}`);
       }
     } catch (error) {
       console.error('Failed to start session:', error);
@@ -92,8 +92,8 @@ export function DashboardPage() {
 
   return (
     <>
-      <IonPage>
-        <IonContent>
+      <div>
+        <div>
           <BackgroundGradients />
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
@@ -173,8 +173,8 @@ export function DashboardPage() {
               />
             </button>
           </main>
-        </IonContent>
-      </IonPage>
+        </div>
+      </div>
 
       {/* Modals */}
       <StrengthScoreModal isOpen={isStrengthModalOpen} onClose={closeStrengthModal} />

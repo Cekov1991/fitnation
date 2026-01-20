@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Route, Switch, useLocation, useHistory, useParams } from 'react-router-dom';
-import { IonApp, useIonRouter } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
+import { BrowserRouter } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { ProfilePage } from './components/ProfilePage';
 import { PlansPage } from './components/PlansPage';
@@ -42,7 +41,7 @@ import { dayNameToIndex, type DayName } from './constants';
 function AuthenticatedLayout({ children, currentPage }: { children: React.ReactNode; currentPage: 'dashboard' | 'plans' | 'progress' | 'profile' }) {
   return (
     <div 
-      className="min-h-screen w-full"
+      className="h-screen w-full overflow-y-auto"
       style={{
         backgroundColor: 'var(--color-bg-base)',
         color: 'var(--color-text-primary)',
@@ -471,7 +470,6 @@ function DashboardPageWrapper() {
 // Workout session page wrapper
 function WorkoutSessionPageWrapper() {
   const history = useHistory();
-  const router = useIonRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: todayWorkout, refetch: refetchTodayWorkout } = useTodayWorkout();
   const currentPage = useCurrentNavPage();
@@ -485,17 +483,17 @@ function WorkoutSessionPageWrapper() {
   }, [todayWorkout, sessionId]);
 
   const handleBack = () => {
-    router.push('/', 'back', 'pop');
+    history.push('/');
     refetchTodayWorkout();
   };
 
   const handleFinish = () => {
-    router.push('/', 'back', 'pop');
+    history.push('/');
     refetchTodayWorkout();
   };
 
   const handleViewExerciseDetail = (exerciseName: string) => {
-    router.push(`/session/${sessionId}/exercise/${encodeURIComponent(exerciseName)}`, 'forward', 'push');
+    history.push(`/session/${sessionId}/exercise/${encodeURIComponent(exerciseName)}`);
   };
 
   return (
@@ -533,8 +531,8 @@ function WorkoutSessionExerciseDetailPageWrapper() {
 
 export function AppRoutes() {
   return (
-    <IonApp>
-      <IonReactRouter>
+
+      <BrowserRouter>
         <Switch>
           {/* Login route - public */}
           <Route exact path="/login">
@@ -625,7 +623,6 @@ export function AppRoutes() {
             </AuthGuard>
           </Route>
         </Switch>
-      </IonReactRouter>
-    </IonApp>
+      </BrowserRouter>
   );
 }

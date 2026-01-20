@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IonPage, IonContent } from '@ionic/react';
-import { useIonRouter } from '@ionic/react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useHistory } from 'react-router-dom';
 import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { loginSchema, LoginFormData } from '../schemas/login';
@@ -18,7 +16,7 @@ interface LoginPageProps {
 
 export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
   const { login } = useAuth();
-  const router = useIonRouter();
+  const history = useHistory();
   const location = useLocation<LocationState>();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,15 +39,15 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
       await login(data.email, data.password);
       // Redirect to the page they tried to visit or home
       const from = location.state?.from?.pathname || '/';
-      router.push(from, 'forward', 'replace');
+      history.replace(from);
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
     }
   };
 
   return (
-    <IonPage>
-      <IonContent>
+    <div>
+      <div>
         <div 
           className="min-h-screen w-full flex items-center justify-center px-6"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
@@ -257,7 +255,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             </p>
           </div>
         </div>
-      </IonContent>
-    </IonPage>
+      </div>
+    </div>
   );
 }
