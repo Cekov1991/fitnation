@@ -973,9 +973,16 @@ GET /api/workout-sessions/{session}
 ```typescript
 interface SessionDetailResponse {
   data: {
-    session: WorkoutSessionResource;
+    id: number;
+    user_id: number;
+    workout_template_id: number | null;
+    performed_at: string;      // ISO 8601
+    completed_at: string | null;
+    notes: string | null;
     exercises: SessionExerciseDetail[];
     progress: SessionProgress;
+    created_at: string;
+    updated_at: string;
   };
 }
 

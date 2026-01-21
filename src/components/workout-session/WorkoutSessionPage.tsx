@@ -50,7 +50,7 @@ export function WorkoutSessionPage({
   const updateSessionExercise = useUpdateSessionExercise();
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
-  const { formattedDuration } = useWorkoutTimer(sessionData?.session?.performed_at);
+  const { formattedDuration } = useWorkoutTimer(sessionData?.performed_at);
   const shouldReduceMotion = useReducedMotion();
   const simpleTransition = useSimpleTransition();
 
