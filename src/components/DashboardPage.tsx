@@ -1,72 +1,25 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
+import { Dumbbell } from 'lucide-react';
 import { WeeklyCalendar } from './WeeklyCalendar';
-import { MetricCard } from './MetricCard';
-import { StrengthScoreModal } from './StrengthScoreModal';
-import { BalanceModal } from './BalanceModal';
-import { WeeklyProgressModal } from './WeeklyProgressModal';
 import { WorkoutSelectionModal } from './WorkoutSelectionModal';
 import { BackgroundGradients } from './BackgroundGradients';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
-import { useFitnessMetrics, useStartSession, useTodayWorkout } from '../hooks/useApi';
+import { useStartSession, useTodayWorkout } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
 
 export function DashboardPage() {
   const { user } = useAuth();
   const { logo, partnerName } = useBranding();
   const history = useHistory();
-  const { data: metrics } = useFitnessMetrics();
-  const { data: todayWorkout, refetch: refetchTodayWorkout } = useTodayWorkout();
+  const { data: todayWorkout } = useTodayWorkout();
   const startSession = useStartSession();
   const {
-    isStrengthModalOpen,
-    isBalanceModalOpen,
-    isProgressModalOpen,
     isWorkoutSelectionOpen,
-    openStrengthModal,
-    openBalanceModal,
-    openProgressModal,
     openWorkoutSelection,
-    closeStrengthModal,
-    closeBalanceModal,
-    closeProgressModal,
     closeWorkoutSelection,
   } = useModals();
-
-  const strengthScoreValue = useMemo(() => {
-    if (!metrics?.strength_score) return '--';
-    return `${metrics.strength_score.current}`;
-  }, [metrics]);
-
-  const strengthScoreSubtitle = useMemo(() => {
-    if (!metrics?.strength_score) return undefined;
-    return `${metrics.strength_score.level} • +${metrics.strength_score.recent_gain}`;
-  }, [metrics]);
-
-  const balanceValue = useMemo(() => {
-    if (!metrics?.strength_balance) return '--';
-    return `${metrics.strength_balance.percentage}%`;
-  }, [metrics]);
-
-  const balanceSubtitle = useMemo(() => {
-    if (!metrics?.strength_balance) return undefined;
-    const change = metrics.strength_balance.recent_change;
-    const sign = change >= 0 ? '+' : '';
-    return `${metrics.strength_balance.level} • ${sign}${change}%`;
-  }, [metrics]);
-
-  const weeklyValue = useMemo(() => {
-    if (!metrics?.weekly_progress) return '--';
-    const sign = metrics.weekly_progress.percentage >= 0 ? '+' : '';
-    return `${sign}${metrics.weekly_progress.percentage}%`;
-  }, [metrics]);
-
-  const weeklySubtitle = useMemo(() => {
-    if (!metrics?.weekly_progress) return undefined;
-    return `${metrics.weekly_progress.current_week_workouts} workouts`;
-  }, [metrics]);
 
   const handleStartWorkoutClick = () => {
     const ongoingSession = todayWorkout?.session;
@@ -125,40 +78,6 @@ export function DashboardPage() {
             {/* Calendar Section */}
             <WeeklyCalendar />
 
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="col-span-1">
-                <MetricCard 
-                  title="Strength Score" 
-                  value={strengthScoreValue} 
-                  icon={Dumbbell} 
-                  delay={0.1} 
-                  subtitle={strengthScoreSubtitle} 
-                  onClick={openStrengthModal} 
-                />
-              </div>
-              <div className="col-span-1">
-                <MetricCard 
-                  title="Balance" 
-                  value={balanceValue} 
-                  icon={TrendingUp} 
-                  delay={0.2} 
-                  subtitle={balanceSubtitle} 
-                  onClick={openBalanceModal} 
-                />
-              </div>
-              <div className="col-span-2">
-                <MetricCard 
-                  title="Weekly Progress" 
-                  value={weeklyValue} 
-                  icon={TrendingDown} 
-                  delay={0.3} 
-                  subtitle={weeklySubtitle} 
-                  onClick={openProgressModal} 
-                />
-              </div>
-            </div>
-
             {/* CTA Button */}
             <button 
               onClick={handleStartWorkoutClick} 
@@ -178,9 +97,6 @@ export function DashboardPage() {
       </div>
 
       {/* Modals */}
-      <StrengthScoreModal isOpen={isStrengthModalOpen} onClose={closeStrengthModal} />
-      <BalanceModal isOpen={isBalanceModalOpen} onClose={closeBalanceModal} />
-      <WeeklyProgressModal isOpen={isProgressModalOpen} onClose={closeProgressModal} />
       <WorkoutSelectionModal 
         isOpen={isWorkoutSelectionOpen} 
         onClose={closeWorkoutSelection} 

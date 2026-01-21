@@ -138,12 +138,5 @@ export function WeeklyCalendar() {
             </div>
           </div>)}
       </div>
-
-      <div className="mt-6 text-center">
-        <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-          Ready to crush this week?{' '}
-          <span style={{ color: 'var(--color-primary)' }}>Start your first workout!</span>
-        </p>
-      </div>
     </div>;
 }

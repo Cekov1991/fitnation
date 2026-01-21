@@ -3,6 +3,7 @@ import { Route, Switch, useLocation, useHistory, useParams } from 'react-router-
 import { BrowserRouter } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { ProfilePage } from './components/ProfilePage';
+import { ProgressPage } from './components/ProgressPage';
 import { PlansPage } from './components/PlansPage';
 import { CreatePlanPage } from './components/CreatePlanPage';
 import { AddWorkoutPage } from './components/AddWorkoutPage';
@@ -80,6 +81,17 @@ function ProfilePageWrapper() {
     <AuthenticatedLayout currentPage={currentPage}>
       <BackgroundGradients />
       <ProfilePage onLogout={handleLogout} />
+    </AuthenticatedLayout>
+  );
+}
+
+// Progress page wrapper
+function ProgressPageWrapper() {
+  const currentPage = useCurrentNavPage();
+
+  return (
+    <AuthenticatedLayout currentPage={currentPage}>
+      <ProgressPage />
     </AuthenticatedLayout>
   );
 }
@@ -598,6 +610,13 @@ export function AppRoutes() {
           <Route exact path="/profile">
             <AuthGuard>
               <ProfilePageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Progress page - migrated to router */}
+          <Route exact path="/progress">
+            <AuthGuard>
+              <ProgressPageWrapper />
             </AuthGuard>
           </Route>
 
