@@ -8,7 +8,7 @@ import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSessi
 import { exercisesApi } from '../../services/api';
 import { ExercisePickerPage } from '../ExercisePickerPage';
 import { BackgroundGradients } from '../BackgroundGradients';
-import { LoadingButton } from '../ui';
+import { LoadingButton, ConfirmDialog } from '../ui';
 import { WorkoutHeader } from './WorkoutHeader';
 import { ExerciseNavTabs } from './ExerciseNavTabs';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
@@ -81,6 +81,7 @@ export function WorkoutSessionPage({
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   
   const currentExercise = exercises[currentExerciseIndex];
   const currentSet = currentExercise?.sets.find(s => !s.completed);
@@ -339,10 +340,15 @@ export function WorkoutSessionPage({
     handleFinish();
   };
 
-  const handleCancelWorkout = async () => {
+  const handleCancelWorkoutClick = () => {
+    setShowWorkoutOptionsMenu(false);
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelWorkoutConfirm = async () => {
     try {
       await cancelSession.mutateAsync(sessionId);
-      setShowWorkoutOptionsMenu(false);
+      setShowCancelConfirm(false);
       onBack();
     } catch (error) {
       console.error('Failed to cancel session:', error);
@@ -495,7 +501,7 @@ export function WorkoutSessionPage({
             onClose={() => setShowWorkoutOptionsMenu(false)}
             onAddExercise={handleAddExercise}
             onFinishWorkout={handleFinishWorkout}
-            onCancelWorkout={handleCancelWorkout}
+            onCancelWorkout={handleCancelWorkoutClick}
             isCancelLoading={cancelSession.isPending}
           />
 
@@ -530,6 +536,18 @@ export function WorkoutSessionPage({
               isLoading={addSessionExercise.isPending || removeSessionExercise.isPending}
             />
           )}
+
+          {/* Cancel Workout Confirmation */}
+          <ConfirmDialog
+            isOpen={showCancelConfirm}
+            onClose={() => setShowCancelConfirm(false)}
+            onConfirm={handleCancelWorkoutConfirm}
+            title="Cancel Workout"
+            message="Are you sure you want to cancel this workout? All progress will be lost."
+            confirmText="Cancel Workout"
+            variant="danger"
+            isLoading={cancelSession.isPending}
+          />
 
           <style>{`
             .scrollbar-hide::-webkit-scrollbar {

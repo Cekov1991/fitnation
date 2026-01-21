@@ -3,7 +3,7 @@ import { Plus, Info, MoreVertical, Dumbbell } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
 import { BackgroundGradients } from './BackgroundGradients';
-import { LoadingContent } from './ui';
+import { LoadingContent, ConfirmDialog } from './ui';
 import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan } from '../hooks/useApi';
 import { DAY_NAMES } from '../constants';
 import type { PlanResource, WorkoutTemplateResource } from '../types/api';
@@ -51,6 +51,8 @@ export function PlansPage({
     description: string;
     daysOfWeek: string[];
   } | null>(null);
+  const [showDeletePlanConfirm, setShowDeletePlanConfirm] = useState(false);
+  const [showDeleteWorkoutConfirm, setShowDeleteWorkoutConfirm] = useState(false);
   const {
     data: plans = [],
     isLoading: isPlansLoading,
@@ -178,12 +180,17 @@ export function PlansPage({
       setOpenMenuId(null);
     }
   };
-  const handleDeletePlan = async () => {
+  const handleDeletePlanClick = () => {
+    setOpenMenuId(null);
+    setShowDeletePlanConfirm(true);
+  };
+
+  const handleDeletePlanConfirm = async () => {
     if (!currentMenuPlan) return;
     try {
       await deletePlan.mutateAsync(currentMenuPlan.id);
     } finally {
-      setOpenMenuId(null);
+      setShowDeletePlanConfirm(false);
     }
   };
   const handleStartWorkout = async () => {
@@ -208,12 +215,17 @@ export function PlansPage({
       onNavigateToEditWorkout(currentWorkout);
     }
   };
-  const handleDeleteWorkout = async () => {
+  const handleDeleteWorkoutClick = () => {
+    setOpenMenuId(null);
+    setShowDeleteWorkoutConfirm(true);
+  };
+
+  const handleDeleteWorkoutConfirm = async () => {
     if (!currentWorkout?.templateId) return;
     try {
       await deleteTemplate.mutateAsync(currentWorkout.templateId);
     } finally {
-      setOpenMenuId(null);
+      setShowDeleteWorkoutConfirm(false);
     }
   };
   return <div>
@@ -507,10 +519,34 @@ export function PlansPage({
       </main>
 
       {/* Plan Menu */}
-      {menuType === 'plan' && <PlanMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} isActive={currentMenuPlan?.isActive ?? false} onAddWorkout={handleAddWorkout} onEdit={handleEditPlan} onToggleActive={handleToggleActive} onDelete={handleDeletePlan} isToggleLoading={updatePlan.isPending} isDeleteLoading={deletePlan.isPending} />}
+      {menuType === 'plan' && <PlanMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} isActive={currentMenuPlan?.isActive ?? false} onAddWorkout={handleAddWorkout} onEdit={handleEditPlan} onToggleActive={handleToggleActive} onDelete={handleDeletePlanClick} isToggleLoading={updatePlan.isPending} isDeleteLoading={deletePlan.isPending} />}
 
       {/* Workout Menu */}
-      {menuType === 'workout' && <WorkoutMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} onStartWorkout={handleStartWorkout} onAddExercises={handleAddExercises} onEdit={handleEditWorkout} onDelete={handleDeleteWorkout} isStartLoading={startSession.isPending} isDeleteLoading={deleteTemplate.isPending} />}
+      {menuType === 'workout' && <WorkoutMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} onStartWorkout={handleStartWorkout} onAddExercises={handleAddExercises} onEdit={handleEditWorkout} onDelete={handleDeleteWorkoutClick} isStartLoading={startSession.isPending} isDeleteLoading={deleteTemplate.isPending} />}
+
+      {/* Delete Plan Confirmation */}
+      <ConfirmDialog
+        isOpen={showDeletePlanConfirm}
+        onClose={() => setShowDeletePlanConfirm(false)}
+        onConfirm={handleDeletePlanConfirm}
+        title="Delete Plan"
+        message={`Are you sure you want to delete "${currentMenuPlan?.name}"? This will also delete all workouts in this plan. This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={deletePlan.isPending}
+      />
+
+      {/* Delete Workout Confirmation */}
+      <ConfirmDialog
+        isOpen={showDeleteWorkoutConfirm}
+        onClose={() => setShowDeleteWorkoutConfirm(false)}
+        onConfirm={handleDeleteWorkoutConfirm}
+        title="Delete Workout"
+        message={`Are you sure you want to delete "${currentWorkout?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={deleteTemplate.isPending}
+      />
     </div>
       </div>
     </div>;
