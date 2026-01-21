@@ -8,6 +8,8 @@ interface WorkoutOptionsMenuProps {
   onClose: () => void;
   onAddExercise: () => void;
   onFinishWorkout: () => void;
+  onCancelWorkout: () => void;
+  isCancelLoading?: boolean;
 }
 
 export function WorkoutOptionsMenu({
@@ -15,6 +17,8 @@ export function WorkoutOptionsMenu({
   onClose,
   onAddExercise,
   onFinishWorkout,
+  onCancelWorkout,
+  isCancelLoading,
 }: WorkoutOptionsMenuProps) {
   const modalTransition = useModalTransition();
   return (
@@ -61,6 +65,16 @@ export function WorkoutOptionsMenu({
                   onClick={onFinishWorkout}
                   variant="success"
                 />
+                
+                <MenuButton
+                  icon={<X className="text-red-400 w-5 h-5" />}
+                  iconBg="rgb(248 113 113 / 0.2)"
+                  title={isCancelLoading ? "Cancelling..." : "Cancel Workout"}
+                  subtitle="Discard session and exit"
+                  onClick={onCancelWorkout}
+                  variant="danger"
+                  disabled={isCancelLoading}
+                />
               </div>
             </div>
           </motion.div>
@@ -78,9 +92,10 @@ interface MenuButtonProps {
   subtitle: string;
   onClick: () => void;
   variant?: 'default' | 'success' | 'danger';
+  disabled?: boolean;
 }
 
-function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default' }: MenuButtonProps) {
+function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default', disabled }: MenuButtonProps) {
   const styles = {
     default: 'card-hover border',
     success: 'bg-green-500/10 hover:bg-green-500/20 border border-green-500/20',
@@ -90,7 +105,8 @@ function MenuButton({ icon, iconBg, title, subtitle, onClick, variant = 'default
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${styles[variant]}`}
+      disabled={disabled}
+      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${styles[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       style={variant === 'default' ? {
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)'

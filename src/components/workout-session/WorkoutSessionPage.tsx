@@ -4,7 +4,7 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useSimpleTransition } from '../../utils/animations';
 import { Plus, Check } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
 import { exercisesApi } from '../../services/api';
 import { ExercisePickerPage } from '../ExercisePickerPage';
 import { BackgroundGradients } from '../BackgroundGradients';
@@ -43,6 +43,7 @@ export function WorkoutSessionPage({
   const logSet = useLogSet();
   const updateSet = useUpdateSet();
   const completeSession = useCompleteSession();
+  const cancelSession = useCancelSession();
   const deleteSet = useDeleteSet();
   const addSessionExercise = useAddSessionExercise();
   const removeSessionExercise = useRemoveSessionExercise();
@@ -338,6 +339,16 @@ export function WorkoutSessionPage({
     handleFinish();
   };
 
+  const handleCancelWorkout = async () => {
+    try {
+      await cancelSession.mutateAsync(sessionId);
+      setShowWorkoutOptionsMenu(false);
+      onBack();
+    } catch (error) {
+      console.error('Failed to cancel session:', error);
+    }
+  };
+
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
   
   if (isLoading) {
@@ -484,6 +495,8 @@ export function WorkoutSessionPage({
             onClose={() => setShowWorkoutOptionsMenu(false)}
             onAddExercise={handleAddExercise}
             onFinishWorkout={handleFinishWorkout}
+            onCancelWorkout={handleCancelWorkout}
+            isCancelLoading={cancelSession.isPending}
           />
 
           <ExerciseOptionsMenu
