@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Fit Nation" />
-    <link rel="apple-touch-icon" href="/icons/fit-nation.png" id="apple-touch-icon" />
+    <link rel="apple-touch-icon" href="/icons/fit_nation/icon-512.png" id="apple-touch-icon" />
     
     <!-- Partner-specific PWA manifest selection -->
     <script>
@@ -32,7 +32,9 @@
           // Swap apple-touch-icon to partner-specific version
           var appleIcon = document.getElementById('apple-touch-icon');
           if (appleIcon) {
-            appleIcon.href = '/icons/' + partnerSlug + '.png';
+            // Convert kebab-case to snake_case for folder names
+            var folderName = partnerSlug.replace(/-/g, '_');
+            appleIcon.href = '/icons/' + folderName + '/icon-512.png';
           }
         }
       })();
