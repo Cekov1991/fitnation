@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, Reorder, useDragControls } from 'framer-motion';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
@@ -26,9 +26,10 @@ interface Exercise {
 interface DraggableExerciseItemProps {
   exercise: Exercise;
   onEditClick: (exercise: Exercise) => void;
+  onDragEnd: () => void;
 }
 
-function DraggableExerciseItem({ exercise, onEditClick }: DraggableExerciseItemProps) {
+function DraggableExerciseItem({ exercise, onEditClick, onDragEnd }: DraggableExerciseItemProps) {
   const controls = useDragControls();
 
   return (
@@ -37,6 +38,7 @@ function DraggableExerciseItem({ exercise, onEditClick }: DraggableExerciseItemP
       value={exercise}
       dragListener={false}
       dragControls={controls}
+      onDragEnd={onDragEnd}
       className="border rounded-2xl p-4 transition-colors"
       style={{ 
         backgroundColor: 'var(--color-bg-surface)',
@@ -129,17 +131,31 @@ export function EditWorkoutPage({
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isEditMode, setIsEditMode] = useState(true);
+  const pendingOrderRef = useRef<Exercise[] | null>(null);
+  const isDraggingRef = useRef(false);
 
   // Sync local state with template data
   useEffect(() => {
     setExercises(exercisesFromTemplate);
   }, [exercisesFromTemplate]);
 
-  const handleReorder = async (newOrder: Exercise[]) => {
+  // Update local state immediately during drag (for visual feedback)
+  const handleReorder = (newOrder: Exercise[]) => {
     setExercises(newOrder);
+    pendingOrderRef.current = newOrder;
+    isDraggingRef.current = true;
+  };
+
+  // Make API call only when drag ends
+  const handleDragEnd = async () => {
+    if (!pendingOrderRef.current || !isDraggingRef.current) return;
+    
+    isDraggingRef.current = false;
+    const finalOrder = pendingOrderRef.current;
+    pendingOrderRef.current = null;
     
     // Get the pivot IDs in the new order
-    const pivotIds = newOrder.map(ex => ex.pivotId);
+    const pivotIds = finalOrder.map(ex => ex.pivotId);
     
     try {
       await reorderExercises.mutateAsync({
@@ -295,6 +311,7 @@ export function EditWorkoutPage({
                       key={exercise.id}
                       exercise={exercise}
                       onEditClick={handleExerciseEditClick}
+                      onDragEnd={handleDragEnd}
                     />
                   ))}
                 </Reorder.Group>
