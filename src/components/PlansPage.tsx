@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Plus, Info, MoreVertical, Dumbbell } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
 import { BackgroundGradients } from './BackgroundGradients';
 import { LoadingContent, ConfirmDialog } from './ui';
-import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan } from '../hooks/useApi';
+import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan, useTodayWorkout } from '../hooks/useApi';
 import { DAY_NAMES } from '../constants';
 import type { PlanResource, WorkoutTemplateResource } from '../types/api';
 interface PlansPageProps {
@@ -65,6 +66,20 @@ export function PlansPage({
   const deletePlan = useDeletePlan();
   const deleteTemplate = useDeleteTemplate();
   const startSession = useStartSession();
+  const history = useHistory();
+  const { data: todayWorkout } = useTodayWorkout();
+
+  // Helper function to check if a template has an active session
+  const getActiveSessionForTemplate = (templateId: number) => {
+    const activeSession = todayWorkout?.session;
+    if (activeSession && !activeSession.completed_at && activeSession.workout_template_id === templateId) {
+      return activeSession;
+    }
+    return null;
+  };
+
+  // Check if there's any active session (for disabling other buttons)
+  const hasActiveSession = todayWorkout?.session && !todayWorkout.session.completed_at;
 
   const activePlan = useMemo(() => {
     return plans.find((plan: PlanResource) => plan.is_active) || null;
@@ -196,8 +211,24 @@ export function PlansPage({
   const handleStartWorkout = async () => {
     if (!currentWorkout?.templateId) return;
     try {
-      await startSession.mutateAsync(currentWorkout.templateId);
+      const response = await startSession.mutateAsync(currentWorkout.templateId);
+      const session = response.data?.session || response.data;
+      if (session?.id) {
+        // Navigate to the session page
+        history.push(`/session/${session.id}`);
+      }
+    } catch (error) {
+      console.error('Failed to start session:', error);
     } finally {
+      setOpenMenuId(null);
+    }
+  };
+
+  const handleContinueWorkout = () => {
+    if (!currentWorkout?.templateId) return;
+    const activeSession = getActiveSessionForTemplate(currentWorkout.templateId);
+    if (activeSession?.id) {
+      history.push(`/session/${activeSession.id}`);
       setOpenMenuId(null);
     }
   };
@@ -522,7 +553,22 @@ export function PlansPage({
       {menuType === 'plan' && <PlanMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} isActive={currentMenuPlan?.isActive ?? false} onAddWorkout={handleAddWorkout} onEdit={handleEditPlan} onToggleActive={handleToggleActive} onDelete={handleDeletePlanClick} isToggleLoading={updatePlan.isPending} isDeleteLoading={deletePlan.isPending} />}
 
       {/* Workout Menu */}
-      {menuType === 'workout' && <WorkoutMenu isOpen={openMenuId !== null} onClose={() => setOpenMenuId(null)} onStartWorkout={handleStartWorkout} onAddExercises={handleAddExercises} onEdit={handleEditWorkout} onDelete={handleDeleteWorkoutClick} isStartLoading={startSession.isPending} isDeleteLoading={deleteTemplate.isPending} />}
+      {menuType === 'workout' && (
+        <WorkoutMenu 
+          isOpen={openMenuId !== null} 
+          onClose={() => setOpenMenuId(null)} 
+          onStartWorkout={currentWorkout?.templateId && getActiveSessionForTemplate(currentWorkout.templateId) 
+            ? handleContinueWorkout 
+            : handleStartWorkout}
+          onAddExercises={handleAddExercises} 
+          onEdit={handleEditWorkout} 
+          onDelete={handleDeleteWorkoutClick} 
+          isStartLoading={startSession.isPending} 
+          isDeleteLoading={deleteTemplate.isPending}
+          hasActiveSession={hasActiveSession}
+          isCurrentWorkoutActive={currentWorkout?.templateId ? !!getActiveSessionForTemplate(currentWorkout.templateId) : false}
+        />
+      )}
 
       {/* Delete Plan Confirmation */}
       <ConfirmDialog

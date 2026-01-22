@@ -11,6 +11,8 @@ interface WorkoutMenuProps {
   onDelete?: () => void;
   isStartLoading?: boolean;
   isDeleteLoading?: boolean;
+  hasActiveSession?: boolean;
+  isCurrentWorkoutActive?: boolean;
 }
 export function WorkoutMenu({
   isOpen,
@@ -20,7 +22,9 @@ export function WorkoutMenu({
   onEdit,
   onDelete,
   isStartLoading = false,
-  isDeleteLoading = false
+  isDeleteLoading = false,
+  hasActiveSession = false,
+  isCurrentWorkoutActive = false
 }: WorkoutMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
@@ -35,12 +39,12 @@ export function WorkoutMenu({
     };
   }, [isOpen]);
   const menuItems = [{
-    label: 'Start Workout',
+    label: isCurrentWorkoutActive ? 'Continue Workout' : 'Start Workout',
     icon: Play,
     onClick: onStartWorkout,
     color: 'text-green-400',
     isLoading: isStartLoading,
-    disabled: isStartLoading
+    disabled: isStartLoading || (hasActiveSession && !isCurrentWorkoutActive)
   }, {
     label: 'Add Exercises',
     icon: Plus,
@@ -110,7 +114,7 @@ export function WorkoutMenu({
                 {menuItems.map((item) => {
               const Icon = item.icon;
               // For items with loading states, don't close immediately - parent handles closing
-              const shouldCloseImmediately = !item.isLoading && item.label !== 'Delete' && item.label !== 'Start Workout';
+              const shouldCloseImmediately = !item.isLoading && item.label !== 'Delete' && item.label !== 'Start Workout' && item.label !== 'Continue Workout';
               return <button 
                 key={item.label} 
                 onClick={() => {
