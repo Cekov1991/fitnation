@@ -443,6 +443,7 @@ export function WorkoutSessionPage({
                     <CurrentExerciseCard
                       exercise={currentExercise}
                       onOpenMenu={() => setShowExerciseMenu(true)}
+                      onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
                     />
 
                     <MaxWeightChart exercise={currentExercise} />
