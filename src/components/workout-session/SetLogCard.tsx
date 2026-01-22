@@ -10,6 +10,7 @@ interface SetLogCardProps {
   onRepsChange: (reps: number) => void;
   onLogSet: () => void;
   isLoading?: boolean;
+  setNumber?: number;
 }
 
 export function SetLogCard({
@@ -19,6 +20,7 @@ export function SetLogCard({
   onRepsChange,
   onLogSet,
   isLoading = false,
+  setNumber,
 }: SetLogCardProps) {
   return (
     <motion.div 
@@ -31,7 +33,7 @@ export function SetLogCard({
       }}
     >
       <p className="text-sm font-bold mb-4" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-        Log Your Set
+        {setNumber ? `Set ${setNumber}` : 'Log Your Set'}
       </p>
       <div className="flex items-center justify-between gap-4">
         {/* Weight Input */}

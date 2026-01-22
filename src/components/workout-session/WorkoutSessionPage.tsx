@@ -89,6 +89,15 @@ export function WorkoutSessionPage({
   const selectedSet = selectedSetId
     ? currentExercise?.sets.find(s => s.id === selectedSetId)
     : null;
+  const isSelectedSetLast = selectedSet && currentExercise
+    ? currentExercise.sets.findIndex(s => s.id === selectedSet.id) === currentExercise.sets.length - 1
+    : false;
+  const setNumber = currentSet && currentExercise 
+    ? currentExercise.sets.findIndex(s => s.id === currentSet.id) + 1 
+    : undefined;
+  const editingSetNumber = editingSetId && currentExercise
+    ? currentExercise.sets.findIndex(s => s.id === editingSetId) + 1
+    : undefined;
 
   // Initialize editing values when current set changes
   useEffect(() => {
@@ -447,6 +456,7 @@ export function WorkoutSessionPage({
                         onRepsChange={setEditingReps}
                         onLogSet={handleDidIt}
                         isLoading={logSet.isPending}
+                        setNumber={setNumber}
                       />
                     )}
 
@@ -460,6 +470,7 @@ export function WorkoutSessionPage({
                         onSave={handleSaveEdit}
                         onCancel={handleCancelEdit}
                         isLoading={updateSet.isPending}
+                        setNumber={editingSetNumber}
                       />
                     )}
 
@@ -517,7 +528,7 @@ export function WorkoutSessionPage({
 
           <SetOptionsMenu
             isOpen={showSetMenu}
-            selectedSet={selectedSet}
+            selectedSet={selectedSet || null}
             onClose={() => {
               setShowSetMenu(false);
               setSelectedSetId(null);
@@ -525,6 +536,7 @@ export function WorkoutSessionPage({
             onEditSet={handleEditSetFromMenu}
             onRemoveSet={handleRemoveSetFromMenu}
             isRemoveLoading={deleteSet.isPending || updateSessionExercise.isPending}
+            isLastSet={isSelectedSetLast}
           />
 
           {/* Exercise Picker */}

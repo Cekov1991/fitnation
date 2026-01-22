@@ -12,6 +12,7 @@ interface SetEditCardProps {
   onSave: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  setNumber?: number;
 }
 
 export function SetEditCard({
@@ -22,6 +23,7 @@ export function SetEditCard({
   onSave,
   onCancel,
   isLoading = false,
+  setNumber,
 }: SetEditCardProps) {
   const slideTransition = useSlideTransition()
   return (
@@ -30,7 +32,7 @@ export function SetEditCard({
       className="bg-gradient-to-br from-orange-600 to-orange-500 rounded-3xl p-6 shadow-2xl shadow-orange-500/20"
     >
       <p className="text-sm font-bold text-orange-100 mb-4">
-        Edit Set
+        {setNumber ? `Edit Set ${setNumber}` : 'Edit Set'}
       </p>
       <div className="flex items-center justify-between gap-4">
         {/* Weight Input */}
