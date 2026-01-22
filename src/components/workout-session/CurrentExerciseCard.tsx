@@ -6,12 +6,25 @@ import type { Exercise } from './types';
 interface CurrentExerciseCardProps {
   exercise: Exercise;
   onOpenMenu: () => void;
+  onViewExercise?: () => void;
 }
 
-export function CurrentExerciseCard({ exercise, onOpenMenu }: CurrentExerciseCardProps) {
+export function CurrentExerciseCard({ exercise, onOpenMenu, onViewExercise }: CurrentExerciseCardProps) {
+  const handleCardClick = () => {
+    if (onViewExercise) {
+      onViewExercise();
+    }
+  };
+
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOpenMenu();
+  };
+
   return (
     <div 
-      className="relative flex items-start gap-4 p-4 border rounded-2xl"
+      onClick={handleCardClick}
+      className="relative flex items-start gap-4 p-4 border rounded-2xl transition-all cursor-pointer hover:opacity-90 active:scale-[0.98]"
       style={{ 
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)'
@@ -30,7 +43,7 @@ export function CurrentExerciseCard({ exercise, onOpenMenu }: CurrentExerciseCar
       </div>
 
       <button
-        onClick={onOpenMenu}
+        onClick={handleMenuClick}
         className="flex-shrink-0 p-2 rounded-lg bg-elevated-hover"
       >
         <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />

@@ -32,7 +32,7 @@ export function ExerciseDetailPage({
   exerciseName,
   onBack
 }: ExerciseDetailPageProps) {
-  const [activeTab, setActiveTab] = useState<'instructions' | 'muscles' | 'history'>('instructions');
+  const [activeTab, setActiveTab] = useState<'muscles' | 'instructions' | 'history'>('muscles');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const modalTransition = useModalTransition();
@@ -223,7 +223,7 @@ export function ExerciseDetailPage({
 
         {/* Tabs */}
         <motion.div {...modalTransition} className="flex gap-2 px-6 mb-6">
-          {(['instructions', 'muscles', 'history'] as const).map(tab => <button 
+          {(['muscles', 'instructions', 'history'] as const).map(tab => <button 
               key={tab} 
               onClick={() => setActiveTab(tab)} 
               className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative"

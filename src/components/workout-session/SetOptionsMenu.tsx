@@ -11,6 +11,7 @@ interface SetOptionsMenuProps {
   onEditSet: () => void;
   onRemoveSet: () => void;
   isRemoveLoading?: boolean;
+  isLastSet?: boolean;
 }
 
 export function SetOptionsMenu({
@@ -20,6 +21,7 @@ export function SetOptionsMenu({
   onEditSet,
   onRemoveSet,
   isRemoveLoading = false,
+  isLastSet = false,
 }: SetOptionsMenuProps) {
   const modalTransition = useModalTransition();
   if (!selectedSet) return null;
@@ -62,15 +64,17 @@ export function SetOptionsMenu({
                   />
                 )}
 
-                <MenuButton
-                  icon={<Trash2 className="text-red-400 w-5 h-5" />}
-                  iconBg="rgb(239 68 68 / 0.2)"
-                  title="Remove Set"
-                  subtitle="Delete this set"
-                  onClick={onRemoveSet}
-                  variant="danger"
-                  isLoading={isRemoveLoading}
-                />
+                {isLastSet && (
+                  <MenuButton
+                    icon={<Trash2 className="text-red-400 w-5 h-5" />}
+                    iconBg="rgb(239 68 68 / 0.2)"
+                    title="Remove Set"
+                    subtitle="Delete this set"
+                    onClick={onRemoveSet}
+                    variant="danger"
+                    isLoading={isRemoveLoading}
+                  />
+                )}
               </div>
             </div>
           </motion.div>
