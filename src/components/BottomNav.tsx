@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { Home, ClipboardList, BarChart3, User } from 'lucide-react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
@@ -36,11 +36,12 @@ export function BottomNav({
   onPageChange
 }: BottomNavProps) {
   const history = useHistory();
+  const location = useLocation();
   const shouldReduceMotion = useReducedMotion();
 
   const handleNavigation = (tab: typeof tabs[0]) => {
-    // Skip if already on this page
-    if (tab.id === currentPage) return;
+    // Check if we're already on this exact path (not just the same tab category)
+    if (location.pathname === tab.path) return;
 
     history.push(tab.path);
     
