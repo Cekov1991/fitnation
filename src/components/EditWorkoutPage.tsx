@@ -290,17 +290,7 @@ export function EditWorkoutPage({
           {/* Exercise List */}
           <div className="mb-4">
             {/* Loading indicator when refetching */}
-            {isFetching && !isLoading && (
-              <div className="flex items-center justify-center gap-2 py-2 mb-2">
-                <div 
-                  className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
-                  style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }}
-                />
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  Updating exercises...
-                </span>
-              </div>
-            )}
+            
             <LoadingContent
               isLoading={isLoading}
               isError={isError}
