@@ -73,6 +73,26 @@ input[type="number"]::-webkit-outer-spin-button {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+
+/* Prevent text selection globally to improve drag-and-drop UX */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in input fields and textareas */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
   
 button, a, [role="button"], .cursor-pointer {
   touch-action: manipulation;
