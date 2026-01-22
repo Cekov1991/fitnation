@@ -8,7 +8,10 @@ import { LoadingContent } from './ui';
 import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { TemplateExercise, MuscleGroupResource } from '../types/api';
+
+const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 interface Exercise {
   id: string;
@@ -27,9 +30,10 @@ interface DraggableExerciseItemProps {
   exercise: Exercise;
   onEditClick: (exercise: Exercise) => void;
   onDragEnd: () => void;
+  skipDragAnimation?: boolean;
 }
 
-function DraggableExerciseItem({ exercise, onEditClick, onDragEnd }: DraggableExerciseItemProps) {
+function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, skipDragAnimation }: DraggableExerciseItemProps) {
   const controls = useDragControls();
 
   return (
@@ -39,15 +43,21 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd }: DraggableEx
       dragListener={false}
       dragControls={controls}
       onDragEnd={onDragEnd}
-      className="border rounded-2xl p-4 transition-colors"
+      className="border rounded-2xl p-4"
       style={{ 
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)'
       }}
-      whileDrag={{ 
-        scale: 1.02, 
-        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+      // iOS-friendly: use only transform (scale) and avoid expensive boxShadow animation
+      whileDrag={skipDragAnimation ? undefined : { 
+        scale: 1.02,
         cursor: 'grabbing'
+      }}
+      // Use tween instead of spring for smoother iOS performance
+      transition={{
+        type: 'tween',
+        duration: 0.15,
+        ease: 'easeOut'
       }}
     >
       <div className="flex items-center gap-4">
@@ -112,7 +122,9 @@ export function EditWorkoutPage({
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
   const reorderExercises = useReorderTemplateExercises();
-  const modalTransition = useModalTransition()
+  const modalTransition = useModalTransition();
+  const shouldReduceMotion = useReducedMotion();
+  const skipDragAnimation = shouldReduceMotion || isIOS;
 
   const exercisesFromTemplate = useMemo<Exercise[]>(() => {
     if (!template?.exercises) return [];
@@ -312,6 +324,7 @@ export function EditWorkoutPage({
                       exercise={exercise}
                       onEditClick={handleExerciseEditClick}
                       onDragEnd={handleDragEnd}
+                      skipDragAnimation={skipDragAnimation}
                     />
                   ))}
                 </Reorder.Group>
