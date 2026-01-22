@@ -117,7 +117,7 @@ export function EditWorkoutPage({
   const exercisesFromTemplate = useMemo<Exercise[]>(() => {
     if (!template?.exercises) return [];
     return template.exercises.map((ex: TemplateExercise) => ({
-      id: `ex-${ex.id}`,
+      id: `pivot-${ex.pivot.id}`,
       pivotId: ex.pivot.id,
       name: ex.name,
       sets: ex.pivot.target_sets || 0,
