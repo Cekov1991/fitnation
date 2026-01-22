@@ -1,4 +1,5 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../services/api';
 import type { UserResource } from '../types/api';
 import { updatePWAManifest } from '../utils/pwa';
@@ -21,6 +22,7 @@ export function AuthProvider({
 }: {
   children: ReactNode;
 }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<UserResource | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -54,6 +56,8 @@ export function AuthProvider({
     initAuth();
   }, []);
   const login = async (email: string, password: string) => {
+    // Clear cache before login to ensure fresh data is fetched for the new user
+    queryClient.clear();
     const response = await authApi.login(email, password);
     localStorage.setItem('authToken', response.token);
     setUser(response.user);
@@ -76,6 +80,8 @@ export function AuthProvider({
     }
     localStorage.removeItem('authToken');
     localStorage.removeItem('partner-slug');
+    // Clear all React Query cache to prevent previous user's data from persisting
+    queryClient.clear();
     setUser(null);
     // Reset PWA manifest to default
     updatePWAManifest(null);
