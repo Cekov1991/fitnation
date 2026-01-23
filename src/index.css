@@ -274,13 +274,11 @@ ion-input.ionic-input-workout .native-input {
 }
 
 .primary-muscle-group-bg {
-  background: linear-gradient(to right, var(--color-primary-muscle-group), color-mix(in srgb, var(--color-primary-muscle-group) 80%, transparent));
-  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary-muscle-group) 25%, transparent);
-  color: var(--color-text-button);
+  background-color: var(--color-primary-muscle-group);
+  color: var(--color-primary);
 }
 
 .secondary-muscle-group-bg {
-  background: linear-gradient(to right, var(--color-secondary-muscle-group), color-mix(in srgb, var(--color-secondary-muscle-group) 80%, transparent));
-  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-secondary-muscle-group) 25%, transparent);
-  color: var(--color-text-button);
+  background-color: var(--color-secondary-muscle-group);
+  color: var(--color-primary);
 }

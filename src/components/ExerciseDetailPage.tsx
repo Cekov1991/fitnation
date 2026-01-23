@@ -296,7 +296,7 @@ export function ExerciseDetailPage({
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium primary-muscle-group-bg">
+                      {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium">
                           {muscle}
                         </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No primary muscles available.</span>}
                     </div>
@@ -317,7 +317,7 @@ export function ExerciseDetailPage({
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium secondary-muscle-group-bg">
+                      {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium">
                           {muscle}
                         </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No secondary muscles available.</span>}
                     </div>
