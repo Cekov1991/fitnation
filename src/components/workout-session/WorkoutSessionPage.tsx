@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useSimpleTransition } from '../../utils/animations';
@@ -82,6 +82,8 @@ export function WorkoutSessionPage({
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const isAddingExercise = useRef(false);
+  const previousExercisesLength = useRef(exercises.length);
   
   const currentExercise = exercises[currentExerciseIndex];
   const currentSet = currentExercise?.sets.find(s => !s.completed);
@@ -106,6 +108,16 @@ export function WorkoutSessionPage({
       setEditingReps(currentSet.reps);
     }
   }, [currentSet?.id, editingSetId, currentSet]);
+
+  // Auto-switch to newly added exercise
+  useEffect(() => {
+    if (isAddingExercise.current && exercises.length > previousExercisesLength.current) {
+      // Switch to the last exercise (newly added)
+      setCurrentExerciseIndex(exercises.length - 1);
+      isAddingExercise.current = false;
+    }
+    previousExercisesLength.current = exercises.length;
+  }, [exercises.length]);
 
   const handleDidIt = async () => {
     if (currentSet && editingWeight !== null && editingReps !== null && currentExercise) {
@@ -263,6 +275,7 @@ export function WorkoutSessionPage({
 
   const handleSelectExercise = async (exercise: { id: number; name: string; restTime: string; muscleGroups: string[]; imageUrl: string }) => {
     if (exercisePickerMode === 'add') {
+      isAddingExercise.current = true;
       try {
         await addSessionExercise.mutateAsync({
           sessionId,
@@ -276,6 +289,7 @@ export function WorkoutSessionPage({
         setShowExercisePicker(false);
       } catch (error) {
         console.error('Failed to add exercise:', error);
+        isAddingExercise.current = false;
       }
     } else if (exercisePickerMode === 'swap') {
       // Remove current exercise first, then add new one
