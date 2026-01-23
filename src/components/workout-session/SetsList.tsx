@@ -44,14 +44,14 @@ export function SetsList({
             </span>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                {formatWeight(set.weight)}
+                {set.completed ? formatWeight(set.weight) : '--'}
               </span>
               <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
             </div>
             <span style={{ color: 'var(--color-border)' }}>×</span>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                {set.reps}
+                {set.completed ? set.reps : '--'}
               </span>
               <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>reps</span>
             </div>
