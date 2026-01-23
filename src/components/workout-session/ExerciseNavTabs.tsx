@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import { ExerciseImage } from '../ExerciseImage';
 import type { Exercise, ExerciseCompletionStatus } from './types';
 import { useModalTransition } from '../../utils/animations';
@@ -10,6 +10,7 @@ interface ExerciseNavTabsProps {
   currentIndex: number;
   onSelectExercise: (index: number) => void;
   getCompletionStatus: (exercise: Exercise) => ExerciseCompletionStatus;
+  onAddExercise?: () => void;
 }
 
 export function ExerciseNavTabs({
@@ -17,6 +18,7 @@ export function ExerciseNavTabs({
   currentIndex,
   onSelectExercise,
   getCompletionStatus,
+  onAddExercise,
 }: ExerciseNavTabsProps) {
   const modalTransition = useModalTransition();
   const tabRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
@@ -99,6 +101,31 @@ export function ExerciseNavTabs({
             </button>
           );
         })}
+        {/* Add Exercise Button */}
+        {onAddExercise && (
+          <button
+            onClick={onAddExercise}
+            className="flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed transition hover:border-solid"
+            style={{
+              borderColor: 'var(--color-border)',
+              backgroundColor: 'var(--color-bg-surface)',
+              minWidth: '120px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-primary)';
+              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border)';
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+            }}
+          >
+            <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+            <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+              Add Exercise
+            </span>
+          </button>
+        )}
       </div>
     </motion.div>
   );

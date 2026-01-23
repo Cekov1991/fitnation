@@ -412,6 +412,7 @@ export function WorkoutSessionPage({
               currentIndex={currentExerciseIndex}
               onSelectExercise={handleSwitchExercise}
               getCompletionStatus={getExerciseCompletionStatus}
+              onAddExercise={handleAddExercise}
             />
 
             {/* Exercise Content */}
