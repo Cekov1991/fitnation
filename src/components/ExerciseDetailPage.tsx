@@ -283,20 +283,20 @@ export function ExerciseDetailPage({
 
                   {/* Primary Muscles */}
                   <div 
-                    className="  border rounded-2xl p-6"
+                    className="border rounded-2xl p-6"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
                     }}
                   >
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 bg-red-500 rounded-full" />
+                      <div className="w-3 h-3 rounded-full primary-muscle-group-bg" />
                       <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                         Primary
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/30 transition-colors">
+                      {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium primary-muscle-group-bg">
                           {muscle}
                         </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No primary muscles available.</span>}
                     </div>
@@ -311,13 +311,13 @@ export function ExerciseDetailPage({
                     }}
                   >
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full" />
+                      <div className="w-3 h-3 rounded-full secondary-muscle-group-bg" />
                       <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                         Secondary
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-xl text-sm font-medium text-orange-400 hover:bg-orange-500/30 transition-colors">
+                      {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium secondary-muscle-group-bg">
                           {muscle}
                         </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No secondary muscles available.</span>}
                     </div>

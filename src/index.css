@@ -25,6 +25,8 @@
   --color-text-muted: #6b7280;                     /* gray-500 */
   --color-border: rgba(255, 255, 255, 0.1);
   --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-primary-muscle-group: #8b5cf6;
+  --color-secondary-muscle-group: #ec4899;
 }
 
 /* Light Theme */
@@ -268,5 +270,17 @@ ion-input.ionic-input-workout .native-input {
 .btn-primary {
   background: linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent));
   box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-text-button);
+}
+
+.primary-muscle-group-bg {
+  background: linear-gradient(to right, var(--color-primary-muscle-group), color-mix(in srgb, var(--color-primary-muscle-group) 80%, transparent));
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary-muscle-group) 25%, transparent);
+  color: var(--color-text-button);
+}
+
+.secondary-muscle-group-bg {
+  background: linear-gradient(to right, var(--color-secondary-muscle-group), color-mix(in srgb, var(--color-secondary-muscle-group) 80%, transparent));
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-secondary-muscle-group) 25%, transparent);
   color: var(--color-text-button);
 }
