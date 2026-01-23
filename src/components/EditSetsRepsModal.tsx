@@ -16,6 +16,7 @@ interface EditSetsRepsModalProps {
   initialWeight: string;
   onSave: (sets: number, reps: string, weight: string) => void;
   isLoading?: boolean;
+  exerciseName?: string;
 }
 
 export function EditSetsRepsModal({
@@ -25,7 +26,8 @@ export function EditSetsRepsModal({
   initialReps,
   initialWeight,
   onSave,
-  isLoading = false
+  isLoading = false,
+  exerciseName
 }: EditSetsRepsModalProps) {
   const modalTransition = useModalTransition();
   const {
@@ -86,19 +88,31 @@ export function EditSetsRepsModal({
             >
               <div className="p-6">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                  <h2 
-                    className="text-xl font-bold bg-clip-text text-transparent"
-                    style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-                  >
-                    Edit Sets & Reps
-                  </h2>
-                  <button 
-                    onClick={onClose} 
-                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-                  >
-                    <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
-                  </button>
+                <div className="mb-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h2 
+                        className="text-xl font-bold bg-clip-text text-transparent"
+                        style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+                      >
+                        Edit Sets & Reps
+                      </h2>
+                      {exerciseName && (
+                        <p 
+                          className="text-sm mt-1"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {exerciseName}
+                        </p>
+                      )}
+                    </div>
+                    <button 
+                      onClick={onClose} 
+                      className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors ml-4"
+                    >
+                      <X size={20} style={{ color: 'var(--color-text-secondary)' }} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Form */}
@@ -156,7 +170,6 @@ export function EditSetsRepsModal({
                               inputmode="numeric" 
                               value={field.value || ''} 
                               onIonInput={e => field.onChange(e.detail.value || '')} 
-                              placeholder="e.g., 8-10" 
                             />
                           )}
                         />
@@ -184,7 +197,6 @@ export function EditSetsRepsModal({
                               inputmode="decimal" 
                               value={field.value || ''} 
                               onIonInput={e => field.onChange(e.detail.value || '')} 
-                              placeholder="e.g., 30" 
                             />
                           )}
                         />

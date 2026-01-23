@@ -9,6 +9,7 @@ interface ExerciseEditMenuProps {
   onSwap?: () => void;
   onRemove?: () => void;
   isRemoveLoading?: boolean;
+  exerciseName?: string;
 }
 export function ExerciseEditMenu({
   isOpen,
@@ -16,7 +17,8 @@ export function ExerciseEditMenu({
   onEditSetsReps,
   onSwap,
   onRemove,
-  isRemoveLoading = false
+  isRemoveLoading = false,
+  exerciseName
 }: ExerciseEditMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
@@ -75,23 +77,35 @@ export function ExerciseEditMenu({
       >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
-                  Exercise Actions
-                </h3>
-                <button 
-                  onClick={onClose} 
-                  className="p-2 rounded-full transition-colors"
-                  style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                  }}
-                >
-                  <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
-                </button>
+              <div className="mb-6">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+                      Exercise Actions
+                    </h3>
+                    {exerciseName && (
+                      <p 
+                        className="text-sm mt-1"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
+                        {exerciseName}
+                      </p>
+                    )}
+                  </div>
+                  <button 
+                    onClick={onClose} 
+                    className="p-2 rounded-full transition-colors ml-4"
+                    style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
+                    }}
+                  >
+                    <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                  </button>
+                </div>
               </div>
 
               {/* Menu Items */}
