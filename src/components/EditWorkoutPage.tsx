@@ -30,10 +30,11 @@ interface DraggableExerciseItemProps {
   exercise: Exercise;
   onEditClick: (exercise: Exercise) => void;
   onDragEnd: () => void;
+  onClick?: (exercise: Exercise) => void;
   skipDragAnimation?: boolean;
 }
 
-function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, skipDragAnimation }: DraggableExerciseItemProps) {
+function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skipDragAnimation }: DraggableExerciseItemProps) {
   const controls = useDragControls();
 
   return (
@@ -43,7 +44,7 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, skipDragAnima
       dragListener={false}
       dragControls={controls}
       onDragEnd={onDragEnd}
-      className="border rounded-2xl p-4"
+      className="border rounded-2xl p-4 cursor-pointer"
       style={{ 
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)'
@@ -60,10 +61,22 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, skipDragAnima
         ease: 'easeOut'
       }}
     >
-      <div className="flex items-center gap-4">
+      <div 
+        className="flex items-center gap-4"
+        onClick={(e) => {
+          // Only trigger onClick if not clicking on drag handle or edit button
+          if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
+            onClick(exercise);
+          }
+        }}
+      >
         {/* Drag Handle - only this triggers drag */}
         <div 
-          onPointerDown={(e) => controls.start(e)}
+          data-drag-handle
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            controls.start(e);
+          }}
           className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors touch-none" 
           style={{ backgroundColor: 'var(--color-border-subtle)' }}
         >
@@ -87,6 +100,7 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, skipDragAnima
 
         {/* Edit Button */}
         <button 
+          data-edit-button
           onClick={(e) => {
             e.stopPropagation();
             onEditClick(exercise);
@@ -142,7 +156,6 @@ export function EditWorkoutPage({
   }, [template]);
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [isEditMode, setIsEditMode] = useState(true);
   const pendingOrderRef = useRef<Exercise[] | null>(null);
   const isDraggingRef = useRef(false);
 
@@ -185,9 +198,7 @@ export function EditWorkoutPage({
   const [isEditSetsRepsOpen, setIsEditSetsRepsOpen] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const handleExerciseClick = (exercise: Exercise) => {
-    if (!isEditMode) {
-      onViewExerciseDetail(exercise.name);
-    }
+    onViewExerciseDetail(exercise.name);
   };
   const handleExerciseEditClick = (exercise: Exercise) => {
     setSelectedExerciseId(exercise.id);
@@ -270,21 +281,9 @@ export function EditWorkoutPage({
 
         {/* Exercises Section */}
         <motion.div {...modalTransition}>
-          {/* Exercises Header with Edit Toggle */}
+          {/* Exercises Header */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Exercises</h3>
-            <button 
-            onClick={() => setIsEditMode(!isEditMode)} 
-            className="p-2 rounded-full transition-colors"
-            style={isEditMode ? {
-              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-              color: 'var(--color-primary)'
-            } : {
-              color: 'var(--color-text-secondary)'
-            }}
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
           </div>
 
           {/* Exercise List */}
@@ -311,7 +310,7 @@ export function EditWorkoutPage({
                 <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                   No exercises in this workout yet.
                 </div>
-              ) : isEditMode ? (
+              ) : (
                 <Reorder.Group 
                   axis="y" 
                   values={exercises} 
@@ -324,42 +323,11 @@ export function EditWorkoutPage({
                       exercise={exercise}
                       onEditClick={handleExerciseEditClick}
                       onDragEnd={handleDragEnd}
+                      onClick={handleExerciseClick}
                       skipDragAnimation={skipDragAnimation}
                     />
                   ))}
                 </Reorder.Group>
-              ) : (
-                <div className="space-y-3">
-                  {exercises.map((exercise) => (
-                    <motion.div 
-                      key={exercise.id} 
-                      {...modalTransition}
-                      onClick={() => handleExerciseClick(exercise)} 
-                      className="border rounded-2xl p-4 transition-colors cursor-pointer"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: 'var(--color-border-subtle)'
-                      }}
-                    >
-                      <div className="flex items-center gap-4">
-                        {/* Exercise Image */}
-                        <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
-                          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-                        </div>
-
-                        {/* Exercise Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-bold mb-1 leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
-                            {exercise.name}
-                          </h4>
-                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                            {exercise.sets} sets × {exercise.reps} reps × {exercise.weight} kg
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
               )}
             </LoadingContent>
           </div>
