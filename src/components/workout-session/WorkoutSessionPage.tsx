@@ -82,6 +82,7 @@ export function WorkoutSessionPage({
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const isAddingExercise = useRef(false);
   const previousExercisesLength = useRef(exercises.length);
   
@@ -360,7 +361,12 @@ export function WorkoutSessionPage({
 
   const handleFinishWorkout = () => {
     setShowWorkoutOptionsMenu(false);
-    handleFinish();
+    setShowFinishConfirm(true);
+  };
+
+  const handleFinishWorkoutConfirm = async () => {
+    setShowFinishConfirm(false);
+    await handleFinish();
   };
 
   const handleCancelWorkoutClick = () => {
@@ -575,6 +581,18 @@ export function WorkoutSessionPage({
             confirmText="Cancel Workout"
             variant="danger"
             isLoading={cancelSession.isPending}
+          />
+
+          {/* Finish Workout Confirmation */}
+          <ConfirmDialog
+            isOpen={showFinishConfirm}
+            onClose={() => setShowFinishConfirm(false)}
+            onConfirm={handleFinishWorkoutConfirm}
+            title="Finish Workout"
+            message="Are you sure you want to finish this workout? Your progress will be saved."
+            confirmText="Finish Workout"
+            variant="warning"
+            isLoading={completeSession.isPending}
           />
 
           <style>{`
