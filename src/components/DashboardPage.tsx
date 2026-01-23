@@ -84,7 +84,7 @@ export function DashboardPage() {
               className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
               style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
             >
-              <span className="relative z-10">
+              <span className="relative z-10 text-white">
                 {todayWorkout?.session?.id ? 'Continue Workout' : 'Start Workout'}
               </span>
               <div 

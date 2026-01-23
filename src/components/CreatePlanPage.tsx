@@ -32,7 +32,7 @@ export function CreatePlanPage({
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
   } = useForm<PlanFormData>({
     resolver: zodResolver(planSchema),
     defaultValues: {
@@ -77,7 +77,8 @@ export function CreatePlanPage({
             <div className="flex items-center gap-4 mb-8">
               <button 
                 onClick={onBack} 
-                className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                className="p-2 rounded-full"
+                style={{ backgroundColor: 'var(--color-bg-elevated)' }}
               >
                 <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
               </button>
@@ -190,25 +191,13 @@ export function CreatePlanPage({
                 type="submit"
                 isLoading={isSubmitting || isLoading}
                 loadingText="Saving..."
-                disabled={!isValid || isSubmitting || isLoading}
-                className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group ${isValid ? '' : 'cursor-not-allowed opacity-50'}`}
-                style={isValid ? {
-                  background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
-                  boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
-                } : {
-                  backgroundColor: 'var(--color-bg-elevated)'
-                }}
+                disabled={isSubmitting || isLoading}
+                className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed btn-primary`}
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   <Check size={20} />
                   {mode === 'create' ? 'CREATE PLAN' : 'SAVE CHANGES'}
                 </span>
-                {isValid && (
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
-                    style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
-                  />
-                )}
               </LoadingButton>
             </form>
           </main>

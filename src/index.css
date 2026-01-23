@@ -38,6 +38,7 @@
   --color-text-muted: #9ca3af;                     /* gray-400 */
   --color-border: rgba(0, 0, 0, 0.1);
   --color-border-subtle: rgba(0, 0, 0, 0.05);
+  --color-text-button:#fff;
 }
 
 /* Explicit Dark Theme (matches :root but allows explicit setting) */
@@ -51,6 +52,7 @@
   --color-text-muted: #6b7280;
   --color-border: rgba(255, 255, 255, 0.1);
   --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-text-button:#fff;
 }
 
 /* Remove pointer cursor from number inputs and hide spinner buttons */
@@ -261,4 +263,10 @@ ion-input.ionic-input-workout .native-input {
 }
 .card-hover:hover {
   background-color: var(--color-bg-elevated);
+}
+
+.btn-primary {
+  background: linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent));
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-text-button);
 }

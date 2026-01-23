@@ -451,14 +451,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                 type="submit"
                 isLoading={isSubmitting}
                 loadingText="SAVING..."
-                disabled={isLoading || !isDirty}
-                className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow mb-4"
-                style={{
-                  background: isDirty 
-                    ? 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))'
-                    : 'var(--color-bg-elevated)',
-                  boxShadow: isDirty ? '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)' : 'none'
-                }}
+                disabled={isLoading}
+                className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow mb-4 btn-primary"
               >
                 SAVE CHANGES
               </LoadingButton>

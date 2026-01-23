@@ -482,6 +482,9 @@ export function useCompleteSession() {
       queryClient.invalidateQueries({
         queryKey: ['fitness-metrics']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['exercises']
+      });
     }
   });
 }
@@ -512,6 +515,10 @@ export function useLogSet() {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
+      // Invalidate exercise history for the logged exercise
+      queryClient.invalidateQueries({
+        queryKey: ['exercises', variables.data.exercise_id, 'history']
+      });
     }
   });
 }
@@ -531,6 +538,23 @@ export function useUpdateSet() {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
+      // Get exercise_id from the cached session data
+      const sessionData = queryClient.getQueryData<{ data: any }>(['sessions', variables.sessionId]);
+      if (sessionData?.data) {
+        // Find the set log in the session to get its exercise_id
+        const allSetLogs = sessionData.data.exercises?.flatMap((ex: any) => ex.logged_sets || []) || [];
+        const setLog = allSetLogs.find((log: any) => log.id === variables.setLogId);
+        if (setLog?.exercise_id) {
+          queryClient.invalidateQueries({
+            queryKey: ['exercises', setLog.exercise_id, 'history']
+          });
+        }
+      } else {
+        // Fallback: invalidate all exercise histories if we can't find the specific one
+        queryClient.invalidateQueries({
+          queryKey: ['exercises']
+        });
+      }
     }
   });
 }
@@ -548,6 +572,21 @@ export function useDeleteSet() {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
+      // Get exercise_id from the cached session data
+      const sessionData = queryClient.getQueryData<{ data: any }>(['sessions', variables.sessionId]);
+      if (sessionData?.data) {
+        const allSetLogs = sessionData.data.exercises?.flatMap((ex: any) => ex.logged_sets || []) || [];
+        const setLog = allSetLogs.find((log: any) => log.id === variables.setLogId);
+        if (setLog?.exercise_id) {
+          queryClient.invalidateQueries({
+            queryKey: ['exercises', setLog.exercise_id, 'history']
+          });
+        }
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: ['exercises']
+        });
+      }
     }
   });
 }

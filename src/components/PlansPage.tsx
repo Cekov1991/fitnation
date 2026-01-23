@@ -288,6 +288,7 @@ export function PlansPage({
         </div>
 
         {/* Active Plan Section */}
+        {(activePlan || isPlansLoading || isPlansError) && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
@@ -319,7 +320,7 @@ export function PlansPage({
           >
             {/* Active Plan Card */}
             <div 
-              className="relative bg-gradient-to-br   border rounded-3xl p-6 shadow-xl"
+              className="relative bg-gradient-to-br border rounded-3xl p-6 shadow-xl"
               style={{ 
                 background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
                 borderColor: 'var(--color-border)'
@@ -409,10 +410,11 @@ export function PlansPage({
             </div>
           </LoadingContent>
         </div>
+        )}
 
         {/* All Plans Section */}
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: 'var(--color-secondary)' }}>
+          <h2 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: 'var(--color-text-secondary)' }}>
             All Plans
           </h2>
 
@@ -535,13 +537,8 @@ export function PlansPage({
         </div>
 
         {/* Create New Button */}
-        <button onClick={onNavigateToCreate} className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
-        style={{
-          background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
-          boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
-        }}
-      >
-          <span className="relative z-10">CREATE NEW</span>
+        <button onClick={onNavigateToCreate} className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group btn-primary">
+          <span className="relative z-10 text-white">CREATE NEW</span>
           <div 
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
             style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}

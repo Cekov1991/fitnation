@@ -498,7 +498,7 @@ export function WorkoutSessionPage({
                 disabled={completeSession.isPending}
                 className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group"
               >
-                <span className="relative z-10 flex items-center justify-center gap-2">
+                <span className="relative z-10 flex items-center justify-center gap-2 text-white">
                   <Check className="w-6 h-6" />
                   FINISH WORKOUT
                 </span>

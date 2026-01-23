@@ -63,7 +63,10 @@ export function ProgressPage() {
         <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
           {/* Header */}
           <header className="mb-8">
-            <h1 className="text-2xl font-bold tracking-tight">Progress</h1>
+          <h1 
+            className="text-3xl font-bold bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >Progress</h1>
             <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
               Track your fitness journey
             </p>
