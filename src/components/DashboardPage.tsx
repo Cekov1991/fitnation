@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Dumbbell } from 'lucide-react';
 import { WeeklyCalendar } from './WeeklyCalendar';
 import { WorkoutSelectionModal } from './WorkoutSelectionModal';
+import { SessionDetailModal } from './SessionDetailModal';
 import { BackgroundGradients } from './BackgroundGradients';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
@@ -20,6 +21,8 @@ export function DashboardPage() {
     openWorkoutSelection,
     closeWorkoutSelection,
   } = useModals();
+  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
 
   const handleStartWorkoutClick = () => {
     const ongoingSession = todayWorkout?.session;
@@ -42,6 +45,18 @@ export function DashboardPage() {
     } finally {
       closeWorkoutSelection();
     }
+  };
+
+  const handleDateClick = (sessionId: number | null) => {
+    if (sessionId) {
+      setSelectedSessionId(sessionId);
+      setIsSessionModalOpen(true);
+    }
+  };
+
+  const handleCloseSessionModal = () => {
+    setIsSessionModalOpen(false);
+    setSelectedSessionId(null);
   };
 
   return (
@@ -76,7 +91,7 @@ export function DashboardPage() {
             </header>
 
             {/* Calendar Section */}
-            <WeeklyCalendar />
+            <WeeklyCalendar onDateClick={handleDateClick} />
 
             {/* CTA Button */}
             <button 
@@ -102,6 +117,11 @@ export function DashboardPage() {
         onClose={closeWorkoutSelection} 
         onSelectTemplate={handleSelectTemplate}
         isLoading={startSession.isPending}
+      />
+      <SessionDetailModal
+        isOpen={isSessionModalOpen}
+        onClose={handleCloseSessionModal}
+        sessionId={selectedSessionId}
       />
     </>
   );
