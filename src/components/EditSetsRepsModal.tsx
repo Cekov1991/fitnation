@@ -166,10 +166,14 @@ export function EditSetsRepsModal({
                           control={control}
                           render={({ field }) => (
                             <IonInput 
-                              type="text" 
+                              type="number" 
                               inputmode="numeric" 
+                              pattern="[0-9]*" 
                               value={field.value || ''} 
-                              onIonInput={e => field.onChange(e.detail.value || '')} 
+                              onIonInput={e => {
+                                const val = e.detail.value;
+                                field.onChange(val ? parseInt(val, 10).toString() || '0' : '0');
+                              }} 
                             />
                           )}
                         />
@@ -193,10 +197,14 @@ export function EditSetsRepsModal({
                           control={control}
                           render={({ field }) => (
                             <IonInput 
-                              type="text" 
+                              type="number" 
                               inputmode="decimal" 
+                              step="0.01"
                               value={field.value || ''} 
-                              onIonInput={e => field.onChange(e.detail.value || '')} 
+                              onIonInput={e => {
+                                const val = e.detail.value;
+                                field.onChange(val ? parseFloat(val).toString() || '0' : '0');
+                              }} 
                             />
                           )}
                         />
