@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, CheckCircle2, Circle, Dumbbell, Play, Check } from 'lucide-react';
+import { X, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp } from 'lucide-react';
 import { useSession, useCompleteSession, useTemplate } from '../hooks/useApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { useModalTransition } from '../utils/animations';
 import { LoadingContent } from './ui/LoadingContent';
 import { LoadingButton } from './ui/LoadingButton';
 import { useWorkoutTimer } from './workout-session/hooks/useWorkoutTimer';
-import type { SessionDetailResponse } from '../types/api';
+import { formatWeight } from './workout-session/utils';
+import type { SessionExerciseDetail, SetLogResource } from '../types/api';
 
 interface SessionDetailModalProps {
   isOpen: boolean;
@@ -75,6 +76,17 @@ export function SessionDetailModal({
     : null;
 
   const formattedDuration = duration ? formatDuration(duration) : 'N/A';
+
+  // Calculate total volume across all exercises
+  const totalVolume = sessionData
+    ? sessionData.exercises.reduce((total: number, exerciseDetail: SessionExerciseDetail) => {
+        const exerciseVolume = exerciseDetail.logged_sets.reduce(
+          (sum: number, set: SetLogResource) => sum + set.weight * set.reps,
+          0
+        );
+        return total + exerciseVolume;
+      }, 0)
+    : 0;
 
   const handleResumeSession = () => {
     if (sessionId) {
@@ -231,7 +243,7 @@ export function SessionDetailModal({
                       </div>
 
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="grid grid-cols-3 gap-4 mt-4">
                         <div
                           className="rounded-xl p-3 border"
                           style={{
@@ -272,6 +284,27 @@ export function SessionDetailModal({
                             style={{ color: 'var(--color-text-secondary)' }}
                           >
                             Exercises
+                          </p>
+                        </div>
+                        <div
+                          className="rounded-xl p-3 border"
+                          style={{
+                            backgroundColor: 'var(--color-bg-surface)',
+                            borderColor: 'var(--color-border-subtle)',
+                          }}
+                        >
+                          <TrendingUp className="w-4 h-4 mb-1" style={{ color: 'var(--color-primary)' }} />
+                          <p
+                            className="text-lg font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {formatWeight(totalVolume)}
+                          </p>
+                          <p
+                            className="text-xs"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                          >
+                            Total Volume
                           </p>
                         </div>
                       </div>
@@ -469,7 +502,7 @@ export function SessionDetailModal({
                           Exercises
                         </h3>
                         <div className="space-y-4">
-                          {sessionData.exercises.map((exerciseDetail, index) => {
+                          {sessionData.exercises.map((exerciseDetail: SessionExerciseDetail, index: number) => {
                             const exercise = exerciseDetail.session_exercise.exercise;
                             const loggedSets = exerciseDetail.logged_sets || [];
                             const exerciseName = exercise?.name || 'Unknown Exercise';
@@ -508,24 +541,97 @@ export function SessionDetailModal({
 
                                 {loggedSets.length > 0 ? (
                                   <div className="space-y-2">
-                                    {loggedSets.map((set) => (
+                                    {loggedSets.map((set: SetLogResource) => {
+                                      const volume = set.weight * set.reps;
+                                      return (
+                                        <div
+                                          key={set.id}
+                                          className="flex items-center justify-between p-3 rounded-lg border"
+                                          style={{
+                                            backgroundColor: 'var(--color-bg-surface)',
+                                            borderColor: 'var(--color-border-subtle)',
+                                          }}
+                                        >
+                                          <div className="flex items-center gap-4 flex-1">
+                                            <span
+                                              className="text-sm font-bold min-w-[50px]"
+                                              style={{ color: 'var(--color-text-secondary)' }}
+                                            >
+                                              Set {set.set_number}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                              <span
+                                                className="text-lg font-bold"
+                                                style={{ color: 'var(--color-text-primary)' }}
+                                              >
+                                                {formatWeight(set.weight)}
+                                              </span>
+                                              <span
+                                                className="text-xs"
+                                                style={{ color: 'var(--color-text-muted)' }}
+                                              >
+                                                kg
+                                              </span>
+                                            </div>
+                                            <span style={{ color: 'var(--color-border)' }}>×</span>
+                                            <div className="flex items-center gap-2">
+                                              <span
+                                                className="text-lg font-bold"
+                                                style={{ color: 'var(--color-text-primary)' }}
+                                              >
+                                                {set.reps}
+                                              </span>
+                                              <span
+                                                className="text-xs"
+                                                style={{ color: 'var(--color-text-muted)' }}
+                                              >
+                                                reps
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <div className="text-right">
+                                            <div
+                                              className="text-xs font-medium"
+                                              style={{ color: 'var(--color-text-muted)' }}
+                                            >
+                                              {formatWeight(volume)} kg
+                                            </div>
+                                            <div
+                                              className="text-[10px]"
+                                              style={{ color: 'var(--color-text-muted)' }}
+                                            >
+                                              volume
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    {/* Total Volume Summary */}
+                                    {loggedSets.length > 1 && (
                                       <div
-                                        key={set.id}
-                                        className="flex items-center justify-between text-sm"
+                                        className="mt-3 pt-3 border-t flex items-center justify-between"
+                                        style={{ borderColor: 'var(--color-border-subtle)' }}
                                       >
                                         <span
+                                          className="text-xs font-semibold"
                                           style={{ color: 'var(--color-text-secondary)' }}
                                         >
-                                          Set {set.set_number}
+                                          Volume
                                         </span>
                                         <span
-                                          className="font-medium"
-                                          style={{ color: 'var(--color-text-primary)' }}
+                                          className="text-sm font-bold"
+                                          style={{ color: 'var(--color-primary)' }}
                                         >
-                                          {set.weight} kg × {set.reps} reps
+                                          {formatWeight(
+                                            loggedSets.reduce(
+                                              (sum: number, set: SetLogResource) => sum + set.weight * set.reps,
+                                              0
+                                            )
+                                          )}{' '}
+                                          kg
                                         </span>
                                       </div>
-                                    ))}
+                                    )}
                                   </div>
                                 ) : (
                                   <p
