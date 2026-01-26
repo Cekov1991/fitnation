@@ -21,8 +21,9 @@ import { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 import { SetOptionsMenu } from './SetOptionsMenu';
 import { RestTimer } from './RestTimer';
 import { useWorkoutTimer } from './hooks/useWorkoutTimer';
+import { useExerciseNavigationState } from './hooks/useExerciseNavigationState';
 import { mapSessionToExercises, getExerciseCompletionStatus } from './utils';
-import type { Exercise, Set } from './types';
+import type { Exercise } from './types';
 
 interface WorkoutSessionPageProps {
   sessionId: number;
@@ -30,14 +31,15 @@ interface WorkoutSessionPageProps {
   onBack: () => void;
   onFinish: () => void;
   onViewExerciseDetail: (exerciseName: string) => void;
+  initialExerciseName?: string | null;
 }
 
 export function WorkoutSessionPage({
   sessionId,
-  workoutName,
   onBack,
   onFinish,
-  onViewExerciseDetail
+  onViewExerciseDetail,
+  initialExerciseName
 }: WorkoutSessionPageProps) {
   const { data: sessionData, isLoading } = useSession(sessionId);
   const queryClient = useQueryClient();
@@ -54,6 +56,9 @@ export function WorkoutSessionPage({
   const { formattedDuration } = useWorkoutTimer(sessionData?.performed_at);
   const shouldReduceMotion = useReducedMotion();
   const simpleTransition = useSimpleTransition();
+
+  // Determine initial exercise index from navigation state (preserves active tab on back navigation)
+  const initialExerciseIndex = useExerciseNavigationState(exercises, initialExerciseName);
 
   // Prefetch exercise history for all exercises when session loads
   useEffect(() => {
@@ -72,7 +77,8 @@ export function WorkoutSessionPage({
     }
   }, [exercises, queryClient]);
 
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  // Initialize state with the calculated index
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(() => initialExerciseIndex);
   const [editingWeight, setEditingWeight] = useState<number | null>(null);
   const [editingReps, setEditingReps] = useState<number | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
@@ -88,6 +94,7 @@ export function WorkoutSessionPage({
   const [restTimerSeconds, setRestTimerSeconds] = useState<number | null>(null);
   const isAddingExercise = useRef(false);
   const previousExercisesLength = useRef(exercises.length);
+  const hasInitializedFromState = useRef(false);
   
   const currentExercise = exercises[currentExerciseIndex];
   const currentSet = currentExercise?.sets.find(s => !s.completed);
@@ -104,6 +111,20 @@ export function WorkoutSessionPage({
   const editingSetNumber = editingSetId && currentExercise
     ? currentExercise.sets.findIndex(s => s.id === editingSetId) + 1
     : undefined;
+
+  // Update exercise index when exercises load and we have initialExerciseName from navigation state
+  // This handles the case where exercises load asynchronously after component mount
+  // Only apply once when returning from navigation, not on every render
+  useEffect(() => {
+    if (initialExerciseName && exercises.length > 0 && !hasInitializedFromState.current) {
+      // Only set the index once when we have initialExerciseName and exercises are loaded
+      setCurrentExerciseIndex(initialExerciseIndex);
+      hasInitializedFromState.current = true;
+    } else if (!initialExerciseName) {
+      // Reset the ref when we don't have initialExerciseName (fresh navigation, not returning)
+      hasInitializedFromState.current = false;
+    }
+  }, [exercises.length, initialExerciseName, initialExerciseIndex]);
 
   // Initialize editing values when current set changes
   useEffect(() => {

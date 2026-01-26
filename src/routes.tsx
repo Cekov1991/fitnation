@@ -537,6 +537,7 @@ function DashboardPageWrapper() {
 // Workout session page wrapper
 function WorkoutSessionPageWrapper() {
   const history = useHistory();
+  const location = useLocation<{ exerciseName?: string }>();
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: todayWorkout, refetch: refetchTodayWorkout } = useTodayWorkout();
   const currentPage = useCurrentNavPage();
@@ -549,6 +550,9 @@ function WorkoutSessionPageWrapper() {
     return 'Workout Session';
   }, [todayWorkout, sessionId]);
 
+  // Get initial exercise name from location state (when returning from detail page)
+  const initialExerciseName = location.state?.exerciseName;
+
   const handleBack = () => {
     history.push('/');
     refetchTodayWorkout();
@@ -560,7 +564,10 @@ function WorkoutSessionPageWrapper() {
   };
 
   const handleViewExerciseDetail = (exerciseName: string) => {
-    history.push(`/session/${sessionId}/exercise/${encodeURIComponent(exerciseName)}`);
+    // Pass exercise name via route state to preserve active tab on back navigation
+    history.push(`/session/${sessionId}/exercise/${encodeURIComponent(exerciseName)}`, {
+      exerciseName
+    });
   };
 
   return (
@@ -571,6 +578,7 @@ function WorkoutSessionPageWrapper() {
         onBack={handleBack}
         onFinish={handleFinish}
         onViewExerciseDetail={handleViewExerciseDetail}
+        initialExerciseName={initialExerciseName}
       />
     </AuthenticatedLayout>
   );
@@ -583,7 +591,11 @@ function WorkoutSessionExerciseDetailPageWrapper() {
   const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
-    history.goBack();
+    // Pass exercise name back via state to preserve active tab
+    const decodedExerciseName = decodeURIComponent(exerciseName);
+    history.push(`/session/${sessionId}`, {
+      exerciseName: decodedExerciseName
+    });
   };
 
   return (
