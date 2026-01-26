@@ -60,17 +60,6 @@ export function CreatePlanPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-          {/* Background Gradients */}
-          <div className="fixed inset-0 z-0 pointer-events-none">
-            <div 
-              className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full   opacity-30" 
-              style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-            />
-            <div 
-              className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full   opacity-30" 
-              style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-            />
-          </div>
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
             {/* Header */}

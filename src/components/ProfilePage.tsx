@@ -5,7 +5,6 @@ import { IonInput } from '@ionic/react';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown, Download } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { BackgroundGradients } from './BackgroundGradients';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
 import { LoadingButton } from './ui';
 
@@ -93,7 +92,6 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-          <BackgroundGradients />
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
             {/* Header */}

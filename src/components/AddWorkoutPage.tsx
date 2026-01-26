@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
-import { BackgroundGradients } from './BackgroundGradients';
 import { LoadingButton } from './ui';
 import { usePlans } from '../hooks/useApi';
 import { DAYS_OF_WEEK } from '../constants';
@@ -182,7 +181,6 @@ export function AddWorkoutPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-          <BackgroundGradients />
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
             {/* Header */}

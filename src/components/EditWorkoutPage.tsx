@@ -3,7 +3,6 @@ import { motion, Reorder, useDragControls } from 'framer-motion';
 import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
-import { BackgroundGradients } from './BackgroundGradients';
 import { LoadingContent } from './ui';
 import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
@@ -248,7 +247,6 @@ export function EditWorkoutPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
