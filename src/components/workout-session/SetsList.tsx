@@ -30,13 +30,15 @@ export function SetsList({
             editingSetId === set.id 
               ? 'bg-orange-500/20 border-2 border-orange-500/40' 
               : set.completed 
-                ? 'bg-green-500/10 border border-green-500/20' 
+                ? 'border border-2 border-green-500' 
                 : ''
           }`}
           style={!editingSetId && !set.completed ? {
             backgroundColor: 'var(--color-bg-elevated)',
             borderColor: 'var(--color-border-subtle)'
-          } : {}}
+          } : {
+            backgroundColor: 'var(--color-bg-elevated)',
+          }}
         >
           <div className="flex items-center gap-4">
             <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>

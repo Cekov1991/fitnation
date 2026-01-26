@@ -137,12 +137,6 @@ export function WorkoutSessionPage({
           }
         });
         
-        // Start rest timer
-        if (currentExercise.restSeconds) {
-          setRestTimerSeconds(currentExercise.restSeconds);
-          setIsRestTimerActive(true);
-        }
-        
         // Auto-advance to next exercise if all sets completed
         if (completedSetsCount + 1 === currentExercise.sets.length) {
           if (currentExerciseIndex < exercises.length - 1) {
@@ -155,10 +149,11 @@ export function WorkoutSessionPage({
     }
   };
 
-  const handleEditSet = (set: Set) => {
-    setEditingSetId(set.id);
-    setEditingWeight(set.weight);
-    setEditingReps(set.reps);
+  const handleStartTimer = () => {
+    if (currentExercise?.restSeconds) {
+      setRestTimerSeconds(currentExercise.restSeconds);
+      setIsRestTimerActive(true);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -489,8 +484,10 @@ export function WorkoutSessionPage({
                           onWeightChange={setEditingWeight}
                           onRepsChange={setEditingReps}
                           onLogSet={handleDidIt}
+                          onStartTimer={handleStartTimer}
                           isLoading={logSet.isPending}
                           setNumber={setNumber}
+                          showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
                         />
                       )}
 

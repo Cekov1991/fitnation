@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
+import { Timer } from 'lucide-react';
 import { LoadingButton } from '../ui';
 import { formatWeight } from './utils';
 
@@ -9,8 +10,10 @@ interface SetLogCardProps {
   onWeightChange: (weight: number) => void;
   onRepsChange: (reps: number) => void;
   onLogSet: () => void;
+  onStartTimer?: () => void;
   isLoading?: boolean;
   setNumber?: number;
+  showTimerButton?: boolean;
 }
 
 export function SetLogCard({
@@ -19,8 +22,10 @@ export function SetLogCard({
   onWeightChange,
   onRepsChange,
   onLogSet,
+  onStartTimer,
   isLoading = false,
   setNumber,
+  showTimerButton = false,
 }: SetLogCardProps) {
   return (
     <motion.div 
@@ -85,17 +90,29 @@ export function SetLogCard({
         </div>
       </div>
 
-      {/* Log Set Button */}
-      <LoadingButton
-        onClick={onLogSet}
-        isLoading={isLoading}
-        loadingText="Logging..."
-        disabled={isLoading}
-        className="w-full mt-4 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg"
-        style={{ color: 'var(--color-primary)' }}
-      >
-        Log Set
-      </LoadingButton>
+      {/* Action Buttons */}
+      <div className="flex gap-3 mt-4">
+        <LoadingButton
+          onClick={onLogSet}
+          isLoading={isLoading}
+          loadingText="Logging..."
+          disabled={isLoading}
+          className="flex-1 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg"
+          style={{ color: 'var(--color-primary)' }}
+        >
+          Log Set
+        </LoadingButton>
+        
+        {showTimerButton && onStartTimer && (
+          <button
+            onClick={onStartTimer}
+            className="px-4 py-4 bg-white/20 border-2 border-white/30 rounded-2xl flex items-center justify-center active:opacity-70"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            <Timer className="w-6 h-6 text-white" />
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 }
