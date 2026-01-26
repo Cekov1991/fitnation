@@ -14,7 +14,6 @@ import { WorkoutSessionPage } from './components/workout-session';
 import { DashboardPage } from './components/DashboardPage';
 import { AuthGuard } from './components/AuthGuard';
 import { BottomNav } from './components/BottomNav';
-import { BackgroundGradients } from './components/BackgroundGradients';
 import { useAuth } from './hooks/useAuth';
 import { 
   useCreatePlan, 
@@ -79,7 +78,6 @@ function ProfilePageWrapper() {
 
   return (
     <AuthenticatedLayout currentPage={currentPage}>
-      <BackgroundGradients />
       <ProfilePage onLogout={handleLogout} />
     </AuthenticatedLayout>
   );

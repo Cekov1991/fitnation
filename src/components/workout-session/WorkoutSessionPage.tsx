@@ -7,7 +7,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
 import { exercisesApi } from '../../services/api';
 import { ExercisePickerPage } from '../ExercisePickerPage';
-import { BackgroundGradients } from '../BackgroundGradients';
 import { LoadingButton, ConfirmDialog } from '../ui';
 import { WorkoutHeader } from './WorkoutHeader';
 import { ExerciseNavTabs } from './ExerciseNavTabs';
@@ -430,7 +429,6 @@ export function WorkoutSessionPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-          <BackgroundGradients />
 
           <main className="relative z-10 max-w-md mx-auto">
             <WorkoutHeader

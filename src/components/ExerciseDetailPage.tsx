@@ -4,7 +4,6 @@ import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
-import { BackgroundGradients } from './BackgroundGradients';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
 import { useModalTransition } from '../utils/animations';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -154,7 +153,6 @@ export function ExerciseDetailPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto">
         {/* Header */}

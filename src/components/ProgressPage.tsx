@@ -4,7 +4,6 @@ import { MetricCard } from './MetricCard';
 import { StrengthScoreModal } from './StrengthScoreModal';
 import { BalanceModal } from './BalanceModal';
 import { WeeklyProgressModal } from './WeeklyProgressModal';
-import { BackgroundGradients } from './BackgroundGradients';
 import { useFitnessMetrics } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
 
@@ -58,7 +57,6 @@ export function ProgressPage() {
   return (
     <>
       <div>
-        <BackgroundGradients />
 
         <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
           {/* Header */}

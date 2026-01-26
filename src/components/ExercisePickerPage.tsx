@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, ChevronRight, Loader2 } from 'lucide-react';
 import { useExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
-import { BackgroundGradients } from './BackgroundGradients';
 import type { ExerciseResource } from '../types/api';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
@@ -65,7 +64,6 @@ export function ExercisePickerPage({
     className="fixed inset-0 z-[100]"
     style={{ backgroundColor: 'var(--color-bg-base)' }}
   >
-        <BackgroundGradients />
 
       <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
         {/* Header */}

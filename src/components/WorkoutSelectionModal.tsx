@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
-import { usePlans } from '../hooks/useApi';
+import { usePlans, useTodayWorkout } from '../hooks/useApi';
 import { useModalTransition } from '../utils/animations';
 import type { PlanResource, WorkoutTemplateResource } from '../types/api';
 
@@ -59,6 +59,22 @@ export function WorkoutSelectionModal({
 }: WorkoutSelectionModalProps) {
   const modalTransition = useModalTransition();
   const { data: plans = [] } = usePlans();
+  const { data: todayWorkout } = useTodayWorkout();
+
+  // Calculate exercise count for today's workout (handles both API response formats)
+  const todayWorkoutExerciseCount = useMemo(() => {
+    if (!todayWorkout?.template) return 0;
+    const template = todayWorkout.template;
+    // Check standard format first
+    if (template.exercises && Array.isArray(template.exercises)) {
+      return template.exercises.length;
+    }
+    // Check raw API format
+    if ((template as any).workout_template_exercises && Array.isArray((template as any).workout_template_exercises)) {
+      return (template as any).workout_template_exercises.length;
+    }
+    return 0;
+  }, [todayWorkout]);
 
   const { activePlan, otherPlans } = useMemo(() => {
     const mapWorkouts = (templates: WorkoutTemplateResource[] | null, startIndex: number): WorkoutTemplate[] => {
@@ -182,6 +198,44 @@ export function WorkoutSelectionModal({
                     />
                   </div>
                 </button>
+
+                {/* Today's Workout */}
+                {todayWorkout?.template && (
+                  <button 
+                    onClick={() => onSelectTemplate(todayWorkout.template!.id, todayWorkout.template!.name)}
+                    className="w-full border rounded-2xl p-5 flex items-center gap-4 transition-colors group mb-6"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                    }}
+                  >
+                    <div className="flex-shrink-0 w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
+                      <Dumbbell className="text-green-400 w-6 h-6" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 
+                        className="text-base font-bold mb-1 transition-colors"
+                        style={{ color: 'var(--color-primary)' }}
+                      >
+                        {todayWorkout.template.name}
+                      </h3>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                        Today's Workout • {todayWorkoutExerciseCount} exercises
+                      </span>
+                    </div>
+                    <ChevronRight 
+                      className="transition-colors flex-shrink-0" 
+                      size={20}
+                      style={{ color: 'var(--color-text-muted)' }}
+                    />
+                  </button>
+                )}
 
                 {/* Active Plan Section */}
                 {activePlan && activePlan.workouts.length > 0 && (

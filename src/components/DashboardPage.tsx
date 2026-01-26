@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Dumbbell } from 'lucide-react';
 import { WeeklyCalendar } from './WeeklyCalendar';
 import { WorkoutSelectionModal } from './WorkoutSelectionModal';
 import { SessionDetailModal } from './SessionDetailModal';
-import { BackgroundGradients } from './BackgroundGradients';
+import { WorkoutCard } from './WorkoutCard';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
 import { useStartSession, useTodayWorkout } from '../hooks/useApi';
@@ -33,7 +33,7 @@ export function DashboardPage() {
     }
   };
 
-  const handleSelectTemplate = async (templateId: number | null, templateName: string) => {
+  const handleSelectTemplate = async (templateId: number | null, _templateName: string) => {
     try {
       const response = await startSession.mutateAsync(templateId || undefined);
       const session = response.data?.session || response.data;
@@ -63,7 +63,6 @@ export function DashboardPage() {
     <>
       <div>
         <div>
-          <BackgroundGradients />
 
           <main className="relative z-10 max-w-md mx-auto px-6 pt-8 pb-32">
             {/* Header */}
@@ -82,7 +81,7 @@ export function DashboardPage() {
                   <Dumbbell className="w-8 h-8" style={{ color: 'var(--color-text-primary)' }} />
                 </div>
               )}
-              <h1 className="text-2xl font-bold tracking-tight text-center">
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}>
                 {partnerName || 'Fit Nation'}
               </h1>
               <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
@@ -92,6 +91,19 @@ export function DashboardPage() {
 
             {/* Calendar Section */}
             <WeeklyCalendar onDateClick={handleDateClick} />
+
+            {/* Today's Workout Card */}
+            {todayWorkout?.template && (
+              <div className="mb-6">
+                <WorkoutCard
+                  template={todayWorkout.template}
+                  title="TODAY'S WORKOUT"
+                  onExerciseClick={(exerciseName) => {
+                    history.push(`/exercises/${encodeURIComponent(exerciseName)}`);
+                  }}
+                />
+              </div>
+            )}
 
             {/* CTA Button */}
             <button 
@@ -116,7 +128,6 @@ export function DashboardPage() {
         isOpen={isWorkoutSelectionOpen} 
         onClose={closeWorkoutSelection} 
         onSelectTemplate={handleSelectTemplate}
-        isLoading={startSession.isPending}
       />
       <SessionDetailModal
         isOpen={isSessionModalOpen}

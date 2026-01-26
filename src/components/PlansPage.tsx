@@ -3,7 +3,6 @@ import { useHistory } from 'react-router-dom';
 import { Plus, Info, MoreVertical, Dumbbell } from 'lucide-react';
 import { PlanMenu } from './PlanMenu';
 import { WorkoutMenu } from './WorkoutMenu';
-import { BackgroundGradients } from './BackgroundGradients';
 import { LoadingContent, ConfirmDialog } from './ui';
 import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan, useTodayWorkout } from '../hooks/useApi';
 import { DAY_NAMES } from '../constants';
@@ -265,7 +264,6 @@ export function PlansPage({
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-        <BackgroundGradients />
 
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
