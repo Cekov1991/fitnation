@@ -19,6 +19,7 @@ import { SetsList } from './SetsList';
 import { WorkoutOptionsMenu } from './WorkoutOptionsMenu';
 import { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 import { SetOptionsMenu } from './SetOptionsMenu';
+import { RestTimer } from './RestTimer';
 import { useWorkoutTimer } from './hooks/useWorkoutTimer';
 import { mapSessionToExercises, getExerciseCompletionStatus } from './utils';
 import type { Exercise, Set } from './types';
@@ -83,6 +84,8 @@ export function WorkoutSessionPage({
   const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [isRestTimerActive, setIsRestTimerActive] = useState(false);
+  const [restTimerSeconds, setRestTimerSeconds] = useState<number | null>(null);
   const isAddingExercise = useRef(false);
   const previousExercisesLength = useRef(exercises.length);
   
@@ -133,6 +136,13 @@ export function WorkoutSessionPage({
             reps: editingReps
           }
         });
+        
+        // Start rest timer
+        if (currentExercise.restSeconds) {
+          setRestTimerSeconds(currentExercise.restSeconds);
+          setIsRestTimerActive(true);
+        }
+        
         // Auto-advance to next exercise if all sets completed
         if (completedSetsCount + 1 === currentExercise.sets.length) {
           if (currentExerciseIndex < exercises.length - 1) {
@@ -452,59 +462,84 @@ export function WorkoutSessionPage({
                   </button>
                 </div>
               ) : (
-                <AnimatePresence mode="wait">
-                  <motion.div 
-                    key={currentExercise.id} 
-                    initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
-                    transition={simpleTransition}
-                    className="space-y-6"
-                  >
-                    <CurrentExerciseCard
-                      exercise={currentExercise}
-                      onOpenMenu={() => setShowExerciseMenu(true)}
-                      onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
-                    />
+                <div className="space-y-6">
+                  {/* Exercise info and input cards - animated on exercise switch */}
+                  <AnimatePresence mode="wait">
+                    <motion.div 
+                      key={currentExercise.id} 
+                      initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                      transition={simpleTransition}
+                      className="space-y-6"
+                    >
+                      <CurrentExerciseCard
+                        exercise={currentExercise}
+                        onOpenMenu={() => setShowExerciseMenu(true)}
+                        onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
+                      />
 
-                    <MaxWeightChart exercise={currentExercise} />
+                      <MaxWeightChart exercise={currentExercise} />
 
-                    {/* Set Log Card - Only show if not editing a completed set */}
-                    {currentSet && editingWeight !== null && editingReps !== null && !editingSetId && (
-                      <SetLogCard
-                        weight={editingWeight}
-                        reps={editingReps}
-                        onWeightChange={setEditingWeight}
-                        onRepsChange={setEditingReps}
-                        onLogSet={handleDidIt}
-                        isLoading={logSet.isPending}
-                        setNumber={setNumber}
+                      {/* Set Log Card - Only show if not editing a completed set */}
+                      {currentSet && editingWeight !== null && editingReps !== null && !editingSetId && (
+                        <SetLogCard
+                          weight={editingWeight}
+                          reps={editingReps}
+                          onWeightChange={setEditingWeight}
+                          onRepsChange={setEditingReps}
+                          onLogSet={handleDidIt}
+                          isLoading={logSet.isPending}
+                          setNumber={setNumber}
+                        />
+                      )}
+
+                      {/* Edit Set Card - Show when editing a completed set */}
+                      {editingSetId && editingWeight !== null && editingReps !== null && (
+                        <SetEditCard
+                          weight={editingWeight}
+                          reps={editingReps}
+                          onWeightChange={setEditingWeight}
+                          onRepsChange={setEditingReps}
+                          onSave={handleSaveEdit}
+                          onCancel={handleCancelEdit}
+                          isLoading={updateSet.isPending}
+                          setNumber={editingSetNumber}
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Rest Timer - Outside keyed content to persist across exercise switches */}
+                  <AnimatePresence>
+                    {isRestTimerActive && (
+                      <RestTimer
+                        restSeconds={restTimerSeconds}
+                        isActive={isRestTimerActive}
+                        onDismiss={() => setIsRestTimerActive(false)}
                       />
                     )}
+                  </AnimatePresence>
 
-                    {/* Edit Set Card - Show when editing a completed set */}
-                    {editingSetId && editingWeight !== null && editingReps !== null && (
-                      <SetEditCard
-                        weight={editingWeight}
-                        reps={editingReps}
-                        onWeightChange={setEditingWeight}
-                        onRepsChange={setEditingReps}
-                        onSave={handleSaveEdit}
-                        onCancel={handleCancelEdit}
-                        isLoading={updateSet.isPending}
-                        setNumber={editingSetNumber}
+                  {/* Sets list - animated on exercise switch */}
+                  <AnimatePresence mode="wait">
+                    <motion.div 
+                      key={`sets-${currentExercise.id}`}
+                      initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                      transition={simpleTransition}
+                    >
+                      <SetsList
+                        sets={currentExercise.sets}
+                        editingSetId={editingSetId}
+                        onOpenSetMenu={handleOpenSetMenu}
+                        onAddSet={handleAddSet}
+                        isAddSetLoading={updateSessionExercise.isPending}
                       />
-                    )}
-
-                    <SetsList
-                      sets={currentExercise.sets}
-                      editingSetId={editingSetId}
-                      onOpenSetMenu={handleOpenSetMenu}
-                      onAddSet={handleAddSet}
-                      isAddSetLoading={updateSessionExercise.isPending}
-                    />
-                  </motion.div>
-                </AnimatePresence>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               )}
             </div>
           </main>
