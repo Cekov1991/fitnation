@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Clock, Dumbbell, Activity } from 'lucide-react';
+import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { formatWeight } from './workout-session/utils';
 import type { WorkoutTemplateResource, TemplateExercise } from '../types/api';
@@ -9,6 +9,7 @@ interface WorkoutCardProps {
   title?: string;
   onStartWorkout?: (templateId: number) => void;
   onExerciseClick?: (exerciseName: string) => void;
+  onEditWorkout?: (templateId: number) => void;
 }
 
 // Type for the raw API response structure from /workout-sessions/today
@@ -99,7 +100,7 @@ function estimateWorkoutDuration(exercises: TemplateExercise[]): number {
   return Math.round(totalMinutes);
 }
 
-export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseClick }: WorkoutCardProps) {
+export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseClick, onEditWorkout }: WorkoutCardProps) {
   // Normalize exercises to handle both API response formats
   const normalizedExercises = useMemo(() => normalizeExercises(template), [template]);
   const duration = useMemo(() => estimateWorkoutDuration(normalizedExercises), [normalizedExercises]);
@@ -118,6 +119,12 @@ export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseCli
   const handleExerciseClick = (exerciseName: string) => {
     if (onExerciseClick) {
       onExerciseClick(exerciseName);
+    }
+  };
+
+  const handleEditClick = () => {
+    if (onEditWorkout && template.id) {
+      onEditWorkout(template.id);
     }
   };
 
@@ -140,6 +147,18 @@ export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseCli
             {title}
           </h1>
         </div>
+        {onEditWorkout && (
+          <button
+            onClick={handleEditClick}
+            className="p-2 rounded-full transition-colors"
+            style={{ 
+              backgroundColor: 'var(--color-border-subtle)',
+              color: 'var(--color-text-secondary)'
+            }}
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Workout Title */}

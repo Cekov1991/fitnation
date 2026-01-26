@@ -101,6 +101,9 @@ export function DashboardPage() {
                   onExerciseClick={(exerciseName) => {
                     history.push(`/exercises/${encodeURIComponent(exerciseName)}`);
                   }}
+                  onEditWorkout={(templateId) => {
+                    history.push(`/workouts/${templateId}/exercises`);
+                  }}
                 />
               </div>
             )}
