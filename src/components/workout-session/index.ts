@@ -9,6 +9,8 @@ export { SetsList } from './SetsList';
 export { WorkoutOptionsMenu } from './WorkoutOptionsMenu';
 export { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 export { SetOptionsMenu } from './SetOptionsMenu';
+export { RestTimer } from './RestTimer';
 export { useWorkoutTimer } from './hooks/useWorkoutTimer';
+export { useRestTimer } from './hooks/useRestTimer';
 export * from './types';
 export * from './utils';

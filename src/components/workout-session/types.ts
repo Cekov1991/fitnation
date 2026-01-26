@@ -20,6 +20,7 @@ export interface Exercise {
   maxWeightLifted: number;
   imageUrl: string;
   history: { date: string; weight: number }[];
+  restSeconds: number | null;
 }
 
 export interface ExerciseCompletionStatus {

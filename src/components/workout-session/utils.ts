@@ -55,7 +55,8 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
       suggestedWeight: exDetail.session_exercise.target_weight || 0,
       maxWeightLifted: Math.max(...loggedSets.map(s => s.weight), 0),
       imageUrl: exercise?.image || '',
-      history: [] // Leave empty as requested
+      history: [], // Leave empty as requested
+      restSeconds: exDetail.session_exercise.rest_seconds ?? exercise?.default_rest_sec ?? null
     };
   });
 }
