@@ -43,6 +43,11 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     return stored && ['light', 'dark', 'system'].includes(stored) ? stored : 'system';
   });
   
+  // Track effective theme to trigger color updates
+  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() => 
+    getEffectiveTheme(theme)
+  );
+  
   // Extract branding information from user's partner
   const visualIdentity: PartnerVisualIdentityResource | null = 
     user?.partner?.visual_identity || null;
@@ -51,11 +56,12 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const partnerName = user?.partner?.name || null;
   const hasBranding = !!visualIdentity;
 
-  // Apply theme to document
+  // Apply theme to document and update effective theme
   useEffect(() => {
     const root = document.documentElement;
-    const effectiveTheme = getEffectiveTheme(theme);
-    root.setAttribute('data-theme', effectiveTheme);
+    const currentEffectiveTheme = getEffectiveTheme(theme);
+    root.setAttribute('data-theme', currentEffectiveTheme);
+    setEffectiveTheme(currentEffectiveTheme);
   }, [theme]);
 
   // Listen to system theme changes when theme is 'system'
@@ -65,7 +71,9 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
     const handleChange = () => {
       const root = document.documentElement;
-      root.setAttribute('data-theme', getSystemTheme());
+      const newEffectiveTheme = getSystemTheme();
+      root.setAttribute('data-theme', newEffectiveTheme);
+      setEffectiveTheme(newEffectiveTheme);
     };
     
     // Modern browsers
@@ -85,15 +93,24 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     
     if (user && visualIdentity) {
-      // Apply partner branding colors
-      if (visualIdentity.primary_color) {
-        root.style.setProperty('--color-primary', visualIdentity.primary_color);
+      // Apply partner branding colors based on effective theme
+      // Use dark variants in dark theme, fallback to regular colors if dark variants aren't available
+      const primaryColor = effectiveTheme === 'dark' 
+        ? (visualIdentity.primary_color_dark || visualIdentity.primary_color)
+        : visualIdentity.primary_color;
+      
+      const secondaryColor = effectiveTheme === 'dark'
+        ? (visualIdentity.secondary_color_dark || visualIdentity.secondary_color)
+        : visualIdentity.secondary_color;
+      
+      if (primaryColor) {
+        root.style.setProperty('--color-primary', primaryColor);
       } else {
         root.style.setProperty('--color-primary', DEFAULT_PRIMARY);
       }
       
-      if (visualIdentity.secondary_color) {
-        root.style.setProperty('--color-secondary', visualIdentity.secondary_color);
+      if (secondaryColor) {
+        root.style.setProperty('--color-secondary', secondaryColor);
       } else {
         root.style.setProperty('--color-secondary', DEFAULT_SECONDARY);
       }
@@ -102,7 +119,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       root.style.setProperty('--color-primary', DEFAULT_PRIMARY);
       root.style.setProperty('--color-secondary', DEFAULT_SECONDARY);
     }
-  }, [user, visualIdentity]);
+  }, [user, visualIdentity, effectiveTheme]);
 
   // Theme management functions
   const setTheme = useCallback((newTheme: Theme) => {
