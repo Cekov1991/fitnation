@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, ChevronRight, Loader2 } from 'lucide-react';
-import { useExercises } from '../hooks/useApi';
+import { useExercises, useCategories, useMuscleGroups } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
-import type { ExerciseResource } from '../types/api';
+import type { ExerciseResource, CategoryResource, MuscleGroupResource } from '../types/api';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
 interface Exercise {
@@ -11,7 +11,9 @@ interface Exercise {
   name: string;
   restTime: string;
   muscleGroups: string[];
+  muscleGroupIds: number[];
   imageUrl: string;
+  categoryId: number | null;
 }
 interface ExercisePickerPageProps {
   mode: 'add' | 'swap';
@@ -31,29 +33,103 @@ export function ExercisePickerPage({
     data: exercises = [],
     isLoading
   } = useExercises();
+  const {
+    data: categories = [],
+    isLoading: isLoadingCategories
+  } = useCategories('workout');
+  const {
+    data: muscleGroups = [],
+    isLoading: isLoadingMuscleGroups
+  } = useMuscleGroups();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<number>>(new Set());
+  const [selectedMuscleGroupIds, setSelectedMuscleGroupIds] = useState<Set<number>>(new Set());
+  
   const availableExercises = useMemo<Exercise[]>(() => {
-    return exercises.map((exercise: ExerciseResource) => ({
-      id: exercise.id,
-      name: exercise.name,
-      restTime: `${Math.round(exercise.default_rest_sec / 60)}m`,
-      muscleGroups: (exercise.muscle_groups || []).map((group: { name: string }) => group.name),
-      imageUrl: exercise.image || ''
-    }));
+    return exercises.map((exercise: ExerciseResource) => {
+      // Filter muscle_groups to get only primary muscle groups
+      // Use primary_muscle_groups if available, otherwise filter muscle_groups by is_primary flag
+      const primaryMuscleGroups = exercise.primary_muscle_groups && exercise.primary_muscle_groups.length > 0
+        ? exercise.primary_muscle_groups
+        : (exercise.muscle_groups || []).filter((group: MuscleGroupResource) => group.is_primary === true);
+      
+      return {
+        id: exercise.id,
+        name: exercise.name,
+        restTime: `${Math.round(exercise.default_rest_sec / 60)}m`,
+        muscleGroups: (exercise.muscle_groups || []).map((group: { name: string }) => group.name),
+        muscleGroupIds: primaryMuscleGroups.map((group: MuscleGroupResource) => group.id),
+        imageUrl: exercise.image || '',
+        categoryId: exercise.category?.id || null
+      };
+    });
   }, [exercises]);
 
   const filteredExercises = useMemo(() => {
-    if (searchQuery.trim() === '') {
-      return availableExercises;
+    let filtered = availableExercises;
+
+    // Apply search filter
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(exercise => 
+        exercise.name.toLowerCase().includes(query) || 
+        exercise.muscleGroups.some(muscle => muscle.toLowerCase().includes(query))
+      );
     }
-    const query = searchQuery.toLowerCase();
-    return availableExercises.filter(exercise => exercise.name.toLowerCase().includes(query) || exercise.muscleGroups.some(muscle => muscle.toLowerCase().includes(query)));
-  }, [availableExercises, searchQuery]);
+
+    // Apply category filter (AND logic)
+    if (selectedCategoryIds.size > 0) {
+      filtered = filtered.filter(exercise => 
+        exercise.categoryId !== null && selectedCategoryIds.has(exercise.categoryId)
+      );
+    }
+
+    // Apply muscle group filter (AND logic - exercise must have at least one selected muscle group)
+    if (selectedMuscleGroupIds.size > 0) {
+      filtered = filtered.filter(exercise => 
+        exercise.muscleGroupIds.some(id => selectedMuscleGroupIds.has(id))
+      );
+    }
+
+    return filtered;
+  }, [availableExercises, searchQuery, selectedCategoryIds, selectedMuscleGroupIds]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
+  
+  const handleToggleCategory = (categoryId: number) => {
+    setSelectedCategoryIds(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleMuscleGroup = (muscleGroupId: number) => {
+    setSelectedMuscleGroupIds(prev => {
+      const next = new Set(prev);
+      if (next.has(muscleGroupId)) {
+        next.delete(muscleGroupId);
+      } else {
+        next.add(muscleGroupId);
+      }
+      return next;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedCategoryIds(new Set());
+    setSelectedMuscleGroupIds(new Set());
+  };
+
+  const hasActiveFilters = selectedCategoryIds.size > 0 || selectedMuscleGroupIds.size > 0;
+  
   const handleSelectExercise = (exercise: Exercise) => {
     if (isSelecting) return;
     setSelectedExerciseId(exercise.id);
@@ -102,6 +178,126 @@ export function ExercisePickerPage({
               }}
             />
           </div>
+        </motion.div>
+
+        {/* Filters Section */}
+        <motion.div {...modalTransition} className="px-6 pb-4 space-y-3">
+          {/* Equipment/Category Filters */}
+          {!isLoadingCategories && categories.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+                  Equipment
+                </h3>
+                {hasActiveFilters && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-xs font-medium px-2 py-1 rounded-lg transition-colors"
+                    style={{ 
+                      color: 'var(--color-primary)',
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 20%, transparent)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
+                    }}
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {categories.map((category: CategoryResource) => {
+                  const isSelected = selectedCategoryIds.has(category.id);
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => handleToggleCategory(category.id)}
+                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
+                        isSelected ? 'shadow-lg' : 'border'
+                      }`}
+                      style={isSelected ? {
+                        background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                        boxShadow: '0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                      } : {
+                        backgroundColor: 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border-subtle)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                        }
+                      }}
+                    >
+                      {category.icon && (
+                        <span className="text-sm">{category.icon}</span>
+                      )}
+                      <span 
+                        className="text-xs font-medium"
+                        style={{ color: isSelected ? '#ffffff' : 'var(--color-text-primary)' }}
+                      >
+                        {category.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Muscle Group Filters */}
+          {!isLoadingMuscleGroups && muscleGroups.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                Muscle Groups
+              </h3>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {muscleGroups.map((muscleGroup: MuscleGroupResource) => {
+                  const isSelected = selectedMuscleGroupIds.has(muscleGroup.id);
+                  return (
+                    <button
+                      key={muscleGroup.id}
+                      onClick={() => handleToggleMuscleGroup(muscleGroup.id)}
+                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
+                        isSelected ? 'shadow-lg' : 'border'
+                      }`}
+                      style={isSelected ? {
+                        background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                        boxShadow: '0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                      } : {
+                        backgroundColor: 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border-subtle)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
+                        }
+                      }}
+                    >
+                      <span 
+                        className="text-xs font-medium"
+                        style={{ color: isSelected ? '#ffffff' : 'var(--color-text-primary)' }}
+                      >
+                        {muscleGroup.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Exercise List */}
@@ -174,7 +370,7 @@ export function ExercisePickerPage({
                 </div>
                 <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>No exercises found</p>
                 <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                  Try a different search term
+                  {hasActiveFilters ? 'Try adjusting your filters or search term' : 'Try a different search term'}
                 </p>
               </motion.div>}
           </AnimatePresence>

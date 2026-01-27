@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, plansApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi } from '../services/api';
+import { profileApi, plansApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi } from '../services/api';
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -363,6 +363,21 @@ export function useMuscleGroups(bodyRegion?: 'upper' | 'lower' | 'core') {
     queryKey: ['muscle-groups', bodyRegion],
     queryFn: async () => {
       const response = await muscleGroupsApi.getMuscleGroups(bodyRegion);
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+// ============================================================================
+// CATEGORIES HOOKS
+// ============================================================================
+
+export function useCategories(type?: 'workout') {
+  return useQuery({
+    queryKey: ['categories', type],
+    queryFn: async () => {
+      const response = await categoriesApi.getCategories(type);
       return response.data;
     },
     enabled: isAuthenticated()

@@ -10,13 +10,14 @@ This documentation provides complete information about all API resources and end
 4. [User Profile](#user-profile)
 5. [Exercises](#exercises)
 6. [Muscle Groups](#muscle-groups)
-7. [Fitness Metrics](#fitness-metrics)
-8. [Plans](#plans)
-9. [Workout Templates](#workout-templates)
-10. [Workout Planner](#workout-planner)
-11. [Workout Sessions](#workout-sessions)
-12. [Complete TypeScript Definitions](#complete-typescript-definitions)
-13. [Error Responses](#error-responses)
+7. [Categories](#categories)
+8. [Fitness Metrics](#fitness-metrics)
+9. [Plans](#plans)
+10. [Workout Templates](#workout-templates)
+11. [Workout Planner](#workout-planner)
+12. [Workout Sessions](#workout-sessions)
+13. [Complete TypeScript Definitions](#complete-typescript-definitions)
+14. [Error Responses](#error-responses)
 
 ---
 
@@ -440,6 +441,90 @@ Returns muscle group with associated exercises loaded.
 ```typescript
 // MuscleGroupResource with exercises relationship
 ```
+
+---
+
+## Categories
+
+Categories represent exercise equipment types used to classify exercises.
+
+### List All Categories
+```
+GET /api/categories
+```
+*Requires authentication*
+
+**Query Parameters:**
+```typescript
+interface CategoryQueryParams {
+  type?: 'workout'; // optional filter by category type
+}
+```
+
+**Response:**
+```typescript
+interface CategoryListResponse {
+  data: CategoryResource[];
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "type": "workout",
+      "name": "Bodyweight",
+      "slug": "bodyweight",
+      "display_order": 1,
+      "icon": "🤸",
+      "color": "#ef4444",
+      "created_at": "2024-01-01T00:00:00.000000Z",
+      "updated_at": "2024-01-01T00:00:00.000000Z"
+    },
+    {
+      "id": 2,
+      "type": "workout",
+      "name": "Dumbbell",
+      "slug": "dumbbell",
+      "display_order": 2,
+      "icon": "🏋️",
+      "color": "#3b82f6",
+      "created_at": "2024-01-01T00:00:00.000000Z",
+      "updated_at": "2024-01-01T00:00:00.000000Z"
+    }
+  ]
+}
+```
+
+---
+
+### Get Single Category
+```
+GET /api/categories/{id}
+```
+*Requires authentication*
+
+**Response:**
+Returns category with associated exercises loaded.
+```typescript
+interface CategoryShowResponse {
+  data: CategoryResource;
+}
+
+// CategoryResource includes exercises relationship when loaded
+```
+
+**Available Category Types:**
+- `bodyweight` - Bodyweight exercises (e.g., Push-ups, Pull-ups, Dips)
+- `dumbbell` - Dumbbell exercises (e.g., Dumbbell Bench Press, Dumbbell Curl)
+- `barbell` - Barbell exercises (e.g., Barbell Bench Press, Deadlift, Squat)
+- `machine-plate-loaded` - Plate-loaded machine exercises (e.g., Plate-Loaded Chest Press, Leg Press)
+- `machine-cable` - Cable-based machine exercises (e.g., Lat Pulldown, Machine Row, Leg Extensions)
+- `cable` - Free cable exercises (e.g., Cable Fly, Cable Curl, Cable Row)
+- `bands` - Resistance band exercises
+- `trx` - TRX suspension training exercises
 
 ---
 
@@ -1366,14 +1451,26 @@ interface PerformanceDataPoint {
 interface CategoryResource {
   id: number;
   type: 'workout';
-  name: string;  // "Compound" | "Isolation" | "Cardio" | "Plyometrics" | "Mobility"
-  slug: string;
+  name: string;  // Equipment type name (e.g., "Bodyweight", "Dumbbell", "Barbell")
+  slug: string;  // Equipment type slug (e.g., "bodyweight", "dumbbell", "barbell")
   display_order: number;
-  icon: string | null;
+  icon: string | null;  // Emoji icon
   color: string | null;  // Hex color
   created_at: string;
   updated_at: string;
+  exercises?: ExerciseResource[];  // Only present when loaded via relationship
 }
+
+// Available category slugs:
+type CategorySlug = 
+  | 'bodyweight'
+  | 'dumbbell'
+  | 'barbell'
+  | 'machine-plate-loaded'
+  | 'machine-cable'
+  | 'cable'
+  | 'bands'
+  | 'trx';
 
 interface MuscleGroupResource {
   id: number;
@@ -1607,6 +1704,12 @@ interface ValidationError {
 |--------|----------|-------------|
 | GET | `/api/muscle-groups` | List muscle groups |
 | GET | `/api/muscle-groups/{id}` | Get muscle group |
+
+### Categories
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/categories` | List all categories |
+| GET | `/api/categories/{id}` | Get single category |
 
 ### Plans
 | Method | Endpoint | Description |

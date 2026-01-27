@@ -203,6 +203,20 @@ export const muscleGroupsApi = {
 };
 
 // ============================================================================
+// CATEGORIES
+// ============================================================================
+
+export const categoriesApi = {
+  getCategories: async (type?: 'workout') => {
+    const query = type ? `?type=${type}` : '';
+    return fetchWithAuth(`/categories${query}`);
+  },
+  getCategory: async (categoryId: number) => {
+    return fetchWithAuth(`/categories/${categoryId}`);
+  }
+};
+
+// ============================================================================
 // FITNESS METRICS
 // ============================================================================
 
