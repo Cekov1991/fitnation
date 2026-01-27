@@ -57,6 +57,10 @@
   --color-text-button:#fff;
 }
 
+body {
+  background-color: var(--color-bg-base); color: var(--color-text-primary); --selection-bg: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
 /* Remove pointer cursor from number inputs and hide spinner buttons */
 input[type="number"] {
   cursor: text !important;

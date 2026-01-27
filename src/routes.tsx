@@ -42,11 +42,6 @@ function AuthenticatedLayout({ children, currentPage }: { children: React.ReactN
   return (
     <div 
       className="h-screen w-full overflow-y-auto"
-      style={{
-        backgroundColor: 'var(--color-bg-base)',
-        color: 'var(--color-text-primary)',
-        '--selection-bg': 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-      } as React.CSSProperties & { '--selection-bg': string }}
     >
       {children}
       <BottomNav currentPage={currentPage} />
