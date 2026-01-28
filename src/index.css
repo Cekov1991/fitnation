@@ -287,3 +287,63 @@ ion-input.ionic-input-workout .native-input {
   background-color: var(--color-secondary-muscle-group);
   color: var(--color-primary);
 }
+
+/* ============================================
+   Range Slider Styling
+   ============================================ */
+
+/* Track */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-border);
+  border-radius: 9999px;
+  height: 6px;
+}
+
+/* Track for Firefox */
+input[type="range"]::-moz-range-track {
+  background: var(--color-border);
+  border-radius: 9999px;
+  height: 6px;
+}
+
+/* Thumb for WebKit browsers (Chrome, Safari, Edge) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+/* Thumb for Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

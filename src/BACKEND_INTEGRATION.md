@@ -11,13 +11,14 @@ This documentation provides complete information about all API resources and end
 5. [Exercises](#exercises)
 6. [Muscle Groups](#muscle-groups)
 7. [Categories](#categories)
-8. [Fitness Metrics](#fitness-metrics)
-9. [Plans](#plans)
-10. [Workout Templates](#workout-templates)
-11. [Workout Planner](#workout-planner)
-12. [Workout Sessions](#workout-sessions)
-13. [Complete TypeScript Definitions](#complete-typescript-definitions)
-14. [Error Responses](#error-responses)
+8. [Exercise Classifications](#exercise-classifications)
+9. [Fitness Metrics](#fitness-metrics)
+10. [Plans](#plans)
+11. [Workout Templates](#workout-templates)
+12. [Workout Planner](#workout-planner)
+13. [Workout Sessions](#workout-sessions)
+14. [Complete TypeScript Definitions](#complete-typescript-definitions)
+15. [Error Responses](#error-responses)
 
 ---
 
@@ -525,6 +526,122 @@ interface CategoryShowResponse {
 - `cable` - Free cable exercises (e.g., Cable Fly, Cable Curl, Cable Row)
 - `bands` - Resistance band exercises
 - `trx` - TRX suspension training exercises
+
+---
+
+## Exercise Classifications
+
+Exercise classification lookup tables used by the workout generator (Fit Nation Engine) to categorize exercises by movement pattern, target region, equipment type, and angle.
+
+### List Movement Patterns
+```
+GET /api/movement-patterns
+```
+*Requires authentication*
+
+**Response:**
+```typescript
+interface MovementPatternListResponse {
+  data: MovementPatternResource[];
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    { "id": 1, "code": "PRESS", "name": "Press", "display_order": 1 },
+    { "id": 2, "code": "FLY", "name": "Fly", "display_order": 2 },
+    { "id": 3, "code": "DIP", "name": "Dip", "display_order": 3 },
+    { "id": 4, "code": "ROW", "name": "Row", "display_order": 4 },
+    { "id": 5, "code": "PULL_VERTICAL", "name": "Vertical Pull", "display_order": 5 }
+  ]
+}
+```
+
+---
+
+### List Target Regions
+```
+GET /api/target-regions
+```
+*Requires authentication*
+
+**Response:**
+```typescript
+interface TargetRegionListResponse {
+  data: TargetRegionResource[];
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    { "id": 1, "code": "UPPER_PUSH", "name": "Upper Push", "display_order": 1 },
+    { "id": 2, "code": "UPPER_PULL", "name": "Upper Pull", "display_order": 2 },
+    { "id": 3, "code": "LOWER", "name": "Lower Body", "display_order": 3 },
+    { "id": 4, "code": "ARMS", "name": "Arms", "display_order": 4 },
+    { "id": 5, "code": "CORE", "name": "Core", "display_order": 5 }
+  ]
+}
+```
+
+---
+
+### List Equipment Types
+```
+GET /api/equipment-types
+```
+*Requires authentication*
+
+**Response:**
+```typescript
+interface EquipmentTypeListResponse {
+  data: EquipmentTypeResource[];
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    { "id": 1, "code": "BARBELL", "name": "Barbell", "display_order": 1 },
+    { "id": 2, "code": "DUMBBELL", "name": "Dumbbell", "display_order": 2 },
+    { "id": 3, "code": "CABLE", "name": "Cable", "display_order": 3 },
+    { "id": 4, "code": "MACHINE", "name": "Machine", "display_order": 4 },
+    { "id": 5, "code": "BODYWEIGHT", "name": "Bodyweight", "display_order": 5 }
+  ]
+}
+```
+
+---
+
+### List Angles
+```
+GET /api/angles
+```
+*Requires authentication*
+
+**Response:**
+```typescript
+interface AngleListResponse {
+  data: AngleResource[];
+}
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    { "id": 1, "code": "FLAT", "name": "Flat", "display_order": 1 },
+    { "id": 2, "code": "INCLINE", "name": "Incline", "display_order": 2 },
+    { "id": 3, "code": "DECLINE", "name": "Decline", "display_order": 3 },
+    { "id": 4, "code": "VERTICAL", "name": "Vertical", "display_order": 4 },
+    { "id": 5, "code": "HORIZONTAL", "name": "Horizontal", "display_order": 5 }
+  ]
+}
+```
 
 ---
 
@@ -1048,6 +1165,218 @@ interface StartSessionResponse {
 
 ---
 
+### Preview Workout Session
+```
+POST /api/workout-sessions/preview
+```
+*Requires authentication*
+
+Generates a workout preview without creating a session. User can review the exercises and then confirm or regenerate for different exercises.
+
+**Request Body:**
+```typescript
+interface PreviewWorkoutRequest {
+  focus_muscle_groups?: string[];      // optional, e.g., ["Chest", "Triceps", "Shoulders"] - infers target_regions if not provided
+  target_regions?: string[];           // optional, e.g., ["UPPER_PUSH", "UPPER_PULL"] - inferred from focus_muscle_groups if not provided
+  equipment_types?: string[];          // optional, e.g., ["MACHINE", "BARBELL"] - defaults to all if not provided
+  movement_patterns?: string[];        // optional, e.g., ["PRESS", "FLY", "DIP"]
+  angles?: string[];                   // optional, e.g., ["FLAT", "INCLINE", "DECLINE"]
+  duration_minutes?: number;           // optional, min 15, max 180 - uses profile default if not provided
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';  // optional - uses profile training_experience if not provided
+}
+```
+
+**Smart Inference:**
+- If `target_regions` not provided but `focus_muscle_groups` provided → system infers target regions from muscle groups
+- If `equipment_types` not provided → system uses all available equipment types
+- If `duration_minutes` not provided → system uses user profile `workout_duration_minutes`
+- If `difficulty` not provided → system uses user profile `training_experience`
+- If neither `target_regions` nor `focus_muscle_groups` provided → system generates full body workout (all target regions)
+
+**Available Target Region Codes:**
+- `UPPER_PUSH` - Chest, Triceps, Front/Side Delts
+- `UPPER_PULL` - Lats, Biceps, Rear Delts, Traps, Upper Back
+- `LOWER` - Quadriceps, Hamstrings, Glutes, Calves
+- `ARMS` - Biceps, Triceps, Forearms
+- `CORE` - Abs, Obliques
+
+**Available Equipment Type Codes:**
+- `MACHINE` - Machine exercises
+- `BARBELL` - Barbell exercises
+- `DUMBBELL` - Dumbbell exercises
+- `CABLE` - Cable exercises
+- `BODYWEIGHT` - Bodyweight exercises
+
+**Available Movement Pattern Codes:**
+- `PRESS` - Pressing movements
+- `FLY` - Fly movements
+- `DIP` - Dip movements
+- `ROW` - Rowing movements
+- `PULL` - Pulling movements
+
+**Available Angle Codes:**
+- `FLAT` - Flat angle
+- `INCLINE` - Inclined angle
+- `DECLINE` - Declined angle
+- `VERTICAL` - Vertical angle
+- `HORIZONTAL` - Horizontal angle
+
+**Response (200 OK):**
+```typescript
+interface PreviewWorkoutResponse {
+  data: WorkoutPreviewResource;
+  message: "Workout preview generated successfully";
+}
+
+interface WorkoutPreviewResource {
+  exercises: PreviewExercise[];
+  rationale: string;
+  estimated_duration_minutes: number;
+}
+
+interface PreviewExercise {
+  exercise_id: number;
+  exercise: ExerciseResource;           // Full exercise details for display
+  order: number;
+  target_sets: number;
+  target_reps: number;
+  target_weight: number;
+  rest_seconds: number;
+}
+```
+
+**Error Responses:**
+
+- **422 Unprocessable Entity:** User profile incomplete
+  ```typescript
+  {
+    message: "Please complete your profile before generating workouts."
+  }
+  // OR
+  {
+    message: "Please set your fitness goal in your profile."
+  }
+  // OR
+  {
+    message: "Please set your training experience level in your profile."
+  }
+  ```
+
+- **422 Unprocessable Entity:** No exercises available
+  ```typescript
+  {
+    message: "No exercises available matching the specified criteria"
+  }
+  ```
+
+**Example Request:**
+```json
+{
+  "focus_muscle_groups": ["Chest", "Triceps"],
+  "equipment_types": ["MACHINE"],
+  "duration_minutes": 45
+}
+```
+
+**Notes:**
+- Calling preview multiple times with the same parameters will return different exercises (shuffled selection)
+- Use this to let users regenerate until they find a workout they like
+- The preview response includes all data needed for the confirm step
+
+---
+
+### Confirm Workout Session
+```
+POST /api/workout-sessions/confirm
+```
+*Requires authentication*
+
+Creates a workout session from preview data. Send the exercises array from the preview response to create the actual session.
+
+**Request Body:**
+```typescript
+interface ConfirmWorkoutRequest {
+  exercises: ConfirmExercise[];         // required, from preview response
+  rationale?: string;                   // optional, from preview response
+}
+
+interface ConfirmExercise {
+  exercise_id: number;                  // required
+  order: number;                        // required, min 1
+  target_sets: number;                  // required, min 1, max 20
+  target_reps: number;                  // required, min 1, max 100
+  target_weight: number;                // required, min 0
+  rest_seconds: number;                 // required, min 0, max 600
+}
+```
+
+**Response (201 Created):**
+```typescript
+interface ConfirmWorkoutResponse {
+  data: GeneratedSessionResource;
+  message: "Workout session created successfully";
+}
+
+interface GeneratedSessionResource extends WorkoutSessionResource {
+  is_auto_generated: boolean;           // true for auto-generated sessions
+  rationale: string | null;             // explanation of the workout selection
+}
+```
+
+**Error Responses:**
+
+- **422 Unprocessable Entity:** Invalid exercise IDs
+  ```typescript
+  {
+    message: "Invalid exercise IDs: 999, 1000"
+  }
+  ```
+
+- **422 Unprocessable Entity:** Validation errors
+  ```typescript
+  {
+    message: "The given data was invalid.",
+    errors: {
+      "exercises": ["At least one exercise is required."],
+      "exercises.0.exercise_id": ["The exercises.0.exercise_id field is required."]
+    }
+  }
+  ```
+
+**Example Request:**
+```json
+{
+  "exercises": [
+    {
+      "exercise_id": 42,
+      "order": 1,
+      "target_sets": 3,
+      "target_reps": 10,
+      "target_weight": 60,
+      "rest_seconds": 90
+    },
+    {
+      "exercise_id": 45,
+      "order": 2,
+      "target_sets": 3,
+      "target_reps": 12,
+      "target_weight": 40,
+      "rest_seconds": 60
+    }
+  ],
+  "rationale": "Generated workout targeting Upper Push..."
+}
+```
+
+**Typical Flow:**
+1. Call `POST /workout-sessions/preview` with preferences
+2. Display exercises to user
+3. If user wants different exercises, call preview again (shuffled results)
+4. When user approves, call `POST /workout-sessions/confirm` with the exercises array
+5. Session is created and ready for the workout
+
+---
+
 ### Get Session Details
 ```
 GET /api/workout-sessions/{session}
@@ -1488,6 +1817,38 @@ interface MuscleGroupResource {
 // Core:  Abs, Obliques
 
 // ============================================
+// EXERCISE CLASSIFICATION RESOURCES
+// ============================================
+
+interface MovementPatternResource {
+  id: number;
+  code: string;              // e.g., "PRESS", "FLY", "ROW", "SQUAT"
+  name: string;              // e.g., "Press", "Fly", "Row", "Squat"
+  display_order: number;
+}
+
+interface TargetRegionResource {
+  id: number;
+  code: string;              // e.g., "UPPER_PUSH", "UPPER_PULL", "LOWER"
+  name: string;              // e.g., "Upper Push", "Upper Pull", "Lower Body"
+  display_order: number;
+}
+
+interface EquipmentTypeResource {
+  id: number;
+  code: string;              // e.g., "BARBELL", "DUMBBELL", "MACHINE"
+  name: string;              // e.g., "Barbell", "Dumbbell", "Machine"
+  display_order: number;
+}
+
+interface AngleResource {
+  id: number;
+  code: string;              // e.g., "FLAT", "INCLINE", "DECLINE"
+  name: string;              // e.g., "Flat", "Incline", "Decline"
+  display_order: number;
+}
+
+// ============================================
 // PLAN RESOURCES
 // ============================================
 
@@ -1555,6 +1916,11 @@ interface WorkoutSessionResource {
   set_logs: SetLogResource[];
   created_at: string;
   updated_at: string;
+}
+
+interface GeneratedSessionResource extends WorkoutSessionResource {
+  is_auto_generated: boolean;           // true for auto-generated sessions
+  rationale: string | null;             // explanation of the workout selection
 }
 
 interface WorkoutSessionCalendarResource {
@@ -1711,6 +2077,14 @@ interface ValidationError {
 | GET | `/api/categories` | List all categories |
 | GET | `/api/categories/{id}` | Get single category |
 
+### Exercise Classifications
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/movement-patterns` | List movement patterns |
+| GET | `/api/target-regions` | List target regions |
+| GET | `/api/equipment-types` | List equipment types |
+| GET | `/api/angles` | List angles |
+
 ### Plans
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -1746,6 +2120,8 @@ interface ValidationError {
 | GET | `/api/workout-sessions/calendar?start_date=&end_date=` | Get calendar view |
 | GET | `/api/workout-sessions/today` | Get today's workout |
 | POST | `/api/workout-sessions/start` | Start session |
+| POST | `/api/workout-sessions/preview` | Preview generated workout |
+| POST | `/api/workout-sessions/confirm` | Confirm and create session |
 | GET | `/api/workout-sessions/{id}` | Get session details |
 | POST | `/api/workout-sessions/{id}/complete` | Complete session |
 | DELETE | `/api/workout-sessions/{id}/cancel` | Cancel session |

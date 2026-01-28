@@ -12,6 +12,7 @@ import { ExercisePickerPage } from './components/ExercisePickerPage';
 import { ExerciseDetailPage } from './components/ExerciseDetailPage';
 import { WorkoutSessionPage } from './components/workout-session';
 import { DashboardPage } from './components/DashboardPage';
+import { GenerateWorkoutPage } from './components/GenerateWorkoutPage';
 import { AuthGuard } from './components/AuthGuard';
 import { BottomNav } from './components/BottomNav';
 import { useAuth } from './hooks/useAuth';
@@ -449,6 +450,17 @@ function ManageExercisesPageWrapper() {
   );
 }
 
+// Generate workout page wrapper
+function GenerateWorkoutPageWrapper() {
+  const currentPage = useCurrentNavPage();
+
+  return (
+    <AuthenticatedLayout currentPage={currentPage}>
+      <GenerateWorkoutPage />
+    </AuthenticatedLayout>
+  );
+}
+
 // Exercise picker page wrapper
 function ExercisePickerPageWrapper() {
   const history = useHistory();
@@ -673,6 +685,13 @@ export function AppRoutes() {
           <Route exact path="/exercises/:exerciseName">
             <AuthGuard>
               <ExerciseDetailPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Generate workout route */}
+          <Route exact path="/generate-workout">
+            <AuthGuard>
+              <GenerateWorkoutPageWrapper />
             </AuthGuard>
           </Route>
 

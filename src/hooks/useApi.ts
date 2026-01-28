@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, plansApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi } from '../services/api';
+import { profileApi, plansApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -12,6 +12,8 @@ import type {
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
   UpdateProfileInput,
+  PreviewWorkoutInput,
+  ConfirmWorkoutInput,
 } from '../types/api';
 
 // ============================================================================
@@ -385,6 +387,54 @@ export function useCategories(type?: 'workout') {
 }
 
 // ============================================================================
+// EXERCISE CLASSIFICATIONS HOOKS
+// ============================================================================
+
+export function useEquipmentTypes() {
+  return useQuery({
+    queryKey: ['equipment-types'],
+    queryFn: async () => {
+      const response = await classificationsApi.getEquipmentTypes();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+export function useTargetRegions() {
+  return useQuery({
+    queryKey: ['target-regions'],
+    queryFn: async () => {
+      const response = await classificationsApi.getTargetRegions();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+export function useMovementPatterns() {
+  return useQuery({
+    queryKey: ['movement-patterns'],
+    queryFn: async () => {
+      const response = await classificationsApi.getMovementPatterns();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+export function useAngles() {
+  return useQuery({
+    queryKey: ['angles'],
+    queryFn: async () => {
+      const response = await classificationsApi.getAngles();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+// ============================================================================
 // PLANNER HOOKS
 // ============================================================================
 
@@ -673,6 +723,25 @@ export function useReorderSessionExercises() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
+      });
+    }
+  });
+}
+
+// Workout Generation
+export function usePreviewWorkout() {
+  return useMutation({
+    mutationFn: (data: PreviewWorkoutInput) => sessionsApi.previewWorkout(data)
+  });
+}
+
+export function useConfirmWorkout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ConfirmWorkoutInput) => sessionsApi.confirmWorkout(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['sessions']
       });
     }
   });

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
+import { useHistory } from 'react-router-dom';
+import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp, Sparkles } from 'lucide-react';
 import { usePlans, useTodayWorkout } from '../hooks/useApi';
 import { useModalTransition } from '../utils/animations';
 import type { PlanResource, WorkoutTemplateResource } from '../types/api';
@@ -57,6 +58,7 @@ export function WorkoutSelectionModal({
   onClose,
   onSelectTemplate
 }: WorkoutSelectionModalProps) {
+  const history = useHistory();
   const modalTransition = useModalTransition();
   const { data: plans = [] } = usePlans();
   const { data: todayWorkout } = useTodayWorkout();
@@ -147,6 +149,74 @@ export function WorkoutSelectionModal({
 
               {/* Content - Scrollable */}
               <div className="overflow-y-auto max-h-[calc(85vh-100px)] p-6">
+                {/* Smart Workout Card */}
+                <button 
+                  onClick={() => {
+                    onClose();
+                    history.push('/generate-workout');
+                  }} 
+                  className="w-full mb-6 relative group overflow-hidden"
+                >
+                  {/* Animated gradient border */}
+                  <div 
+                    className="absolute inset-0 rounded-2xl border-2 transition-all"
+                    style={{ 
+                      borderColor: 'var(--color-primary)',
+                      background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, transparent), color-mix(in srgb, var(--color-secondary) 10%, transparent))'
+                    }}
+                  />
+
+                  <div 
+                    className="relative rounded-2xl p-6 flex items-center gap-4"
+                    style={{ 
+                      background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 8%, transparent), color-mix(in srgb, var(--color-secondary) 8%, transparent))' 
+                    }}
+                  >
+                    {/* Sparkles Icon */}
+                    <div 
+                      className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-shadow relative overflow-hidden"
+                      style={{ 
+                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                        boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                      }}
+                    >
+                      <Sparkles className="text-white w-7 h-7" strokeWidth={2.5} />
+                      {/* Shine effect */}
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
+                        style={{
+                          animation: 'shine 3s ease-in-out infinite',
+                        }}
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                          Smart Workout
+                        </h3>
+                      </div>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                        Generate a personalized workout with Fit Nation's Engine
+                      </p>
+                    </div>
+
+                    {/* Chevron */}
+                    <ChevronRight 
+                      className="transition-colors flex-shrink-0" 
+                      size={20}
+                      style={{ color: 'var(--color-text-muted)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--color-text-muted)';
+                      }}
+                    />
+                  </div>
+                </button>
+
                 {/* Blank Session Card */}
                 <button onClick={() => onSelectTemplate(null, 'Blank Session')} className="w-full mb-6 relative group">
                   {/* Dashed border animation */}

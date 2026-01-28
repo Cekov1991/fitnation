@@ -445,6 +445,87 @@ export interface UpdateProfileInput {
 }
 
 // ============================================
+// EXERCISE CLASSIFICATION RESOURCES
+// ============================================
+
+export interface EquipmentTypeResource {
+  id: number;
+  code: string;
+  name: string;
+  display_order: number;
+}
+
+export interface TargetRegionResource {
+  id: number;
+  code: string;
+  name: string;
+  display_order: number;
+}
+
+export interface MovementPatternResource {
+  id: number;
+  code: string;
+  name: string;
+  display_order: number;
+}
+
+export interface AngleResource {
+  id: number;
+  code: string;
+  name: string;
+  display_order: number;
+}
+
+// ============================================
+// WORKOUT GENERATION TYPES
+// ============================================
+
+export interface PreviewWorkoutInput {
+  focus_muscle_groups?: string[];
+  target_regions?: string[];
+  equipment_types?: string[];
+  movement_patterns?: string[];
+  angles?: string[];
+  duration_minutes?: number;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export interface ConfirmWorkoutInput {
+  exercises: ConfirmExercise[];
+  rationale?: string;
+}
+
+export interface ConfirmExercise {
+  exercise_id: number;
+  order: number;
+  target_sets: number;
+  target_reps: number;
+  target_weight: number;
+  rest_seconds: number;
+}
+
+export interface WorkoutPreviewResource {
+  exercises: PreviewExercise[];
+  rationale: string;
+  estimated_duration_minutes: number;
+}
+
+export interface PreviewExercise {
+  exercise_id: number;
+  exercise: ExerciseResource;
+  order: number;
+  target_sets: number;
+  target_reps: number;
+  target_weight: number;
+  rest_seconds: number;
+}
+
+export interface GeneratedSessionResource extends WorkoutSessionResource {
+  is_auto_generated: boolean;
+  rationale: string | null;
+}
+
+// ============================================
 // ERROR TYPES
 // ============================================
 

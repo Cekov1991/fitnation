@@ -13,6 +13,8 @@ import type {
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
   UpdateProfileInput,
+  PreviewWorkoutInput,
+  ConfirmWorkoutInput,
 } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -217,6 +219,25 @@ export const categoriesApi = {
 };
 
 // ============================================================================
+// EXERCISE CLASSIFICATIONS
+// ============================================================================
+
+export const classificationsApi = {
+  getEquipmentTypes: async () => {
+    return fetchWithAuth('/equipment-types');
+  },
+  getTargetRegions: async () => {
+    return fetchWithAuth('/target-regions');
+  },
+  getMovementPatterns: async () => {
+    return fetchWithAuth('/movement-patterns');
+  },
+  getAngles: async () => {
+    return fetchWithAuth('/angles');
+  }
+};
+
+// ============================================================================
 // FITNESS METRICS
 // ============================================================================
 
@@ -356,6 +377,18 @@ export const sessionsApi = {
       body: JSON.stringify(templateId ? {
         template_id: templateId
       } : {})
+    });
+  },
+  previewWorkout: async (data: PreviewWorkoutInput) => {
+    return fetchWithAuth('/workout-sessions/preview', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+  confirmWorkout: async (data: ConfirmWorkoutInput) => {
+    return fetchWithAuth('/workout-sessions/confirm', {
+      method: 'POST',
+      body: JSON.stringify(data)
     });
   },
   getSession: async (sessionId: number) => {
