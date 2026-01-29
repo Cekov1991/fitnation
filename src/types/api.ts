@@ -200,9 +200,10 @@ export interface WorkoutSessionResource {
   id: number;
   user_id: number;
   workout_template_id: number | null;
-  performed_at: string;
+  performed_at: string | null; // null for draft sessions
   completed_at: string | null;
   notes: string | null;
+  status?: 'draft' | 'active' | 'completed' | 'cancelled';
   exercises: WorkoutSessionExerciseResource[];
   set_logs: SetLogResource[];
   created_at: string;
@@ -327,9 +328,12 @@ export interface SessionDetailResponse {
     id: number;
     user_id: number;
     workout_template_id: number | null;
-    performed_at: string;      // ISO 8601
+    performed_at: string | null;      // ISO 8601, null for draft sessions
     completed_at: string | null;
     notes: string | null;
+    status?: 'draft' | 'active' | 'completed' | 'cancelled';
+    is_auto_generated?: boolean;
+    rationale?: string | null;
     exercises: SessionExerciseDetail[];
     progress: SessionProgress;
     created_at: string;
@@ -480,7 +484,7 @@ export interface AngleResource {
 // WORKOUT GENERATION TYPES
 // ============================================
 
-export interface PreviewWorkoutInput {
+export interface GenerateWorkoutInput {
   focus_muscle_groups?: string[];
   target_regions?: string[];
   equipment_types?: string[];
@@ -490,39 +494,22 @@ export interface PreviewWorkoutInput {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
-export interface ConfirmWorkoutInput {
-  exercises: ConfirmExercise[];
-  rationale?: string;
-}
-
-export interface ConfirmExercise {
-  exercise_id: number;
-  order: number;
-  target_sets: number;
-  target_reps: number;
-  target_weight: number;
-  rest_seconds: number;
-}
-
-export interface WorkoutPreviewResource {
-  exercises: PreviewExercise[];
-  rationale: string;
-  estimated_duration_minutes: number;
-}
-
-export interface PreviewExercise {
-  exercise_id: number;
-  exercise: ExerciseResource;
-  order: number;
-  target_sets: number;
-  target_reps: number;
-  target_weight: number;
-  rest_seconds: number;
+export interface RegenerateWorkoutInput {
+  focus_muscle_groups?: string[];
+  target_regions?: string[];
+  equipment_types?: string[];
+  movement_patterns?: string[];
+  angles?: string[];
+  duration_minutes?: number;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
 export interface GeneratedSessionResource extends WorkoutSessionResource {
   is_auto_generated: boolean;
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  replaced_session_id: number | null;
   rationale: string | null;
+  performed_at: string | null; // null for drafts
 }
 
 // ============================================

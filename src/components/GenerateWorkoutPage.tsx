@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { ArrowLeft, Sparkles, Clock, RefreshCw, Check, X } from 'lucide-react';
-import { useMuscleGroups, useEquipmentTypes, usePreviewWorkout, useConfirmWorkout, useProfile } from '../hooks/useApi';
+import { ArrowLeft, Sparkles, Clock } from 'lucide-react';
+import { 
+  useMuscleGroups, 
+  useEquipmentTypes, 
+  useGenerateDraftSession,
+  useProfile 
+} from '../hooks/useApi';
 import { LoadingButton } from './ui';
-import { ExerciseImage } from './ExerciseImage';
-import type { WorkoutPreviewResource, PreviewExercise, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
+import type { MuscleGroupResource, EquipmentTypeResource } from '../types/api';
 
 // Preset muscle group mappings
 const PRESETS = {
@@ -21,14 +25,13 @@ export function GenerateWorkoutPage() {
   const { data: profile } = useProfile();
   const { data: muscleGroups = [] } = useMuscleGroups();
   const { data: equipmentTypes = [] } = useEquipmentTypes();
-  const previewWorkout = usePreviewWorkout();
-  const confirmWorkout = useConfirmWorkout();
+  
+  const generateDraft = useGenerateDraftSession();
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [duration, setDuration] = useState<number | null>(profile?.profile?.workout_duration_minutes || 45);
-  const [previewData, setPreviewData] = useState<WorkoutPreviewResource | null>(null);
 
   const handlePresetClick = (presetKey: string) => {
     const preset = PRESETS[presetKey as keyof typeof PRESETS];
@@ -62,44 +65,16 @@ export function GenerateWorkoutPage() {
 
   const handleGenerate = async () => {
     try {
-      const response = await previewWorkout.mutateAsync({
+      const response = await generateDraft.mutateAsync({
         focus_muscle_groups: selectedMuscles.length > 0 ? selectedMuscles : undefined,
         equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
         duration_minutes: duration || undefined,
       });
-      setPreviewData(response.data);
+      const sessionId = response.data.id;
+      history.push(`/generate-workout/preview/${sessionId}`);
     } catch (error) {
       console.error('Failed to generate workout:', error);
     }
-  };
-
-  const handleConfirm = async () => {
-    if (!previewData) return;
-
-    try {
-      const response = await confirmWorkout.mutateAsync({
-        exercises: previewData.exercises.map((ex: PreviewExercise) => ({
-          exercise_id: ex.exercise_id,
-          order: ex.order,
-          target_sets: ex.target_sets,
-          target_reps: ex.target_reps,
-          target_weight: ex.target_weight,
-          rest_seconds: ex.rest_seconds,
-        })),
-        rationale: previewData.rationale,
-      });
-      
-      const session = response.data?.session || response.data;
-      if (session?.id) {
-        history.push(`/session/${session.id}`);
-      }
-    } catch (error) {
-      console.error('Failed to confirm workout:', error);
-    }
-  };
-
-  const handleRegenerate = () => {
-    handleGenerate();
   };
 
   return (
@@ -130,9 +105,8 @@ export function GenerateWorkoutPage() {
           </div>
         </div>
 
-        {!previewData ? (
-          /* Configuration Section */
-          <div className="space-y-6">
+        {/* Configuration Section */}
+        <div className="space-y-6">
             {/* Presets */}
             <div>
               <h2 className="text-sm font-bold mb-3 uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
@@ -283,7 +257,7 @@ export function GenerateWorkoutPage() {
             {/* Generate Button */}
             <LoadingButton
               onClick={handleGenerate}
-              isLoading={previewWorkout.isPending}
+              isLoading={generateDraft.isPending}
               loadingText="GENERATING..."
               className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg relative overflow-hidden group"
               style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', color: 'var(--color-text-button)' }}
@@ -294,134 +268,6 @@ export function GenerateWorkoutPage() {
               </span>
             </LoadingButton>
           </div>
-        ) : (
-          /* Preview Section */
-          <div className="space-y-6">
-            {/* Rationale */}
-            {previewData.rationale && (
-              <div 
-                className="p-4 rounded-xl border"
-                style={{ 
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 5%, transparent)',
-                  borderColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-                }}
-              >
-                <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
-                  {previewData.rationale}
-                </p>
-              </div>
-            )}
-
-            {/* Exercise List */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
-                  Exercises ({previewData.exercises.length})
-                </h2>
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  ~{previewData.estimated_duration_minutes} min
-                </span>
-              </div>
-              <div className="space-y-3">
-                {previewData.exercises.map((ex: PreviewExercise, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-5 rounded-2xl border"
-                    style={{ 
-                      backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border)',
-                    }}
-                  >
-                    <div className="flex gap-4">
-                      <ExerciseImage 
-                        src={ex.exercise.image} 
-                        alt={ex.exercise.name}
-                        className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                          {ex.exercise.name}
-                        </h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {ex.exercise.muscle_groups?.slice(0, 3).map((mg, i) => (
-                            <span 
-                              key={i}
-                              className="px-3 py-1 rounded-full text-xs font-medium"
-                              style={{ 
-                                backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                                color: 'var(--color-primary)',
-                              }}
-                            >
-                              {mg.name}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-3 text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                          <span>{ex.target_sets} sets</span>
-                          <span style={{ color: 'var(--color-text-muted)' }}>•</span>
-                          <span>{ex.target_reps} reps</span>
-                          {ex.target_weight > 0 && (
-                            <>
-                              <span style={{ color: 'var(--color-text-muted)' }}>•</span>
-                              <span>{ex.target_weight} kg</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <LoadingButton
-                onClick={handleConfirm}
-                isLoading={confirmWorkout.isPending}
-                loadingText="STARTING..."
-                className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg"
-                style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', color: 'var(--color-text-button)' }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <Check className="w-5 h-5" />
-                  START WORKOUT
-                </span>
-              </LoadingButton>
-
-              <button
-                onClick={handleRegenerate}
-                disabled={previewWorkout.isPending}
-                className="w-full py-4 rounded-2xl font-bold text-lg border-2 transition-all"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  backgroundColor: 'var(--color-bg-surface)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <RefreshCw className="w-5 h-5" />
-                  REGENERATE
-                </span>
-              </button>
-
-              <button
-                onClick={() => setPreviewData(null)}
-                className="w-full py-4 rounded-2xl font-bold text-lg border-2 transition-all"
-                style={{
-                  borderColor: 'color-mix(in srgb, var(--color-danger) 30%, transparent)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-danger)',
-                }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <X className="w-5 h-5" />
-                  CANCEL
-                </span>
-              </button>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

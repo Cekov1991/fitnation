@@ -13,6 +13,7 @@ import { ExerciseDetailPage } from './components/ExerciseDetailPage';
 import { WorkoutSessionPage } from './components/workout-session';
 import { DashboardPage } from './components/DashboardPage';
 import { GenerateWorkoutPage } from './components/GenerateWorkoutPage';
+import { WorkoutPreviewPage } from './components/WorkoutPreviewPage';
 import { AuthGuard } from './components/AuthGuard';
 import { BottomNav } from './components/BottomNav';
 import { useAuth } from './hooks/useAuth';
@@ -461,6 +462,17 @@ function GenerateWorkoutPageWrapper() {
   );
 }
 
+// Workout preview page wrapper
+function WorkoutPreviewPageWrapper() {
+  const currentPage = useCurrentNavPage();
+
+  return (
+    <AuthenticatedLayout currentPage={currentPage}>
+      <WorkoutPreviewPage />
+    </AuthenticatedLayout>
+  );
+}
+
 // Exercise picker page wrapper
 function ExercisePickerPageWrapper() {
   const history = useHistory();
@@ -511,11 +523,18 @@ function ExercisePickerPageWrapper() {
 // Exercise detail page wrapper
 function ExerciseDetailPageWrapper() {
   const history = useHistory();
+  const location = useLocation<{ from?: string; sessionId?: string }>();
   const { exerciseName } = useParams<{ exerciseName: string }>();
   const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
-    history.goBack();
+    const state = location.state;
+    if (state?.from === 'preview' && state?.sessionId) {
+      // Return to preview page
+      history.push(`/generate-workout/preview/${state.sessionId}`);
+    } else {
+      history.goBack();
+    }
   };
 
   return (
@@ -692,6 +711,13 @@ export function AppRoutes() {
           <Route exact path="/generate-workout">
             <AuthGuard>
               <GenerateWorkoutPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Workout preview route */}
+          <Route exact path="/generate-workout/preview/:sessionId">
+            <AuthGuard>
+              <WorkoutPreviewPageWrapper />
             </AuthGuard>
           </Route>
 
