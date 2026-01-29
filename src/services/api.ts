@@ -13,8 +13,8 @@ import type {
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
   UpdateProfileInput,
-  PreviewWorkoutInput,
-  ConfirmWorkoutInput,
+  GenerateWorkoutInput,
+  RegenerateWorkoutInput,
 } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -379,14 +379,19 @@ export const sessionsApi = {
       } : {})
     });
   },
-  previewWorkout: async (data: PreviewWorkoutInput) => {
-    return fetchWithAuth('/workout-sessions/preview', {
+  generateDraftSession: async (data: GenerateWorkoutInput) => {
+    return fetchWithAuth('/workout-sessions/generate', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  confirmWorkout: async (data: ConfirmWorkoutInput) => {
-    return fetchWithAuth('/workout-sessions/confirm', {
+  confirmDraftSession: async (sessionId: number) => {
+    return fetchWithAuth(`/workout-sessions/${sessionId}/confirm`, {
+      method: 'POST'
+    });
+  },
+  regenerateDraftSession: async (sessionId: number, data: RegenerateWorkoutInput) => {
+    return fetchWithAuth(`/workout-sessions/${sessionId}/regenerate`, {
       method: 'POST',
       body: JSON.stringify(data)
     });

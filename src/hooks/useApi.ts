@@ -12,8 +12,8 @@ import type {
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
   UpdateProfileInput,
-  PreviewWorkoutInput,
-  ConfirmWorkoutInput,
+  GenerateWorkoutInput,
+  RegenerateWorkoutInput,
 } from '../types/api';
 
 // ============================================================================
@@ -728,21 +728,39 @@ export function useReorderSessionExercises() {
   });
 }
 
-// Workout Generation
-export function usePreviewWorkout() {
+// Workout Draft Generation
+export function useGenerateDraftSession() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: PreviewWorkoutInput) => sessionsApi.previewWorkout(data)
+    mutationFn: (data: GenerateWorkoutInput) => sessionsApi.generateDraftSession(data),
+    onSuccess: (response) => {
+      // Cache the draft session data (not the full response with message)
+      queryClient.setQueryData(['sessions', response.data.id], response.data);
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    }
   });
 }
 
-export function useConfirmWorkout() {
+export function useConfirmDraftSession() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: ConfirmWorkoutInput) => sessionsApi.confirmWorkout(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['sessions']
-      });
+    mutationFn: (sessionId: number) => sessionsApi.confirmDraftSession(sessionId),
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['sessions', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['sessions', 'today'] });
+    }
+  });
+}
+
+export function useRegenerateDraftSession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sessionId, data }: { sessionId: number; data: RegenerateWorkoutInput }) => 
+      sessionsApi.regenerateDraftSession(sessionId, data),
+    onSuccess: (response) => {
+      // Cache new draft data and invalidate old one
+      queryClient.setQueryData(['sessions', response.data.id], response.data);
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
     }
   });
 }

@@ -25,9 +25,16 @@ export function DashboardPage() {
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
 
   const handleStartWorkoutClick = () => {
-    const ongoingSession = todayWorkout?.session;
-    if (ongoingSession?.id) {
-      history.push(`/session/${ongoingSession.id}`);
+    const session = todayWorkout?.session;
+    if (session?.id) {
+      // Check if draft (performed_at is null)
+      if (!session.performed_at) {
+        // Navigate to preview page to continue setup
+        history.push(`/generate-workout/preview/${session.id}`);
+      } else {
+        // Active session - continue workout
+        history.push(`/session/${session.id}`);
+      }
     } else {
       openWorkoutSelection();
     }
@@ -115,7 +122,9 @@ export function DashboardPage() {
               style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
             >
               <span className="relative z-10 text-white">
-                {todayWorkout?.session?.id ? 'Continue Workout' : 'Start Workout'}
+                {todayWorkout?.session?.id 
+                  ? (todayWorkout.session.performed_at ? 'Continue Workout' : 'Continue Setup')
+                  : 'Start Workout'}
               </span>
               <div 
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 

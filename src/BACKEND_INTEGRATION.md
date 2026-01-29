@@ -1165,17 +1165,17 @@ interface StartSessionResponse {
 
 ---
 
-### Preview Workout Session
+### Generate Draft Workout Session
 ```
-POST /api/workout-sessions/preview
+POST /api/workout-sessions/generate
 ```
 *Requires authentication*
 
-Generates a workout preview without creating a session. User can review the exercises and then confirm or regenerate for different exercises.
+Generates a new workout session in draft status. Creates a session with exercises that can be modified before confirming. User can then confirm to start the workout or regenerate for different exercises.
 
 **Request Body:**
 ```typescript
-interface PreviewWorkoutRequest {
+interface GenerateWorkoutRequest {
   focus_muscle_groups?: string[];      // optional, e.g., ["Chest", "Triceps", "Shoulders"] - infers target_regions if not provided
   target_regions?: string[];           // optional, e.g., ["UPPER_PUSH", "UPPER_PULL"] - inferred from focus_muscle_groups if not provided
   equipment_types?: string[];          // optional, e.g., ["MACHINE", "BARBELL"] - defaults to all if not provided
@@ -1221,27 +1221,18 @@ interface PreviewWorkoutRequest {
 - `VERTICAL` - Vertical angle
 - `HORIZONTAL` - Horizontal angle
 
-**Response (200 OK):**
+**Response (201 Created):**
 ```typescript
-interface PreviewWorkoutResponse {
-  data: WorkoutPreviewResource;
-  message: "Workout preview generated successfully";
+interface GenerateWorkoutResponse {
+  data: GeneratedSessionResource;
+  message: "Draft workout session created successfully";
 }
 
-interface WorkoutPreviewResource {
-  exercises: PreviewExercise[];
-  rationale: string;
-  estimated_duration_minutes: number;
-}
-
-interface PreviewExercise {
-  exercise_id: number;
-  exercise: ExerciseResource;           // Full exercise details for display
-  order: number;
-  target_sets: number;
-  target_reps: number;
-  target_weight: number;
-  rest_seconds: number;
+interface GeneratedSessionResource extends WorkoutSessionResource {
+  is_auto_generated: boolean;           // true for auto-generated sessions
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  replaced_session_id: number | null;   // ID of session this replaced (null for first generation)
+  rationale: string | null;             // explanation of the workout selection
 }
 ```
 
@@ -1279,101 +1270,110 @@ interface PreviewExercise {
 ```
 
 **Notes:**
-- Calling preview multiple times with the same parameters will return different exercises (shuffled selection)
-- Use this to let users regenerate until they find a workout they like
-- The preview response includes all data needed for the confirm step
+- Creates a session with `status: draft` and `performed_at: null`
+- The session is stored in the database with all exercises
+- User can modify exercises using standard exercise management endpoints before confirming
+- Call regenerate endpoint to cancel this draft and create a new one
 
 ---
 
-### Confirm Workout Session
+### Confirm Draft Workout Session
 ```
-POST /api/workout-sessions/confirm
+POST /api/workout-sessions/{session}/confirm
 ```
-*Requires authentication*
+*Requires authentication (owner only)*
 
-Creates a workout session from preview data. Send the exercises array from the preview response to create the actual session.
+Confirms a draft workout session and starts the workout. Sets `status` to `active` and sets `performed_at` to current timestamp.
 
-**Request Body:**
-```typescript
-interface ConfirmWorkoutRequest {
-  exercises: ConfirmExercise[];         // required, from preview response
-  rationale?: string;                   // optional, from preview response
-}
+**URL Parameters:**
+- `session` (required) - ID of the draft workout session
 
-interface ConfirmExercise {
-  exercise_id: number;                  // required
-  order: number;                        // required, min 1
-  target_sets: number;                  // required, min 1, max 20
-  target_reps: number;                  // required, min 1, max 100
-  target_weight: number;                // required, min 0
-  rest_seconds: number;                 // required, min 0, max 600
-}
-```
+**Request Body:** None
 
-**Response (201 Created):**
+**Response (200 OK):**
 ```typescript
 interface ConfirmWorkoutResponse {
   data: GeneratedSessionResource;
-  message: "Workout session created successfully";
-}
-
-interface GeneratedSessionResource extends WorkoutSessionResource {
-  is_auto_generated: boolean;           // true for auto-generated sessions
-  rationale: string | null;             // explanation of the workout selection
+  message: "Workout session confirmed and started successfully";
 }
 ```
 
 **Error Responses:**
 
-- **422 Unprocessable Entity:** Invalid exercise IDs
+- **422 Unprocessable Entity:** Session is not in draft status
   ```typescript
   {
-    message: "Invalid exercise IDs: 999, 1000"
+    message: "Only draft sessions can be confirmed"
   }
   ```
 
-- **422 Unprocessable Entity:** Validation errors
+- **403 Forbidden:** User does not own the session
   ```typescript
   {
-    message: "The given data was invalid.",
-    errors: {
-      "exercises": ["At least one exercise is required."],
-      "exercises.0.exercise_id": ["The exercises.0.exercise_id field is required."]
-    }
+    message: "Unauthorized"
   }
   ```
 
-**Example Request:**
-```json
-{
-  "exercises": [
-    {
-      "exercise_id": 42,
-      "order": 1,
-      "target_sets": 3,
-      "target_reps": 10,
-      "target_weight": 60,
-      "rest_seconds": 90
-    },
-    {
-      "exercise_id": 45,
-      "order": 2,
-      "target_sets": 3,
-      "target_reps": 12,
-      "target_weight": 40,
-      "rest_seconds": 60
-    }
-  ],
-  "rationale": "Generated workout targeting Upper Push..."
+**Typical Flow:**
+1. Call `POST /workout-sessions/generate` with preferences to create draft session
+2. Display session exercises to user (full session resource returned)
+3. User can optionally modify exercises using:
+   - `POST /workout-sessions/{id}/exercises` - Add exercise
+   - `PUT /workout-sessions/{id}/exercises/{exerciseId}` - Update exercise
+   - `DELETE /workout-sessions/{id}/exercises/{exerciseId}` - Remove exercise
+   - `POST /workout-sessions/{id}/exercises/reorder` - Reorder exercises
+4. If user wants different exercises, call `POST /workout-sessions/{id}/regenerate`
+5. When user approves, call `POST /workout-sessions/{id}/confirm` to start the workout
+
+---
+
+### Regenerate Draft Workout Session
+```
+POST /api/workout-sessions/{session}/regenerate
+```
+*Requires authentication (owner only)*
+
+Cancels the current draft session and generates a new one with optionally different preferences. Links the new session to the old one via `replaced_session_id` for tracking purposes.
+
+**URL Parameters:**
+- `session` (required) - ID of the draft workout session to regenerate
+
+**Request Body:**
+```typescript
+interface RegenerateWorkoutRequest {
+  focus_muscle_groups?: string[];      // optional
+  target_regions?: string[];           // optional
+  equipment_types?: string[];          // optional
+  movement_patterns?: string[];        // optional
+  angles?: string[];                   // optional
+  duration_minutes?: number;           // optional, min 15, max 180
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';  // optional
 }
 ```
 
-**Typical Flow:**
-1. Call `POST /workout-sessions/preview` with preferences
-2. Display exercises to user
-3. If user wants different exercises, call preview again (shuffled results)
-4. When user approves, call `POST /workout-sessions/confirm` with the exercises array
-5. Session is created and ready for the workout
+**Response (201 Created):**
+```typescript
+interface RegenerateWorkoutResponse {
+  data: GeneratedSessionResource;      // New session with replaced_session_id set
+  message: "New workout session generated successfully";
+}
+```
+
+**Error Responses:**
+
+- **422 Unprocessable Entity:** Session is not in draft status
+  ```typescript
+  {
+    message: "Only draft sessions can be regenerated"
+  }
+  ```
+
+- **403 Forbidden:** User does not own the session
+  ```typescript
+  {
+    message: "Unauthorized"
+  }
+  ```
 
 ---
 
@@ -1909,9 +1909,10 @@ interface WorkoutSessionResource {
   id: number;
   user_id: number;
   workout_template_id: number | null;
-  performed_at: string;      // ISO 8601
+  performed_at: string | null;          // ISO 8601, null for draft sessions
   completed_at: string | null;
   notes: string | null;
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
   exercises: WorkoutSessionExerciseResource[];
   set_logs: SetLogResource[];
   created_at: string;
@@ -1920,6 +1921,7 @@ interface WorkoutSessionResource {
 
 interface GeneratedSessionResource extends WorkoutSessionResource {
   is_auto_generated: boolean;           // true for auto-generated sessions
+  replaced_session_id: number | null;   // ID of session this replaced (null for first generation)
   rationale: string | null;             // explanation of the workout selection
 }
 
@@ -2119,9 +2121,10 @@ interface ValidationError {
 |--------|----------|-------------|
 | GET | `/api/workout-sessions/calendar?start_date=&end_date=` | Get calendar view |
 | GET | `/api/workout-sessions/today` | Get today's workout |
-| POST | `/api/workout-sessions/start` | Start session |
-| POST | `/api/workout-sessions/preview` | Preview generated workout |
-| POST | `/api/workout-sessions/confirm` | Confirm and create session |
+| POST | `/api/workout-sessions/start` | Start session from template |
+| POST | `/api/workout-sessions/generate` | Generate draft workout |
+| POST | `/api/workout-sessions/{id}/confirm` | Confirm draft session |
+| POST | `/api/workout-sessions/{id}/regenerate` | Regenerate draft session |
 | GET | `/api/workout-sessions/{id}` | Get session details |
 | POST | `/api/workout-sessions/{id}/complete` | Complete session |
 | DELETE | `/api/workout-sessions/{id}/cancel` | Cancel session |
