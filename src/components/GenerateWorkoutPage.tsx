@@ -91,7 +91,7 @@ export function GenerateWorkoutPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => history.goBack()}
+            onClick={() => history.push('/dashboard')}
             className="p-2 rounded-xl transition-colors"
             style={{ backgroundColor: 'var(--color-bg-surface)' }}
           >

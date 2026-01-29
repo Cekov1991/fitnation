@@ -233,16 +233,6 @@ export function WorkoutPreviewPage() {
       <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <button 
-            onClick={handleBack}
-            className="p-2 rounded-xl transition-colors"
-            style={{ 
-              backgroundColor: 'var(--color-bg-surface)',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            <ArrowLeft size={24} />
-          </button>
           <div className="flex-1">
             <h1 className="text-2xl font-black mb-1" style={{ color: 'var(--color-text-primary)' }}>
               Preview Workout
