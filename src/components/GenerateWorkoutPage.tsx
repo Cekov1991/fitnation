@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Sparkles, Clock } from 'lucide-react';
 import { 
@@ -31,7 +31,14 @@ export function GenerateWorkoutPage() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [duration, setDuration] = useState<number | null>(profile?.profile?.workout_duration_minutes || 45);
+  const [duration, setDuration] = useState<number>(45);
+
+  // Sync duration from profile when it loads
+  useEffect(() => {
+    if (profile?.profile?.workout_duration_minutes) {
+      setDuration(profile.profile.workout_duration_minutes);
+    }
+  }, [profile?.profile?.workout_duration_minutes]);
 
   const handlePresetClick = (presetKey: string) => {
     const preset = PRESETS[presetKey as keyof typeof PRESETS];
@@ -69,6 +76,7 @@ export function GenerateWorkoutPage() {
         focus_muscle_groups: selectedMuscles.length > 0 ? selectedMuscles : undefined,
         equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
         duration_minutes: duration || undefined,
+        difficulty: profile?.profile?.training_experience || undefined,
       });
       const sessionId = response.data.id;
       history.push(`/generate-workout/preview/${sessionId}`);
