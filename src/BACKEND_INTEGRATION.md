@@ -45,19 +45,75 @@ All protected endpoints require Laravel Sanctum Bearer token authentication.
 
 ## Authentication
 
+### Validate Invitation Token
+```
+GET /api/invitations/{token}
+```
+*Public endpoint - No authentication required*
+
+Validates an invitation token and returns partner information if valid. This endpoint should be called when a user clicks the invitation link in their email to verify the token before showing the registration form.
+
+**URL Parameters:**
+- `token` (required) - The 64-character invitation token
+
+**Response (200 OK):**
+```typescript
+interface ValidateInvitationResponse {
+  message: "Valid invitation";
+  data: InvitationResource;
+}
+
+interface InvitationResource {
+  token: string;
+  email: string;
+  expires_at: string;  // ISO 8601
+  partner: {
+    id: number;
+    name: string;
+    slug: string;
+    visual_identity: PartnerVisualIdentityResource | null;
+  };
+}
+```
+
+**Error Responses:**
+
+**404 Not Found:**
+```typescript
+{
+  message: "Invalid invitation token"
+}
+```
+
+**422 Unprocessable Entity:**
+```typescript
+{
+  message: "This invitation has already been used"
+}
+// OR
+{
+  message: "This invitation has expired"
+}
+```
+
+---
+
 ### Register User
 ```
 POST /api/register
 ```
+*Public endpoint - No authentication required*
+
+**IMPORTANT:** Registration is invite-only. Users must have a valid invitation token received via email from a partner.
 
 **Request Body:**
 ```typescript
 interface RegisterRequest {
-  name: string;                // required, max 255 chars
-  email: string;               // required, unique, lowercase email
-  password: string;            // required, min 8 chars
+  name: string;                  // required, max 255 chars
+  email: string;                 // required, unique, lowercase email
+  password: string;              // required, min 8 chars
   password_confirmation: string; // required, must match password
-  partner_id?: number;         // optional, existing partner ID
+  invitation_token: string;      // required, 64-char token from invitation email
 }
 ```
 
@@ -67,6 +123,27 @@ interface RegisterResponse {
   message: "User registered successfully";
   user: UserResource;
   token: string;
+}
+```
+
+**Error Responses:**
+
+**422 Unprocessable Entity:**
+```typescript
+{
+  message: "Invalid invitation token"
+}
+// OR
+{
+  message: "This invitation has already been used"
+}
+// OR
+{
+  message: "This invitation has expired"
+}
+// OR
+{
+  message: "Email does not match the invitation"
 }
 ```
 
@@ -1748,6 +1825,10 @@ interface ExerciseResource {
   image: string | null;               // Full URL
   video: string | null;               // Full URL
   default_rest_sec: number;
+  angle?: AngleResource | null;                    // Optional: loaded via relationship
+  movement_pattern?: MovementPatternResource | null;  // Optional: loaded via relationship
+  target_region?: TargetRegionResource | null;     // Optional: loaded via relationship
+  equipment_type?: EquipmentTypeResource | null;   // Optional: loaded via relationship
   created_at: string;
   updated_at: string;
 }
@@ -2041,10 +2122,11 @@ interface ValidationError {
 
 ## API Quick Reference
 
-### Authentication
+### Authentication & Invitations
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/register` | Register new user |
+| GET | `/api/invitations/{token}` | Validate invitation token |
+| POST | `/api/register` | Register new user (requires invitation) |
 | POST | `/api/login` | Login user |
 | POST | `/api/logout` | Logout user |
 
@@ -2140,23 +2222,36 @@ interface ValidationError {
 
 ## Usage Examples
 
-### Example: Complete Authentication Flow
+### Example: Complete Authentication Flow with Invitation
 
 ```typescript
-// 1. Register
+// 1. User clicks invitation link in email (e.g., https://yourapp.com/register?invitation=abc123...)
+// Extract token from URL
+const invitationToken = new URLSearchParams(window.location.search).get('invitation');
+
+// 2. Validate the invitation token
+const validateResponse = await fetch(`/api/invitations/${invitationToken}`);
+const { data: invitation } = await validateResponse.json();
+
+// Show partner branding and pre-fill email
+console.log(invitation.partner.name);
+console.log(invitation.email);
+
+// 3. Register with invitation token
 const registerResponse = await fetch('/api/register', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     name: 'John Doe',
-    email: 'john@example.com',
+    email: invitation.email,  // Must match invitation email
     password: 'password123',
-    password_confirmation: 'password123'
+    password_confirmation: 'password123',
+    invitation_token: invitationToken
   })
 });
 const { token, user } = await registerResponse.json();
 
-// 2. Use token for subsequent requests
+// 4. Use token for subsequent requests
 const headers = {
   'Authorization': `Bearer ${token}`,
   'Content-Type': 'application/json',

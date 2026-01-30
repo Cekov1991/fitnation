@@ -13,7 +13,7 @@ interface AuthContextType {
     email: string;
     password: string;
     password_confirmation: string;
-    partner_id?: number;
+    invitation_token: string;
   }) => Promise<void>;
 }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,7 +91,7 @@ export function AuthProvider({
     email: string;
     password: string;
     password_confirmation: string;
-    partner_id?: number;
+    invitation_token: string;
   }) => {
     const response = await authApi.register(data);
     localStorage.setItem('authToken', response.token);
