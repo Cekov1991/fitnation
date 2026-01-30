@@ -203,6 +203,7 @@ export interface TemplateExercise {
   id: number;
   name: string;
   image: string | null;
+  muscle_group_image: string | null;
   default_rest_sec: number;
   category: CategoryResource | null;
   muscle_groups: MuscleGroupResource[];

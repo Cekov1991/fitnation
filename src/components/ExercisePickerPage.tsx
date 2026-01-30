@@ -137,7 +137,7 @@ export function ExercisePickerPage({
     // Don't call onClose here - let the parent handle closing after async operations complete
   };
   return <div 
-    className="fixed inset-0 z-[100]"
+    className="fixed inset-0 z-[10000]"
     style={{ backgroundColor: 'var(--color-bg-base)' }}
   >
 

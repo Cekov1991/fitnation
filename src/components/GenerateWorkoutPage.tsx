@@ -72,14 +72,16 @@ export function GenerateWorkoutPage() {
 
   const handleGenerate = async () => {
     try {
-      const response = await generateDraft.mutateAsync({
+      const generationParams = {
         focus_muscle_groups: selectedMuscles.length > 0 ? selectedMuscles : undefined,
         equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
         duration_minutes: duration || undefined,
         difficulty: profile?.profile?.training_experience || undefined,
-      });
+      };
+      const response = await generateDraft.mutateAsync(generationParams);
       const sessionId = response.data.id;
-      history.push(`/generate-workout/preview/${sessionId}`);
+      // Pass generation params via route state so preview page can use them for regenerate
+      history.push(`/generate-workout/preview/${sessionId}`, { generationParams });
     } catch (error) {
       console.error('Failed to generate workout:', error);
     }

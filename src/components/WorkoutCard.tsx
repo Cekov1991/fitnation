@@ -26,6 +26,7 @@ interface RawWorkoutTemplateExercise {
     id: number;
     name: string;
     image: string | null;
+    muscle_group_image: string | null;
     default_rest_sec: number;
     category?: {
       id: number;
@@ -52,6 +53,7 @@ function normalizeExercises(template: WorkoutTemplateResource | null | Record<st
       id: item.exercise.id,
       name: item.exercise.name,
       image: item.exercise.image,
+      muscle_group_image: item.exercise.muscle_group_image || null,
       default_rest_sec: item.exercise.default_rest_sec,
       category: null, // Raw API format doesn't include full category details
       muscle_groups: [],

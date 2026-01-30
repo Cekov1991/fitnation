@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -17,12 +17,22 @@ import {
   useUpdateSessionExercise,
   useAddSessionExercise
 } from '../hooks/useApi';
-import { SessionExerciseDetail } from '../types/api';
+import { SessionExerciseDetail, GenerateWorkoutInput } from '../types/api';
 import { MuscleGroupResource } from '../types/api';
+
+interface LocationState {
+  generationParams?: GenerateWorkoutInput;
+}
 
 export function WorkoutPreviewPage() {
   const history = useHistory();
   const { sessionId } = useParams<{ sessionId: string }>();
+  const location = useLocation<LocationState>();
+  
+  // Get generation params from route state (passed from GenerateWorkoutPage)
+  const [generationParams] = useState<GenerateWorkoutInput | undefined>(
+    location.state?.generationParams
+  );
   
   const confirmDraft = useConfirmDraftSession();
   const regenerateDraft = useRegenerateDraftSession();
@@ -57,24 +67,15 @@ export function WorkoutPreviewPage() {
     try {
       const response = await regenerateDraft.mutateAsync({
         sessionId: Number(sessionId),
-        data: {} // Empty data means use same parameters as original generation
+        data: generationParams || {} // Use same parameters as original generation
       });
       const newSessionId = response.data?.id;
       if (newSessionId) {
-        history.replace(`/generate-workout/preview/${newSessionId}`);
+        // Pass generation params to the new preview page
+        history.replace(`/generate-workout/preview/${newSessionId}`, { generationParams });
       }
     } catch (error) {
       console.error('Failed to regenerate workout:', error);
-    }
-  };
-
-  const handleRemoveExercise = async (exerciseId: number) => {
-    if (!sessionId) return;
-
-    try {
-      await removeExercise.mutateAsync({ sessionId: Number(sessionId), exerciseId });
-    } catch (error) {
-      console.error('Failed to remove exercise:', error);
     }
   };
 
