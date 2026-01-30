@@ -54,12 +54,15 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 // ============================================================================
 
 export const authApi = {
+  validateInvitation: async (token: string) => {
+    return fetchWithAuth(`/invitations/${token}`);
+  },
   register: async (data: {
     name: string;
     email: string;
     password: string;
     password_confirmation: string;
-    partner_id?: number;
+    invitation_token: string;
   }) => {
     return fetchWithAuth('/register', {
       method: 'POST',

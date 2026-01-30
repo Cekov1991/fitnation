@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, ChevronRight, Loader2 } from 'lucide-react';
-import { useExercises, useCategories, useMuscleGroups } from '../hooks/useApi';
+import { useExercises, useMuscleGroups, useEquipmentTypes } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
-import type { ExerciseResource, CategoryResource, MuscleGroupResource } from '../types/api';
+import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
 interface Exercise {
@@ -13,7 +13,7 @@ interface Exercise {
   muscleGroups: string[];
   muscleGroupIds: number[];
   imageUrl: string;
-  categoryId: number | null;
+  equipmentTypeId: number | null;
 }
 interface ExercisePickerPageProps {
   mode: 'add' | 'swap';
@@ -34,17 +34,17 @@ export function ExercisePickerPage({
     isLoading
   } = useExercises();
   const {
-    data: categories = [],
-    isLoading: isLoadingCategories
-  } = useCategories('workout');
-  const {
     data: muscleGroups = [],
     isLoading: isLoadingMuscleGroups
   } = useMuscleGroups();
+  const {
+    data: equipmentTypes = [],
+    isLoading: isLoadingEquipmentTypes
+  } = useEquipmentTypes();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<number>>(new Set());
   const [selectedMuscleGroupIds, setSelectedMuscleGroupIds] = useState<Set<number>>(new Set());
+  const [selectedEquipmentTypeIds, setSelectedEquipmentTypeIds] = useState<Set<number>>(new Set());
   
   const availableExercises = useMemo<Exercise[]>(() => {
     return exercises.map((exercise: ExerciseResource) => {
@@ -61,7 +61,7 @@ export function ExercisePickerPage({
         muscleGroups: (exercise.muscle_groups || []).map((group: { name: string }) => group.name),
         muscleGroupIds: primaryMuscleGroups.map((group: MuscleGroupResource) => group.id),
         imageUrl: exercise.image || '',
-        categoryId: exercise.category?.id || null
+        equipmentTypeId: exercise.equipment_type?.id || null
       };
     });
   }, [exercises]);
@@ -78,37 +78,25 @@ export function ExercisePickerPage({
       );
     }
 
-    // Apply category filter (AND logic)
-    if (selectedCategoryIds.size > 0) {
-      filtered = filtered.filter(exercise => 
-        exercise.categoryId !== null && selectedCategoryIds.has(exercise.categoryId)
-      );
-    }
-
-    // Apply muscle group filter (AND logic - exercise must have at least one selected muscle group)
+    // Apply muscle group filter (OR logic - exercise must have at least one selected muscle group)
     if (selectedMuscleGroupIds.size > 0) {
       filtered = filtered.filter(exercise => 
         exercise.muscleGroupIds.some(id => selectedMuscleGroupIds.has(id))
       );
     }
 
+    // Apply equipment type filter (OR logic)
+    if (selectedEquipmentTypeIds.size > 0) {
+      filtered = filtered.filter(exercise => 
+        exercise.equipmentTypeId !== null && selectedEquipmentTypeIds.has(exercise.equipmentTypeId)
+      );
+    }
+
     return filtered;
-  }, [availableExercises, searchQuery, selectedCategoryIds, selectedMuscleGroupIds]);
+  }, [availableExercises, searchQuery, selectedMuscleGroupIds, selectedEquipmentTypeIds]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-  };
-  
-  const handleToggleCategory = (categoryId: number) => {
-    setSelectedCategoryIds(prev => {
-      const next = new Set(prev);
-      if (next.has(categoryId)) {
-        next.delete(categoryId);
-      } else {
-        next.add(categoryId);
-      }
-      return next;
-    });
   };
 
   const handleToggleMuscleGroup = (muscleGroupId: number) => {
@@ -123,12 +111,24 @@ export function ExercisePickerPage({
     });
   };
 
-  const handleClearFilters = () => {
-    setSelectedCategoryIds(new Set());
-    setSelectedMuscleGroupIds(new Set());
+  const handleToggleEquipmentType = (equipmentTypeId: number) => {
+    setSelectedEquipmentTypeIds(prev => {
+      const next = new Set(prev);
+      if (next.has(equipmentTypeId)) {
+        next.delete(equipmentTypeId);
+      } else {
+        next.add(equipmentTypeId);
+      }
+      return next;
+    });
   };
 
-  const hasActiveFilters = selectedCategoryIds.size > 0 || selectedMuscleGroupIds.size > 0;
+  const handleClearFilters = () => {
+    setSelectedMuscleGroupIds(new Set());
+    setSelectedEquipmentTypeIds(new Set());
+  };
+
+  const hasActiveFilters = selectedMuscleGroupIds.size > 0 || selectedEquipmentTypeIds.size > 0;
   
   const handleSelectExercise = (exercise: Exercise) => {
     if (isSelecting) return;
@@ -182,12 +182,12 @@ export function ExercisePickerPage({
 
         {/* Filters Section */}
         <motion.div {...modalTransition} className="px-6 pb-4 space-y-3">
-          {/* Equipment/Category Filters */}
-          {!isLoadingCategories && categories.length > 0 && (
+          {/* Equipment Type Filters */}
+          {!isLoadingEquipmentTypes && equipmentTypes.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
-                  Equipment
+                  Equipment Type
                 </h3>
                 {hasActiveFilters && (
                   <button
@@ -209,12 +209,12 @@ export function ExercisePickerPage({
                 )}
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {categories.map((category: CategoryResource) => {
-                  const isSelected = selectedCategoryIds.has(category.id);
+                {equipmentTypes.map((equipmentType: EquipmentTypeResource) => {
+                  const isSelected = selectedEquipmentTypeIds.has(equipmentType.id);
                   return (
                     <button
-                      key={category.id}
-                      onClick={() => handleToggleCategory(category.id)}
+                      key={equipmentType.id}
+                      onClick={() => handleToggleEquipmentType(equipmentType.id)}
                       className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
                         isSelected ? 'shadow-lg' : 'border'
                       }`}
@@ -236,14 +236,11 @@ export function ExercisePickerPage({
                         }
                       }}
                     >
-                      {category.icon && (
-                        <span className="text-sm">{category.icon}</span>
-                      )}
                       <span 
                         className="text-xs font-medium"
                         style={{ color: isSelected ? '#ffffff' : 'var(--color-text-primary)' }}
                       >
-                        {category.name}
+                        {equipmentType.name}
                       </span>
                     </button>
                   );

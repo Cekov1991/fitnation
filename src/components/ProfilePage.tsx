@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IonInput } from '@ionic/react';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown, Download } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
@@ -27,6 +26,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema) as any,
@@ -44,6 +44,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       workout_duration_minutes: null,
     },
   });
+
+  const formData = watch();
 
   // Initialize form when profile loads
   useEffect(() => {
@@ -110,7 +112,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                 <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                   Account Information
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
                     <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                       Full Name
@@ -172,83 +174,175 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                 </div>
               </div>
 
-              {/* Fitness Profile */}
-              <div className="mb-8">
-                <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Fitness Profile</h2>
-                <div>
-                  <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                    Physical Goal
-                  </label>
-                  <div className="relative">
-                    <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
-                    <select 
-                      {...register('fitness_goal')}
-                      className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: 'var(--color-border)',
-                        color: 'var(--color-text-primary)'
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--color-border)';
-                      }}
-                    >
-                      {goalOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Personal Information */}
+              {/* Personal Information - Grid Layout */}
               <div className="mb-8">
                 <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
                   Personal Information
                 </h2>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Age</label>
-                    <div 
-                      className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: errors.age ? '#f87171' : 'var(--color-border)',
-                        color: 'var(--color-text-primary)'
-                      }}
-                    >
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      <Controller
-                        name="age"
-                        control={control}
-                        render={({ field }) => (
-                          <IonInput 
-                            type="number" 
-                            inputmode="numeric" 
-                            pattern="[0-9]*" 
-                            value={field.value?.toString() || ''} 
-                            onIonInput={e => {
-                              const val = e.detail.value;
-                              field.onChange(val ? parseInt(val, 10) || null : null);
-                            }} 
-                          />
-                        )}
-                      />
+                <div className="space-y-4">
+                  {/* Age and Gender - Side by Side */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                        Age
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                        <Controller
+                          name="age"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              value={field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                              placeholder="25"
+                              className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                              style={{
+                                backgroundColor: 'var(--color-bg-surface)',
+                                borderColor: errors.age ? '#f87171' : 'var(--color-border)',
+                                color: 'var(--color-text-primary)'
+                              }}
+                              onFocus={(e) => {
+                                if (!errors.age) {
+                                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (!errors.age) {
+                                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                                }
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                      {errors.age && <p className="text-xs text-red-400 mt-1">{errors.age.message}</p>}
                     </div>
-                    {errors.age && <p className="text-xs text-red-400 mt-1">{errors.age.message}</p>}
+
+                    <div>
+                      <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                        Gender
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
+                        <select 
+                          {...register('gender')}
+                          className="w-full pl-12 pr-10 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
+                          style={{ 
+                            backgroundColor: 'var(--color-bg-surface)',
+                            borderColor: 'var(--color-border)',
+                            color: 'var(--color-text-primary)'
+                          }}
+                          onFocus={(e) => {
+                            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-border)';
+                          }}
+                        >
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Prefer not to say</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Height and Weight - Side by Side */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                        Height (cm)
+                      </label>
+                      <div className="relative">
+                        <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                        <Controller
+                          name="height"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              value={field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                              placeholder="175"
+                              className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                              style={{
+                                backgroundColor: 'var(--color-bg-surface)',
+                                borderColor: errors.height ? '#f87171' : 'var(--color-border)',
+                                color: 'var(--color-text-primary)'
+                              }}
+                              onFocus={(e) => {
+                                if (!errors.height) {
+                                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (!errors.height) {
+                                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                                }
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                      {errors.height && <p className="text-xs text-red-400 mt-1">{errors.height.message}</p>}
+                    </div>
+
+                    <div>
+                      <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                        Weight (kg)
+                      </label>
+                      <div className="relative">
+                        <Weight className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                        <Controller
+                          name="weight"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              value={field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                              placeholder="70"
+                              className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                              style={{
+                                backgroundColor: 'var(--color-bg-surface)',
+                                borderColor: errors.weight ? '#f87171' : 'var(--color-border)',
+                                color: 'var(--color-text-primary)'
+                              }}
+                              onFocus={(e) => {
+                                if (!errors.weight) {
+                                  e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (!errors.weight) {
+                                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                                }
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                      {errors.weight && <p className="text-xs text-red-400 mt-1">{errors.weight.message}</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fitness Profile */}
+              <div className="mb-8">
+                <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Fitness Profile</h2>
+                <div className="space-y-4">
                   <div>
-                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>Sex</label>
+                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                      Physical Goal
+                    </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
+                      <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 z-10" style={{ color: 'var(--color-text-muted)' }} />
                       <select 
-                        {...register('gender')}
+                        {...register('fitness_goal')}
                         className="w-full pl-12 pr-12 py-4 border rounded-xl appearance-none focus:outline-none focus:ring-2 transition-all cursor-pointer"
                         style={{ 
                           backgroundColor: 'var(--color-bg-surface)',
@@ -262,91 +356,16 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                           e.currentTarget.style.borderColor = 'var(--color-border)';
                         }}
                       >
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Prefer not to say</option>
+                        {goalOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
                     </div>
                   </div>
-                  <div>
-                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                      Height (cm)
-                    </label>
-                    <div 
-                      className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: errors.height ? '#f87171' : 'var(--color-border)',
-                        color: 'var(--color-text-primary)'
-                      }}
-                    >
-                      <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      <Controller
-                        name="height"
-                        control={control}
-                        render={({ field }) => (
-                          <IonInput 
-                            type="number" 
-                            inputmode="numeric" 
-                            pattern="[0-9]*" 
-                            value={field.value?.toString() || ''} 
-                            onIonInput={e => {
-                              const val = e.detail.value;
-                              field.onChange(val ? parseInt(val, 10) || null : null);
-                            }} 
-                          />
-                        )}
-                      />
-                    </div>
-                    {errors.height && <p className="text-xs text-red-400 mt-1">{errors.height.message}</p>}
-                  </div>
-                  <div>
-                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                      Weight (kg)
-                    </label>
-                    <div 
-                      className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: errors.weight ? '#f87171' : 'var(--color-border)',
-                        color: 'var(--color-text-primary)'
-                      }}
-                    >
-                      <Weight className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      <Controller
-                        name="weight"
-                        control={control}
-                        render={({ field }) => (
-                          <IonInput 
-                            type="number" 
-                            inputmode="numeric" 
-                            pattern="[0-9]*" 
-                            value={field.value !== null && field.value !== undefined ? Math.round(field.value).toString() : ''} 
-                            onIonInput={e => {
-                              const val = e.detail.value;
-                              if (!val || val.trim() === '') {
-                                field.onChange(null);
-                              } else {
-                                const num = parseInt(val, 10);
-                                field.onChange(isNaN(num) ? null : num);
-                              }
-                            }} 
-                          />
-                        )}
-                      />
-                    </div>
-                    {errors.weight && <p className="text-xs text-red-400 mt-1">{errors.weight.message}</p>}
-                  </div>
-                </div>
-              </div>
 
-              {/* Training Information */}
-              <div className="mb-8">
-                <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                  Training Information
-                </h2>
-                <div className="space-y-3">
                   <div>
                     <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                       Experience Level
@@ -368,77 +387,127 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                           e.currentTarget.style.borderColor = 'var(--color-border)';
                         }}
                       >
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
+                        <option value="beginner">Beginner (0-1 years)</option>
+                        <option value="intermediate">Intermediate (1-3 years)</option>
+                        <option value="advanced">Advanced (3+ years)</option>
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Training Schedule */}
+              <div className="mb-8">
+                <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                  Training Schedule
+                </h2>
+                <div className="space-y-6">
+                  {/* Training Days Per Week - Visual Picker */}
                   <div>
-                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                    <label className="text-xs mb-3 block" style={{ color: 'var(--color-text-secondary)' }}>
                       Training Days Per Week
                     </label>
-                    <div 
-                      className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: errors.training_days_per_week ? '#f87171' : 'var(--color-border)',
-                        color: 'var(--color-text-primary)'
-                      }}
+                    <Controller
+                      name="training_days_per_week"
+                      control={control}
+                      render={({ field }) => (
+                        <div className="grid grid-cols-7 gap-2">
+                          {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => field.onChange(day)}
+                              className="aspect-square rounded-xl flex items-center justify-center text-lg font-semibold transition-all"
+                              style={{
+                                backgroundColor: field.value === day 
+                                  ? 'var(--color-primary)' 
+                                  : 'var(--color-bg-surface)',
+                                color: field.value === day 
+                                  ? 'white' 
+                                  : 'var(--color-text-secondary)',
+                                border: `2px solid ${field.value === day 
+                                  ? 'var(--color-primary)' 
+                                  : 'var(--color-border)'}`,
+                                transform: field.value === day ? 'scale(1.05)' : 'scale(1)',
+                              }}
+                            >
+                              {day}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    />
+                    <p 
+                      className="text-xs mt-2"
+                      style={{ color: 'var(--color-text-muted)' }}
                     >
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      <Controller
-                        name="training_days_per_week"
-                        control={control}
-                        render={({ field }) => (
-                          <IonInput 
-                            type="number" 
-                            inputmode="numeric" 
-                            pattern="[0-9]*" 
-                            min="1" 
-                            max="7" 
-                            value={field.value?.toString() || ''} 
-                            onIonInput={e => {
-                              const val = e.detail.value;
-                              field.onChange(val ? parseInt(val, 10) || null : null);
-                            }} 
-                          />
-                        )}
-                      />
-                    </div>
-                    {errors.training_days_per_week && <p className="text-xs text-red-400 mt-1">{errors.training_days_per_week.message}</p>}
+                      Select how many days you can commit to training.
+                    </p>
                   </div>
+
+                  {/* Workout Duration */}
                   <div>
                     <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
                       Workout Duration (minutes)
                     </label>
-                    <div 
-                      className="relative flex items-center w-full pl-12 pr-4 py-4 border rounded-xl focus-within:ring-2 transition-all"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: errors.workout_duration_minutes ? '#f87171' : 'var(--color-border)',
-                        color: 'var(--color-text-primary)'
-                      }}
-                    >
+                    <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                       <Controller
                         name="workout_duration_minutes"
                         control={control}
                         render={({ field }) => (
-                          <IonInput 
-                            type="number" 
-                            inputmode="numeric" 
-                            pattern="[0-9]*" 
-                            value={field.value?.toString() || ''} 
-                            onIonInput={e => {
-                              const val = e.detail.value;
-                              field.onChange(val ? parseInt(val, 10) || null : null);
-                            }} 
+                          <input
+                            type="number"
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                            placeholder="e.g. 45"
+                            min="15"
+                            max="180"
+                            className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                            style={{
+                              backgroundColor: 'var(--color-bg-surface)',
+                              borderColor: errors.workout_duration_minutes ? '#f87171' : 'var(--color-border)',
+                              color: 'var(--color-text-primary)'
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = 'var(--color-border)';
+                            }}
                           />
                         )}
                       />
                     </div>
+
+                    {/* Quick select buttons */}
+                    <Controller
+                      name="workout_duration_minutes"
+                      control={control}
+                      render={({ field }) => (
+                        <div className="flex gap-2 mt-3">
+                          {[30, 45, 60, 90].map((mins) => (
+                            <button
+                              key={mins}
+                              type="button"
+                              onClick={() => field.onChange(mins)}
+                              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
+                              style={{
+                                backgroundColor: field.value === mins
+                                  ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                                  : 'var(--color-border-subtle)',
+                                color: field.value === mins
+                                  ? 'var(--color-primary)'
+                                  : 'var(--color-text-secondary)',
+                              }}
+                            >
+                              {mins} mins
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    />
                     {errors.workout_duration_minutes && <p className="text-xs text-red-400 mt-1">{errors.workout_duration_minutes.message}</p>}
                   </div>
                 </div>

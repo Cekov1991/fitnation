@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Route, Switch, useLocation, useHistory, useParams } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
+import { RegisterPage } from './components/RegisterPage';
 import { ProfilePage } from './components/ProfilePage';
 import { ProgressPage } from './components/ProgressPage';
 import { PlansPage } from './components/PlansPage';
@@ -14,6 +15,7 @@ import { WorkoutSessionPage } from './components/workout-session';
 import { DashboardPage } from './components/DashboardPage';
 import { GenerateWorkoutPage } from './components/GenerateWorkoutPage';
 import { WorkoutPreviewPage } from './components/WorkoutPreviewPage';
+import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 import { BottomNav } from './components/BottomNav';
 import { useAuth } from './hooks/useAuth';
@@ -640,6 +642,18 @@ export function AppRoutes() {
           {/* Login route - public */}
           <Route exact path="/login">
             <LoginPage />
+          </Route>
+
+          {/* Register route - public */}
+          <Route exact path="/register">
+            <RegisterPage />
+          </Route>
+
+          {/* Onboarding route - protected */}
+          <Route exact path="/onboarding">
+            <AuthGuard>
+              <OnboardingFlow />
+            </AuthGuard>
           </Route>
 
           {/* Profile page - migrated to router */}

@@ -46,6 +46,27 @@ export interface UserPartner {
 }
 
 // ============================================
+// INVITATION RESOURCES
+// ============================================
+
+export interface InvitationResource {
+  token: string;
+  email: string;
+  expires_at: string; // ISO 8601
+  partner: {
+    id: number;
+    name: string;
+    slug: string;
+    visual_identity: PartnerVisualIdentityResource | null;
+  };
+}
+
+export interface ValidateInvitationResponse {
+  message: string;
+  data: InvitationResource;
+}
+
+// ============================================
 // PARTNER RESOURCES
 // ============================================
 
@@ -95,6 +116,10 @@ export interface ExerciseResource {
   image: string | null;
   video: string | null;
   default_rest_sec: number;
+  angle?: AngleResource | null;
+  movement_pattern?: MovementPatternResource | null;
+  target_region?: TargetRegionResource | null;
+  equipment_type?: EquipmentTypeResource | null;
   created_at: string;
   updated_at: string;
 }
