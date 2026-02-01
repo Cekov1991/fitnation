@@ -30,7 +30,7 @@ export function CurrentExerciseCard({ exercise, onOpenMenu, onViewExercise }: Cu
         borderColor: 'var(--color-border-subtle)'
       }}
     >
-      <div className="flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden">
+      <div className="flex-shrink-0 w-24 h-16 rounded-2xl overflow-hidden">
         <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
       </div>
       <div className="flex-1 text-left">

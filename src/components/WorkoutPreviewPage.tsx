@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useHistory, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
+import { Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
 import { LoadingContent } from './ui/LoadingContent';
@@ -18,7 +18,6 @@ import {
   useAddSessionExercise
 } from '../hooks/useApi';
 import { SessionExerciseDetail, GenerateWorkoutInput } from '../types/api';
-import { MuscleGroupResource } from '../types/api';
 
 interface LocationState {
   generationParams?: GenerateWorkoutInput;
@@ -277,65 +276,59 @@ export function WorkoutPreviewPage() {
                 return (
                   <div
                     key={sessionExercise.id}
-                    className="p-5 rounded-2xl border relative group"
+                    className="rounded-3xl overflow-hidden shadow-sm"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border)',
                     }}
                   >
-                    {/* Edit button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditClick(exerciseDetail);
-                      }}
-                      className="absolute top-3 right-3 p-2 rounded-lg transition-opacity"
-                      style={{ backgroundColor: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)' }}
-                      title="Edit exercise"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-
-                    {/* Clickable exercise card */}
+                    {/* Exercise Image - Top Section */}
                     <div 
-                      className="flex gap-4 cursor-pointer"
+                      className="w-full h-40 flex items-center justify-center cursor-pointer"
+                      style={{ backgroundColor: 'var(--color-bg-base)' }}
                       onClick={() => handleViewExerciseDetail(exercise.name)}
                     >
                       <ExerciseImage 
                         src={exercise.image} 
                         alt={exercise.name}
-                        className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0"
+                        className="w-full h-full object-contain"
                       />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--color-text-primary)' }}>
+                    </div>
+
+                    {/* Exercise Info - Bottom Section */}
+                    <div className="flex items-center gap-3 px-4 py-4">
+                      {/* Exercise Info */}
+                      <div 
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => handleViewExerciseDetail(exercise.name)}
+                      >
+                        <h3 className="text-base font-bold mb-0.5 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
                           {exercise.name}
                         </h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {exercise.muscle_groups?.slice(0, 3).map((mg: MuscleGroupResource, i: number) => (
-                            <span 
-                              key={i}
-                              className="px-3 py-1 rounded-full text-xs font-medium"
-                              style={{ 
-                                backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                                color: 'var(--color-primary)',
-                              }}
-                            >
-                              {mg.name}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-3 text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                          <span>{sessionExercise.target_sets} sets</span>
-                          <span style={{ color: 'var(--color-text-muted)' }}>•</span>
-                          <span>{sessionExercise.target_reps} reps</span>
+                        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                          <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_sets} sets</span>
+                          <span className="mx-1.5 opacity-40">×</span>
+                          <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_reps} reps</span>
                           {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
                             <>
-                              <span style={{ color: 'var(--color-text-muted)' }}>•</span>
-                              <span>{sessionExercise.target_weight} kg</span>
+                              <span className="mx-1.5 opacity-40">×</span>
+                              <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} kg</span>
                             </>
                           )}
-                        </div>
+                        </p>
                       </div>
+
+                      {/* Edit Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditClick(exerciseDetail);
+                        }}
+                        className="flex-shrink-0 p-2.5 rounded-full transition-colors"
+                        style={{ backgroundColor: 'var(--color-bg-base)' }}
+                        title="Edit exercise"
+                      >
+                        <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                      </button>
                     </div>
                   </div>
                 );
