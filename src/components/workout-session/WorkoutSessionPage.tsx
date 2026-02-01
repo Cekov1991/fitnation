@@ -11,7 +11,6 @@ import { LoadingButton, ConfirmDialog } from '../ui';
 import { WorkoutHeader } from './WorkoutHeader';
 import { ExerciseNavTabs } from './ExerciseNavTabs';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
-import { MaxWeightChart } from './MaxWeightChart';
 import { SetLogCard } from './SetLogCard';
 import { SetEditCard } from './SetEditCard';
 import { WorkoutOptionsMenu } from './WorkoutOptionsMenu';
@@ -485,8 +484,6 @@ export function WorkoutSessionPage({
                         onOpenMenu={() => setShowExerciseMenu(true)}
                         onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
                       />
-
-                      <MaxWeightChart exercise={currentExercise} />
                     </motion.div>
                   </AnimatePresence>
 
