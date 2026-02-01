@@ -176,8 +176,9 @@ export function ExerciseDetailPage({
   };
 
   const handleFullscreen = async () => {
+    const video = videoRef.current;
     const container = videoContainerRef.current;
-    if (!container) return;
+    if (!video || !container) return;
 
     // Type for Screen Orientation API
     type ScreenOrientationLock = ScreenOrientation & {
@@ -185,6 +186,7 @@ export function ExerciseDetailPage({
       unlock?: () => void;
     };
 
+    // Check if we're already in fullscreen
     if (document.fullscreenElement) {
       // Exit fullscreen and unlock orientation
       try {
@@ -196,27 +198,39 @@ export function ExerciseDetailPage({
         // Orientation unlock not supported
       }
       document.exitFullscreen();
-    } else {
-      // Enter fullscreen
+      return;
+    }
+
+    // iOS Safari - use video element's native fullscreen
+    // This is the only way to get fullscreen working on iOS
+    if ((video as HTMLVideoElement & { webkitEnterFullscreen?: () => void }).webkitEnterFullscreen) {
       try {
-        if (container.requestFullscreen) {
-          await container.requestFullscreen();
-        } else if ((container as HTMLDivElement & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen) {
-          (container as HTMLDivElement & { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
-        }
-        
-        // Lock to landscape on mobile after entering fullscreen
-        const orientation = screen.orientation as ScreenOrientationLock;
-        if (orientation?.lock) {
-          try {
-            await orientation.lock('landscape');
-          } catch {
-            // Orientation lock not supported or failed (common on iOS)
-          }
-        }
+        (video as HTMLVideoElement & { webkitEnterFullscreen: () => void }).webkitEnterFullscreen();
+        return;
       } catch {
-        // Fullscreen request failed
+        // Fall through to standard approach
       }
+    }
+
+    // Standard Fullscreen API (desktop and Android)
+    try {
+      if (container.requestFullscreen) {
+        await container.requestFullscreen();
+      } else if ((container as HTMLDivElement & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen) {
+        (container as HTMLDivElement & { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+      }
+      
+      // Lock to landscape on mobile after entering fullscreen
+      const orientation = screen.orientation as ScreenOrientationLock;
+      if (orientation?.lock) {
+        try {
+          await orientation.lock('landscape');
+        } catch {
+          // Orientation lock not supported or failed (common on iOS)
+        }
+      }
+    } catch {
+      // Fullscreen request failed
     }
   };
   return <div>
