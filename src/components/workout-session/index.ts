@@ -2,7 +2,6 @@ export { WorkoutSessionPage } from './WorkoutSessionPage';
 export { WorkoutHeader } from './WorkoutHeader';
 export { ExerciseNavTabs } from './ExerciseNavTabs';
 export { CurrentExerciseCard } from './CurrentExerciseCard';
-export { MaxWeightChart } from './MaxWeightChart';
 export { SetLogCard } from './SetLogCard';
 export { SetEditCard } from './SetEditCard';
 export { SetsList } from './SetsList';
