@@ -560,13 +560,12 @@ function DashboardPageWrapper() {
   );
 }
 
-// Workout session page wrapper
+// Workout session page wrapper (no BottomNav for full-screen workout experience)
 function WorkoutSessionPageWrapper() {
   const history = useHistory();
   const location = useLocation<{ exerciseName?: string }>();
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: todayWorkout, refetch: refetchTodayWorkout } = useTodayWorkout();
-  const currentPage = useCurrentNavPage();
 
   // Get workout name from todayWorkout or use default
   const workoutName = useMemo(() => {
@@ -597,7 +596,7 @@ function WorkoutSessionPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
+    <div className="h-screen w-full overflow-y-auto">
       <WorkoutSessionPage
         sessionId={parseInt(sessionId)}
         workoutName={workoutName}
@@ -606,15 +605,14 @@ function WorkoutSessionPageWrapper() {
         onViewExerciseDetail={handleViewExerciseDetail}
         initialExerciseName={initialExerciseName}
       />
-    </AuthenticatedLayout>
+    </div>
   );
 }
 
-// Workout session exercise detail page wrapper
+// Workout session exercise detail page wrapper (no BottomNav for full-screen workout experience)
 function WorkoutSessionExerciseDetailPageWrapper() {
   const history = useHistory();
   const { sessionId, exerciseName } = useParams<{ sessionId: string; exerciseName: string }>();
-  const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
     // Pass exercise name back via state to preserve active tab
@@ -625,12 +623,12 @@ function WorkoutSessionExerciseDetailPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
+    <div className="h-screen w-full overflow-y-auto">
       <ExerciseDetailPage 
         exerciseName={decodeURIComponent(exerciseName)} 
         onBack={handleBack} 
       />
-    </AuthenticatedLayout>
+    </div>
   );
 }
 

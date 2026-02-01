@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useSimpleTransition } from '../../utils/animations';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, MoreVertical } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
 import { exercisesApi } from '../../services/api';
@@ -14,14 +14,13 @@ import { CurrentExerciseCard } from './CurrentExerciseCard';
 import { MaxWeightChart } from './MaxWeightChart';
 import { SetLogCard } from './SetLogCard';
 import { SetEditCard } from './SetEditCard';
-import { SetsList } from './SetsList';
 import { WorkoutOptionsMenu } from './WorkoutOptionsMenu';
 import { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 import { SetOptionsMenu } from './SetOptionsMenu';
 import { RestTimer } from './RestTimer';
 import { useWorkoutTimer } from './hooks/useWorkoutTimer';
 import { useExerciseNavigationState } from './hooks/useExerciseNavigationState';
-import { mapSessionToExercises, getExerciseCompletionStatus } from './utils';
+import { mapSessionToExercises, getExerciseCompletionStatus, formatWeight } from './utils';
 import type { Exercise } from './types';
 
 interface WorkoutSessionPageProps {
@@ -104,12 +103,6 @@ export function WorkoutSessionPage({
   const isSelectedSetLast = selectedSet && currentExercise
     ? currentExercise.sets.findIndex(s => s.id === selectedSet.id) === currentExercise.sets.length - 1
     : false;
-  const setNumber = currentSet && currentExercise 
-    ? currentExercise.sets.findIndex(s => s.id === currentSet.id) + 1 
-    : undefined;
-  const editingSetNumber = editingSetId && currentExercise
-    ? currentExercise.sets.findIndex(s => s.id === editingSetId) + 1
-    : undefined;
 
   // Update exercise index when exercises load and we have initialExerciseName from navigation state
   // This handles the case where exercises load asynchronously after component mount
@@ -446,7 +439,7 @@ export function WorkoutSessionPage({
             />
 
             {/* Exercise Content */}
-            <div className="px-6 pb-40">
+            <div className="px-6">
               {exercises.length === 0 ? (
                 /* Empty State */
                 <div className="flex flex-col items-center justify-center py-20">
@@ -494,35 +487,6 @@ export function WorkoutSessionPage({
                       />
 
                       <MaxWeightChart exercise={currentExercise} />
-
-                      {/* Set Log Card - Only show if not editing a completed set */}
-                      {currentSet && editingWeight !== null && editingReps !== null && !editingSetId && (
-                        <SetLogCard
-                          weight={editingWeight}
-                          reps={editingReps}
-                          onWeightChange={setEditingWeight}
-                          onRepsChange={setEditingReps}
-                          onLogSet={handleDidIt}
-                          onStartTimer={handleStartTimer}
-                          isLoading={logSet.isPending}
-                          setNumber={setNumber}
-                          showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
-                        />
-                      )}
-
-                      {/* Edit Set Card - Show when editing a completed set */}
-                      {editingSetId && editingWeight !== null && editingReps !== null && (
-                        <SetEditCard
-                          weight={editingWeight}
-                          reps={editingReps}
-                          onWeightChange={setEditingWeight}
-                          onRepsChange={setEditingReps}
-                          onSave={handleSaveEdit}
-                          onCancel={handleCancelEdit}
-                          isLoading={updateSet.isPending}
-                          setNumber={editingSetNumber}
-                        />
-                      )}
                     </motion.div>
                   </AnimatePresence>
 
@@ -537,7 +501,7 @@ export function WorkoutSessionPage({
                     )}
                   </AnimatePresence>
 
-                  {/* Sets list - animated on exercise switch */}
+                  {/* Sets list with inline log/edit cards */}
                   <AnimatePresence mode="wait">
                     <motion.div 
                       key={`sets-${currentExercise.id}`}
@@ -545,14 +509,119 @@ export function WorkoutSessionPage({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
                       transition={simpleTransition}
+                      className="space-y-2"
                     >
-                      <SetsList
-                        sets={currentExercise.sets}
-                        editingSetId={editingSetId}
-                        onOpenSetMenu={handleOpenSetMenu}
-                        onAddSet={handleAddSet}
-                        isAddSetLoading={updateSessionExercise.isPending}
-                      />
+                      {currentExercise.sets.map((set, index) => {
+                        const isCurrentLoggingSet = currentSet?.id === set.id && !editingSetId;
+                        const isCurrentEditingSet = editingSetId === set.id;
+
+                        // Render SetLogCard inline for the current set being logged
+                        if (isCurrentLoggingSet && editingWeight !== null && editingReps !== null) {
+                          return (
+                            <SetLogCard
+                              key={set.id}
+                              weight={editingWeight}
+                              reps={editingReps}
+                              onWeightChange={setEditingWeight}
+                              onRepsChange={setEditingReps}
+                              onLogSet={handleDidIt}
+                              onStartTimer={handleStartTimer}
+                              isLoading={logSet.isPending}
+                              setNumber={index + 1}
+                              showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
+                            />
+                          );
+                        }
+
+                        // Render SetEditCard inline for the set being edited
+                        if (isCurrentEditingSet && editingWeight !== null && editingReps !== null) {
+                          return (
+                            <SetEditCard
+                              key={set.id}
+                              weight={editingWeight}
+                              reps={editingReps}
+                              onWeightChange={setEditingWeight}
+                              onRepsChange={setEditingReps}
+                              onSave={handleSaveEdit}
+                              onCancel={handleCancelEdit}
+                              isLoading={updateSet.isPending}
+                              setNumber={index + 1}
+                            />
+                          );
+                        }
+
+                        // Regular set row (completed or future)
+                        return (
+                          <motion.div
+                            key={set.id}
+                            className={`flex items-center justify-between p-4 rounded-xl transition-colors border ${
+                              set.completed ? 'border-2 border-green-500' : ''
+                            }`}
+                            style={!set.completed ? {
+                              backgroundColor: 'var(--color-bg-elevated)',
+                              borderColor: 'var(--color-border-subtle)'
+                            } : {
+                              backgroundColor: 'var(--color-bg-elevated)',
+                            }}
+                          >
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>
+                                Set {index + 1}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                  {set.completed ? formatWeight(set.weight) : '--'}
+                                </span>
+                                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
+                              </div>
+                              <span style={{ color: 'var(--color-border)' }}>×</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                  {set.completed ? set.reps : '--'}
+                                </span>
+                                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>reps</span>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => handleOpenSetMenu(set.id)}
+                              className="p-2 rounded-lg"
+                              style={{ backgroundColor: 'var(--color-bg-surface)' }}
+                            >
+                              <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                            </button>
+                          </motion.div>
+                        );
+                      })}
+
+                      {/* Add Set Button */}
+                      {!editingSetId && (
+                        <button
+                          onClick={handleAddSet}
+                          disabled={updateSessionExercise.isPending}
+                          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{
+                            backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                          }}
+                        >
+                          {updateSessionExercise.isPending ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: 'var(--color-primary)' }} />
+                              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                                Adding...
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                                Add Set
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </motion.div>
                   </AnimatePresence>
                 </div>

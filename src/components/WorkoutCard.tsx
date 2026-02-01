@@ -209,11 +209,11 @@ export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseCli
                 <div
                   key={exercise.pivot.id}
                   onClick={() => handleExerciseClick(exercise.name)}
-                  className={`flex items-center gap-4 p-3 rounded-xl transition-colors ${onExerciseClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+                  className={`flex items-center gap-4 rounded-xl transition-colors ${onExerciseClick ? 'cursor-pointer' : ''}`}
                   style={{ backgroundColor: 'var(--color-bg-elevated)' }}
                 >
                   {/* Exercise Image */}
-                  <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
+                  <div className="flex-shrink-0 w-24 h-16 rounded-xl overflow-hidden">
                     <ExerciseImage src={exercise.image} alt={exercise.name} className="w-full h-full" />
                   </div>
 

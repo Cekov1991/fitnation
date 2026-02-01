@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Play, Pause } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Maximize } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
@@ -34,6 +34,7 @@ export function ExerciseDetailPage({
   const [activeTab, setActiveTab] = useState<'muscles' | 'instructions' | 'history'>('muscles');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
   const shouldReduceMotion = useReducedMotion();
   const {
@@ -136,6 +137,32 @@ export function ExerciseDetailPage({
     };
   }, []);
 
+  // Handle fullscreen exit to unlock orientation
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        // Exited fullscreen, unlock orientation
+        type ScreenOrientationLock = ScreenOrientation & { unlock?: () => void };
+        try {
+          const orientation = screen.orientation as ScreenOrientationLock;
+          if (orientation?.unlock) {
+            orientation.unlock();
+          }
+        } catch {
+          // Orientation unlock not supported
+        }
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   // Handle video play/pause
   const handleVideoToggle = () => {
     if (videoRef.current) {
@@ -145,6 +172,51 @@ export function ExerciseDetailPage({
         videoRef.current.play();
       }
       setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
+  const handleFullscreen = async () => {
+    const container = videoContainerRef.current;
+    if (!container) return;
+
+    // Type for Screen Orientation API
+    type ScreenOrientationLock = ScreenOrientation & {
+      lock?: (orientation: string) => Promise<void>;
+      unlock?: () => void;
+    };
+
+    if (document.fullscreenElement) {
+      // Exit fullscreen and unlock orientation
+      try {
+        const orientation = screen.orientation as ScreenOrientationLock;
+        if (orientation?.unlock) {
+          orientation.unlock();
+        }
+      } catch {
+        // Orientation unlock not supported
+      }
+      document.exitFullscreen();
+    } else {
+      // Enter fullscreen
+      try {
+        if (container.requestFullscreen) {
+          await container.requestFullscreen();
+        } else if ((container as HTMLDivElement & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen) {
+          (container as HTMLDivElement & { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+        }
+        
+        // Lock to landscape on mobile after entering fullscreen
+        const orientation = screen.orientation as ScreenOrientationLock;
+        if (orientation?.lock) {
+          try {
+            await orientation.lock('landscape');
+          } catch {
+            // Orientation lock not supported or failed (common on iOS)
+          }
+        }
+      } catch {
+        // Fullscreen request failed
+      }
     }
   };
   return <div>
@@ -173,6 +245,7 @@ export function ExerciseDetailPage({
         <motion.div {...modalTransition}
         className="mx-6 mb-6">
           <div 
+            ref={videoContainerRef}
             className="relative aspect-video bg-gradient-to-br rounded-2xl overflow-hidden border"
             style={{ 
               background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
@@ -210,10 +283,26 @@ export function ExerciseDetailPage({
                     {isVideoPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
                   </div>
                 </button>
+
+                {/* Fullscreen Button */}
+                <button
+                  onClick={handleFullscreen}
+                  className="absolute bottom-3 right-3 p-2 rounded-lg transition-opacity opacity-70 hover:opacity-100"
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  title="Fullscreen"
+                >
+                  <Maximize className="text-white w-5 h-5" />
+                </button>
               </>
+            ) : exercise?.image ? (
+              <ExerciseImage 
+                src={exercise.image} 
+                alt={exercise.name} 
+                className="w-full h-full object-contain"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <div className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No video available</div>
+                <div className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No media available</div>
               </div>
             )}
           </div>

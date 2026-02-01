@@ -332,7 +332,7 @@ export function ExercisePickerPage({
                       }}
                     >
                       {/* Exercise Image/Muscle Diagram */}
-                      <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden relative">
+                      <div className="flex-shrink-0 w-24 h-16 rounded-xl overflow-hidden relative">
                         <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
                         {isThisLoading && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
@@ -346,9 +346,6 @@ export function ExercisePickerPage({
                         <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
                           {isThisLoading ? 'Adding...' : exercise.name}
                         </h3>
-                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                          Rest: {exercise.restTime}
-                        </p>
                       </div>
 
                       {/* Chevron or nothing when loading */}

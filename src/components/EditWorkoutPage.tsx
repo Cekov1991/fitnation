@@ -43,10 +43,9 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
       dragListener={false}
       dragControls={controls}
       onDragEnd={onDragEnd}
-      className="border rounded-2xl p-4 cursor-pointer"
+      className="rounded-3xl overflow-hidden cursor-pointer shadow-sm"
       style={{ 
         backgroundColor: 'var(--color-bg-surface)',
-        borderColor: 'var(--color-border-subtle)'
       }}
       // iOS-friendly: use only transform (scale) and avoid expensive boxShadow animation
       whileDrag={skipDragAnimation ? undefined : { 
@@ -60,8 +59,22 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
         ease: 'easeOut'
       }}
     >
+      {/* Exercise Image - Top Section */}
       <div 
-        className="flex items-center gap-4"
+        className="w-full h-40 flex items-center justify-center"
+        style={{ backgroundColor: 'var(--color-bg-base)' }}
+        onClick={(e) => {
+          if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
+            onClick(exercise);
+          }
+        }}
+      >
+        <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full object-contain" />
+      </div>
+
+      {/* Exercise Info - Bottom Section */}
+      <div 
+        className="flex items-center gap-3 px-4 py-4"
         onClick={(e) => {
           // Only trigger onClick if not clicking on drag handle or edit button
           if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
@@ -76,24 +89,23 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
             e.stopPropagation();
             controls.start(e);
           }}
-          className="flex-shrink-0 p-1 rounded cursor-grab active:cursor-grabbing transition-colors touch-none" 
-          style={{ backgroundColor: 'var(--color-border-subtle)' }}
+          className="flex-shrink-0 p-1.5 rounded-lg cursor-grab active:cursor-grabbing transition-colors touch-none" 
+          style={{ backgroundColor: 'var(--color-bg-base)' }}
         >
           <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
         </div>
 
-        {/* Exercise Image */}
-        <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
-          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-        </div>
-
         {/* Exercise Info */}
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-bold mb-1 leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
+          <h4 className="text-base font-bold mb-0.5 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
             {exercise.name}
           </h4>
-          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-            {exercise.sets} sets × {exercise.reps} reps × {exercise.weight} kg
+          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+            <span style={{ color: 'var(--color-primary)' }}>{exercise.sets} sets</span>
+            <span className="mx-1.5 opacity-40">×</span>
+            <span style={{ color: 'var(--color-primary)' }}>{exercise.reps} reps</span>
+            <span className="mx-1.5 opacity-40">×</span>
+            <span style={{ color: 'var(--color-primary)' }}>{exercise.weight} kg</span>
           </p>
         </div>
 
@@ -104,10 +116,10 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
             e.stopPropagation();
             onEditClick(exercise);
           }} 
-          className="flex-shrink-0 p-2 rounded-full transition-colors" 
-          style={{ backgroundColor: 'var(--color-border-subtle)' }}
+          className="flex-shrink-0 p-2.5 rounded-full transition-colors" 
+          style={{ backgroundColor: 'var(--color-bg-base)' }}
         >
-          <Edit2 className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
+          <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
         </button>
       </div>
     </Reorder.Item>
