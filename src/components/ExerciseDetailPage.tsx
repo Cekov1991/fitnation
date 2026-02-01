@@ -6,9 +6,6 @@ import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
 import { useModalTransition } from '../utils/animations';
-import { useReducedMotion } from '../hooks/useReducedMotion';
-
-const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 interface ExerciseDetailPageProps {
   exerciseName: string;
@@ -27,16 +24,16 @@ function formatProgress(percentage: number): string {
   const sign = percentage >= 0 ? '+' : '';
   return `${sign}${percentage.toFixed(0)}%`;
 }
+
 export function ExerciseDetailPage({
   exerciseName,
   onBack
 }: ExerciseDetailPageProps) {
-  const [activeTab, setActiveTab] = useState<'muscles' | 'instructions' | 'history'>('muscles');
+  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
-  const shouldReduceMotion = useReducedMotion();
   const {
     data: exercises = []
   } = useExercises();
@@ -44,7 +41,7 @@ export function ExerciseDetailPage({
     return exercises.find((item: ExerciseResource) => item.name.toLowerCase() === exerciseName.toLowerCase());
   }, [exerciseName, exercises]);
 
-  // Fetch exercise history when history tab is active and exercise exists
+  // Fetch exercise history when performance tab is active and exercise exists
   const {
     data: historyData,
     isLoading: isLoadingHistory,
@@ -53,7 +50,7 @@ export function ExerciseDetailPage({
     exercise?.id || 0,
     undefined,
     {
-      enabled: activeTab === 'history' && !!exercise?.id
+      enabled: activeTab === 'performance' && !!exercise?.id
     }
   );
 
@@ -233,17 +230,18 @@ export function ExerciseDetailPage({
       // Fullscreen request failed
     }
   };
-  return <div>
-      <div>
-        <div 
-          className="min-h-screen w-full pb-32"
-          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
-        >
 
+  return (
+    <div 
+      className="min-h-screen w-full pb-32"
+      style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+    >
       <main className="relative z-10 max-w-md mx-auto">
-        {/* Header */}
-        <motion.div {...modalTransition}
-        className="flex items-center gap-4 p-6 pb-4">
+        {/* Header - Original design with back arrow and gradient title */}
+        <motion.div 
+          {...modalTransition}
+          className="flex items-center gap-4 p-6 pb-4"
+        >
           <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
           </button>
@@ -255,53 +253,76 @@ export function ExerciseDetailPage({
           </h1>
         </motion.div>
 
-        {/* Video Player Section - Always show, autoplay if video exists */}
-        <motion.div {...modalTransition}
-        className="mx-6 mb-6">
+        {/* Tabs - Pill style */}
+        <motion.div 
+          {...modalTransition} 
+          className="px-6 mb-4"
+        >
+          <div 
+            className="flex p-1 rounded-full"
+            style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+          >
+            {(['guidance', 'performance'] as const).map(tab => (
+              <button 
+                key={tab} 
+                onClick={() => setActiveTab(tab)} 
+                className="flex-1 py-3 px-6 rounded-full font-medium text-sm transition-all relative"
+                style={{ 
+                  color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                  backgroundColor: activeTab === tab ? 'var(--color-bg-surface)' : 'transparent'
+                }}
+              >
+                <span className="relative z-10 capitalize">{tab}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Video/Image Section - Full Width */}
+        <motion.div 
+          {...modalTransition}
+          className="mb-6"
+        >
           <div 
             ref={videoContainerRef}
-            className="relative aspect-video bg-gradient-to-br rounded-2xl overflow-hidden border"
-            style={{ 
-              background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
-              borderColor: 'var(--color-border)'
-            }}
+            className="relative w-full aspect-[4/3] overflow-hidden"
+            style={{ backgroundColor: 'var(--color-bg-elevated)' }}
           >
             {exercise?.video ? (
               <>
                 <video 
                   ref={videoRef}
-                  className="w-full h-full object-cover" 
+                  className="w-full h-full object-cover cursor-pointer" 
                   loop 
                   muted 
                   playsInline 
                   autoPlay
                   poster={exercise.image || undefined}
+                  onClick={handleVideoToggle}
                 >
                   <source src={exercise.video} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
 
-                {/* Play/Pause Overlay */}
-                <button 
-                  onClick={handleVideoToggle} 
-                  className={`absolute inset-0 flex items-center justify-center transition-opacity group ${
-                    isVideoPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'
-                  } bg-black/20 hover:bg-black/30`}
+                {/* Play/Pause Overlay - shows on pause or hover */}
+                <div 
+                  className={`absolute inset-0 flex items-center justify-center transition-opacity pointer-events-none ${
+                    isVideoPlaying ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                 >
                   <div 
-                    className="p-4 rounded-full transition-colors"
-                    style={{ 
-                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)'
-                    }}
+                    className="p-4 rounded-full"
+                    style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)' }}
                   >
-                    {isVideoPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
+                    {isVideoPlaying ? <Pause className="text-white w-8 h-8" /> : <Play className="text-white w-8 h-8" />}
                   </div>
-                </button>
+                </div>
 
                 {/* Fullscreen Button */}
                 <button
                   onClick={handleFullscreen}
-                  className="absolute bottom-3 right-3 p-2 rounded-lg transition-opacity opacity-70 hover:opacity-100"
+                  className="absolute top-4 right-4 p-2.5 rounded-lg transition-opacity opacity-80 hover:opacity-100"
                   style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                   title="Fullscreen"
                 >
@@ -309,11 +330,22 @@ export function ExerciseDetailPage({
                 </button>
               </>
             ) : exercise?.image ? (
-              <ExerciseImage 
-                src={exercise.image} 
-                alt={exercise.name} 
-                className="w-full h-full object-contain"
-              />
+              <>
+                <ExerciseImage 
+                  src={exercise.image} 
+                  alt={exercise.name} 
+                  className="w-full h-full object-cover"
+                />
+                {/* Fullscreen Button for images too */}
+                <button
+                  onClick={handleFullscreen}
+                  className="absolute top-4 right-4 p-2.5 rounded-lg transition-opacity opacity-80 hover:opacity-100"
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  title="Fullscreen"
+                >
+                  <Maximize className="text-white w-5 h-5" />
+                </button>
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No media available</div>
@@ -322,254 +354,245 @@ export function ExerciseDetailPage({
           </div>
         </motion.div>
 
-        {/* Tabs */}
-        <motion.div {...modalTransition} className="flex gap-2 px-6 mb-6">
-          {(['muscles', 'instructions', 'history'] as const).map(tab => <button 
-              key={tab} 
-              onClick={() => setActiveTab(tab)} 
-              className="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all relative"
-              style={{ 
-                color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
-              }}
-            >
-              {activeTab === tab && <motion.div 
-              {...modalTransition}
-                layoutId={shouldReduceMotion || isIOS ? undefined : "activeTab"} 
-                className="absolute inset-0 rounded-xl" 
-                style={{ background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' }}
-                 />}
-              <span className="relative z-10 capitalize">{tab}</span>
-            </button>)}
-        </motion.div>
-
         {/* Tab Content */}
-        <div className="px-6">
-          <AnimatePresence mode="wait">
-            {activeTab === 'instructions' && <motion.div key="instructions" {...modalTransition}>
-                <div className="space-y-6">
-                  {/* Instructions/Description */}
-                  <div 
-                    className="  border rounded-2xl p-6"
-                    style={{ 
-                      backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border-subtle)'
-                    }}
-                  >
-                    <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                      Instructions
-                    </h2>
-                    <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--color-text-secondary)' }}>
-                      {instructions}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>}
-
-            {activeTab === 'muscles' && <motion.div key="muscles" {...modalTransition}>
-                <div className="space-y-6">
-                  {/* Muscle Group Image */}
-                  <div 
-                    className="  border rounded-2xl overflow-hidden"
-                    style={{ 
-                      backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border-subtle)'
-                    }}
-                  >
-                    <ExerciseImage 
-                      src={exercise?.muscle_group_image || null} 
-                      alt={`${exercise?.name || 'Exercise'} muscle groups`} 
-                      className="w-full h-auto"
-                    />
-                  </div>
-
-                  {/* Primary Muscles */}
-                  <div 
-                    className="border rounded-2xl p-6"
-                    style={{ 
-                      backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border-subtle)'
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 rounded-full primary-muscle-group-bg" />
-                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                        Primary
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium">
-                          {muscle}
-                        </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No primary muscles available.</span>}
-                    </div>
-                  </div>
-
-                  {/* Secondary Muscles */}
-                  <div 
-                    className="  border rounded-2xl p-6"
-                    style={{ 
-                      backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border-subtle)'
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 rounded-full secondary-muscle-group-bg" />
-                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                        Secondary
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => <button key={muscle} className="px-4 py-2 border rounded-xl text-sm font-medium">
-                          {muscle}
-                        </button>) : <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No secondary muscles available.</span>}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>}
-
-            {activeTab === 'history' && <motion.div key="history" {...modalTransition}>
+        <AnimatePresence mode="wait">
+          {activeTab === 'guidance' && (
+            <motion.div key="guidance" {...modalTransition}>
+              {/* Horizontally Scrolling Cards */}
+              <div 
+                className="flex gap-4 overflow-x-auto pb-4 px-6"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {/* Muscles Worked Card */}
                 <div 
-                  className="  border rounded-2xl p-6"
-                  style={{ 
-                    backgroundColor: 'var(--color-bg-surface)',
-                    borderColor: 'var(--color-border-subtle)'
-                  }}
+                  className="flex-shrink-0 w-[85%] snap-start rounded-2xl p-5"
+                  style={{ backgroundColor: 'var(--color-bg-surface)' }}
                 >
                   <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                    Performance History
+                    Muscles Worked
                   </h2>
-
-                  {isLoadingHistory ? (
-                    <div className="text-sm text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
-                      Loading history...
-                    </div>
-                  ) : historyError ? (
-                    <div className="text-sm text-red-400 text-center py-8">
-                      Error loading history. Please try again.
-                    </div>
-                  ) : !historyData || historyData.performance_data.length === 0 ? (
-                    <div className="text-sm text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
-                      No history available yet.
-                    </div>
-                  ) : (
-                    <>
-                      {/* Stats Summary */}
-                      <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div 
-                          className="rounded-xl p-3 text-center"
-                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                        >
-                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current</p>
-                          <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                            {historyData.stats.current_weight} kg
-                          </p>
-                        </div>
-                        <div 
-                          className="rounded-xl p-3 text-center"
-                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                        >
-                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Best</p>
-                          <p className="text-lg font-bold text-green-400">
-                            {historyData.stats.best_weight} kg
-                          </p>
-                        </div>
-                        <div 
-                          className="rounded-xl p-3 text-center"
-                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                        >
-                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Progress</p>
-                          <p className="text-lg font-bold" style={{ color: 'var(--color-primary)' }}>
-                            {formatProgress(historyData.stats.progress_percentage)}
-                          </p>
-                        </div>
+                  
+                  {/* Muscle Labels */}
+                  <div className="flex gap-6 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 rounded-full primary-muscle-group-bg" />
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Primary</p>
                       </div>
+                      <div className="flex flex-wrap gap-2">
+                        {primaryMuscles.length > 0 ? primaryMuscles.map((muscle: string) => (
+                          <span 
+                            key={muscle} 
+                            className="px-3 py-1.5 rounded-full text-xs font-semibold uppercase border"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {muscle}
+                          </span>
+                        )) : (
+                          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>—</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 rounded-full secondary-muscle-group-bg" />
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Secondary</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {secondaryMuscles.length > 0 ? secondaryMuscles.map((muscle: string) => (
+                          <span 
+                            key={muscle} 
+                            className="px-3 py-1.5 rounded-full text-xs font-semibold uppercase border"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {muscle}
+                          </span>
+                        )) : (
+                          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>—</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-                      {/* Chart */}
-                      {chartData.length > 0 && (
-                        <div className="h-48 mb-4">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                              <XAxis 
-                                dataKey="date" 
-                                stroke="#9CA3AF" 
-                                style={{ fontSize: '12px' }}
-                              />
-                              <YAxis 
-                                stroke="#9CA3AF" 
-                                style={{ fontSize: '12px' }}
-                              />
-                              <Tooltip 
-                                contentStyle={{
-                                  backgroundColor: '#1F2937',
-                                  border: '1px solid #374151',
-                                  borderRadius: '8px',
-                                  color: '#fff'
-                                }}
-                                formatter={(value: number, name: string) => {
-                                  if (name === 'weight') return [`${value} kg`, 'Weight'];
-                                  if (name === 'reps') return [value, 'Reps'];
-                                  if (name === 'volume') return [value, 'Volume'];
-                                  return [value, name];
-                                }}
-                              />
-                              <Line 
-                                type="monotone" 
-                                dataKey="weight" 
-                                stroke="#3B82F6" 
-                                strokeWidth={2} 
-                                dot={{
-                                  fill: '#3B82F6',
-                                  r: 4
-                                }} 
-                                activeDot={{
-                                  r: 6
-                                }} 
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      )}
-
-                      {/* Recent Sessions */}
-                      {recentSessions.length > 0 && (
-                        <div>
-                          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                            Recent Sessions
-                          </h3>
-                          <div className="space-y-2">
-                            {recentSessions.map((session) => (
-                              <div 
-                                key={`${session.session_id}-${session.date}`} 
-                                className="flex items-center justify-between p-3 rounded-lg"
-                                style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                              >
-                                <div>
-                                  <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                                    {formatDateForDisplay(session.date)}
-                                  </p>
-                                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                                    {session.weight} kg × {session.reps} reps
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                                    {session.volume}
-                                  </p>
-                                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>volume</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
+                  {/* Muscle Group Image */}
+                  {exercise?.muscle_group_image && (
+                    <div className="mt-4">
+                      <ExerciseImage 
+                        src={exercise.muscle_group_image} 
+                        alt={`${exercise?.name || 'Exercise'} muscle groups`} 
+                        className="w-full h-auto rounded-xl"
+                      />
+                    </div>
                   )}
                 </div>
-              </motion.div>}
-          </AnimatePresence>
-        </div>
+
+                {/* Instructions Card */}
+                <div 
+                  className="flex-shrink-0 w-[85%] snap-start rounded-2xl p-5"
+                  style={{ backgroundColor: 'var(--color-bg-surface)' }}
+                >
+                  <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                    Instructions
+                  </h2>
+                  <div 
+                    className="text-sm leading-relaxed whitespace-pre-line"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {instructions}
+                  </div>
+                </div>
+              </div>
+
+              {/* Hide scrollbar */}
+              <style>{`
+                .snap-x::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+            </motion.div>
+          )}
+
+          {activeTab === 'performance' && (
+            <motion.div key="performance" {...modalTransition} className="px-6">
+              <div 
+                className="rounded-2xl p-6"
+                style={{ backgroundColor: 'var(--color-bg-surface)' }}
+              >
+                <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                  Performance History
+                </h2>
+
+                {isLoadingHistory ? (
+                  <div className="text-sm text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+                    Loading history...
+                  </div>
+                ) : historyError ? (
+                  <div className="text-sm text-red-400 text-center py-8">
+                    Error loading history. Please try again.
+                  </div>
+                ) : !historyData || historyData.performance_data.length === 0 ? (
+                  <div className="text-sm text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+                    No history available yet.
+                  </div>
+                ) : (
+                  <>
+                    {/* Stats Summary */}
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                      <div 
+                        className="rounded-xl p-3 text-center"
+                        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                      >
+                        <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current</p>
+                        <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                          {historyData.stats.current_weight} kg
+                        </p>
+                      </div>
+                      <div 
+                        className="rounded-xl p-3 text-center"
+                        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                      >
+                        <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Best</p>
+                        <p className="text-lg font-bold text-green-400">
+                          {historyData.stats.best_weight} kg
+                        </p>
+                      </div>
+                      <div 
+                        className="rounded-xl p-3 text-center"
+                        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                      >
+                        <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Progress</p>
+                        <p className="text-lg font-bold" style={{ color: 'var(--color-primary)' }}>
+                          {formatProgress(historyData.stats.progress_percentage)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Chart */}
+                    {chartData.length > 0 && (
+                      <div className="h-48 mb-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <XAxis 
+                              dataKey="date" 
+                              stroke="#9CA3AF" 
+                              style={{ fontSize: '12px' }}
+                            />
+                            <YAxis 
+                              stroke="#9CA3AF" 
+                              style={{ fontSize: '12px' }}
+                            />
+                            <Tooltip 
+                              contentStyle={{
+                                backgroundColor: '#1F2937',
+                                border: '1px solid #374151',
+                                borderRadius: '8px',
+                                color: '#fff'
+                              }}
+                              formatter={(value: number, name: string) => {
+                                if (name === 'weight') return [`${value} kg`, 'Weight'];
+                                if (name === 'reps') return [value, 'Reps'];
+                                if (name === 'volume') return [value, 'Volume'];
+                                return [value, name];
+                              }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="weight" 
+                              stroke="#3B82F6" 
+                              strokeWidth={2} 
+                              dot={{
+                                fill: '#3B82F6',
+                                r: 4
+                              }} 
+                              activeDot={{
+                                r: 6
+                              }} 
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+
+                    {/* Recent Sessions */}
+                    {recentSessions.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                          Recent Sessions
+                        </h3>
+                        <div className="space-y-2">
+                          {recentSessions.map((session) => (
+                            <div 
+                              key={`${session.session_id}-${session.date}`} 
+                              className="flex items-center justify-between p-3 rounded-lg"
+                              style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                            >
+                              <div>
+                                <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                                  {formatDateForDisplay(session.date)}
+                                </p>
+                                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                  {session.weight} kg × {session.reps} reps
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                                  {session.volume}
+                                </p>
+                                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>volume</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
-      </div>
-    </div>;
+  );
 }
