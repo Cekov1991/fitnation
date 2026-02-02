@@ -526,6 +526,7 @@ export function WorkoutSessionPage({
                               isLoading={logSet.isPending}
                               setNumber={index + 1}
                               showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
+                              allowWeightLogging={currentExercise.allowWeightLogging}
                             />
                           );
                         }
@@ -543,6 +544,7 @@ export function WorkoutSessionPage({
                               onCancel={handleCancelEdit}
                               isLoading={updateSet.isPending}
                               setNumber={index + 1}
+                              allowWeightLogging={currentExercise.allowWeightLogging}
                             />
                           );
                         }
@@ -565,13 +567,17 @@ export function WorkoutSessionPage({
                               <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>
                                 Set {index + 1}
                               </span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                                  {set.completed ? formatWeight(set.weight) : '--'}
-                                </span>
-                                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
-                              </div>
-                              <span style={{ color: 'var(--color-border)' }}>×</span>
+                              {currentExercise.allowWeightLogging && (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                      {set.completed ? formatWeight(set.weight) : '--'}
+                                    </span>
+                                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
+                                  </div>
+                                  <span style={{ color: 'var(--color-border)' }}>×</span>
+                                </>
+                              )}
                               <div className="flex items-center gap-2">
                                 <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                                   {set.completed ? set.reps : '--'}

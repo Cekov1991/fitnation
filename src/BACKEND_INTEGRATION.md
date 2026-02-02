@@ -423,6 +423,8 @@ interface ExerciseHistoryResource {
 interface ExerciseHistoryStats {
   current_weight: number;      // Most recent weight used (kg)
   best_weight: number;         // Highest weight ever used (kg)
+  current_best_set_reps: number; // Best single-set reps from most recent session (useful for bodyweight exercises)
+  best_set_reps: number;       // All-time best single-set reps (useful for bodyweight exercises)
   progress_percentage: number; // Percentage change from first to most recent (+28 means +28%)
   total_sessions: number;       // Total number of completed sessions with this exercise
   first_session_date: string | null; // ISO date string of first session (YYYY-MM-DD)
@@ -433,6 +435,7 @@ interface PerformanceDataPoint {
   date: string;                // ISO date string (YYYY-MM-DD)
   session_id: number;          // Workout session ID (for reference)
   weight: number;              // Best/max weight used in that session (kg)
+  best_set_reps: number;       // Highest reps in a single set for that session (useful for bodyweight exercises)
   reps: number;                // Total reps across all sets in that session
   volume: number;              // Total volume = sum of (weight × reps) for all sets
   sets: number;                // Number of sets performed
@@ -448,6 +451,8 @@ interface PerformanceDataPoint {
     "stats": {
       "current_weight": 32,
       "best_weight": 32,
+      "current_best_set_reps": 12,
+      "best_set_reps": 12,
       "progress_percentage": 28,
       "total_sessions": 5,
       "first_session_date": "2024-01-01",
@@ -458,6 +463,7 @@ interface PerformanceDataPoint {
         "date": "2024-01-01",
         "session_id": 101,
         "weight": 25,
+        "best_set_reps": 10,
         "reps": 30,
         "volume": 750,
         "sets": 3
@@ -466,6 +472,7 @@ interface PerformanceDataPoint {
         "date": "2024-01-15",
         "session_id": 120,
         "weight": 32,
+        "best_set_reps": 12,
         "reps": 30,
         "volume": 960,
         "sets": 3
@@ -1843,6 +1850,8 @@ interface ExerciseHistoryResource {
 interface ExerciseHistoryStats {
   current_weight: number;      // Most recent weight used (kg)
   best_weight: number;         // Highest weight ever used (kg)
+  current_best_set_reps: number; // Best single-set reps from most recent session
+  best_set_reps: number;       // All-time best single-set reps
   progress_percentage: number; // Percentage change from first to most recent
   total_sessions: number;      // Total number of completed sessions
   first_session_date: string | null; // ISO date string (YYYY-MM-DD)
@@ -1853,6 +1862,7 @@ interface PerformanceDataPoint {
   date: string;                // ISO date string (YYYY-MM-DD)
   session_id: number;          // Workout session ID
   weight: number;              // Best/max weight used in that session (kg)
+  best_set_reps: number;       // Highest reps in a single set for that session
   reps: number;                // Total reps across all sets
   volume: number;              // Total volume = sum of (weight × reps)
   sets: number;                // Number of sets performed

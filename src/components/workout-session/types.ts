@@ -21,6 +21,7 @@ export interface Exercise {
   imageUrl: string;
   history: { date: string; weight: number }[];
   restSeconds: number | null;
+  allowWeightLogging: boolean;
 }
 
 export interface ExerciseCompletionStatus {

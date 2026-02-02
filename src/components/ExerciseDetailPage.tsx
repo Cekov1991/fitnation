@@ -41,6 +41,9 @@ export function ExerciseDetailPage({
     return exercises.find((item: ExerciseResource) => item.name.toLowerCase() === exerciseName.toLowerCase());
   }, [exerciseName, exercises]);
 
+  // Check if exercise allows weight logging (non-bodyweight exercises)
+  const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT';
+
   // Fetch exercise history when performance tab is active and exercise exists
   const {
     data: historyData,
@@ -60,11 +63,14 @@ export function ExerciseDetailPage({
     return historyData.performance_data.map((point: PerformanceDataPoint) => ({
       date: formatDateForDisplay(point.date),
       weight: point.weight,
+      bestSetReps: point.best_set_reps,
       reps: point.reps,
       volume: point.volume,
-      sets: point.sets
+      sets: point.sets,
+      // Use weight for weighted exercises, best_set_reps for bodyweight
+      value: allowWeightLogging ? point.weight : point.best_set_reps
     }));
-  }, [historyData]);
+  }, [historyData, allowWeightLogging]);
 
   // Get recent sessions (last 3, most recent first)
   const recentSessions = useMemo(() => {
@@ -484,7 +490,10 @@ export function ExerciseDetailPage({
                       >
                         <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current</p>
                         <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                          {historyData.stats.current_weight} kg
+                          {allowWeightLogging 
+                            ? `${historyData.stats.current_weight} kg`
+                            : `${historyData.stats.current_best_set_reps} reps`
+                          }
                         </p>
                       </div>
                       <div 
@@ -493,7 +502,10 @@ export function ExerciseDetailPage({
                       >
                         <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Best</p>
                         <p className="text-lg font-bold text-green-400">
-                          {historyData.stats.best_weight} kg
+                          {allowWeightLogging 
+                            ? `${historyData.stats.best_weight} kg`
+                            : `${historyData.stats.best_set_reps} reps`
+                          }
                         </p>
                       </div>
                       <div 
@@ -521,6 +533,7 @@ export function ExerciseDetailPage({
                             <YAxis 
                               stroke="#9CA3AF" 
                               style={{ fontSize: '12px' }}
+                              unit={allowWeightLogging ? ' kg' : ''}
                             />
                             <Tooltip 
                               contentStyle={{
@@ -530,6 +543,11 @@ export function ExerciseDetailPage({
                                 color: '#fff'
                               }}
                               formatter={(value: number, name: string) => {
+                                if (name === 'value') {
+                                  return allowWeightLogging 
+                                    ? [`${value} kg`, 'Weight']
+                                    : [`${value} reps`, 'Best Set'];
+                                }
                                 if (name === 'weight') return [`${value} kg`, 'Weight'];
                                 if (name === 'reps') return [value, 'Reps'];
                                 if (name === 'volume') return [value, 'Volume'];
@@ -538,7 +556,7 @@ export function ExerciseDetailPage({
                             />
                             <Line 
                               type="monotone" 
-                              dataKey="weight" 
+                              dataKey="value" 
                               stroke="#3B82F6" 
                               strokeWidth={2} 
                               dot={{
@@ -572,14 +590,19 @@ export function ExerciseDetailPage({
                                   {formatDateForDisplay(session.date)}
                                 </p>
                                 <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                                  {session.weight} kg × {session.reps} reps
+                                  {allowWeightLogging 
+                                    ? `${session.weight} kg × ${session.reps} reps`
+                                    : `${session.best_set_reps} reps (best set) • ${session.sets} sets`
+                                  }
                                 </p>
                               </div>
                               <div className="text-right">
                                 <p className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                                  {session.volume}
+                                  {allowWeightLogging ? session.volume : session.reps}
                                 </p>
-                                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>volume</p>
+                                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                  {allowWeightLogging ? 'volume' : 'total reps'}
+                                </p>
                               </div>
                             </div>
                           ))}

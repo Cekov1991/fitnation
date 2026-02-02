@@ -14,6 +14,7 @@ interface SetLogCardProps {
   isLoading?: boolean;
   setNumber?: number;
   showTimerButton?: boolean;
+  allowWeightLogging?: boolean;
 }
 
 export function SetLogCard({
@@ -26,6 +27,7 @@ export function SetLogCard({
   isLoading = false,
   setNumber,
   showTimerButton = false,
+  allowWeightLogging = true,
 }: SetLogCardProps) {
   return (
     <motion.div 
@@ -42,28 +44,30 @@ export function SetLogCard({
       </p>
       <div className="flex items-center justify-between gap-4">
         {/* Weight Input */}
-        <div className="flex-1">
-          <label className="text-xs font-semibold mb-2 block" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            Weight
-          </label>
-          <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-            <IonInput 
-              type="number" 
-              inputmode="decimal" 
-              step="0.5"
-              value={weight === 0 ? '' : formatWeight(weight)} 
-              onIonInput={e => {
-                const value = e.detail.value || '';
-                const numValue = value === '' ? 0 : parseFloat(value);
-                onWeightChange(isNaN(numValue) ? 0 : numValue);
-              }} 
-              className="ionic-input-workout" 
-            />
-            <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-              kg
-            </span>
+        {allowWeightLogging && (
+          <div className="flex-1">
+            <label className="text-xs font-semibold mb-2 block" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+              Weight
+            </label>
+            <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
+              <IonInput 
+                type="number" 
+                inputmode="decimal" 
+                step="0.5"
+                value={weight === 0 ? '' : formatWeight(weight)} 
+                onIonInput={e => {
+                  const value = e.detail.value || '';
+                  const numValue = value === '' ? 0 : parseFloat(value);
+                  onWeightChange(isNaN(numValue) ? 0 : numValue);
+                }} 
+                className="ionic-input-workout" 
+              />
+              <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                kg
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Reps Input */}
         <div className="flex-1">

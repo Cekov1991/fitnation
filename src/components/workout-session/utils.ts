@@ -1,6 +1,9 @@
 import type { SessionDetailResponse } from '../../types/api';
 import type { Exercise, ExerciseCompletionStatus } from './types';
 
+// Equipment types that don't require weight logging
+const BODYWEIGHT_EQUIPMENT_TYPES = ['BODYWEIGHT'] as const;
+
 /**
  * Format weight for display - shows whole numbers without decimals,
  * decimals only when needed (e.g., 7.5)
@@ -42,6 +45,8 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
       }
     }
 
+    const equipmentCode = exercise?.equipment_type?.code || '';
+
     return {
       id: `ex-${exDetail.session_exercise.id}`,
       exerciseId: exDetail.session_exercise.exercise_id,
@@ -56,7 +61,8 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
       maxWeightLifted: Math.max(...loggedSets.map(s => s.weight), 0),
       imageUrl: exercise?.image || '',
       history: [], // Leave empty as requested
-      restSeconds: exDetail.session_exercise.rest_seconds ?? exercise?.default_rest_sec ?? null
+      restSeconds: exDetail.session_exercise.rest_seconds ?? exercise?.default_rest_sec ?? null,
+      allowWeightLogging: !BODYWEIGHT_EQUIPMENT_TYPES.includes(equipmentCode as typeof BODYWEIGHT_EQUIPMENT_TYPES[number])
     };
   });
 }

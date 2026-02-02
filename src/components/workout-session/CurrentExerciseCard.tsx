@@ -13,25 +13,23 @@ interface CurrentExerciseCardProps {
 }
 
 export function CurrentExerciseCard({ exercise, onOpenMenu, onViewExercise }: CurrentExerciseCardProps) {
-  // Fetch exercise history from API
   const { data: historyData, isLoading } = useExerciseHistory(
     exercise.exerciseId,
     { limit: 10 },
     { enabled: !!exercise.exerciseId }
   );
 
-  // Transform API data to chart format
+  // Transform API data to chart format - use best_set_reps for bodyweight, weight otherwise
   const chartData = useMemo(() => {
     if (!historyData?.performance_data || historyData.performance_data.length === 0) {
       return [];
     }
     return historyData.performance_data.map((point: PerformanceDataPoint) => ({
       date: point.date,
-      weight: point.weight,
+      value: exercise.allowWeightLogging ? point.weight : point.best_set_reps,
     }));
-  }, [historyData]);
+  }, [historyData, exercise.allowWeightLogging]);
 
-  // Get the most recent session data for display
   const recentSession = useMemo(() => {
     if (!historyData?.performance_data || historyData.performance_data.length === 0) {
       return null;
@@ -39,15 +37,22 @@ export function CurrentExerciseCard({ exercise, onOpenMenu, onViewExercise }: Cu
     return historyData.performance_data[historyData.performance_data.length - 1];
   }, [historyData]);
 
-  // Get max weight from history stats or fallback
-  const maxWeight = useMemo(() => {
-    if (historyData?.stats?.best_weight !== undefined && historyData.stats.best_weight > 0) {
-      return historyData.stats.best_weight;
+  // For weighted exercises: max weight; for bodyweight: best single-set reps
+  const maxValue = useMemo(() => {
+    if (exercise.allowWeightLogging) {
+      if (historyData?.stats?.best_weight !== undefined && historyData.stats.best_weight > 0) {
+        return historyData.stats.best_weight;
+      }
+      return exercise.maxWeightLifted || 0;
+    } else {
+      // For bodyweight, use best_set_reps from stats
+      if (historyData?.stats?.best_set_reps !== undefined && historyData.stats.best_set_reps > 0) {
+        return historyData.stats.best_set_reps;
+      }
+      return 0;
     }
-    return exercise.maxWeightLifted || 0;
-  }, [historyData, exercise.maxWeightLifted]);
+  }, [historyData, exercise.maxWeightLifted, exercise.allowWeightLogging]);
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -103,21 +108,21 @@ export function CurrentExerciseCard({ exercise, onOpenMenu, onViewExercise }: Cu
         </button>
       </div>
 
-      {/* Bottom section: Max Weight Stats + Chart */}
+      {/* Bottom section: Stats + Chart */}
       <div className="flex items-end px-4 pb-4">
         {/* Stats on the left */}
         <div className="flex-1">
           <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
-            Max Weight Lifted
+            {exercise.allowWeightLogging ? 'Max Weight Lifted' : 'Best Reps'}
           </span>
           <div className="mt-1">
             <span className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-              {maxWeight} kg
+              {maxValue} {exercise.allowWeightLogging ? 'kg' : 'reps'}
             </span>
           </div>
           {recentSession && (
             <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-              {recentSession.reps} reps
+              {exercise.allowWeightLogging ? `${recentSession.reps} reps` : `${recentSession.sets} sets`}
             </p>
           )}
           {recentSession && (
@@ -144,7 +149,7 @@ export function CurrentExerciseCard({ exercise, onOpenMenu, onViewExercise }: Cu
                 </defs>
                 <Area 
                   type="monotone" 
-                  dataKey="weight" 
+                  dataKey="value" 
                   stroke="var(--color-primary)" 
                   strokeWidth={2} 
                   fill={`url(#gradient-${exercise.exerciseId})`}

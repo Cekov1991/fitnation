@@ -154,6 +154,8 @@ export interface ExerciseHistoryResource {
 export interface ExerciseHistoryStats {
   current_weight: number;      // Most recent weight used (kg)
   best_weight: number;         // Highest weight ever used (kg)
+  current_best_set_reps: number; // Best single-set reps from most recent session
+  best_set_reps: number;       // All-time best single-set reps
   progress_percentage: number; // Percentage change from first to most recent (+28 means +28%)
   total_sessions: number;       // Total number of completed sessions with this exercise
   first_session_date: string | null; // ISO date string of first session (YYYY-MM-DD)
@@ -164,6 +166,7 @@ export interface PerformanceDataPoint {
   date: string;                // ISO date string (YYYY-MM-DD)
   session_id: number;          // Workout session ID (for reference)
   weight: number;              // Best/max weight used in that session (kg)
+  best_set_reps: number;       // Highest reps in a single set for that session
   reps: number;                // Total reps across all sets in that session
   volume: number;              // Total volume = sum of (weight × reps) for all sets
   sets: number;                // Number of sets performed

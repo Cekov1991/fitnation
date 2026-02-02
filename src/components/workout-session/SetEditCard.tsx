@@ -13,6 +13,7 @@ interface SetEditCardProps {
   onCancel: () => void;
   isLoading?: boolean;
   setNumber?: number;
+  allowWeightLogging?: boolean;
 }
 
 export function SetEditCard({
@@ -24,6 +25,7 @@ export function SetEditCard({
   onCancel,
   isLoading = false,
   setNumber,
+  allowWeightLogging = true,
 }: SetEditCardProps) {
   const slideTransition = useSlideTransition()
   return (
@@ -36,28 +38,30 @@ export function SetEditCard({
       </p>
       <div className="flex items-center justify-between gap-4">
         {/* Weight Input */}
-        <div className="flex-1">
-          <label className="text-xs font-semibold text-orange-100 mb-2 block">
-            Weight
-          </label>
-          <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-            <IonInput 
-              type="number" 
-              inputmode="decimal" 
-              step="0.5"
-              value={weight === 0 ? '' : formatWeight(weight)} 
-              onIonInput={e => {
-                const value = e.detail.value || '';
-                const numValue = value === '' ? 0 : parseFloat(value);
-                onWeightChange(isNaN(numValue) ? 0 : numValue);
-              }} 
-              className="ionic-input-workout" 
-            />
-            <span className="text-sm font-semibold text-orange-100 ml-2">
-              kg
-            </span>
+        {allowWeightLogging && (
+          <div className="flex-1">
+            <label className="text-xs font-semibold text-orange-100 mb-2 block">
+              Weight
+            </label>
+            <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
+              <IonInput 
+                type="number" 
+                inputmode="decimal" 
+                step="0.5"
+                value={weight === 0 ? '' : formatWeight(weight)} 
+                onIonInput={e => {
+                  const value = e.detail.value || '';
+                  const numValue = value === '' ? 0 : parseFloat(value);
+                  onWeightChange(isNaN(numValue) ? 0 : numValue);
+                }} 
+                className="ionic-input-workout" 
+              />
+              <span className="text-sm font-semibold text-orange-100 ml-2">
+                kg
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Reps Input */}
         <div className="flex-1">
