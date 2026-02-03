@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../hooks/useApi';
 import { exercisesApi } from '../../services/api';
 import { ExercisePickerPage } from '../ExercisePickerPage';
-import { LoadingButton, ConfirmDialog } from '../ui';
+import { ConfirmDialog } from '../ui';
 import { WorkoutHeader } from './WorkoutHeader';
 import { ExerciseNavTabs } from './ExerciseNavTabs';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
@@ -117,11 +117,11 @@ export function WorkoutSessionPage({
     }
   }, [exercises.length, initialExerciseName, initialExerciseIndex]);
 
-  // Initialize editing values when current set changes
+  // Reset editing values when current set changes (use null to show placeholders)
   useEffect(() => {
     if (currentSet && !editingSetId) {
-      setEditingWeight(currentSet.weight);
-      setEditingReps(currentSet.reps);
+      setEditingWeight(null);
+      setEditingReps(null);
     }
   }, [currentSet?.id, editingSetId, currentSet]);
 
@@ -136,16 +136,20 @@ export function WorkoutSessionPage({
   }, [exercises.length]);
 
   const handleDidIt = async () => {
-    if (currentSet && editingWeight !== null && editingReps !== null && currentExercise) {
+    if (currentSet && currentExercise) {
       const setNumber = currentExercise.sets.findIndex(s => s.id === currentSet.id) + 1;
+      // Use entered values, or fall back to defaults from currentSet
+      const weightToLog = editingWeight ?? currentSet.weight;
+      const repsToLog = editingReps ?? currentSet.reps;
+      
       try {
         await logSet.mutateAsync({
           sessionId,
           data: {
             exercise_id: currentExercise.exerciseId,
             set_number: setNumber,
-            weight: editingWeight,
-            reps: editingReps
+            weight: weightToLog,
+            reps: repsToLog
           }
         });
         
@@ -241,10 +245,16 @@ export function WorkoutSessionPage({
 
     try {
       if (set.completed && set.setLogId) {
-        // Remove logged set
+        // Remove logged set AND decrease target_sets
         await deleteSet.mutateAsync({
           sessionId,
           setLogId: set.setLogId
+        });
+        // Also decrease target_sets to fully remove the set slot
+        await updateSessionExercise.mutateAsync({
+          sessionId,
+          exerciseId: currentExercise.sessionExerciseId,
+          data: { target_sets: currentExercise.targetSets - 1 }
         });
       } else {
         // Remove unlogged set by decreasing target_sets
@@ -513,17 +523,18 @@ export function WorkoutSessionPage({
                         const isCurrentEditingSet = editingSetId === set.id;
 
                         // Render SetLogCard inline for the current set being logged
-                        if (isCurrentLoggingSet && editingWeight !== null && editingReps !== null) {
+                        if (isCurrentLoggingSet) {
                           return (
                             <SetLogCard
                               key={set.id}
                               weight={editingWeight}
                               reps={editingReps}
+                              defaultWeight={set.weight}
+                              defaultReps={set.reps}
                               onWeightChange={setEditingWeight}
                               onRepsChange={setEditingReps}
                               onLogSet={handleDidIt}
                               onStartTimer={handleStartTimer}
-                              isLoading={logSet.isPending}
                               setNumber={index + 1}
                               showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
                               allowWeightLogging={currentExercise.allowWeightLogging}
@@ -542,7 +553,6 @@ export function WorkoutSessionPage({
                               onRepsChange={setEditingReps}
                               onSave={handleSaveEdit}
                               onCancel={handleCancelEdit}
-                              isLoading={updateSet.isPending}
                               setNumber={index + 1}
                               allowWeightLogging={currentExercise.allowWeightLogging}
                             />
@@ -601,28 +611,17 @@ export function WorkoutSessionPage({
                       {!editingSetId && (
                         <button
                           onClick={handleAddSet}
-                          disabled={updateSessionExercise.isPending}
-                          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border active:opacity-70"
                           style={{
                             backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
-                            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+                            WebkitTapHighlightColor: 'transparent'
                           }}
                         >
-                          {updateSessionExercise.isPending ? (
-                            <>
-                              <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: 'var(--color-primary)' }} />
-                              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                                Adding...
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-                              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                                Add Set
-                              </span>
-                            </>
-                          )}
+                          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                          <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                            Add Set
+                          </span>
                         </button>
                       )}
                     </motion.div>
@@ -634,20 +633,18 @@ export function WorkoutSessionPage({
 
           {/* Finish Workout Button - Fixed above bottom nav */}
           {allExercisesCompleted && (
-            <div className="fixed bottom-28 left-0 right-0 px-6 max-w-md mx-auto z-20">
-              <LoadingButton
-                onClick={handleFinish}
-                isLoading={completeSession.isPending}
-                loadingText="Finishing..."
-                disabled={completeSession.isPending}
-                className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group"
+            <div className="fixed bottom-5 left-0 right-0 px-6 max-w-md mx-auto z-20">
+              <button
+                onClick={() => setShowFinishConfirm(true)}
+                className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group active:opacity-90"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <span className="relative z-10 flex items-center justify-center gap-2 text-white">
                   <Check className="w-6 h-6" />
                   FINISH WORKOUT
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </LoadingButton>
+              </button>
             </div>
           )}
 
@@ -712,9 +709,9 @@ export function WorkoutSessionPage({
             onClose={() => setShowFinishConfirm(false)}
             onConfirm={handleFinishWorkoutConfirm}
             title="Finish Workout"
-            message="Are you sure you want to finish this workout? Your progress will be saved."
-            confirmText="Finish Workout"
-            variant="warning"
+            message="Great job! Ready to complete this workout and save your progress?"
+            confirmText="Complete Workout"
+            variant="success"
             isLoading={completeSession.isPending}
           />
 

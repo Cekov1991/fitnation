@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { useModalTransition } from '../../utils/animations';
 
 interface ConfirmDialogProps {
@@ -11,7 +10,7 @@ interface ConfirmDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'danger' | 'warning';
+  variant?: 'danger' | 'warning' | 'success';
   isLoading?: boolean;
 }
 
@@ -34,16 +33,26 @@ export function ConfirmDialog({
       iconColor: '#f87171',
       buttonBg: 'bg-red-600 hover:bg-red-700',
       buttonText: 'text-white',
+      Icon: AlertTriangle,
     },
     warning: {
       iconBg: 'rgb(245 158 11 / 0.2)',
       iconColor: '#fbbf24',
       buttonBg: 'bg-amber-600 hover:bg-amber-700',
       buttonText: 'text-white',
+      Icon: AlertTriangle,
+    },
+    success: {
+      iconBg: 'rgb(34 197 94 / 0.2)',
+      iconColor: '#4ade80',
+      buttonBg: 'bg-green-600 hover:bg-green-700',
+      buttonText: 'text-white',
+      Icon: CheckCircle,
     },
   };
 
   const styles = variantStyles[variant];
+  const IconComponent = styles.Icon;
 
   return (
     <AnimatePresence>
@@ -74,7 +83,7 @@ export function ConfirmDialog({
                   className="p-3 rounded-full"
                   style={{ backgroundColor: styles.iconBg }}
                 >
-                  <AlertTriangle
+                  <IconComponent
                     className="w-8 h-8"
                     style={{ color: styles.iconColor }}
                   />

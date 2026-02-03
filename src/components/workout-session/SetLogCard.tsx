@@ -1,17 +1,17 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { Timer } from 'lucide-react';
-import { LoadingButton } from '../ui';
 import { formatWeight } from './utils';
 
 interface SetLogCardProps {
-  weight: number;
-  reps: number;
-  onWeightChange: (weight: number) => void;
-  onRepsChange: (reps: number) => void;
+  weight: number | null;
+  reps: number | null;
+  defaultWeight: number;
+  defaultReps: number;
+  onWeightChange: (weight: number | null) => void;
+  onRepsChange: (reps: number | null) => void;
   onLogSet: () => void;
   onStartTimer?: () => void;
-  isLoading?: boolean;
   setNumber?: number;
   showTimerButton?: boolean;
   allowWeightLogging?: boolean;
@@ -20,11 +20,12 @@ interface SetLogCardProps {
 export function SetLogCard({
   weight,
   reps,
+  defaultWeight,
+  defaultReps,
   onWeightChange,
   onRepsChange,
   onLogSet,
   onStartTimer,
-  isLoading = false,
   setNumber,
   showTimerButton = false,
   allowWeightLogging = true,
@@ -54,11 +55,16 @@ export function SetLogCard({
                 type="number" 
                 inputmode="decimal" 
                 step="0.5"
-                value={weight === 0 ? '' : formatWeight(weight)} 
+                placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
+                value={weight !== null ? formatWeight(weight) : ''} 
                 onIonInput={e => {
                   const value = e.detail.value || '';
-                  const numValue = value === '' ? 0 : parseFloat(value);
-                  onWeightChange(isNaN(numValue) ? 0 : numValue);
+                  if (value === '') {
+                    onWeightChange(null); // Use default when empty
+                  } else {
+                    const numValue = parseFloat(value);
+                    onWeightChange(isNaN(numValue) ? null : numValue);
+                  }
                 }} 
                 className="ionic-input-workout" 
               />
@@ -79,11 +85,16 @@ export function SetLogCard({
               type="number" 
               inputmode="numeric" 
               pattern="[0-9]*" 
-              value={reps?.toString() || ''} 
+              placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
+              value={reps !== null ? reps.toString() : ''} 
               onIonInput={e => {
                 const value = e.detail.value || '';
-                const numValue = value === '' ? 0 : parseInt(value, 10);
-                onRepsChange(isNaN(numValue) ? 0 : numValue);
+                if (value === '') {
+                  onRepsChange(null); // Use default when empty
+                } else {
+                  const numValue = parseInt(value, 10);
+                  onRepsChange(isNaN(numValue) ? null : numValue);
+                }
               }} 
               className="ionic-input-workout" 
             />
@@ -96,16 +107,14 @@ export function SetLogCard({
 
       {/* Action Buttons */}
       <div className="flex gap-3 mt-4">
-        <LoadingButton
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           onClick={onLogSet}
-          isLoading={isLoading}
-          loadingText="Logging..."
-          disabled={isLoading}
-          className="flex-1 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg"
-          style={{ color: 'var(--color-primary)' }}
+          className="flex-1 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg active:opacity-90"
+          style={{ color: 'var(--color-primary)', WebkitTapHighlightColor: 'transparent' }}
         >
           Log Set
-        </LoadingButton>
+        </motion.button>
         
         {showTimerButton && onStartTimer && (
           <button

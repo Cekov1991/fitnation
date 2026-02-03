@@ -576,7 +576,62 @@ export function useLogSet() {
       sessionId: number;
       data: LogSetInput;
     }) => sessionsApi.logSet(sessionId, data),
+    onMutate: async (variables) => {
+      // Cancel ongoing queries to prevent race conditions
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      // Snapshot previous data for rollback
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+
+      // Optimistically update cache
+      // Note: useSession returns response.data directly, so cache stores data without wrapper
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+        if (!old?.exercises) return old;
+
+        // Find the exercise matching the exercise_id
+        const updatedExercises = old.exercises.map((exDetail: any) => {
+          if (exDetail.session_exercise.exercise_id === variables.data.exercise_id) {
+            // Create optimistic SetLogResource
+            const optimisticSetLog = {
+              id: -Date.now(), // Temporary negative ID (will be replaced by server)
+              workout_session_id: variables.sessionId,
+              exercise_id: variables.data.exercise_id,
+              set_number: variables.data.set_number,
+              weight: variables.data.weight,
+              reps: variables.data.reps,
+              rest_seconds: variables.data.rest_seconds || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+
+            // Add to logged_sets array
+            return {
+              ...exDetail,
+              logged_sets: [...(exDetail.logged_sets || []), optimisticSetLog]
+            };
+          }
+          return exDetail;
+        });
+
+        return {
+          ...old,
+          exercises: updatedExercises
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to log set:', error);
+    },
     onSuccess: (_, variables) => {
+      // Refetch to sync with server (ensures accuracy)
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
@@ -599,7 +654,61 @@ export function useUpdateSet() {
       setLogId: number;
       data: UpdateSetInput;
     }) => sessionsApi.updateSet(sessionId, setLogId, data),
+    onMutate: async (variables) => {
+      // Cancel ongoing queries to prevent race conditions
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      // Snapshot previous data for rollback
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+
+      // Optimistically update cache
+      // Note: useSession returns response.data directly, so cache stores data without wrapper
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+        if (!old?.exercises) return old;
+
+        // Find and update the specific set log
+        const updatedExercises = old.exercises.map((exDetail: any) => {
+          if (exDetail.logged_sets?.length > 0) {
+            const updatedLoggedSets = exDetail.logged_sets.map((setLog: any) => {
+              if (setLog.id === variables.setLogId) {
+                // Update weight, reps, and updated_at
+                return {
+                  ...setLog,
+                  weight: variables.data.weight,
+                  reps: variables.data.reps,
+                  updated_at: new Date().toISOString()
+                };
+              }
+              return setLog;
+            });
+
+            return {
+              ...exDetail,
+              logged_sets: updatedLoggedSets
+            };
+          }
+          return exDetail;
+        });
+
+        return {
+          ...old,
+          exercises: updatedExercises
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to update set:', error);
+    },
     onSuccess: (_, variables) => {
+      // Refetch to sync with server
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
@@ -633,23 +742,79 @@ export function useDeleteSet() {
       sessionId: number;
       setLogId: number;
     }) => sessionsApi.deleteSet(sessionId, setLogId),
-    onSuccess: (_, variables) => {
+    onMutate: async (variables) => {
+      // Cancel ongoing queries to prevent race conditions
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      // Snapshot previous data for rollback
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+
+      // Find exercise_id before we modify the cache (needed for history invalidation)
+      let exerciseId: number | null = null;
+      const cachedData = previousData as any;
+      if (cachedData?.exercises) {
+        for (const ex of cachedData.exercises) {
+          const setLog = ex.logged_sets?.find((log: any) => log.id === variables.setLogId);
+          if (setLog) {
+            exerciseId = setLog.exercise_id;
+            break;
+          }
+        }
+      }
+
+      // Optimistically update cache - remove the set log AND decrease target_sets
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+        if (!old?.exercises) return old;
+
+        const updatedExercises = old.exercises.map((exDetail: any) => {
+          const hasSetLog = exDetail.logged_sets?.some(
+            (setLog: any) => setLog.id === variables.setLogId
+          );
+
+          if (hasSetLog) {
+            const updatedLoggedSets = exDetail.logged_sets.filter(
+              (setLog: any) => setLog.id !== variables.setLogId
+            );
+
+            // Also decrease target_sets so the set is fully removed
+            return {
+              ...exDetail,
+              logged_sets: updatedLoggedSets,
+              session_exercise: {
+                ...exDetail.session_exercise,
+                target_sets: Math.max(1, (exDetail.session_exercise.target_sets || 1) - 1)
+              }
+            };
+          }
+          return exDetail;
+        });
+
+        return {
+          ...old,
+          exercises: updatedExercises
+        };
+      });
+
+      return { previousData, exerciseId };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to delete set:', error);
+    },
+    onSuccess: (_, variables, context) => {
+      // Refetch to sync with server
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
-      // Get exercise_id from the cached session data
-      const sessionData = queryClient.getQueryData<{ data: any }>(['sessions', variables.sessionId]);
-      if (sessionData?.data) {
-        const allSetLogs = sessionData.data.exercises?.flatMap((ex: any) => ex.logged_sets || []) || [];
-        const setLog = allSetLogs.find((log: any) => log.id === variables.setLogId);
-        if (setLog?.exercise_id) {
-          queryClient.invalidateQueries({
-            queryKey: ['exercises', setLog.exercise_id, 'history']
-          });
-        }
-      } else {
+      // Invalidate exercise history if we found the exercise_id
+      if (context?.exerciseId) {
         queryClient.invalidateQueries({
-          queryKey: ['exercises']
+          queryKey: ['exercises', context.exerciseId, 'history']
         });
       }
     }
@@ -686,7 +851,51 @@ export function useUpdateSessionExercise() {
       exerciseId: number;
       data: UpdateSessionExerciseInput;
     }) => sessionsApi.updateSessionExercise(sessionId, exerciseId, data),
+    onMutate: async (variables) => {
+      // Cancel ongoing queries to prevent race conditions
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      // Snapshot previous data for rollback
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+
+      // Optimistically update cache
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+        if (!old?.exercises) return old;
+
+        // Find and update the specific exercise
+        const updatedExercises = old.exercises.map((exDetail: any) => {
+          if (exDetail.session_exercise.id === variables.exerciseId) {
+            return {
+              ...exDetail,
+              session_exercise: {
+                ...exDetail.session_exercise,
+                ...variables.data, // Apply all updates (target_sets, target_reps, etc.)
+                updated_at: new Date().toISOString()
+              }
+            };
+          }
+          return exDetail;
+        });
+
+        return {
+          ...old,
+          exercises: updatedExercises
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to update session exercise:', error);
+    },
     onSuccess: (_, variables) => {
+      // Refetch to sync with server
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });

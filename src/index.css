@@ -128,7 +128,7 @@ button, a, [role="button"], .cursor-pointer {
 ion-input {
   --background: transparent !important;
   --color: var(--color-text-primary) !important;
-  --placeholder-color: var(--color-text-muted) !important;
+  --placeholder-color: var(--color-text-secondary) !important;
   --padding-start: 0 !important;
   --padding-end: 0 !important;
   --padding-top: 0 !important;
@@ -194,7 +194,9 @@ ion-input.ionic-input-workout .native-input {
   padding: 0 !important;
   color: white !important;
 }
-
+ion-input.ionic-input-workout .native-input::placeholder {
+  color: #d6d6d653 !important;
+}
 /* ============================================
    INTERACTIVE ELEMENT STYLES
    ============================================ */

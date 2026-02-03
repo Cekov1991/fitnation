@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
-import { LoadingButton } from '../ui';
 import { formatWeight } from './utils';
 import { useSlideTransition } from '../../utils/animations';
 
@@ -11,7 +10,6 @@ interface SetEditCardProps {
   onRepsChange: (reps: number) => void;
   onSave: () => void;
   onCancel: () => void;
-  isLoading?: boolean;
   setNumber?: number;
   allowWeightLogging?: boolean;
 }
@@ -23,7 +21,6 @@ export function SetEditCard({
   onRepsChange,
   onSave,
   onCancel,
-  isLoading = false,
   setNumber,
   allowWeightLogging = true,
 }: SetEditCardProps) {
@@ -102,19 +99,18 @@ export function SetEditCard({
         >
           Cancel
         </motion.button>
-        <LoadingButton
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           onClick={onSave}
-          isLoading={isLoading}
-          loadingText="Saving..."
-          disabled={isLoading}
-          className="flex-1 px-6 py-4 rounded-2xl font-bold text-lg shadow-lg"
+          className="flex-1 px-6 py-4 rounded-2xl font-bold text-lg shadow-lg active:opacity-90"
           style={{ 
             color: '#ea580c',
-            backgroundColor: 'var(--color-text-primary)'
+            backgroundColor: 'var(--color-text-primary)',
+            WebkitTapHighlightColor: 'transparent'
           }}
         >
           Save
-        </LoadingButton>
+        </motion.button>
       </div>
     </motion.div>
   );
