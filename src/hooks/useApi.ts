@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, plansApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
+import { profileApi, plansApi, programsApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
 import type {
   CreatePlanInput,
   UpdatePlanInput,
+  UpdateProgramInput,
   CreateTemplateInput,
   UpdateTemplateInput,
   AddTemplateExerciseInput,
@@ -76,7 +77,7 @@ export function useFitnessMetrics() {
 }
 
 // ============================================================================
-// PLANS HOOKS
+// CUSTOM PLANS HOOKS
 // ============================================================================
 
 export function usePlans() {
@@ -142,6 +143,99 @@ export function useDeletePlan() {
         queryKey: ['planner']
       });
     }
+  });
+}
+
+// ============================================================================
+// PROGRAMS HOOKS
+// ============================================================================
+
+export function usePrograms() {
+  return useQuery({
+    queryKey: ['programs'],
+    queryFn: async () => {
+      const response = await programsApi.getPrograms();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+export function useProgram(programId: number) {
+  return useQuery({
+    queryKey: ['programs', programId],
+    queryFn: async () => {
+      const response = await programsApi.getProgram(programId);
+      return response.data;
+    },
+    enabled: isAuthenticated() && !!programId
+  });
+}
+
+export function useProgramLibrary() {
+  return useQuery({
+    queryKey: ['programs', 'library'],
+    queryFn: async () => {
+      const response = await programsApi.getProgramLibrary();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+export function useCloneProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (programId: number) => programsApi.cloneProgram(programId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
+    }
+  });
+}
+
+export function useUpdateProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      programId,
+      data
+    }: {
+      programId: number;
+      data: UpdateProgramInput;
+    }) => programsApi.updateProgram(programId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['programs', variables.programId]
+      });
+    }
+  });
+}
+
+export function useDeleteProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: programsApi.deleteProgram,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
+    }
+  });
+}
+
+export function useNextWorkout(programId: number) {
+  return useQuery({
+    queryKey: ['programs', programId, 'next-workout'],
+    queryFn: async () => {
+      const response = await programsApi.getNextWorkout(programId);
+      return response.data;
+    },
+    enabled: isAuthenticated() && !!programId
   });
 }
 

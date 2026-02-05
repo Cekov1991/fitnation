@@ -12,6 +12,7 @@ export type BalanceLevel = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_IMPROVEMENT';
 export type TrendDirection = 'up' | 'down' | 'same';
 export type BodyRegion = 'upper' | 'lower' | 'core';
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Monday, 6 = Sunday
+export type PlanType = 'custom' | 'library' | 'program';
 
 // ============================================
 // USER RESOURCES
@@ -178,13 +179,44 @@ export interface PerformanceDataPoint {
 
 export interface PlanResource {
   id: number;
-  user_id: number;
+  user_id: number | null;
+  partner_id: number | null;
   name: string;
   description: string | null;
   is_active: boolean;
+  type: PlanType;
+  duration_weeks: number | null;
   workout_templates: WorkoutTemplateResource[] | null;
   created_at: string;
   updated_at: string;
+}
+
+// Custom Plan Resource (type: 'custom')
+export interface CustomPlanResource extends PlanResource {
+  type: 'custom';
+  user_id: number;
+  partner_id: null;
+  duration_weeks: null;
+}
+
+// Library Program Resource (type: 'library' - partner-designed templates)
+export interface LibraryProgramResource extends PlanResource {
+  type: 'library';
+  user_id: null;
+  partner_id: number;
+  duration_weeks: number;
+  is_library_plan: boolean;
+}
+
+// User Program Resource (type: 'program' - cloned from library)
+export interface ProgramResource extends PlanResource {
+  type: 'program';
+  user_id: number;
+  partner_id: null;
+  duration_weeks: number;
+  is_library_plan: boolean;
+  progress_percentage: number | null;
+  next_workout: WorkoutTemplateResource | null;
 }
 
 // ============================================
@@ -197,6 +229,8 @@ export interface WorkoutTemplateResource {
   name: string;
   description: string | null;
   day_of_week: DayOfWeek | null;
+  week_number: number;     // For programs: which week (1-52)
+  order_index: number;     // For programs: sequence order (0+)
   plan: PlanResource | null;
   exercises: TemplateExercise[] | null;
   created_at: string;
@@ -386,7 +420,7 @@ export interface ExerciseHistoryResponse {
 // INPUT/REQUEST TYPES
 // ============================================
 
-// Plan mutations
+// Plan mutations (for custom plans)
 export interface CreatePlanInput {
   name: string;
   description?: string;
@@ -397,6 +431,11 @@ export interface UpdatePlanInput {
   name: string;
   description?: string;
   is_active?: boolean;
+}
+
+// Program mutations (limited to toggle active only)
+export interface UpdateProgramInput {
+  is_active: boolean;
 }
 
 // Template mutations

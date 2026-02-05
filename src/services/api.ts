@@ -4,6 +4,7 @@
 import type {
   CreatePlanInput,
   UpdatePlanInput,
+  UpdateProgramInput,
   CreateTemplateInput,
   UpdateTemplateInput,
   AddTemplateExerciseInput,
@@ -251,32 +252,67 @@ export const metricsApi = {
 };
 
 // ============================================================================
-// PLANS
+// CUSTOM PLANS
 // ============================================================================
 
 export const plansApi = {
   getPlans: async () => {
-    return fetchWithAuth('/plans');
+    return fetchWithAuth('/custom-plans');
   },
   getPlan: async (planId: number) => {
-    return fetchWithAuth(`/plans/${planId}`);
+    return fetchWithAuth(`/custom-plans/${planId}`);
   },
   createPlan: async (data: CreatePlanInput) => {
-    return fetchWithAuth('/plans', {
+    return fetchWithAuth('/custom-plans', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
   updatePlan: async (planId: number, data: UpdatePlanInput) => {
-    return fetchWithAuth(`/plans/${planId}`, {
+    return fetchWithAuth(`/custom-plans/${planId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
   deletePlan: async (planId: number) => {
-    return fetchWithAuth(`/plans/${planId}`, {
+    return fetchWithAuth(`/custom-plans/${planId}`, {
       method: 'DELETE'
     });
+  }
+};
+
+// ============================================================================
+// PROGRAMS
+// ============================================================================
+
+export const programsApi = {
+  getPrograms: async () => {
+    return fetchWithAuth('/programs');
+  },
+  getProgramLibrary: async () => {
+    return fetchWithAuth('/programs/library');
+  },
+  getProgram: async (programId: number) => {
+    return fetchWithAuth(`/programs/${programId}`);
+  },
+  cloneProgram: async (programId: number) => {
+    return fetchWithAuth(`/programs/${programId}/clone`, {
+      method: 'POST'
+    });
+  },
+  updateProgram: async (programId: number, data: UpdateProgramInput) => {
+    return fetchWithAuth(`/programs/${programId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    });
+  },
+  deleteProgram: async (programId: number) => {
+    return fetchWithAuth(`/programs/${programId}`, {
+      method: 'DELETE'
+    });
+  },
+  getNextWorkout: async (programId: number) => {
+    return fetchWithAuth(`/programs/${programId}/next-workout`);
   }
 };
 

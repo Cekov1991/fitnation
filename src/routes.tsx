@@ -15,6 +15,7 @@ import { WorkoutSessionPage } from './components/workout-session';
 import { DashboardPage } from './components/DashboardPage';
 import { GenerateWorkoutPage } from './components/GenerateWorkoutPage';
 import { WorkoutPreviewPage } from './components/WorkoutPreviewPage';
+import { ProgramLibraryPage } from './components/plans/ProgramLibraryPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 import { BottomNav } from './components/BottomNav';
@@ -560,6 +561,22 @@ function DashboardPageWrapper() {
   );
 }
 
+// Program Library page wrapper
+function ProgramLibraryPageWrapper() {
+  const history = useHistory();
+  const currentPage = useCurrentNavPage();
+
+  const handleBack = () => {
+    history.push('/plans');
+  };
+
+  return (
+    <AuthenticatedLayout currentPage={currentPage}>
+      <ProgramLibraryPage onBack={handleBack} />
+    </AuthenticatedLayout>
+  );
+}
+
 // Workout session page wrapper (no BottomNav for full-screen workout experience)
 function WorkoutSessionPageWrapper() {
   const history = useHistory();
@@ -684,6 +701,13 @@ export function AppRoutes() {
           <Route exact path="/plans/:planId/edit">
             <AuthGuard>
               <EditPlanPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Program routes */}
+          <Route exact path="/programs/library">
+            <AuthGuard>
+              <ProgramLibraryPageWrapper />
             </AuthGuard>
           </Route>
 
