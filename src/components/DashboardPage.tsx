@@ -6,8 +6,9 @@ import { PlanTypeSwitcher } from './plans/PlanTypeSwitcher';
 import { CustomPlansDashboard, ProgramDashboard } from './dashboard';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
-import { useStartSession, useTodayWorkout } from '../hooks/useApi';
+import { useStartSession, useTodayWorkout, usePrograms } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
+import type { ProgramResource } from '../types/api';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -16,11 +17,23 @@ export function DashboardPage() {
   const location = useLocation();
   const { data: todayWorkout } = useTodayWorkout();
   const startSession = useStartSession();
+  const { data: programs = [] } = usePrograms();
   const {
     isWorkoutSelectionOpen,
     openWorkoutSelection,
     closeWorkoutSelection,
   } = useModals();
+
+  // Get active program for key-based remounting
+  const activeProgram = useMemo(() => {
+    return programs.find((program: ProgramResource) => program.is_active) || null;
+  }, [programs]);
+
+  // Create a key that changes when program or week changes to force remount
+  const programDashboardKey = useMemo(() => {
+    if (!activeProgram) return 'no-program';
+    return `${activeProgram.id}-${activeProgram.current_active_week ?? 1}`;
+  }, [activeProgram]);
 
   // Get dashboard type from URL query parameter, default to 'customPlans'
   const dashboardType = useMemo(() => {
@@ -120,7 +133,7 @@ export function DashboardPage() {
         {dashboardType === 'customPlans' ? (
           <CustomPlansDashboard onStartBlankSession={handleStartBlankSession} />
         ) : (
-          <ProgramDashboard onStartWorkout={handleStartWorkoutClick} />
+          <ProgramDashboard key={programDashboardKey} onStartWorkout={handleStartWorkoutClick} />
         )}
       </main>
 

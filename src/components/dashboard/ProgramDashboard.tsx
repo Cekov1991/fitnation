@@ -40,14 +40,9 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     return activeWeekWorkouts.length > 0 ? activeWeekWorkouts[0].id : null;
   }, [activeProgram, activeWeekWorkouts]);
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(defaultSelectedId);
-
-  // Update selected template when default changes (e.g., when next_workout changes or active week changes)
-  React.useEffect(() => {
-    if (defaultSelectedId) {
-      setSelectedTemplateId(defaultSelectedId);
-    }
-  }, [defaultSelectedId]);
+  // Use lazy initializer to ensure we get the latest defaultSelectedId on mount
+  // The key prop on this component ensures remount when program/week changes
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(() => defaultSelectedId);
 
   // Get selected workout template
   const selectedWorkout = useMemo(() => {
