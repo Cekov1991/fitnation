@@ -217,6 +217,7 @@ export interface ProgramResource extends PlanResource {
   is_library_plan: boolean;
   progress_percentage: number | null;
   next_workout: WorkoutTemplateResource | null;
+  current_active_week?: number;
 }
 
 // ============================================

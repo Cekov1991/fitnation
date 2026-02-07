@@ -207,12 +207,6 @@ export function WorkoutSelectionModal({
                       className="transition-colors flex-shrink-0" 
                       size={20}
                       style={{ color: 'var(--color-text-muted)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-muted)';
-                      }}
                     />
                   </div>
                 </button>
@@ -259,12 +253,6 @@ export function WorkoutSelectionModal({
                       className="transition-colors flex-shrink-0" 
                       size={20}
                       style={{ color: 'var(--color-text-muted)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-muted)';
-                      }}
                     />
                   </div>
                 </button>
@@ -277,12 +265,6 @@ export function WorkoutSelectionModal({
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border-subtle)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                     }}
                   >
                     <div className="flex-shrink-0 w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -334,12 +316,6 @@ export function WorkoutSelectionModal({
                             style={{ 
                               backgroundColor: 'var(--color-bg-surface)',
                               borderColor: 'var(--color-border-subtle)'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                             }}
                           >
                             <div className={`flex-shrink-0 w-12 h-12 ${colorClass.bg} rounded-xl flex items-center justify-center`}>
@@ -398,12 +374,6 @@ export function WorkoutSelectionModal({
                                   style={{ 
                                     backgroundColor: 'var(--color-bg-surface)',
                                     borderColor: 'var(--color-border-subtle)'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                                   }}
                                 >
                                   <div className={`flex-shrink-0 w-12 h-12 ${colorClass.bg} rounded-xl flex items-center justify-center`}>

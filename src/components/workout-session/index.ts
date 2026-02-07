@@ -5,7 +5,6 @@ export { CurrentExerciseCard } from './CurrentExerciseCard';
 export { SetLogCard } from './SetLogCard';
 export { SetEditCard } from './SetEditCard';
 export { SetsList } from './SetsList';
-export { WorkoutOptionsMenu } from './WorkoutOptionsMenu';
 export { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 export { SetOptionsMenu } from './SetOptionsMenu';
 export { RestTimer } from './RestTimer';

@@ -13,7 +13,6 @@ import { ExerciseNavTabs } from './ExerciseNavTabs';
 import { CurrentExerciseCard } from './CurrentExerciseCard';
 import { SetLogCard } from './SetLogCard';
 import { SetEditCard } from './SetEditCard';
-import { WorkoutOptionsMenu } from './WorkoutOptionsMenu';
 import { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 import { SetOptionsMenu } from './SetOptionsMenu';
 import { RestTimer } from './RestTimer';
@@ -79,7 +78,6 @@ export function WorkoutSessionPage({
   const [editingWeight, setEditingWeight] = useState<number | null>(null);
   const [editingReps, setEditingReps] = useState<number | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
-  const [showWorkoutOptionsMenu, setShowWorkoutOptionsMenu] = useState(false);
   const [showExerciseMenu, setShowExerciseMenu] = useState(false);
   const [showSetMenu, setShowSetMenu] = useState(false);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
@@ -296,7 +294,6 @@ export function WorkoutSessionPage({
   };
 
   const handleAddExercise = () => {
-    setShowWorkoutOptionsMenu(false);
     setExercisePickerMode('add');
     setShowExercisePicker(true);
   };
@@ -387,7 +384,6 @@ export function WorkoutSessionPage({
   };
 
   const handleFinishWorkout = () => {
-    setShowWorkoutOptionsMenu(false);
     setShowFinishConfirm(true);
   };
 
@@ -397,7 +393,6 @@ export function WorkoutSessionPage({
   };
 
   const handleCancelWorkoutClick = () => {
-    setShowWorkoutOptionsMenu(false);
     setShowCancelConfirm(true);
   };
 
@@ -425,307 +420,295 @@ export function WorkoutSessionPage({
   }
 
   return (
-    <div>
-      <div>
-        <div 
-          className="min-h-screen w-full pb-32"
-          style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
-        >
+      <div 
+        className="min-h-screen w-full pb-32"
+        style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+      >
 
-          <main className="relative z-10 max-w-md mx-auto">
-            <WorkoutHeader
-              formattedDuration={formattedDuration}
-              onExit={onBack}
-              onOpenOptions={() => setShowWorkoutOptionsMenu(true)}
-            />
-
-            <ExerciseNavTabs
-              exercises={exercises}
-              currentIndex={currentExerciseIndex}
-              onSelectExercise={handleSwitchExercise}
-              getCompletionStatus={getExerciseCompletionStatus}
-              onAddExercise={handleAddExercise}
-            />
-
-            {/* Exercise Content */}
-            <div className="px-6">
-              {exercises.length === 0 ? (
-                /* Empty State */
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div 
-                    className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
-                    style={{ 
-                      background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 20%, transparent), color-mix(in srgb, var(--color-secondary) 20%, transparent))' 
-                    }}
-                  >
-                    <Plus className="w-12 h-12" strokeWidth={2} style={{ color: 'var(--color-primary)' }} />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-3 text-center" style={{ color: 'var(--color-text-primary)' }}>
-                    No Exercises Yet
-                  </h2>
-                  <p className="text-center mb-8 max-w-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Start your workout by adding exercises. Tap the Options button above to get started.
-                  </p>
-                  <button
-                    onClick={() => setShowWorkoutOptionsMenu(true)}
-                    className="px-8 py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
-                    style={{
-                      background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-                      boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 20%, transparent)'
-                    }}
-                  >
-                    Add Exercise
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Exercise info and input cards - animated on exercise switch */}
-                  <AnimatePresence mode="wait">
-                    <motion.div 
-                      key={currentExercise.id} 
-                      initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
-                      transition={simpleTransition}
-                      className="space-y-6"
-                    >
-                      <CurrentExerciseCard
-                        exercise={currentExercise}
-                        onOpenMenu={() => setShowExerciseMenu(true)}
-                        onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Rest Timer - Outside keyed content to persist across exercise switches */}
-                  <AnimatePresence>
-                    {isRestTimerActive && (
-                      <RestTimer
-                        restSeconds={restTimerSeconds}
-                        isActive={isRestTimerActive}
-                        onDismiss={() => setIsRestTimerActive(false)}
-                      />
-                    )}
-                  </AnimatePresence>
-
-                  {/* Sets list with inline log/edit cards */}
-                  <AnimatePresence mode="wait">
-                    <motion.div 
-                      key={`sets-${currentExercise.id}`}
-                      initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
-                      transition={simpleTransition}
-                      className="space-y-2"
-                    >
-                      {currentExercise.sets.map((set, index) => {
-                        const isCurrentLoggingSet = currentSet?.id === set.id && !editingSetId;
-                        const isCurrentEditingSet = editingSetId === set.id;
-
-                        // Render SetLogCard inline for the current set being logged
-                        if (isCurrentLoggingSet) {
-                          return (
-                            <SetLogCard
-                              key={set.id}
-                              weight={editingWeight}
-                              reps={editingReps}
-                              defaultWeight={set.weight}
-                              defaultReps={set.reps}
-                              onWeightChange={setEditingWeight}
-                              onRepsChange={setEditingReps}
-                              onLogSet={handleDidIt}
-                              onStartTimer={handleStartTimer}
-                              setNumber={index + 1}
-                              showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
-                              allowWeightLogging={currentExercise.allowWeightLogging}
-                            />
-                          );
-                        }
-
-                        // Render SetEditCard inline for the set being edited
-                        if (isCurrentEditingSet && editingWeight !== null && editingReps !== null) {
-                          return (
-                            <SetEditCard
-                              key={set.id}
-                              weight={editingWeight}
-                              reps={editingReps}
-                              onWeightChange={setEditingWeight}
-                              onRepsChange={setEditingReps}
-                              onSave={handleSaveEdit}
-                              onCancel={handleCancelEdit}
-                              setNumber={index + 1}
-                              allowWeightLogging={currentExercise.allowWeightLogging}
-                            />
-                          );
-                        }
-
-                        // Regular set row (completed or future)
-                        return (
-                          <motion.div
-                            key={set.id}
-                            className={`flex items-center justify-between p-4 rounded-xl transition-colors border ${
-                              set.completed ? 'border-2 border-green-500' : ''
-                            }`}
-                            style={!set.completed ? {
-                              backgroundColor: 'var(--color-bg-elevated)',
-                              borderColor: 'var(--color-border-subtle)'
-                            } : {
-                              backgroundColor: 'var(--color-bg-elevated)',
-                            }}
-                          >
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>
-                                Set {index + 1}
-                              </span>
-                              {currentExercise.allowWeightLogging && (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                                      {set.completed ? formatWeight(set.weight) : '--'}
-                                    </span>
-                                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
-                                  </div>
-                                  <span style={{ color: 'var(--color-border)' }}>×</span>
-                                </>
-                              )}
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                                  {set.completed ? set.reps : '--'}
-                                </span>
-                                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>reps</span>
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => handleOpenSetMenu(set.id)}
-                              className="p-2 rounded-lg"
-                              style={{ backgroundColor: 'var(--color-bg-surface)' }}
-                            >
-                              <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
-                            </button>
-                          </motion.div>
-                        );
-                      })}
-
-                      {/* Add Set Button */}
-                      {!editingSetId && (
-                        <button
-                          onClick={handleAddSet}
-                          className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border active:opacity-70"
-                          style={{
-                            backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
-                            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
-                            WebkitTapHighlightColor: 'transparent'
-                          }}
-                        >
-                          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-                          <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                            Add Set
-                          </span>
-                        </button>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-          </main>
-
-          {/* Finish Workout Button - Fixed above bottom nav */}
-          {allExercisesCompleted && (
-            <div className="fixed bottom-5 left-0 right-0 px-6 max-w-md mx-auto z-20">
-              <button
-                onClick={() => setShowFinishConfirm(true)}
-                className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group active:opacity-90"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2 text-white">
-                  <Check className="w-6 h-6" />
-                  FINISH WORKOUT
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </button>
-            </div>
-          )}
-
-          {/* Menus */}
-          <WorkoutOptionsMenu
-            isOpen={showWorkoutOptionsMenu}
-            onClose={() => setShowWorkoutOptionsMenu(false)}
-            onAddExercise={handleAddExercise}
-            onFinishWorkout={handleFinishWorkout}
-            onCancelWorkout={handleCancelWorkoutClick}
+        <main className="relative z-10 max-w-md mx-auto">
+          <WorkoutHeader
+            formattedDuration={formattedDuration}
+            onFinish={handleFinishWorkout}
+            onCancel={handleCancelWorkoutClick}
             isCancelLoading={cancelSession.isPending}
           />
 
-          <ExerciseOptionsMenu
-            isOpen={showExerciseMenu}
-            onClose={() => setShowExerciseMenu(false)}
-            onViewExercise={handleViewExercise}
-            onSwapExercise={handleSwapExercise}
-            onRemoveExercise={handleRemoveExercise}
-            isSwapLoading={addSessionExercise.isPending}
-            isRemoveLoading={removeSessionExercise.isPending && !addSessionExercise.isPending}
+          <ExerciseNavTabs
+            exercises={exercises}
+            currentIndex={currentExerciseIndex}
+            onSelectExercise={handleSwitchExercise}
+            getCompletionStatus={getExerciseCompletionStatus}
+            onAddExercise={handleAddExercise}
           />
 
-          <SetOptionsMenu
-            isOpen={showSetMenu}
-            selectedSet={selectedSet || null}
-            onClose={() => {
-              setShowSetMenu(false);
-              setSelectedSetId(null);
-            }}
-            onEditSet={handleEditSetFromMenu}
-            onRemoveSet={handleRemoveSetFromMenu}
-            isRemoveLoading={deleteSet.isPending || updateSessionExercise.isPending}
-            isLastSet={isSelectedSetLast}
+          {/* Exercise Content */}
+          <div className="px-6">
+            {exercises.length === 0 ? (
+              /* Empty State */
+              <div className="flex flex-col items-center justify-center py-20">
+                <div 
+                  className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
+                  style={{ 
+                    background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--color-primary) 20%, transparent), color-mix(in srgb, var(--color-secondary) 20%, transparent))' 
+                  }}
+                >
+                  <Plus className="w-12 h-12" strokeWidth={2} style={{ color: 'var(--color-primary)' }} />
+                </div>
+                <h2 className="text-2xl font-bold mb-3 text-center" style={{ color: 'var(--color-text-primary)' }}>
+                  No Exercises Yet
+                </h2>
+                <p className="text-center mb-8 max-w-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  Start your workout by adding exercises. Use the Add Exercise button below to get started.
+                </p>
+                <button
+                  onClick={handleAddExercise}
+                  className="px-8 py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
+                  style={{
+                    background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                    boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                  }}
+                >
+                  Add Exercise
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Exercise info and input cards - animated on exercise switch */}
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={currentExercise.id} 
+                    initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                    transition={simpleTransition}
+                    className="space-y-6"
+                  >
+                    <CurrentExerciseCard
+                      exercise={currentExercise}
+                      onOpenMenu={() => setShowExerciseMenu(true)}
+                      onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
+                    />
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Rest Timer - Outside keyed content to persist across exercise switches */}
+                <AnimatePresence>
+                  {isRestTimerActive && (
+                    <RestTimer
+                      restSeconds={restTimerSeconds}
+                      isActive={isRestTimerActive}
+                      onDismiss={() => setIsRestTimerActive(false)}
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Sets list with inline log/edit cards */}
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={`sets-${currentExercise.id}`}
+                    initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                    transition={simpleTransition}
+                    className="space-y-2"
+                  >
+                    {currentExercise.sets.map((set, index) => {
+                      const isCurrentLoggingSet = currentSet?.id === set.id && !editingSetId;
+                      const isCurrentEditingSet = editingSetId === set.id;
+
+                      // Render SetLogCard inline for the current set being logged
+                      if (isCurrentLoggingSet) {
+                        return (
+                          <SetLogCard
+                            key={set.id}
+                            weight={editingWeight}
+                            reps={editingReps}
+                            defaultWeight={set.weight}
+                            defaultReps={set.reps}
+                            onWeightChange={setEditingWeight}
+                            onRepsChange={setEditingReps}
+                            onLogSet={handleDidIt}
+                            onStartTimer={handleStartTimer}
+                            setNumber={index + 1}
+                            showTimerButton={!isRestTimerActive && !!currentExercise?.restSeconds}
+                            allowWeightLogging={currentExercise.allowWeightLogging}
+                          />
+                        );
+                      }
+
+                      // Render SetEditCard inline for the set being edited
+                      if (isCurrentEditingSet && editingWeight !== null && editingReps !== null) {
+                        return (
+                          <SetEditCard
+                            key={set.id}
+                            weight={editingWeight}
+                            reps={editingReps}
+                            onWeightChange={setEditingWeight}
+                            onRepsChange={setEditingReps}
+                            onSave={handleSaveEdit}
+                            onCancel={handleCancelEdit}
+                            setNumber={index + 1}
+                            allowWeightLogging={currentExercise.allowWeightLogging}
+                          />
+                        );
+                      }
+
+                      // Regular set row (completed or future)
+                      return (
+                        <motion.div
+                          key={set.id}
+                          className={`flex items-center justify-between p-4 rounded-xl transition-colors border ${
+                            set.completed ? 'border-2 border-green-500' : ''
+                          }`}
+                          style={!set.completed ? {
+                            backgroundColor: 'var(--color-bg-elevated)',
+                            borderColor: 'var(--color-border-subtle)'
+                          } : {
+                            backgroundColor: 'var(--color-bg-elevated)',
+                          }}
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm font-bold" style={{ color: 'var(--color-text-secondary)' }}>
+                              Set {index + 1}
+                            </span>
+                            {currentExercise.allowWeightLogging && (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                    {set.completed ? formatWeight(set.weight) : '--'}
+                                  </span>
+                                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
+                                </div>
+                                <span style={{ color: 'var(--color-border)' }}>×</span>
+                              </>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                {set.completed ? set.reps : '--'}
+                              </span>
+                              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>reps</span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleOpenSetMenu(set.id)}
+                            className="p-2 rounded-lg"
+                            style={{ backgroundColor: 'var(--color-bg-surface)' }}
+                          >
+                            <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                          </button>
+                        </motion.div>
+                      );
+                    })}
+
+                    {/* Add Set Button */}
+                    {!editingSetId && (
+                      <button
+                        onClick={handleAddSet}
+                        className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border active:opacity-70"
+                        style={{
+                          backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                          borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+                          WebkitTapHighlightColor: 'transparent'
+                        }}
+                      >
+                        <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                        <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+                          Add Set
+                        </span>
+                      </button>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* Finish Workout Button - Fixed above bottom nav */}
+        {allExercisesCompleted && (
+          <div className="fixed bottom-5 left-0 right-0 px-6 max-w-md mx-auto z-20">
+            <button
+              onClick={() => setShowFinishConfirm(true)}
+              className="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl font-bold text-lg shadow-2xl shadow-green-500/30 relative overflow-hidden group active:opacity-90"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2 text-white">
+                <Check className="w-6 h-6" />
+                FINISH WORKOUT
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </button>
+          </div>
+        )}
+
+        {/* Menus */}
+        <ExerciseOptionsMenu
+          isOpen={showExerciseMenu}
+          onClose={() => setShowExerciseMenu(false)}
+          onViewExercise={handleViewExercise}
+          onSwapExercise={handleSwapExercise}
+          onRemoveExercise={handleRemoveExercise}
+          isSwapLoading={addSessionExercise.isPending}
+          isRemoveLoading={removeSessionExercise.isPending && !addSessionExercise.isPending}
+        />
+
+        <SetOptionsMenu
+          isOpen={showSetMenu}
+          selectedSet={selectedSet || null}
+          onClose={() => {
+            setShowSetMenu(false);
+            setSelectedSetId(null);
+          }}
+          onEditSet={handleEditSetFromMenu}
+          onRemoveSet={handleRemoveSetFromMenu}
+          isRemoveLoading={deleteSet.isPending || updateSessionExercise.isPending}
+          isLastSet={isSelectedSetLast}
+        />
+
+        {/* Exercise Picker */}
+        {showExercisePicker && (
+          <ExercisePickerPage
+            mode={exercisePickerMode}
+            onClose={() => setShowExercisePicker(false)}
+            onSelectExercise={handleSelectExercise}
+            isLoading={addSessionExercise.isPending || removeSessionExercise.isPending}
           />
+        )}
 
-          {/* Exercise Picker */}
-          {showExercisePicker && (
-            <ExercisePickerPage
-              mode={exercisePickerMode}
-              onClose={() => setShowExercisePicker(false)}
-              onSelectExercise={handleSelectExercise}
-              isLoading={addSessionExercise.isPending || removeSessionExercise.isPending}
-            />
-          )}
+        {/* Cancel Workout Confirmation */}
+        <ConfirmDialog
+          isOpen={showCancelConfirm}
+          onClose={() => setShowCancelConfirm(false)}
+          onConfirm={handleCancelWorkoutConfirm}
+          title="Cancel Workout"
+          message="Are you sure you want to cancel this workout? All progress will be lost."
+          confirmText="Cancel Workout"
+          variant="danger"
+          isLoading={cancelSession.isPending}
+        />
 
-          {/* Cancel Workout Confirmation */}
-          <ConfirmDialog
-            isOpen={showCancelConfirm}
-            onClose={() => setShowCancelConfirm(false)}
-            onConfirm={handleCancelWorkoutConfirm}
-            title="Cancel Workout"
-            message="Are you sure you want to cancel this workout? All progress will be lost."
-            confirmText="Cancel Workout"
-            variant="danger"
-            isLoading={cancelSession.isPending}
-          />
+        {/* Finish Workout Confirmation */}
+        <ConfirmDialog
+          isOpen={showFinishConfirm}
+          onClose={() => setShowFinishConfirm(false)}
+          onConfirm={handleFinishWorkoutConfirm}
+          title="Finish Workout"
+          message="Great job! Ready to complete this workout and save your progress?"
+          confirmText="Complete Workout"
+          variant="success"
+          isLoading={completeSession.isPending}
+        />
 
-          {/* Finish Workout Confirmation */}
-          <ConfirmDialog
-            isOpen={showFinishConfirm}
-            onClose={() => setShowFinishConfirm(false)}
-            onConfirm={handleFinishWorkoutConfirm}
-            title="Finish Workout"
-            message="Great job! Ready to complete this workout and save your progress?"
-            confirmText="Complete Workout"
-            variant="success"
-            isLoading={completeSession.isPending}
-          />
-
-          <style>{`
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-          `}</style>
-        </div>
+        <style>{`
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
-    </div>
   );
 }

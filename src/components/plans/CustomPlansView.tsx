@@ -332,22 +332,16 @@ export function CustomPlansView({
                 )}
               </div>
 
-              <div className="flex items-center gap-3 mb-6">
-                <div 
-                  className="px-3 py-1.5 rounded-full"
-                  style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-                    borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-                  }}
-                >
-                  <span className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
                     {activePlanWorkouts.length} WORKOUT{activePlanWorkouts.length !== 1 ? 'S' : ''}
                   </span>
                 </div>
                 {activePlan?.is_active && (
-                  <div className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
-                    <span className="text-xs font-bold text-green-400">ACTIVE</span>
-                  </div>
+                  <span className="text-[10px] font-medium" style={{ color: '#4ade80' }}>
+                    ACTIVE
+                  </span>
                 )}
               </div>
 
@@ -444,7 +438,6 @@ export function CustomPlansView({
                   <div className="flex justify-between items-start mb-4">
                     <h3 
                       className="text-lg font-bold transition-colors"
-                      style={{ color: 'var(--color-secondary)' }}
                     >
                       {plan.name}
                     </h3>
@@ -453,7 +446,7 @@ export function CustomPlansView({
                       className="p-2 rounded-full transition-colors" 
                       style={{ backgroundColor: 'var(--color-border-subtle)' }}
                     >
-                      <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                      <MoreVertical className="w-5 h-5"/>
                     </button>
                   </div>
 
@@ -488,9 +481,8 @@ export function CustomPlansView({
                             <div className="flex items-center gap-3">
                               <div 
                                 className="p-2 rounded-lg"
-                                style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)' }}
                               >
-                                <Dumbbell className="w-4 h-4" style={{ color: 'var(--color-secondary)' }} />
+                                <Dumbbell className="w-4 h-4" />
                               </div>
                               <span 
                                 className="text-sm font-medium"

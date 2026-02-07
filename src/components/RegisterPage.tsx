@@ -125,7 +125,7 @@ export function RegisterPage() {
             <button
               onClick={() => history.push('/login')}
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-semibold transition-all hover:shadow-lg"
-              style={{ color: 'var(--color-text-on-primary)' }}
+              style={{ color: 'var(--color-text-button)' }}
             >
               Go to Login
             </button>
@@ -297,12 +297,6 @@ export function RegisterPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
                     style={{ color: 'var(--color-text-muted)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--color-text-secondary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--color-text-muted)';
-                    }}
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -352,12 +346,6 @@ export function RegisterPage() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
                     style={{ color: 'var(--color-text-muted)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--color-text-secondary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--color-text-muted)';
-                    }}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -389,12 +377,6 @@ export function RegisterPage() {
                   onClick={() => history.push('/login')}
                   className="font-semibold transition-colors"
                   style={{ color: 'var(--color-primary)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--color-primary)';
-                  }}
                 >
                   Sign in
                 </button>

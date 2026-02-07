@@ -1,4 +1,3 @@
-import React from 'react';
 import { List, Flag } from 'lucide-react';
 
 type PlanType = 'customPlans' | 'programs';

@@ -644,6 +644,9 @@ export function useCompleteSession() {
       queryClient.invalidateQueries({
         queryKey: ['exercises']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
     }
   });
 }
@@ -654,6 +657,9 @@ export function useCancelSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['sessions']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
       });
     }
   });

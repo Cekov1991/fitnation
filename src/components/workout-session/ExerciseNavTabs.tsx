@@ -111,14 +111,6 @@ export function ExerciseNavTabs({
               backgroundColor: 'var(--color-bg-surface)',
               minWidth: '120px'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-primary)';
-              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border)';
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-            }}
           >
             <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
             <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>

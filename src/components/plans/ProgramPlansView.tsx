@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Info, MoreVertical, ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { Info, MoreVertical, ChevronDown, ChevronUp, Plus, Calendar } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
 import { LoadingContent, ConfirmDialog } from '../ui';
-import { usePrograms, useDeleteProgram, useUpdateProgram, useProgramLibrary } from '../../hooks/useApi';
+import { PlanMenu } from '../PlanMenu';
+import { usePrograms, useDeleteProgram, useUpdateProgram } from '../../hooks/useApi';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
 
 interface ProgramPlansViewProps {
@@ -14,7 +15,8 @@ export function ProgramPlansView({
   onNavigateToBrowseLibrary,
   onNavigateToWorkout
 }: ProgramPlansViewProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Active program expanded by default
+  const [expandedInactivePrograms, setExpandedInactivePrograms] = useState<Set<number>>(new Set()); // Inactive programs closed by default
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [currentProgram, setCurrentProgram] = useState<{
     id: number;
@@ -32,7 +34,6 @@ export function ProgramPlansView({
     refetch: refetchPrograms
   } = usePrograms();
 
-  const { data: libraryPrograms = [] } = useProgramLibrary();
   const updateProgram = useUpdateProgram();
   const deleteProgram = useDeleteProgram();
 
@@ -44,18 +45,21 @@ export function ProgramPlansView({
     return programs.filter((program: ProgramResource) => !program.is_active);
   }, [programs]);
 
-  // Group workouts by week for the active program
-  const programWeeks = useMemo(() => {
-    if (!activeProgram?.workout_templates) return [];
+  // Helper function to group workouts by week for any program
+  const getProgramWeeks = (program: ProgramResource) => {
+    if (!program?.workout_templates) return [];
 
     const weekMap = new Map<number, WorkoutTemplateResource[]>();
     
-    activeProgram.workout_templates.forEach((template) => {
+    program.workout_templates.forEach((template: WorkoutTemplateResource) => {
       const weekNum = template.week_number || 1;
       if (!weekMap.has(weekNum)) {
         weekMap.set(weekNum, []);
       }
-      weekMap.get(weekNum)!.push(template);
+      const weekWorkouts = weekMap.get(weekNum);
+      if (weekWorkouts) {
+        weekWorkouts.push(template);
+      }
     });
 
     // Sort workouts within each week by order_index
@@ -64,14 +68,19 @@ export function ProgramPlansView({
     });
 
     // Convert to array and sort by week number
+    const currentActiveWeek = program.current_active_week ?? 1;
     return Array.from(weekMap.entries())
       .sort(([a], [b]) => a - b)
       .map(([weekNumber, workouts]) => ({
         weekNumber,
         workouts,
-        title: `Week ${weekNumber}`, // Could be enhanced with phase names from backend
-        isActive: weekNumber === 1 // First week is active by default
+        isActive: weekNumber === currentActiveWeek && program.is_active
       }));
+  };
+
+  // Group workouts by week for the active program
+  const programWeeks = useMemo(() => {
+    return getProgramWeeks(activeProgram || {} as ProgramResource);
   }, [activeProgram]);
 
   const handleProgramMenuClick = (event: React.MouseEvent, menuId: string, program: {
@@ -110,6 +119,18 @@ export function ProgramPlansView({
     } finally {
       setShowDeleteConfirm(false);
     }
+  };
+
+  const handleToggleInactiveProgram = (programId: number) => {
+    setExpandedInactivePrograms(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(programId)) {
+        newSet.delete(programId);
+      } else {
+        newSet.add(programId);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -174,21 +195,16 @@ export function ProgramPlansView({
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3 mb-4">
-                  <div 
-                    className="px-3 py-1.5 rounded-full"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-                      borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-                    }}
-                  >
-                    <span className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                    <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
                       {activeProgram.duration_weeks} WEEKS
                     </span>
                   </div>
-                  <div className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
-                    <span className="text-xs font-bold text-green-400">ACTIVE</span>
-                  </div>
+                  <span className="text-[10px] font-medium" style={{ color: '#4ade80' }}>
+                    ACTIVE
+                  </span>
                 </div>
 
                 {/* Expand/Collapse Button */}
@@ -234,13 +250,13 @@ export function ProgramPlansView({
                           </div>
 
                           {/* Week card */}
-                          <div className="flex-1">
+                          <div className="flex-1" style={{ minWidth: 0, maxWidth: '100%' }}>
                             <ProgramWeekCard
                               weekNumber={week.weekNumber}
-                              title={week.title}
                               workouts={week.workouts}
                               isActive={week.isActive}
                               accentColor="var(--color-primary)"
+                              nextWorkoutId={activeProgram?.next_workout?.id || null}
                               onWorkoutClick={onNavigateToWorkout}
                             />
                           </div>
@@ -307,50 +323,114 @@ export function ProgramPlansView({
                 No other programs yet.
               </div>
             ) : (
-              inactivePrograms.map((program: ProgramResource) => (
-                <div 
-                  key={program.id} 
-                  className="relative border rounded-2xl p-6"
-                  style={{ 
-                    backgroundColor: 'var(--color-bg-surface)',
-                    borderColor: 'var(--color-border)'
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 
-                      className="text-lg font-bold transition-colors"
-                      style={{ color: 'var(--color-secondary)' }}
-                    >
-                      {program.name}
-                    </h3>
-                    <button 
-                      onClick={e => handleProgramMenuClick(e, `program-${program.id}`, {
-                        id: program.id,
-                        name: program.name,
-                        isActive: program.is_active
-                      })} 
-                      className="p-2 rounded-full transition-colors" 
-                      style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                    >
-                      <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
-                    </button>
-                  </div>
+              inactivePrograms.map((program: ProgramResource) => {
+                const isProgramExpanded = expandedInactivePrograms.has(program.id);
+                const programWeeksData = getProgramWeeks(program);
 
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="px-3 py-1.5 border rounded-full"
+                return (
+                  <div 
+                    key={program.id} 
+                    className="relative border rounded-2xl p-6"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border)'
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h3 
+                          className="text-lg font-bold mb-2"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
+                          {program.name}
+                        </h3>
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+                          {program.description || 'Structured program from your library'}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={e => handleProgramMenuClick(e, `program-${program.id}`, {
+                          id: program.id,
+                          name: program.name,
+                          isActive: program.is_active
+                        })} 
+                        className="p-2 rounded-full transition-colors" 
+                        style={{ backgroundColor: 'var(--color-border-subtle)' }}
+                      >
+                        <MoreVertical className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                        <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                          {program.duration_weeks} WEEKS
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Expand/Collapse Button */}
+                    <button
+                      onClick={() => handleToggleInactiveProgram(program.id)}
+                      className="w-full flex items-center justify-between py-3 px-4 rounded-xl transition-colors mb-4"
                       style={{ 
                         backgroundColor: 'var(--color-bg-elevated)',
-                        borderColor: 'var(--color-border)'
                       }}
                     >
-                      <span className="text-xs font-bold" style={{ color: 'var(--color-text-secondary)' }}>
-                        {program.duration_weeks} WEEKS
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
+                        {isProgramExpanded ? 'Hide' : 'View'} Program Details
                       </span>
-                    </div>
+                      {isProgramExpanded ? (
+                        <ChevronUp size={18} style={{ color: 'var(--color-primary)' }} />
+                      ) : (
+                        <ChevronDown size={18} style={{ color: 'var(--color-primary)' }} />
+                      )}
+                    </button>
+
+                    {/* Collapsible Timeline with weeks */}
+                    {isProgramExpanded && programWeeksData.length > 0 && (
+                      <div className="relative animate-in slide-in-from-top-2 duration-300">
+                        {/* Timeline line */}
+                        <div 
+                          className="absolute left-[9px] top-8 bottom-8 w-0.5" 
+                          style={{ backgroundColor: 'var(--color-border)' }}
+                        />
+
+                        {/* Week cards */}
+                        <div className="space-y-4 relative">
+                          {programWeeksData.map((week) => (
+                            <div key={week.weekNumber} className="flex items-start">
+                              {/* Timeline dot */}
+                              <div className="relative z-10 mt-6 mr-4">
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2`}
+                                  style={{
+                                    backgroundColor: week.isActive ? 'var(--color-primary)' : 'var(--color-bg-surface)',
+                                    borderColor: week.isActive ? 'var(--color-primary)' : 'var(--color-border)'
+                                  }}
+                                />
+                              </div>
+
+                              {/* Week card */}
+                              <div className="flex-1">
+                                <ProgramWeekCard
+                                  weekNumber={week.weekNumber}
+                                  workouts={week.workouts}
+                                  isActive={week.isActive}
+                                  accentColor="var(--color-primary)"
+                                  nextWorkoutId={program.is_active ? (activeProgram?.next_workout?.id || null) : null}
+                                  onWorkoutClick={onNavigateToWorkout}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </LoadingContent>
@@ -371,51 +451,19 @@ export function ProgramPlansView({
         />
       </button>
 
-      {/* Program Menu (simple version - just toggle active and delete) */}
+      {/* Program Menu */}
       {openMenuId && currentProgram && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setOpenMenuId(null)}
-          />
-          <div 
-            className="relative w-full max-w-md rounded-t-3xl p-6 space-y-3"
-            style={{ backgroundColor: 'var(--color-bg-surface)' }}
-          >
-            <button
-              onClick={handleToggleActive}
-              disabled={updateProgram.isPending}
-              className="w-full py-3 rounded-xl font-semibold transition-colors"
-              style={{
-                backgroundColor: 'var(--color-bg-elevated)',
-                color: 'var(--color-text-primary)'
-              }}
-            >
-              {currentProgram.isActive ? 'Deactivate Program' : 'Activate Program'}
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              disabled={deleteProgram.isPending}
-              className="w-full py-3 rounded-xl font-semibold transition-colors"
-              style={{
-                backgroundColor: 'var(--color-danger)',
-                color: 'white'
-              }}
-            >
-              Delete Program
-            </button>
-            <button
-              onClick={() => setOpenMenuId(null)}
-              className="w-full py-3 rounded-xl font-semibold transition-colors"
-              style={{
-                backgroundColor: 'var(--color-border-subtle)',
-                color: 'var(--color-text-secondary)'
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <PlanMenu 
+          isOpen={openMenuId !== null} 
+          onClose={() => setOpenMenuId(null)} 
+          isActive={currentProgram.isActive} 
+          onAddWorkout={undefined} 
+          onEdit={undefined} 
+          onToggleActive={handleToggleActive} 
+          onDelete={handleDeleteClick} 
+          isToggleLoading={updateProgram.isPending} 
+          isDeleteLoading={deleteProgram.isPending} 
+        />
       )}
 
       {/* Delete Confirmation */}

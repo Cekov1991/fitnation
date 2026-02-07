@@ -170,12 +170,6 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
                       style={{ color: 'var(--color-text-muted)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-secondary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--color-text-muted)';
-                      }}
                     >
                       {showPassword ? (
                         <EyeOff className="w-5 h-5" />
@@ -193,12 +187,6 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                     type="button"
                     className="text-sm transition-colors"
                     style={{ color: 'var(--color-primary)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '0.8';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                    }}
                   >
                     Forgot password?
                   </button>
@@ -225,12 +213,6 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                       onClick={onNavigateToRegister}
                       className="font-semibold transition-colors"
                       style={{ color: 'var(--color-primary)' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'color-mix(in srgb, var(--color-primary) 80%, transparent)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--color-primary)';
-                      }}
                     >
                       Sign up
                     </button>

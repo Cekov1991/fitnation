@@ -2,12 +2,17 @@ import { useMemo } from 'react';
 import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { formatWeight } from './workout-session/utils';
+import { estimateWorkoutDuration } from '../utils/workoutHelpers';
 import type { WorkoutTemplateResource, TemplateExercise } from '../types/api';
 
 interface WorkoutCardProps {
   template: WorkoutTemplateResource | null;
   title?: string;
   onStartWorkout?: (templateId: number) => void;
+  onStartNextWorkout?: () => void;
+  showStartButton?: boolean;
+  startButtonText?: string;
+  startButtonDisabled?: boolean;
   onExerciseClick?: (exerciseName: string) => void;
   onEditWorkout?: (templateId: number) => void;
 }
@@ -71,38 +76,17 @@ function normalizeExercises(template: WorkoutTemplateResource | null | Record<st
   return [];
 }
 
-/**
- * Estimate workout duration in minutes based on exercises, sets, reps, and rest times
- */
-function estimateWorkoutDuration(exercises: TemplateExercise[]): number {
-  if (!exercises || exercises.length === 0) {
-    return 0;
-  }
-
-  let totalMinutes = 0;
-
-  for (const exercise of exercises) {
-    const sets = exercise.pivot.target_sets || 0;
-    const restSeconds = exercise.pivot.rest_seconds || exercise.default_rest_sec || 60;
-
-    // Estimate time per set: 30 seconds for the set itself + rest time
-    // For the last set, no rest time is needed
-    const timePerSet = 0.5 + (restSeconds / 60); // 0.5 min for the set + rest in minutes
-    const totalSetTime = sets > 0 ? (sets - 1) * timePerSet + 0.5 : 0; // Last set has no rest
-
-    // Add 1 minute setup time per exercise
-    totalMinutes += totalSetTime + 1;
-  }
-
-  // If calculation results in 0 or very low, use fallback: 3-4 minutes per exercise
-  if (totalMinutes < exercises.length * 2) {
-    return exercises.length * 3.5;
-  }
-
-  return Math.round(totalMinutes);
-}
-
-export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseClick, onEditWorkout }: WorkoutCardProps) {
+export function WorkoutCard({ 
+  template, 
+  title = "TODAY'S WORKOUT", 
+  onStartWorkout,
+  onStartNextWorkout,
+  showStartButton = false,
+  startButtonText = "START WORKOUT",
+  startButtonDisabled = false,
+  onExerciseClick, 
+  onEditWorkout 
+}: WorkoutCardProps) {
   // Normalize exercises to handle both API response formats
   const normalizedExercises = useMemo(() => normalizeExercises(template), [template]);
   const duration = useMemo(() => estimateWorkoutDuration(normalizedExercises), [normalizedExercises]);
@@ -163,10 +147,7 @@ export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseCli
         )}
       </div>
 
-      {/* Workout Title */}
-      <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-        {template.name}
-      </h2>
+
 
       {/* Duration and Exercise Count */}
       <div className="flex items-center gap-6 mb-6">
@@ -232,6 +213,33 @@ export function WorkoutCard({ template, title = "TODAY'S WORKOUT", onExerciseCli
           )}
         </div>
       </div>
+
+      {/* Start Workout Button */}
+      {showStartButton && (
+        <div className="mt-6 pt-4 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
+          <button
+            onClick={() => {
+              if (onStartNextWorkout) {
+                onStartNextWorkout();
+              } else if (onStartWorkout && template?.id) {
+                onStartWorkout(template.id);
+              }
+            }}
+            disabled={startButtonDisabled}
+            className="w-full h-12 rounded-xl font-bold text-base shadow-lg active:scale-[0.98] transition-transform flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: startButtonDisabled
+                ? 'var(--color-border-subtle)'
+                : 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+              color: startButtonDisabled
+                ? 'var(--color-text-secondary)'
+                : 'var(--color-text-button)'
+            }}
+          >
+            {startButtonText}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

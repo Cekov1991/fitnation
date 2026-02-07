@@ -413,7 +413,7 @@ function EditWorkoutPageWrapper() {
 // Manage exercises page wrapper
 function ManageExercisesPageWrapper() {
   const history = useHistory();
-  const location = useLocation<{ templateId?: number; name?: string; description?: string }>();
+  const location = useLocation<{ templateId?: number; name?: string; description?: string; returnPath?: string }>();
   const { templateId } = useParams<{ templateId: string }>();
   const { data: template } = useTemplate(parseInt(templateId));
   const currentPage = useCurrentNavPage();
@@ -424,7 +424,17 @@ function ManageExercisesPageWrapper() {
   const workoutDescription = workoutFromState?.description || template?.description;
 
   const handleBack = () => {
-    history.push('/plans');
+    // Use returnPath from location state if provided, otherwise go back in history, fallback to /plans
+    if (location.state?.returnPath) {
+      history.push(location.state.returnPath);
+    } else {
+      // Try to go back, but if that fails or we're at the start, go to plans
+      if (history.length > 1) {
+        history.goBack();
+      } else {
+        history.push('/plans');
+      }
+    }
   };
 
   const handleAddExercise = () => {

@@ -118,12 +118,6 @@ export function StrengthScoreModal({
                   onClick={onClose}
                   className="p-2 rounded-full transition-colors"
                   style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                  }}
                 >
                   <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
