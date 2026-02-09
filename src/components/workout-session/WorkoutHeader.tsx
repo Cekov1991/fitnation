@@ -1,16 +1,18 @@
 import { motion } from 'framer-motion';
-import { Clock } from 'lucide-react';
+import { Clock, X, Check } from 'lucide-react';
 
 interface WorkoutHeaderProps {
   formattedDuration: string;
-  onExit: () => void;
-  onOpenOptions: () => void;
+  onFinish: () => void;
+  onCancel: () => void;
+  isCancelLoading?: boolean;
 }
 
 export function WorkoutHeader({ 
   formattedDuration, 
-  onExit, 
-  onOpenOptions 
+  onFinish,
+  onCancel,
+  isCancelLoading = false
 }: WorkoutHeaderProps) {
   return (
     <motion.div 
@@ -18,24 +20,37 @@ export function WorkoutHeader({
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center justify-between p-6 pb-4"
     >
+      {/* Cancel Button */}
       <button 
-        onClick={onExit} 
-        className="text-sm font-semibold transition-colors text-hover-primary"
+        onClick={onCancel} 
+        disabled={isCancelLoading}
+        className="flex items-center gap-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ 
+          color: '#ef4444',
+        }}
       >
-        Exit
+        <X className="w-4 h-4" />
+        {isCancelLoading ? 'Cancelling...' : 'Cancel'}
       </button>
+
+      {/* Timer - Centered */}
       <div className="flex items-center gap-2">
         <Clock className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
-        <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
           {formattedDuration}
         </span>
       </div>
+
+      {/* Finish Button */}
       <button 
-        onClick={onOpenOptions} 
-        className="text-sm font-semibold transition-opacity hover:opacity-80"
-        style={{ color: 'var(--color-primary)' }}
+        onClick={onFinish} 
+        className="flex items-center gap-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
+        style={{ 
+          color: '#4ade80',
+        }}
       >
-        Options
+        <Check className="w-4 h-4" />
+        Finish
       </button>
     </motion.div>
   );

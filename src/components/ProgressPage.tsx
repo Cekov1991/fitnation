@@ -1,14 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { MetricCard } from './MetricCard';
 import { StrengthScoreModal } from './StrengthScoreModal';
 import { BalanceModal } from './BalanceModal';
 import { WeeklyProgressModal } from './WeeklyProgressModal';
+import { WeeklyCalendar } from './WeeklyCalendar';
+import { SessionDetailModal } from './SessionDetailModal';
 import { useFitnessMetrics } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
 
 export function ProgressPage() {
   const { data: metrics } = useFitnessMetrics();
+  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const {
     isStrengthModalOpen,
     isBalanceModalOpen,
@@ -54,6 +58,18 @@ export function ProgressPage() {
     return `${metrics.weekly_progress.current_week_workouts} workouts`;
   }, [metrics]);
 
+  const handleDateClick = (sessionId: number | null) => {
+    if (sessionId) {
+      setSelectedSessionId(sessionId);
+      setIsSessionModalOpen(true);
+    }
+  };
+
+  const handleCloseSessionModal = () => {
+    setIsSessionModalOpen(false);
+    setSelectedSessionId(null);
+  };
+
   return (
     <>
       <div>
@@ -69,6 +85,11 @@ export function ProgressPage() {
               Track your fitness journey
             </p>
           </header>
+
+          {/* Weekly Calendar */}
+          <div className="mb-8">
+            <WeeklyCalendar onDateClick={handleDateClick} />
+          </div>
 
           {/* Metrics */}
           <div className="space-y-4 mb-8">
@@ -104,6 +125,11 @@ export function ProgressPage() {
       <StrengthScoreModal isOpen={isStrengthModalOpen} onClose={closeStrengthModal} />
       <BalanceModal isOpen={isBalanceModalOpen} onClose={closeBalanceModal} />
       <WeeklyProgressModal isOpen={isProgressModalOpen} onClose={closeProgressModal} />
+      <SessionDetailModal
+        isOpen={isSessionModalOpen}
+        onClose={handleCloseSessionModal}
+        sessionId={selectedSessionId}
+      />
     </>
   );
 }

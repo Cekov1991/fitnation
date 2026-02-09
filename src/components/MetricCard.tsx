@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronRight, BoxIcon } from 'lucide-react';
 interface MetricCardProps {
   title: string;
@@ -14,7 +13,6 @@ export function MetricCard({
   value,
   subtitle,
   icon: Icon,
-  delay = 0,
   onClick
 }: MetricCardProps) {
   return <div 
@@ -23,12 +21,6 @@ export function MetricCard({
     style={{ 
       backgroundColor: 'var(--color-bg-surface)',
       borderColor: 'var(--color-border-subtle)'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
     }}
   >
       {/* Gradient glow effect on hover */}
@@ -54,12 +46,6 @@ export function MetricCard({
             size={16} 
             className="transition-colors" 
             style={{ color: 'var(--color-text-muted)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-muted)';
-            }}
           />
         </div>
 
@@ -70,12 +56,6 @@ export function MetricCard({
           <p 
             className="text-sm font-medium transition-colors"
             style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
           >
             {title}
           </p>

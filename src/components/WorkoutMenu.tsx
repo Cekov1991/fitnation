@@ -98,12 +98,6 @@ export function WorkoutMenu({
                   onClick={onClose} 
                   className="p-2 rounded-full transition-colors"
                   style={{ backgroundColor: 'var(--color-border-subtle)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-border-subtle)';
-                  }}
                 >
                   <X className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
@@ -128,26 +122,10 @@ export function WorkoutMenu({
                 disabled={item.disabled}
                 className="w-full flex items-center gap-4 p-4 rounded-xl transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: 'var(--color-bg-surface)' }}
-                onMouseEnter={(e) => {
-                  if (!item.disabled) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                }}
               >
                       <div 
                         className="p-2 rounded-lg transition-colors"
                         style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                        onMouseEnter={(e) => {
-                          if (!item.disabled) {
-                            e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                        }}
                       >
                         {item.isLoading ? (
                           <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: item.color === 'text-gray-300' ? 'var(--color-text-secondary)' : undefined }} />
@@ -175,12 +153,6 @@ export function WorkoutMenu({
             style={{ 
               backgroundColor: 'var(--color-bg-elevated)',
               color: 'var(--color-text-primary)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
             }}
           >
                 Cancel

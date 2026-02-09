@@ -352,12 +352,6 @@ export function SessionDetailModal({
                             backgroundColor: 'var(--color-bg-surface)',
                             borderColor: 'var(--color-border-subtle)',
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                          }}
                         >
                           <div
                             className="p-2 rounded-lg"
@@ -460,12 +454,6 @@ export function SessionDetailModal({
                                   backgroundColor: 'var(--color-bg-elevated)',
                                   borderColor: 'var(--color-border-subtle)',
                                   color: 'var(--color-text-secondary)',
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
                                 }}
                               >
                                 Cancel

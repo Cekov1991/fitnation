@@ -197,12 +197,6 @@ export function ExercisePickerPage({
                       color: 'var(--color-primary)',
                       backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)'
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 20%, transparent)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
-                    }}
                   >
                     Clear Filters
                   </button>
@@ -224,16 +218,6 @@ export function ExercisePickerPage({
                       } : {
                         backgroundColor: 'var(--color-bg-surface)',
                         borderColor: 'var(--color-border-subtle)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                        }
                       }}
                     >
                       <span 
@@ -271,16 +255,6 @@ export function ExercisePickerPage({
                       } : {
                         backgroundColor: 'var(--color-bg-surface)',
                         borderColor: 'var(--color-border-subtle)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
-                        }
                       }}
                     >
                       <span 
@@ -321,14 +295,6 @@ export function ExercisePickerPage({
                       style={{ 
                         backgroundColor: 'var(--color-bg-surface)',
                         borderColor: 'var(--color-border-subtle)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelecting) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-bg-elevated)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-bg-surface)';
                       }}
                     >
                       {/* Exercise Image/Muscle Diagram */}
