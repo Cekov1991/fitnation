@@ -45,7 +45,7 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
           className="min-h-screen w-full pb-32"
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
-          <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+          <main className="relative z-10 max-w-md mx-auto px-4 py-8">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
               <button

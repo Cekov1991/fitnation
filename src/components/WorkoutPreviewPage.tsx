@@ -211,7 +211,7 @@ export function WorkoutPreviewPage() {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
         <BackgroundGradients />
-        <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+        <main className="relative z-10 max-w-md mx-auto px-4 py-8">
           <div className="text-center py-8">
             <p style={{ color: 'var(--color-text-secondary)' }}>Draft session not found</p>
             <button
@@ -230,7 +230,7 @@ export function WorkoutPreviewPage() {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
       <BackgroundGradients />
-      <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+      <main className="relative z-10 max-w-md mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1">

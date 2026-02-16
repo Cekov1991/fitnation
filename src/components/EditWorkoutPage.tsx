@@ -260,7 +260,7 @@ export function EditWorkoutPage({
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
 
-      <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+      <main className="relative z-10 max-w-md mx-auto px-4 py-8">
         {/* Header */}
         <motion.div {...modalTransition} className="flex items-center gap-4 mb-8">
           <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">

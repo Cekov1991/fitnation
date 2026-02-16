@@ -89,7 +89,7 @@ export function GenerateWorkoutPage() {
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
-      <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+      <main className="relative z-10 max-w-md mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button

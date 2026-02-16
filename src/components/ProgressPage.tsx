@@ -74,7 +74,7 @@ export function ProgressPage() {
     <>
       <div>
 
-        <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+        <main className="relative z-10 max-w-md mx-auto px-4 py-8">
           {/* Header */}
           <header className="mb-8">
           <h1 

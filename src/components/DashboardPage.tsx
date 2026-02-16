@@ -96,7 +96,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <main className="relative z-10 max-w-md mx-auto px-3 py-8">
+      <main className="relative z-10 max-w-md mx-auto px-4 py-8">
         {/* Header */}
         <header className="flex flex-col items-center mb-8">
           {logo ? (

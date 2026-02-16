@@ -143,7 +143,7 @@ export function ExercisePickerPage({
 
       <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
         {/* Header */}
-        <motion.div {...slideTransition} className="flex items-center justify-between p-3 py-4">
+        <motion.div {...slideTransition} className="flex items-center justify-between p-4 py-4">
           <h1 
             className="text-2xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -156,7 +156,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Search Bar */}
-        <motion.div {...modalTransition} className="px-3 pb-4">
+        <motion.div {...modalTransition} className="px-4 pb-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-primary)' }} />
             <input 
@@ -181,7 +181,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Filters Section */}
-        <motion.div {...modalTransition} className="px-3 pb-4 space-y-3">
+        <motion.div {...modalTransition} className="px-4 pb-4 space-y-3">
           {/* Equipment Type Filters */}
           {!isLoadingEquipmentTypes && equipmentTypes.length > 0 && (
             <div>
@@ -209,7 +209,7 @@ export function ExercisePickerPage({
                     <button
                       key={equipmentType.id}
                       onClick={() => handleToggleEquipmentType(equipmentType.id)}
-                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
+                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
                         isSelected ? 'shadow-lg' : 'border'
                       }`}
                       style={isSelected ? {
@@ -246,7 +246,7 @@ export function ExercisePickerPage({
                     <button
                       key={muscleGroup.id}
                       onClick={() => handleToggleMuscleGroup(muscleGroup.id)}
-                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
+                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
                         isSelected ? 'shadow-lg' : 'border'
                       }`}
                       style={isSelected ? {
@@ -272,7 +272,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Exercise List */}
-        <div className="flex-1 px-3 pb-6">
+        <div className="flex-1 px-4 pb-6">
           <AnimatePresence mode="popLayout">
             {isLoading ? <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
