@@ -196,7 +196,7 @@ export function ProgramPlansView({
                 </div>
 
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
                     <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
                       {activeProgram.duration_weeks} WEEKS
@@ -362,7 +362,7 @@ export function ProgramPlansView({
                     </div>
 
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
                         <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
                           {program.duration_weeks} WEEKS

@@ -328,7 +328,7 @@ export function ExerciseDetailPage({
                 {/* Fullscreen Button */}
                 <button
                   onClick={handleFullscreen}
-                  className="absolute top-4 right-4 p-2.5 rounded-lg transition-opacity opacity-80 hover:opacity-100"
+                  className="absolute top-4 right-4 p-1 rounded-lg transition-opacity opacity-80 hover:opacity-100"
                   style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                   title="Fullscreen"
                 >
@@ -345,7 +345,7 @@ export function ExerciseDetailPage({
                 {/* Fullscreen Button for images too */}
                 <button
                   onClick={handleFullscreen}
-                  className="absolute top-4 right-4 p-2.5 rounded-lg transition-opacity opacity-80 hover:opacity-100"
+                  className="absolute top-4 right-4 p-1 rounded-lg transition-opacity opacity-80 hover:opacity-100"
                   style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                   title="Fullscreen"
                 >

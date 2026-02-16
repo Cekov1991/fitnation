@@ -333,7 +333,7 @@ export function CustomPlansView({
               </div>
 
               <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
                     {activePlanWorkouts.length} WORKOUT{activePlanWorkouts.length !== 1 ? 'S' : ''}
                   </span>

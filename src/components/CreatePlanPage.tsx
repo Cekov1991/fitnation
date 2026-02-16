@@ -61,7 +61,7 @@ export function CreatePlanPage({
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
 
-          <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
+          <main className="relative z-10 max-w-md mx-auto px-3 py-8">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
               <button 

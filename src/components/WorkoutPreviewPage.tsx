@@ -211,7 +211,7 @@ export function WorkoutPreviewPage() {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
         <BackgroundGradients />
-        <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
+        <main className="relative z-10 max-w-md mx-auto px-3 py-8">
           <div className="text-center py-8">
             <p style={{ color: 'var(--color-text-secondary)' }}>Draft session not found</p>
             <button
@@ -230,7 +230,7 @@ export function WorkoutPreviewPage() {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
       <BackgroundGradients />
-      <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
+      <main className="relative z-10 max-w-md mx-auto px-3 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1">
@@ -276,60 +276,51 @@ export function WorkoutPreviewPage() {
                 return (
                   <div
                     key={sessionExercise.id}
-                    className="rounded-3xl overflow-hidden shadow-sm"
+                    className="w-full flex items-center gap-4 p-1 border rounded-2xl transition-colors cursor-pointer"
                     style={{ 
-                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)',
                     }}
+                    onClick={() => handleViewExerciseDetail(exercise.name)}
                   >
-                    {/* Exercise Image - Top Section */}
-                    <div 
-                      className="w-full h-40 flex items-center justify-center cursor-pointer"
-                      style={{ backgroundColor: 'var(--color-bg-base)' }}
-                      onClick={() => handleViewExerciseDetail(exercise.name)}
-                    >
+                    {/* Exercise Image - Left Section */}
+                    <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative">
                       <ExerciseImage 
                         src={exercise.image} 
                         alt={exercise.name}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full"
                       />
                     </div>
 
-                    {/* Exercise Info - Bottom Section */}
-                    <div className="flex items-center gap-3 px-4 py-4">
-                      {/* Exercise Info */}
-                      <div 
-                        className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => handleViewExerciseDetail(exercise.name)}
-                      >
-                        <h3 className="text-base font-bold mb-0.5 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
-                          {exercise.name}
-                        </h3>
-                        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                          <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_sets} sets</span>
-                          <span className="mx-1.5 opacity-40">×</span>
-                          <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_reps} reps</span>
-                          {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
-                            <>
-                              <span className="mx-1.5 opacity-40">×</span>
-                              <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} kg</span>
-                            </>
-                          )}
-                        </p>
-                      </div>
-
-                      {/* Edit Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditClick(exerciseDetail);
-                        }}
-                        className="flex-shrink-0 p-2.5 rounded-full transition-colors"
-                        style={{ backgroundColor: 'var(--color-bg-base)' }}
-                        title="Edit exercise"
-                      >
-                        <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      </button>
+                    {/* Exercise Info - Middle Section */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+                        {exercise.name}
+                      </h3>
+                      <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                        <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_sets} sets</span>
+                        <span className="mx-1 opacity-40">×</span>
+                        <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_reps} reps</span>
+                        {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
+                          <>
+                            <span className="mx-1 opacity-40">×</span>
+                            <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} kg</span>
+                          </>
+                        )}
+                      </p>
                     </div>
+
+                    {/* Edit Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(exerciseDetail);
+                      }}
+                      className="flex-shrink-0 p-1 rounded-full transition-colors"
+                      style={{ backgroundColor: 'var(--color-bg-base)' }}
+                      title="Edit exercise"
+                    >
+                      <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+                    </button>
                   </div>
                 );
               })}

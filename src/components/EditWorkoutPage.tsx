@@ -43,9 +43,14 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
       dragListener={false}
       dragControls={controls}
       onDragEnd={onDragEnd}
-      className="rounded-3xl overflow-hidden cursor-pointer shadow-sm"
+      className="w-full flex items-center gap-4 p-1 border rounded-2xl transition-colors cursor-pointer"
       style={{ 
-        backgroundColor: 'var(--color-bg-surface)',
+        borderColor: 'var(--color-border-subtle)',
+      }}
+      onClick={(e: React.MouseEvent) => {
+        if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
+          onClick(exercise);
+        }
       }}
       // iOS-friendly: use only transform (scale) and avoid expensive boxShadow animation
       whileDrag={skipDragAnimation ? undefined : { 
@@ -59,68 +64,63 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
         ease: 'easeOut'
       }}
     >
-      {/* Exercise Image - Top Section */}
+      {/* Exercise Image - Left Section */}
       <div 
-        className="w-full h-40 flex items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg-base)' }}
+        className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative"
         onClick={(e) => {
           if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
             onClick(exercise);
           }
         }}
       >
-        <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full object-contain" />
+        <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
       </div>
 
-      {/* Exercise Info - Bottom Section */}
+      {/* Exercise Info - Middle Section */}
       <div 
-        className="flex items-center gap-3 px-4 py-4"
+        className="flex-1 min-w-0"
         onClick={(e) => {
-          // Only trigger onClick if not clicking on drag handle or edit button
           if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
             onClick(exercise);
           }
         }}
       >
-        {/* Drag Handle - only this triggers drag */}
-        <div 
-          data-drag-handle
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            controls.start(e);
-          }}
-          className="flex-shrink-0 p-1.5 rounded-lg cursor-grab active:cursor-grabbing transition-colors touch-none" 
-          style={{ backgroundColor: 'var(--color-bg-base)' }}
-        >
-          <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-        </div>
+        <h4 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+          {exercise.name}
+        </h4>
+        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <span style={{ color: 'var(--color-primary)' }}>{exercise.sets} sets</span>
+          <span className="mx-1 opacity-40">×</span>
+          <span style={{ color: 'var(--color-primary)' }}>{exercise.reps} reps</span>
+          <span className="mx-1 opacity-40">×</span>
+          <span style={{ color: 'var(--color-primary)' }}>{exercise.weight} kg</span>
+        </p>
+      </div>
 
-        {/* Exercise Info */}
-        <div className="flex-1 min-w-0">
-          <h4 className="text-base font-bold mb-0.5 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
-            {exercise.name}
-          </h4>
-          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-            <span style={{ color: 'var(--color-primary)' }}>{exercise.sets} sets</span>
-            <span className="mx-1.5 opacity-40">×</span>
-            <span style={{ color: 'var(--color-primary)' }}>{exercise.reps} reps</span>
-            <span className="mx-1.5 opacity-40">×</span>
-            <span style={{ color: 'var(--color-primary)' }}>{exercise.weight} kg</span>
-          </p>
-        </div>
+      {/* Edit Button */}
+      <button 
+        data-edit-button
+        onClick={(e) => {
+          e.stopPropagation();
+          onEditClick(exercise);
+        }} 
+        className="flex-shrink-0 p-1 rounded-full transition-colors" 
+        style={{ backgroundColor: 'var(--color-bg-base)' }}
+      >
+        <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
+      </button>
 
-        {/* Edit Button */}
-        <button 
-          data-edit-button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEditClick(exercise);
-          }} 
-          className="flex-shrink-0 p-2.5 rounded-full transition-colors" 
-          style={{ backgroundColor: 'var(--color-bg-base)' }}
-        >
-          <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-        </button>
+      {/* Drag Handle - Right Side */}
+      <div 
+        data-drag-handle
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          controls.start(e);
+        }}
+        className="flex-shrink-0 p-1 rounded-lg cursor-grab active:cursor-grabbing transition-colors touch-none" 
+        style={{ backgroundColor: 'var(--color-bg-base)' }}
+      >
+        <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
       </div>
     </Reorder.Item>
   );
@@ -143,7 +143,7 @@ export function EditWorkoutPage({
   onSwapExercise,
   onViewExerciseDetail
 }: EditWorkoutPageProps) {
-  const { data: template, isLoading, isFetching, isError, error, refetch } = useTemplate(templateId);
+  const { data: template, isLoading, isError, error, refetch } = useTemplate(templateId);
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
   const reorderExercises = useReorderTemplateExercises();
@@ -260,7 +260,7 @@ export function EditWorkoutPage({
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
 
-      <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
+      <main className="relative z-10 max-w-md mx-auto px-3 py-8">
         {/* Header */}
         <motion.div {...modalTransition} className="flex items-center gap-4 mb-8">
           <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">

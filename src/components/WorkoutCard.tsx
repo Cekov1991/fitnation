@@ -194,7 +194,7 @@ export function WorkoutCard({
                   style={{ backgroundColor: 'var(--color-bg-elevated)' }}
                 >
                   {/* Exercise Image */}
-                  <div className="flex-shrink-0 w-24 h-16 rounded-xl overflow-hidden">
+                  <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden">
                     <ExerciseImage src={exercise.image} alt={exercise.name} className="w-full h-full" />
                   </div>
 

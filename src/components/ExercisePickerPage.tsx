@@ -143,7 +143,7 @@ export function ExercisePickerPage({
 
       <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
         {/* Header */}
-        <motion.div {...slideTransition} className="flex items-center justify-between p-6 pb-4">
+        <motion.div {...slideTransition} className="flex items-center justify-between p-3 py-4">
           <h1 
             className="text-2xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -156,7 +156,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Search Bar */}
-        <motion.div {...modalTransition} className="px-6 pb-4">
+        <motion.div {...modalTransition} className="px-3 pb-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-primary)' }} />
             <input 
@@ -181,7 +181,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Filters Section */}
-        <motion.div {...modalTransition} className="px-6 pb-4 space-y-3">
+        <motion.div {...modalTransition} className="px-3 pb-4 space-y-3">
           {/* Equipment Type Filters */}
           {!isLoadingEquipmentTypes && equipmentTypes.length > 0 && (
             <div>
@@ -272,7 +272,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Exercise List */}
-        <div className="flex-1 px-6 pb-6">
+        <div className="flex-1 px-3 pb-6">
           <AnimatePresence mode="popLayout">
             {isLoading ? <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
@@ -291,14 +291,14 @@ export function ExercisePickerPage({
                       {...modalTransition}
                       onClick={() => handleSelectExercise(exercise)} 
                       disabled={isSelecting}
-                      className="w-full flex items-center gap-4 p-4 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: 'var(--color-border-subtle)'
-                      }}
+                      className="w-full flex items-center gap-4 p-1 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      // style={{ 
+                      //   backgroundColor: 'var(--color-bg-surface)',
+                      //   borderColor: 'var(--color-border-subtle)'
+                      // }}
                     >
                       {/* Exercise Image/Muscle Diagram */}
-                      <div className="flex-shrink-0 w-24 h-16 rounded-xl overflow-hidden relative">
+                      <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative">
                         <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
                         {isThisLoading && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">

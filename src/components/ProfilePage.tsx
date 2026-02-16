@@ -95,7 +95,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
 
-          <main className="relative z-10 max-w-md mx-auto px-6 pt-8">
+          <main className="relative z-10 max-w-md mx-auto px-3 py-8">
             {/* Header */}
             <div className="mb-8">
               <h1 
