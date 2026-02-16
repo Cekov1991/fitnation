@@ -142,9 +142,6 @@ export function ProgramPlansView({
             <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
               Active Program
             </h2>
-            <button className="btn-icon p-1">
-              <Info className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
-            </button>
           </div>
 
           {isProgramsFetching && !isProgramsLoading && (

@@ -1,13 +1,10 @@
 import { WorkoutPreviewPage } from '../components/WorkoutPreviewPage';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
-// Workout preview page wrapper
+// Workout preview page wrapper (no BottomNav for full-screen experience)
 export default function WorkoutPreviewPageWrapper() {
-  const currentPage = useCurrentNavPage();
-
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
+    <div className="h-screen w-full overflow-y-auto">
       <WorkoutPreviewPage />
-    </AuthenticatedLayout>
+    </div>
   );
 }

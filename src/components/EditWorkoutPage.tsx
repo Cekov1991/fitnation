@@ -46,6 +46,7 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
       className="w-full flex items-center gap-4 p-1 border rounded-2xl transition-colors cursor-pointer"
       style={{ 
         borderColor: 'var(--color-border-subtle)',
+        backgroundColor: 'var(--color-bg-surface)',
       }}
       onClick={(e: React.MouseEvent) => {
         if (onClick && !(e.target as HTMLElement).closest('[data-drag-handle], [data-edit-button]')) {
@@ -105,7 +106,7 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
           onEditClick(exercise);
         }} 
         className="flex-shrink-0 p-1 rounded-full transition-colors" 
-        style={{ backgroundColor: 'var(--color-bg-base)' }}
+
       >
         <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
       </button>
@@ -118,7 +119,7 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
           controls.start(e);
         }}
         className="flex-shrink-0 p-1 rounded-lg cursor-grab active:cursor-grabbing transition-colors touch-none" 
-        style={{ backgroundColor: 'var(--color-bg-base)' }}
+
       >
         <GripVertical className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
       </div>
@@ -270,16 +271,16 @@ export function EditWorkoutPage({
             className="text-3xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
           >
-            Edit Workout
+            {workoutName}
           </h1>
         </motion.div>
 
         {/* Workout Info Card */}
-        <motion.div 
+        {/* <motion.div 
         {...modalTransition}  
-        className="bg-gradient-to-br   border rounded-3xl p-8 mb-8 text-center"
+        className="border rounded-3xl p-4 mb-8 text-center"
         style={{ 
-          background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
+          background: 'var(--color-bg-surface)',
           borderColor: 'var(--color-border)'
         }}
       >
@@ -287,7 +288,7 @@ export function EditWorkoutPage({
           <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             {workoutDescription || 'New Workout'}
           </p>
-        </motion.div>
+        </motion.div> */}
 
         {/* Exercises Section */}
         <motion.div {...modalTransition}>

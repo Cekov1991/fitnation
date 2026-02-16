@@ -143,7 +143,7 @@ export function ExercisePickerPage({
 
       <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
         {/* Header */}
-        <motion.div {...slideTransition} className="flex items-center justify-between p-4 py-4">
+        <motion.div {...slideTransition} className="flex items-center justify-between p-6 pb-4">
           <h1 
             className="text-2xl font-bold bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
@@ -209,7 +209,7 @@ export function ExercisePickerPage({
                     <button
                       key={equipmentType.id}
                       onClick={() => handleToggleEquipmentType(equipmentType.id)}
-                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
+                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
                         isSelected ? 'shadow-lg' : 'border'
                       }`}
                       style={isSelected ? {
@@ -246,7 +246,7 @@ export function ExercisePickerPage({
                     <button
                       key={muscleGroup.id}
                       onClick={() => handleToggleMuscleGroup(muscleGroup.id)}
-                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
+                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
                         isSelected ? 'shadow-lg' : 'border'
                       }`}
                       style={isSelected ? {
@@ -291,11 +291,11 @@ export function ExercisePickerPage({
                       {...modalTransition}
                       onClick={() => handleSelectExercise(exercise)} 
                       disabled={isSelecting}
-                      className="w-full flex items-center gap-4 p-1 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                      // style={{ 
-                      //   backgroundColor: 'var(--color-bg-surface)',
-                      //   borderColor: 'var(--color-border-subtle)'
-                      // }}
+                      className="w-full flex items-center gap-4 p-2 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ 
+                        backgroundColor: 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border-subtle)'
+                      }}
                     >
                       {/* Exercise Image/Muscle Diagram */}
                       <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative">

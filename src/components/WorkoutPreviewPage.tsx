@@ -279,6 +279,7 @@ export function WorkoutPreviewPage() {
                     className="w-full flex items-center gap-4 p-1 border rounded-2xl transition-colors cursor-pointer"
                     style={{ 
                       borderColor: 'var(--color-border-subtle)',
+                      backgroundColor: 'var(--color-bg-surface)',
                     }}
                     onClick={() => handleViewExerciseDetail(exercise.name)}
                   >
@@ -316,7 +317,6 @@ export function WorkoutPreviewPage() {
                         handleEditClick(exerciseDetail);
                       }}
                       className="flex-shrink-0 p-1 rounded-full transition-colors"
-                      style={{ backgroundColor: 'var(--color-bg-base)' }}
                       title="Edit exercise"
                     >
                       <Edit2 className="w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
