@@ -19,6 +19,7 @@ export interface Exercise {
   suggestedWeight: number;
   maxWeightLifted: number;
   imageUrl: string;
+  videoUrl: string | null;
   history: { date: string; weight: number }[];
   restSeconds: number | null;
   allowWeightLogging: boolean;

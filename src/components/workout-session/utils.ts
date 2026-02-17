@@ -60,6 +60,7 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
       suggestedWeight: exDetail.session_exercise.target_weight || 0,
       maxWeightLifted: Math.max(...loggedSets.map(s => s.weight), 0),
       imageUrl: exercise?.image || '',
+      videoUrl: exercise?.video || null,
       history: [], // Leave empty as requested
       restSeconds: exDetail.session_exercise.rest_seconds ?? exercise?.default_rest_sec ?? null,
       allowWeightLogging: !BODYWEIGHT_EQUIPMENT_TYPES.includes(equipmentCode as typeof BODYWEIGHT_EQUIPMENT_TYPES[number])

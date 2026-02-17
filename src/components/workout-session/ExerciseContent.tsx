@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useSimpleTransition } from '../../utils/animations';
-import { CurrentExerciseCard } from './CurrentExerciseCard';
+import { ExerciseVideoCard } from './ExerciseVideoCard';
 import { RestTimer } from './RestTimer';
 import { SetsList } from './SetsList';
 import type { Exercise, Set } from './types';
@@ -108,7 +108,7 @@ export function ExerciseContent({
             transition={simpleTransition}
             className="space-y-6"
           >
-            <CurrentExerciseCard
+            <ExerciseVideoCard
               exercise={currentExercise}
               onOpenMenu={onOpenExerciseMenu}
               onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
