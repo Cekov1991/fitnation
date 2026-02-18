@@ -1,5 +1,6 @@
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { EditWorkoutPage } from '../components/EditWorkoutPage';
+import type { SwapExerciseContext } from '../utils/swapExercise';
 import { useTemplate } from '../hooks/useApi';
 import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
@@ -34,8 +35,18 @@ export default function ManageExercisesPageWrapper() {
     history.push(`/exercises/pick?mode=add&templateId=${templateId}`);
   };
 
-  const handleSwapExercise = () => {
-    history.push(`/exercises/pick?mode=swap&templateId=${templateId}`);
+  const handleSwapExercise = (context: SwapExerciseContext) => {
+    history.push(`/exercises/pick?mode=swap&templateId=${templateId}`, {
+      mode: 'swap',
+      templateId: parseInt(templateId),
+      swapPivotId: context.pivotId,
+      swapOrderIndex: context.orderIndex,
+      pivotData: {
+        target_sets: context.target_sets,
+        target_reps: context.target_reps,
+        target_weight: context.target_weight
+      }
+    });
   };
 
   const handleViewExerciseDetail = (exerciseName: string) => {

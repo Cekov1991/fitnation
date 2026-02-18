@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise } from '../../../hooks/useApi';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises } from '../../../hooks/useApi';
 import { exercisesApi } from '../../../services/api';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
-import { mapSessionToExercises, getExerciseCompletionStatus } from '../utils';
+import { mapSessionToExercises } from '../utils';
 import type { Exercise, Set } from '../types';
 
 interface UseWorkoutSessionStateProps {
@@ -108,6 +108,7 @@ export function useWorkoutSessionState({
   const addSessionExercise = useAddSessionExercise();
   const removeSessionExercise = useRemoveSessionExercise();
   const updateSessionExercise = useUpdateSessionExercise();
+  const reorderSessionExercises = useReorderSessionExercises();
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
   const { formattedDuration } = useWorkoutTimer(sessionData?.performed_at);
@@ -153,8 +154,8 @@ export function useWorkoutSessionState({
   const currentExercise = exercises[currentExerciseIndex];
   const currentSet = currentExercise?.sets.find(s => !s.completed);
   const completedSetsCount = currentExercise?.sets.filter(s => s.completed).length || 0;
-  const selectedSet = selectedSetId
-    ? currentExercise?.sets.find(s => s.id === selectedSetId)
+  const selectedSet = selectedSetId && currentExercise
+    ? (currentExercise.sets.find(s => s.id === selectedSetId) ?? null)
     : null;
   const isSelectedSetLast = selectedSet && currentExercise
     ? currentExercise.sets.findIndex(s => s.id === selectedSet.id) === currentExercise.sets.length - 1
@@ -377,18 +378,19 @@ export function useWorkoutSessionState({
         isAddingExercise.current = false;
       }
     } else if (exercisePickerMode === 'swap') {
-      // Remove current exercise first, then add new one
+      // Replace current exercise in place: remove, add at same position, reorder if needed, stay on same index
       if (currentExercise) {
+        const swapIndex = currentExerciseIndex;
         try {
           await removeSessionExercise.mutateAsync({
             sessionId,
             exerciseId: currentExercise.sessionExerciseId
           });
-          // Add new exercise
           await addSessionExercise.mutateAsync({
             sessionId,
             data: {
               exercise_id: exercise.id,
+              order: swapIndex,
               target_sets: currentExercise.targetSets,
               target_reps: parseInt(currentExercise.targetReps) || 10,
               target_weight: currentExercise.suggestedWeight
@@ -396,10 +398,26 @@ export function useWorkoutSessionState({
           });
           setShowExercisePicker(false);
           setShowExerciseMenu(false);
-          // Adjust index if needed
-          if (currentExerciseIndex >= exercises.length - 1 && exercises.length > 1) {
-            setCurrentExerciseIndex(exercises.length - 2);
+
+          // Refetch session; if backend appended the new exercise, reorder so it's at swapIndex
+          await queryClient.refetchQueries({ queryKey: ['sessions', sessionId] });
+          const session = queryClient.getQueryData<{ exercises?: Array<{ session_exercise: { id: number; exercise_id: number } }> }>(['sessions', sessionId]);
+          const sessionExercises = session?.exercises ?? [];
+          const newEntry = sessionExercises.find((ex) => ex.session_exercise.exercise_id === exercise.id);
+          const newSessionExerciseId = newEntry?.session_exercise.id;
+          const currentOrder = sessionExercises.map((ex) => ex.session_exercise.id);
+
+          if (newSessionExerciseId != null && currentOrder.length > 1) {
+            const newIndex = currentOrder.indexOf(newSessionExerciseId);
+            if (newIndex !== -1 && newIndex !== swapIndex) {
+              const reorderIds = [...currentOrder];
+              reorderIds.splice(newIndex, 1);
+              reorderIds.splice(swapIndex, 0, newSessionExerciseId);
+              await reorderSessionExercises.mutateAsync({ sessionId, exerciseIds: reorderIds });
+            }
           }
+
+          setCurrentExerciseIndex(swapIndex);
         } catch (error) {
           console.error('Failed to swap exercise:', error);
         }

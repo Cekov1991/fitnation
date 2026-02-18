@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useHistory, useParams, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -8,14 +9,15 @@ import { BackgroundGradients } from './BackgroundGradients';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { ExercisePickerPage } from './ExercisePickerPage';
-import { 
-  useConfirmDraftSession, 
+import {
+  useConfirmDraftSession,
   useRegenerateDraftSession,
   useRemoveSessionExercise,
   useCancelSession,
   useSession,
   useUpdateSessionExercise,
-  useAddSessionExercise
+  useAddSessionExercise,
+  useReorderSessionExercises
 } from '../hooks/useApi';
 import { SessionExerciseDetail, GenerateWorkoutInput } from '../types/api';
 
@@ -33,13 +35,15 @@ export function WorkoutPreviewPage() {
     location.state?.generationParams
   );
   
+  const queryClient = useQueryClient();
   const confirmDraft = useConfirmDraftSession();
   const regenerateDraft = useRegenerateDraftSession();
   const removeExercise = useRemoveSessionExercise();
   const cancelSession = useCancelSession();
   const updateExercise = useUpdateSessionExercise();
   const addExercise = useAddSessionExercise();
-  
+  const reorderSessionExercises = useReorderSessionExercises();
+
   const { data: draftSession, isLoading } = useSession(Number(sessionId));
 
   // Exercise management state
@@ -161,21 +165,52 @@ export function WorkoutPreviewPage() {
         });
         setShowExercisePicker(false);
       } else if (exercisePickerMode === 'swap' && selectedExercise) {
-        // Remove current exercise first, then add new one
+        const sessionIdNum = Number(sessionId);
+        const swapIndex =
+          draftSession?.exercises?.findIndex(
+            (ex: SessionExerciseDetail) =>
+              ex.session_exercise.id === selectedExercise.session_exercise.id
+          ) ?? -1;
+
         await removeExercise.mutateAsync({
-          sessionId: Number(sessionId),
+          sessionId: sessionIdNum,
           exerciseId: selectedExercise.session_exercise.id
         });
-        // Add new exercise with same targets
         await addExercise.mutateAsync({
-          sessionId: Number(sessionId),
+          sessionId: sessionIdNum,
           data: {
             exercise_id: exercise.id,
+            order: swapIndex >= 0 ? swapIndex : undefined,
             target_sets: selectedExercise.session_exercise.target_sets || 3,
             target_reps: selectedExercise.session_exercise.target_reps || 10,
             target_weight: selectedExercise.session_exercise.target_weight || 0
           }
         });
+
+        if (swapIndex >= 0) {
+          await queryClient.refetchQueries({ queryKey: ['sessions', sessionIdNum] });
+          const session = queryClient.getQueryData<{
+            exercises?: Array<{ session_exercise: { id: number; exercise_id: number } }>;
+          }>(['sessions', sessionIdNum]);
+          const sessionExercises = session?.exercises ?? [];
+          const newEntry = sessionExercises.find((ex) => ex.session_exercise.exercise_id === exercise.id);
+          const newSessionExerciseId = newEntry?.session_exercise.id;
+          const currentOrder = sessionExercises.map((ex) => ex.session_exercise.id);
+
+          if (newSessionExerciseId != null && currentOrder.length > 1) {
+            const newIndex = currentOrder.indexOf(newSessionExerciseId);
+            if (newIndex !== -1 && newIndex !== swapIndex) {
+              const reorderIds = [...currentOrder];
+              reorderIds.splice(newIndex, 1);
+              reorderIds.splice(swapIndex, 0, newSessionExerciseId);
+              await reorderSessionExercises.mutateAsync({
+                sessionId: sessionIdNum,
+                exerciseIds: reorderIds
+              });
+            }
+          }
+        }
+
         setShowExercisePicker(false);
         setIsEditMenuOpen(false);
       }
@@ -202,7 +237,15 @@ export function WorkoutPreviewPage() {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
         <BackgroundGradients />
-        <LoadingContent message="Loading workout preview..." />
+        <LoadingContent
+          isLoading
+          loadingFallback={
+            <div className="flex flex-col items-center justify-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
+              Loading workout preview...
+            </div>
+          }
+          children={null}
+        />
       </div>
     );
   }

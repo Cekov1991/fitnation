@@ -8,6 +8,7 @@ import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useR
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import type { SwapExerciseContext } from '../utils/swapExercise';
 import type { TemplateExercise, MuscleGroupResource } from '../types/api';
 
 const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -132,7 +133,7 @@ interface EditWorkoutPageProps {
   workoutDescription?: string;
   onBack: () => void;
   onAddExercise: () => void;
-  onSwapExercise: () => void;
+  onSwapExercise: (context: SwapExerciseContext) => void;
   onViewExerciseDetail: (exerciseName: string) => void;
 }
 export function EditWorkoutPage({
@@ -240,7 +241,18 @@ export function EditWorkoutPage({
     }
   };
   const handleSwapExerciseClick = () => {
-    onSwapExercise();
+    if (!editingExercise) return;
+    const orderIndex = exercises.findIndex((ex) => ex.id === editingExercise.id);
+    if (orderIndex < 0) return;
+    const target_reps = parseInt(editingExercise.reps.split('-')[0], 10) || 0;
+    const target_weight = parseFloat(editingExercise.weight.replace(/ kg$/, '')) || 0;
+    onSwapExercise({
+      pivotId: editingExercise.pivotId,
+      orderIndex,
+      target_sets: editingExercise.sets,
+      target_reps,
+      target_weight
+    });
   };
   const handleRemoveExercise = async () => {
     if (selectedExerciseId) {
