@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { MoreVertical } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { MoreVertical, Loader2 } from 'lucide-react';
 import { ExerciseImage } from '../ExerciseImage';
 import type { Exercise } from './types';
 
@@ -11,17 +11,97 @@ interface ExerciseVideoCardProps {
 
 export function ExerciseVideoCard({ exercise, onOpenMenu, onViewExercise }: ExerciseVideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  // Auto-play video when exercise changes
+  // Intersection Observer for lazy loading
   useEffect(() => {
-    if (videoRef.current && exercise.videoUrl) {
-      videoRef.current.load();
-      videoRef.current.play().catch((error) => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px' } // Start loading 300px before entering viewport
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Reset error state when exercise changes
+  useEffect(() => {
+    setHasError(false);
+    setIsBuffering(false);
+  }, [exercise.id, exercise.videoUrl]);
+
+  // Auto-play video when exercise changes and is in view
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !exercise.videoUrl || !isInView || hasError) return;
+
+    const handleCanPlay = () => {
+      setIsBuffering(false);
+      video.play().catch((error) => {
         // Autoplay may fail if user hasn't interacted with page
         console.log('Video autoplay failed:', error);
       });
+    };
+
+    const handleWaiting = () => {
+      setIsBuffering(true);
+    };
+
+    const handlePlaying = () => {
+      setIsBuffering(false);
+    };
+
+    const handleError = () => {
+      setHasError(true);
+      setIsBuffering(false);
+    };
+
+    // Only call load() if src actually changed or video failed
+    if (video.src !== exercise.videoUrl) {
+      setIsBuffering(true);
+      video.load();
     }
-  }, [exercise.id, exercise.videoUrl]);
+
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('error', handleError);
+
+    // If video is already ready, try to play
+    if (video.readyState >= 3) {
+      handleCanPlay();
+    }
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('error', handleError);
+    };
+  }, [exercise.id, exercise.videoUrl, isInView, hasError]);
+
+  // Cleanup on unmount or exercise change
+  useEffect(() => {
+    return () => {
+      const video = videoRef.current;
+      if (video) {
+        video.pause();
+        video.src = '';
+        video.load();
+      }
+    };
+  }, [exercise.id]);
 
   const handleCardClick = () => {
     if (onViewExercise) {
@@ -46,20 +126,39 @@ export function ExerciseVideoCard({ exercise, onOpenMenu, onViewExercise }: Exer
       }}
     >
       {/* Video/Image Container */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden">
-        {hasVideo ? (
-          <video 
-            ref={videoRef}
-            className="w-full h-full object-cover" 
-            loop 
-            muted 
-            playsInline 
-            autoPlay
-            poster={exercise.imageUrl || undefined}
-          >
-            <source src={exercise.videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+      <div ref={containerRef} className="relative w-full aspect-[4/3] overflow-hidden">
+        {hasVideo && !hasError ? (
+          <>
+            {isInView && (
+              <video 
+                ref={videoRef}
+                className="w-full h-full object-cover" 
+                loop 
+                muted 
+                playsInline 
+                autoPlay
+                preload="metadata"
+                poster={exercise.imageUrl || undefined}
+              >
+                <source src={exercise.videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )}
+            {/* Show poster image while not in view or while buffering */}
+            {(!isInView || isBuffering) && (
+              <div className="absolute inset-0">
+                <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
+                {isBuffering && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : hasVideo && hasError ? (
+          // Fallback to image if video fails to load
+          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
         ) : (
           <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
         )}
