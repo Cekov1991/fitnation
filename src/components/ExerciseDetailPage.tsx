@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Play, Pause, Maximize, Loader2 } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Maximize } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
@@ -31,8 +31,6 @@ export function ExerciseDetailPage({
 }: ExerciseDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [isBuffering, setIsBuffering] = useState(false);
-  const [hasVideoError, setHasVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const modalTransition = useModalTransition();
@@ -98,53 +96,27 @@ export function ExerciseDetailPage({
 
   const instructions = exercise?.description || 'No instructions available yet.';
 
-  // Reset error state when exercise changes
-  useEffect(() => {
-    setHasVideoError(false);
-    setIsBuffering(false);
-  }, [exercise?.video]);
-
-  // Auto-play video when it loads (using canplay for faster start)
+  // Auto-play video when it loads
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !exercise?.video) return;
 
-    const handleCanPlay = () => {
-      setIsBuffering(false);
+    const handleLoadedData = () => {
       video.play().catch(() => {
         // Autoplay may fail due to browser policies, that's okay
       });
       setIsVideoPlaying(true);
     };
 
-    const handleWaiting = () => {
-      setIsBuffering(true);
-    };
+    video.addEventListener('loadeddata', handleLoadedData);
 
-    const handlePlaying = () => {
-      setIsBuffering(false);
-    };
-
-    const handleError = () => {
-      setHasVideoError(true);
-      setIsBuffering(false);
-    };
-
-    video.addEventListener('canplay', handleCanPlay);
-    video.addEventListener('waiting', handleWaiting);
-    video.addEventListener('playing', handlePlaying);
-    video.addEventListener('error', handleError);
-
-    // If video is already ready, try to play
-    if (video.readyState >= 3) {
-      handleCanPlay();
+    // If video is already loaded, try to play
+    if (video.readyState >= 2) {
+      handleLoadedData();
     }
 
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('waiting', handleWaiting);
-      video.removeEventListener('playing', handlePlaying);
-      video.removeEventListener('error', handleError);
+      video.removeEventListener('loadeddata', handleLoadedData);
     };
   }, [exercise?.video]);
 
@@ -322,7 +294,7 @@ export function ExerciseDetailPage({
             className="relative w-full aspect-[4/3] overflow-hidden"
             style={{ backgroundColor: 'var(--color-bg-elevated)' }}
           >
-            {exercise?.video && !hasVideoError ? (
+            {exercise?.video ? (
               <>
                 <video 
                   ref={videoRef}
@@ -331,7 +303,6 @@ export function ExerciseDetailPage({
                   muted 
                   playsInline 
                   autoPlay
-                  preload="metadata"
                   poster={exercise.image || undefined}
                   onClick={handleVideoToggle}
                 >
@@ -339,22 +310,10 @@ export function ExerciseDetailPage({
                   Your browser does not support the video tag.
                 </video>
 
-                {/* Buffering Indicator */}
-                {isBuffering && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
-                    <div 
-                      className="p-4 rounded-full"
-                      style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 80%, transparent)' }}
-                    >
-                      <Loader2 className="text-white w-8 h-8 animate-spin" />
-                    </div>
-                  </div>
-                )}
-
                 {/* Play/Pause Overlay - shows on pause or hover */}
                 <div 
                   className={`absolute inset-0 flex items-center justify-center transition-opacity pointer-events-none ${
-                    isVideoPlaying || isBuffering ? 'opacity-0' : 'opacity-100'
+                    isVideoPlaying ? 'opacity-0' : 'opacity-100'
                   }`}
                   style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                 >
@@ -376,7 +335,7 @@ export function ExerciseDetailPage({
                   <Maximize className="text-white w-5 h-5" />
                 </button>
               </>
-            ) : (exercise?.video && hasVideoError) || exercise?.image ? (
+            ) : exercise?.image ? (
               <>
                 <ExerciseImage 
                   src={exercise.image} 
