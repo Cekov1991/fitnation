@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dumbbell } from 'lucide-react';
 
 interface ExerciseImageProps {
@@ -9,23 +9,52 @@ interface ExerciseImageProps {
 
 export function ExerciseImage({ src, alt, className = '' }: ExerciseImageProps) {
   const [imageError, setImageError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // If no src or image failed to load, show fallback
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' } // Start loading 200px before entering viewport
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Reset error state if src changes
+  useEffect(() => {
+    setImageError(false);
+    setIsLoaded(false);
+  }, [src]);
+
   const showFallback = !src || imageError;
+  const showImage = isInView && !showFallback;
 
   return (
-    <div className={`relative ${className}`}>
-      {!showFallback ? (
+    <div ref={containerRef} className={`relative ${className}`}>
+      {showImage && (
         <img
           src={src}
           alt={alt}
-          loading="lazy"
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setIsLoaded(true)}
           onError={() => setImageError(true)}
         />
-      ) : (
+      )}
+      {/* Show placeholder when: no src, error, not in view yet, or still loading */}
+      {(showFallback || !isLoaded) && (
         <div 
-          className="w-full h-full flex items-center justify-center bg-gradient-to-br"
+          className="absolute inset-0 w-full h-full flex items-center justify-center"
           style={{ 
             background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))'
           }}
