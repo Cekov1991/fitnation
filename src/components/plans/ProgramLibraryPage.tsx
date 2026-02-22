@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, Calendar, Info } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { useProgramLibrary, useCloneProgram } from '../../hooks/useApi';
@@ -98,66 +98,77 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
                   libraryPrograms.map((program: LibraryProgramResource) => (
                     <div
                       key={program.id}
-                      className="border rounded-2xl p-6 transition-all hover:shadow-lg"
+                      className="border rounded-2xl p-6 transition-all hover:shadow-lg overflow-hidden relative min-h-[200px] bg-cover bg-top"
                       style={{ 
-                        backgroundColor: 'var(--color-bg-surface)',
-                        borderColor: 'var(--color-border)'
+                        backgroundColor: program.cover_image ? undefined : 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border)',
+                        ...(program.cover_image && {
+                          backgroundImage: `url(${program.cover_image})`
+                        })
                       }}
                     >
-                      <div className="mb-4">
-                        <h3 
-                          className="text-xl font-bold mb-2"
-                          style={{ color: 'var(--color-text-primary)' }}
-                        >
-                          {program.name}
-                        </h3>
-                        <p 
-                          className="text-sm leading-relaxed"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          {program.description || 'No description available.'}
-                        </p>
-                      </div>
+                      {program.cover_image && (
+                        <div
+                          className="absolute inset-0 rounded-2xl pointer-events-none"
+                          style={{ backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1 }}
+                          aria-hidden
+                        />
+                      )}
+                      <div className="relative z-10">
+                        <div className="mb-4">
+                          <h3 
+                            className="text-xl font-bold mb-2"
+                            style={{ color: program.cover_image ? 'white' : 'var(--color-text-primary)' }}
+                          >
+                            {program.name}
+                          </h3>
+                          <p 
+                            className="text-sm leading-relaxed"
+                            style={{ color: program.cover_image ? 'rgba(255,255,255,0.9)' : 'var(--color-text-secondary)' }}
+                          >
+                            {program.description || 'No description available.'}
+                          </p>
+                        </div>
 
-                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-center gap-3 mb-4">
                         <div 
                           className="flex items-center gap-2 px-3 py-1.5 rounded-full"
                           style={{
                             backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
                           }}
                         >
-                          <Calendar className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
-                          <span className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>
+                          <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: 'white' }} />
+                          <span className="text-xs font-bold" style={{ color: 'white' }}>
                             {program.duration_weeks} WEEKS
                           </span>
                         </div>
                         {program.workout_templates && (
                           <div 
-                            className="px-3 py-1.5 rounded-full border"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full"
                             style={{
-                              backgroundColor: 'var(--color-bg-elevated)',
-                              borderColor: 'var(--color-border)'
+                              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
                             }}
                           >
-                            <span className="text-xs font-bold" style={{ color: 'var(--color-text-secondary)' }}>
+                            <span className="text-xs font-bold" style={{ color: 'white' }}>
                               {program.workout_templates.length} WORKOUTS
                             </span>
                           </div>
                         )}
-                      </div>
+                        </div>
 
-                      <button
-                        onClick={() => handleCloneClick(program)}
-                        disabled={cloneProgram.isPending}
-                        className="w-full py-3 rounded-xl font-bold transition-all"
-                        style={{
-                          backgroundColor: 'var(--color-primary)',
-                          color: 'white',
-                          opacity: cloneProgram.isPending ? 0.7 : 1
-                        }}
-                      >
-                        {cloneProgram.isPending ? 'Cloning...' : 'Clone Program'}
-                      </button>
+                        <button
+                          onClick={() => handleCloneClick(program)}
+                          disabled={cloneProgram.isPending}
+                          className="w-full py-3 rounded-xl font-bold transition-all"
+                          style={{
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            opacity: cloneProgram.isPending ? 0.7 : 1
+                          }}
+                        >
+                          {cloneProgram.isPending ? 'Cloning...' : 'Clone Program'}
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}

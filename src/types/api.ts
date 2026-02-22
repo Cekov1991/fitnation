@@ -183,6 +183,7 @@ export interface PlanResource {
   partner_id: number | null;
   name: string;
   description: string | null;
+  cover_image: string | null;
   is_active: boolean;
   type: PlanType;
   duration_weeks: number | null;
