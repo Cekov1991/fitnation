@@ -124,6 +124,19 @@ export const profileApi = {
 };
 
 // ============================================================================
+// ONBOARDING
+// ============================================================================
+
+export const onboardingApi = {
+  completeOnboarding: async (planName?: string) => {
+    return fetchWithAuth('/onboarding/complete', {
+      method: 'POST',
+      body: JSON.stringify(planName ? { plan_name: planName } : {})
+    });
+  }
+};
+
+// ============================================================================
 // EXERCISES
 // ============================================================================
 

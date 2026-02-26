@@ -28,5 +28,16 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return <Redirect to={{ pathname: '/login', state: { from: location } }} />;
   }
 
+  // Check if onboarding is completed
+  // If onboarding_completed_at is null, redirect to onboarding (unless already on onboarding page)
+  if (user.onboarding_completed_at === null && location.pathname !== '/onboarding') {
+    return <Redirect to="/onboarding" />;
+  }
+
+  // If onboarding is completed but user is on onboarding page, redirect to dashboard
+  if (user.onboarding_completed_at !== null && location.pathname === '/onboarding') {
+    return <Redirect to="/" />;
+  }
+
   return <>{children}</>;
 }

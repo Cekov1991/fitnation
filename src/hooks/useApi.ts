@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, plansApi, programsApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
+import { profileApi, onboardingApi, plansApi, programsApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -57,6 +57,33 @@ export function useDeleteProfilePhoto() {
     mutationFn: profileApi.deleteProfilePhoto,
     onSuccess: response => {
       queryClient.setQueryData(['profile'], response.user);
+    }
+  });
+}
+
+// ============================================================================
+// ONBOARDING HOOKS
+// ============================================================================
+
+export function useCompleteOnboarding() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (planName?: string) => onboardingApi.completeOnboarding(planName),
+    onSuccess: () => {
+      // Invalidate plans and planner queries to refresh data after plan creation
+      queryClient.invalidateQueries({
+        queryKey: ['custom-plans']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['planner']
+      });
+      // Invalidate user query to refresh onboarding_completed_at status
+      queryClient.invalidateQueries({
+        queryKey: ['user']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['profile']
+      });
     }
   });
 }

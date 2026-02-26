@@ -82,6 +82,8 @@ interface UseWorkoutSessionStateReturn {
   handleFinishWorkoutConfirm: () => Promise<void>;
   handleCancelWorkoutClick: () => void;
   handleCancelWorkoutConfirm: () => Promise<void>;
+  showSummary: boolean;
+  handleSummaryDismiss: () => void;
 
   // Loading states (for UI)
   isCancelLoading: boolean;
@@ -111,8 +113,7 @@ export function useWorkoutSessionState({
   const reorderSessionExercises = useReorderSessionExercises();
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
-  const { formattedDuration } = useWorkoutTimer(sessionData?.performed_at);
-
+  
   // Determine initial exercise index from navigation state (preserves active tab on back navigation)
   const initialExerciseIndex = useExerciseNavigationState(exercises, initialExerciseName);
 
@@ -145,6 +146,12 @@ export function useWorkoutSessionState({
   const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  
+  // Stop timer when summary is shown or session is completed
+  const { formattedDuration } = useWorkoutTimer(
+    showSummary || sessionData?.completed_at ? undefined : sessionData?.performed_at
+  );
   const [isRestTimerActive, setIsRestTimerActive] = useState(false);
   const [restTimerSeconds, setRestTimerSeconds] = useState<number | null>(null);
   const isAddingExercise = useRef(false);
@@ -271,10 +278,15 @@ export function useWorkoutSessionState({
         sessionId,
         notes: undefined
       });
-      onFinish();
+      setShowSummary(true);
     } catch (error) {
       console.error('Failed to complete session:', error);
     }
+  };
+
+  const handleSummaryDismiss = () => {
+    setShowSummary(false);
+    onFinish();
   };
 
   const handleAddSet = async () => {
@@ -551,6 +563,8 @@ export function useWorkoutSessionState({
     handleFinishWorkoutConfirm,
     handleCancelWorkoutClick,
     handleCancelWorkoutConfirm,
+    showSummary,
+    handleSummaryDismiss,
 
     // Loading states
     isCancelLoading: cancelSession.isPending,

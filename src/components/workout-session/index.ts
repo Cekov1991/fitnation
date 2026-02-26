@@ -11,6 +11,7 @@ export { RestTimer } from './RestTimer';
 export { ExerciseContent } from './ExerciseContent';
 export { WorkoutDialogs } from './WorkoutDialogs';
 export { FinishWorkoutButton } from './FinishWorkoutButton';
+export { WorkoutSummaryScreen } from './WorkoutSummaryScreen';
 export { useWorkoutTimer } from './hooks/useWorkoutTimer';
 export { useRestTimer } from './hooks/useRestTimer';
 export { useWorkoutSessionState } from './hooks/useWorkoutSessionState';

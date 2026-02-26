@@ -15,6 +15,7 @@ interface AuthContextType {
     password_confirmation: string;
     invitation_token: string;
   }) => Promise<void>;
+  refetchUser: () => Promise<void>;
 }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({
@@ -106,15 +107,42 @@ export function AuthProvider({
       updatePWAManifest(null);
     }
   };
+  const refetchUser = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    try {
+      const response = await authApi.getCurrentUser();
+      setUser(response.user);
+      // Save partner slug for PWA manifest selection
+      if (response.user.partner?.slug) {
+        localStorage.setItem('partner-slug', response.user.partner.slug);
+        // Update PWA manifest and icons dynamically
+        updatePWAManifest(response.user.partner.slug);
+      } else {
+        localStorage.removeItem('partner-slug');
+        updatePWAManifest(null);
+      }
+    } catch (error) {
+      // If refetch fails, user might be logged out
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('partner-slug');
+      updatePWAManifest(null);
+      setUser(null);
+    }
+  };
   return <AuthContext.Provider value={{
     user,
     loading,
     login,
     logout,
-    register
+    register,
+    refetchUser
   }}>
-      {children}
-    </AuthContext.Provider>;
+    {children}
+  </AuthContext.Provider>;
 }
 export function useAuth() {
   const context = useContext(AuthContext);

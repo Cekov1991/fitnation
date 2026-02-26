@@ -3,6 +3,7 @@ import { ExerciseNavTabs } from './ExerciseNavTabs';
 import { ExerciseContent } from './ExerciseContent';
 import { FinishWorkoutButton } from './FinishWorkoutButton';
 import { WorkoutDialogs } from './WorkoutDialogs';
+import { WorkoutSummaryScreen } from './WorkoutSummaryScreen';
 import { useWorkoutSessionState } from './hooks/useWorkoutSessionState';
 import { getExerciseCompletionStatus } from './utils';
 
@@ -38,6 +39,16 @@ export function WorkoutSessionPage({
       >
         <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading session...</div>
       </div>
+    );
+  }
+
+  if (state.showSummary) {
+    return (
+      <WorkoutSummaryScreen
+        exercises={state.exercises}
+        formattedDuration={state.formattedDuration}
+        onDone={state.handleSummaryDismiss}
+      />
     );
   }
 

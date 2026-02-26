@@ -8,18 +8,19 @@ This documentation provides complete information about all API resources and end
 2. [Authentication](#authentication)
 3. [User Management](#user-management)
 4. [User Profile](#user-profile)
-5. [Exercises](#exercises)
-6. [Muscle Groups](#muscle-groups)
-7. [Categories](#categories)
-8. [Exercise Classifications](#exercise-classifications)
-9. [Fitness Metrics](#fitness-metrics)
-10. [Custom Plans](#custom-plans)
-11. [Programs](#programs)
-12. [Workout Templates](#workout-templates)
-13. [Workout Planner](#workout-planner)
-14. [Workout Sessions](#workout-sessions)
-15. [Complete TypeScript Definitions](#complete-typescript-definitions)
-16. [Error Responses](#error-responses)
+5. [Onboarding](#onboarding)
+6. [Exercises](#exercises)
+7. [Muscle Groups](#muscle-groups)
+8. [Categories](#categories)
+9. [Exercise Classifications](#exercise-classifications)
+10. [Fitness Metrics](#fitness-metrics)
+11. [Custom Plans](#custom-plans)
+12. [Programs](#programs)
+13. [Workout Templates](#workout-templates)
+14. [Workout Planner](#workout-planner)
+15. [Workout Sessions](#workout-sessions)
+16. [Complete TypeScript Definitions](#complete-typescript-definitions)
+17. [Error Responses](#error-responses)
 
 ---
 
@@ -287,6 +288,82 @@ interface DeletePhotoResponse {
   user: UserResource;
 }
 ```
+
+---
+
+## Onboarding
+
+### Complete Onboarding
+```
+POST /api/onboarding/complete
+```
+*Requires authentication*
+
+Generates a personalized welcome workout plan based on the user's profile. This endpoint should be called when a user completes their onboarding process. The plan is created as a custom plan that the user can fully edit.
+
+**Request Body (optional):**
+```typescript
+interface CompleteOnboardingRequest {
+  plan_name?: string;  // Optional: Custom name for the plan (defaults to "Your Personalized Plan")
+}
+```
+
+**Response (201 Created):**
+```typescript
+interface CompleteOnboardingResponse {
+  message: "Welcome plan created successfully";
+  data: CustomPlanResource;  // Full plan with workout_templates loaded
+}
+```
+
+**Error Responses:**
+
+**409 Conflict:**
+```typescript
+{
+  message: "Onboarding has already been completed"
+}
+```
+
+**422 Unprocessable Entity:**
+```typescript
+{
+  message: "User profile is required for welcome plan generation"
+}
+// OR
+{
+  message: "Fitness goal is required for welcome plan generation"
+}
+// OR
+{
+  message: "Training experience is required for welcome plan generation"
+}
+// OR
+{
+  message: "Training days per week is required for welcome plan generation"
+}
+// OR
+{
+  message: "Workout duration is required for welcome plan generation"
+}
+```
+
+**500 Internal Server Error:**
+```typescript
+{
+  message: "Failed to complete onboarding. Please try again later."
+}
+```
+
+**Notes:**
+- This endpoint can only be called once per user. If `onboarding_completed_at` is already set, it will return a 409 Conflict error.
+- The generated plan is automatically set as active (`is_active: true`).
+- The workout split is automatically determined based on `training_days_per_week`:
+  - 1-2 days: Full Body workouts
+  - 3 days: Push/Legs/Pull split
+  - 4 days: Upper/Lower split
+  - 5-6 days: Push/Pull/Legs (PPL) split
+- Each workout template includes exercises selected by the workout generator based on the user's fitness goal, training experience, and workout duration preferences.
 
 ---
 
@@ -2344,6 +2421,7 @@ interface ValidationError {
 | PUT/PATCH | `/api/profile` | Update profile |
 | DELETE | `/api/profile/photo` | Delete profile photo |
 | GET | `/api/user/fitness-metrics` | Get fitness metrics |
+| POST | `/api/onboarding/complete` | Complete onboarding and generate welcome plan |
 
 ### Exercises
 | Method | Endpoint | Description |
