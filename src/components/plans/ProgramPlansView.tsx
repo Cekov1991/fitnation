@@ -164,12 +164,20 @@ export function ProgramPlansView({
           >
             {activeProgram ? (
               <div 
-                className="relative bg-gradient-to-br border rounded-3xl p-6 shadow-xl"
+                className="relative border rounded-3xl shadow-xl overflow-hidden"
                 style={{ 
                   background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
                   borderColor: 'var(--color-border)'
                 }}
               >
+                {activeProgram.cover_image && (
+                  <div
+                    className="min-h-[140px] w-full bg-cover bg-center rounded-t-3xl"
+                    style={{ backgroundImage: `url(${activeProgram.cover_image})` }}
+                    aria-hidden
+                  />
+                )}
+                <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
@@ -262,6 +270,7 @@ export function ProgramPlansView({
                     </div>
                   </div>
                 )}
+                </div>
               </div>
             ) : (
               <div 
@@ -327,12 +336,20 @@ export function ProgramPlansView({
                 return (
                   <div 
                     key={program.id} 
-                    className="relative border rounded-2xl p-6"
+                    className="relative border rounded-2xl overflow-hidden"
                     style={{ 
                       backgroundColor: 'var(--color-bg-surface)',
                       borderColor: 'var(--color-border)'
                     }}
                   >
+                    {program.cover_image && (
+                      <div
+                        className="min-h-[140px] w-full bg-cover bg-center rounded-t-2xl"
+                        style={{ backgroundImage: `url(${program.cover_image})` }}
+                        aria-hidden
+                      />
+                    )}
+                    <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <h3 
@@ -425,6 +442,7 @@ export function ProgramPlansView({
                         </div>
                       </div>
                     )}
+                    </div>
                   </div>
                 );
               })
