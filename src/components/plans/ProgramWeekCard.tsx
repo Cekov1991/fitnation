@@ -80,7 +80,8 @@ export function ProgramWeekCard({
       >
         {workouts.map((workout, index) => {
           const isNextWorkout = workout.id === nextWorkoutId;
-          
+          const isInteractivePreview = onWorkoutClick && nextWorkoutId == null;
+
           return (
             <button
               key={workout.id}
@@ -88,12 +89,19 @@ export function ProgramWeekCard({
               onClick={() => onWorkoutClick?.(workout.id)}
               className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
               style={{
-                backgroundColor: isNextWorkout 
-                  ? primaryColor 
-                  : 'var(--color-bg-base)',
-                color: isNextWorkout 
-                  ? 'white' 
-                  : 'var(--color-text-muted)'
+                backgroundColor: isNextWorkout
+                  ? primaryColor
+                  : isInteractivePreview
+                    ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)'
+                    : 'var(--color-bg-base)',
+                color: isNextWorkout
+                  ? 'white'
+                  : isInteractivePreview
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-muted)',
+                ...(isInteractivePreview && {
+                  border: '1px solid color-mix(in srgb, var(--color-primary) 35%, transparent)'
+                })
               }}
             >
               Day {workout.order_index + 1}

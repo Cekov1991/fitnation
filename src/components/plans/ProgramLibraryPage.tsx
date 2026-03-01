@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, Calendar, Info } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '../../hooks/useApi';
+import { LibraryProgramDetailView } from './LibraryProgramDetailView';
 import type { LibraryProgramResource } from '../../types/api';
 
 interface ProgramLibraryPageProps {
@@ -11,6 +12,7 @@ interface ProgramLibraryPageProps {
 export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
   const [selectedProgram, setSelectedProgram] = useState<LibraryProgramResource | null>(null);
   const [showCloneConfirm, setShowCloneConfirm] = useState(false);
+  const [viewingProgram, setViewingProgram] = useState<LibraryProgramResource | null>(null);
 
   const {
     data: libraryPrograms = [],
@@ -25,9 +27,11 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
 
   const isPending = cloneProgram.isPending || updateProgram.isPending;
 
-  const handleCloneClick = (program: LibraryProgramResource) => {
-    setSelectedProgram(program);
+  const handleStartProgramFromDetail = () => {
+    if (!viewingProgram) return;
+    setSelectedProgram(viewingProgram);
     setShowCloneConfirm(true);
+    setViewingProgram(null);
   };
 
   const handleCloneConfirm = async () => {
@@ -47,6 +51,21 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
       console.error('Failed to start program:', error);
     }
   };
+
+  if (viewingProgram) {
+    return (
+      <div
+        className="min-h-screen w-full"
+        style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+      >
+        <LibraryProgramDetailView
+          program={viewingProgram}
+          onBack={() => setViewingProgram(null)}
+          onStartProgram={handleStartProgramFromDetail}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -106,9 +125,11 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
                   </div>
                 ) : (
                   libraryPrograms.map((program: LibraryProgramResource) => (
-                    <div
+                    <button
                       key={program.id}
-                      className="border rounded-2xl p-6 transition-all hover:shadow-lg overflow-hidden relative min-h-[200px] bg-cover bg-top"
+                      type="button"
+                      onClick={() => setViewingProgram(program)}
+                      className="w-full border rounded-2xl p-6 transition-all hover:shadow-lg overflow-hidden relative min-h-[200px] bg-cover bg-top text-left"
                       style={{ 
                         backgroundColor: program.cover_image ? undefined : 'var(--color-bg-surface)',
                         borderColor: 'var(--color-border)',
@@ -166,20 +187,17 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
                         )}
                         </div>
 
-                        <button
-                          onClick={() => handleCloneClick(program)}
-                          disabled={isPending}
-                          className="w-full py-3 rounded-xl font-bold transition-all"
+                        <span
+                          className="inline-block w-full py-3 rounded-xl font-bold text-center"
                           style={{
                             backgroundColor: 'var(--color-primary)',
-                            color: 'white',
-                            opacity: isPending ? 0.7 : 1
+                            color: 'white'
                           }}
                         >
-                          {isPending ? 'Starting...' : 'Start Program'}
-                        </button>
+                          View program
+                        </span>
                       </div>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>
