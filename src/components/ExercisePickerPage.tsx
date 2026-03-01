@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, ChevronRight, Loader2 } from 'lucide-react';
+import { X, Search, ChevronRight } from 'lucide-react';
 import { useExercises, useMuscleGroups, useEquipmentTypes } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import { ExerciseDetailPage } from './ExerciseDetailPage';
 import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
@@ -43,6 +44,7 @@ export function ExercisePickerPage({
   } = useEquipmentTypes();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
+  const [viewingExerciseId, setViewingExerciseId] = useState<number | null>(null);
   const [selectedMuscleGroupIds, setSelectedMuscleGroupIds] = useState<Set<number>>(new Set());
   const [selectedEquipmentTypeIds, setSelectedEquipmentTypeIds] = useState<Set<number>>(new Set());
   
@@ -129,13 +131,50 @@ export function ExercisePickerPage({
   };
 
   const hasActiveFilters = selectedMuscleGroupIds.size > 0 || selectedEquipmentTypeIds.size > 0;
-  
+
+  const viewingExercise = viewingExerciseId != null
+    ? filteredExercises.find(e => e.id === viewingExerciseId) ?? null
+    : null;
+
+  useEffect(() => {
+    if (viewingExerciseId != null && viewingExercise == null) {
+      setViewingExerciseId(null);
+    }
+  }, [viewingExerciseId, viewingExercise]);
+
   const handleSelectExercise = (exercise: Exercise) => {
     if (isSelecting) return;
     setSelectedExerciseId(exercise.id);
     onSelectExercise(exercise);
-    // Don't call onClose here - let the parent handle closing after async operations complete
   };
+
+  const handleAddFromDetail = () => {
+    if (!viewingExercise || isSelecting) return;
+    handleSelectExercise(viewingExercise);
+    setViewingExerciseId(null);
+  };
+
+  if (viewingExercise != null) {
+    return (
+      <div
+        className="fixed inset-0 z-[10000] overflow-y-auto"
+        style={{ backgroundColor: 'var(--color-bg-base)' }}
+      >
+        <div className="relative z-10 min-h-full max-w-md mx-auto">
+          <ExerciseDetailPage
+            exerciseName={viewingExercise.name}
+            onBack={() => setViewingExerciseId(null)}
+            primaryAction={{
+              label: mode === 'swap' ? 'Use this exercise' : 'Add to workout',
+              onClick: handleAddFromDetail,
+              disabled: isSelecting
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return <div 
     className="fixed inset-0 z-[10000]"
     style={{ backgroundColor: 'var(--color-bg-base)' }}
@@ -289,7 +328,7 @@ export function ExercisePickerPage({
                     <button 
                       key={exercise.id} 
                       {...modalTransition}
-                      onClick={() => handleSelectExercise(exercise)} 
+                      onClick={() => setViewingExerciseId(exercise.id)} 
                       disabled={isSelecting}
                       className="w-full flex items-center gap-4 p-2 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ 
@@ -302,7 +341,7 @@ export function ExercisePickerPage({
                         <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
                         {isThisLoading && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
-                            <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                            <span className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>Adding...</span>
                           </div>
                         )}
                       </div>
@@ -310,14 +349,11 @@ export function ExercisePickerPage({
                       {/* Exercise Info */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
-                          {isThisLoading ? 'Adding...' : exercise.name}
+                          {exercise.name}
                         </h3>
                       </div>
 
-                      {/* Chevron or nothing when loading */}
-                      {!isThisLoading && (
-                        <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      )}
+                      <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
                     </button>
                   );
                 })}

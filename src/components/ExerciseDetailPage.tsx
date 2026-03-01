@@ -10,6 +10,7 @@ import { useModalTransition } from '../utils/animations';
 interface ExerciseDetailPageProps {
   exerciseName: string;
   onBack: () => void;
+  primaryAction?: { label: string; onClick: () => void; disabled?: boolean };
 }
 
 // Helper function to format ISO date string (YYYY-MM-DD) to display format (e.g., "Jan 15")
@@ -27,7 +28,8 @@ function formatProgress(percentage: number): string {
 
 export function ExerciseDetailPage({
   exerciseName,
-  onBack
+  onBack,
+  primaryAction
 }: ExerciseDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -291,7 +293,7 @@ export function ExerciseDetailPage({
         >
           <div 
             ref={videoContainerRef}
-            className="relative w-full aspect-[4/3] overflow-hidden"
+            className="relative w-full aspect-video overflow-hidden"
             style={{ backgroundColor: 'var(--color-bg-elevated)' }}
           >
             {exercise?.video ? (
@@ -359,6 +361,23 @@ export function ExerciseDetailPage({
             )}
           </div>
         </motion.div>
+
+        {primaryAction && (
+          <motion.div {...modalTransition} className="px-6 mb-4">
+            <button
+              type="button"
+              onClick={primaryAction.onClick}
+              disabled={primaryAction.disabled}
+              className="w-full py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: 'var(--color-primary)',
+                color: 'white'
+              }}
+            >
+              {primaryAction.label}
+            </button>
+          </motion.div>
+        )}
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">
