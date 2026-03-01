@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Calendar, Info } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
-import { useProgramLibrary, useCloneProgram } from '../../hooks/useApi';
+import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '../../hooks/useApi';
 import type { LibraryProgramResource } from '../../types/api';
 
 interface ProgramLibraryPageProps {
@@ -21,6 +21,9 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
   } = useProgramLibrary();
 
   const cloneProgram = useCloneProgram();
+  const updateProgram = useUpdateProgram();
+
+  const isPending = cloneProgram.isPending || updateProgram.isPending;
 
   const handleCloneClick = (program: LibraryProgramResource) => {
     setSelectedProgram(program);
@@ -30,11 +33,18 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
   const handleCloneConfirm = async () => {
     if (!selectedProgram) return;
     try {
-      await cloneProgram.mutateAsync(selectedProgram.id);
+      const result = await cloneProgram.mutateAsync(selectedProgram.id);
+      const clonedId = result?.data?.id;
+      if (clonedId != null) {
+        await updateProgram.mutateAsync({
+          programId: clonedId,
+          data: { is_active: true }
+        });
+      }
       setShowCloneConfirm(false);
-      onBack(); // Navigate back to plans page after successful clone
+      onBack();
     } catch (error) {
-      console.error('Failed to clone program:', error);
+      console.error('Failed to start program:', error);
     }
   };
 
@@ -70,7 +80,7 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
             >
               <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
               <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                Browse professionally designed programs from your gym. Clone a program to add it to your personal collection.
+                Browse professionally designed programs from your gym. Start a program to add it to your collection and set it as your active program.
               </p>
             </div>
 
@@ -158,15 +168,15 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
 
                         <button
                           onClick={() => handleCloneClick(program)}
-                          disabled={cloneProgram.isPending}
+                          disabled={isPending}
                           className="w-full py-3 rounded-xl font-bold transition-all"
                           style={{
                             backgroundColor: 'var(--color-primary)',
                             color: 'white',
-                            opacity: cloneProgram.isPending ? 0.7 : 1
+                            opacity: isPending ? 0.7 : 1
                           }}
                         >
-                          {cloneProgram.isPending ? 'Cloning...' : 'Clone Program'}
+                          {isPending ? 'Starting...' : 'Start Program'}
                         </button>
                       </div>
                     </div>
@@ -178,16 +188,16 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
         </div>
       </div>
 
-      {/* Clone Confirmation */}
+      {/* Start Program Confirmation */}
       <ConfirmDialog
         isOpen={showCloneConfirm}
         onClose={() => setShowCloneConfirm(false)}
         onConfirm={handleCloneConfirm}
-        title="Clone Program"
-        message={`Clone "${selectedProgram?.name}" to your programs? This will create a copy with all workouts and exercises.`}
-        confirmText="Clone"
+        title="Start Program"
+        message={`Start "${selectedProgram?.name}"? This will add the program to your collection and set it as your active program.`}
+        confirmText="Start"
         variant="success"
-        isLoading={cloneProgram.isPending}
+        isLoading={isPending}
       />
     </div>
   );

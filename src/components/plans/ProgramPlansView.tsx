@@ -171,11 +171,18 @@ export function ProgramPlansView({
                 }}
               >
                 {activeProgram.cover_image && (
-                  <div
-                    className="min-h-[140px] w-full bg-cover bg-center rounded-t-3xl"
-                    style={{ backgroundImage: `url(${activeProgram.cover_image})` }}
-                    aria-hidden
-                  />
+                  <div className="relative min-h-[140px] w-full rounded-t-3xl">
+                    <div
+                      className="min-h-[140px] w-full bg-cover bg-center rounded-t-3xl"
+                      style={{ backgroundImage: `url(${activeProgram.cover_image})` }}
+                      aria-hidden
+                    />
+                    <div
+                      className="absolute inset-0 rounded-t-3xl pointer-events-none"
+                      style={{ backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1 }}
+                      aria-hidden
+                    />
+                  </div>
                 )}
                 <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -343,11 +350,18 @@ export function ProgramPlansView({
                     }}
                   >
                     {program.cover_image && (
-                      <div
-                        className="min-h-[140px] w-full bg-cover bg-center rounded-t-2xl"
-                        style={{ backgroundImage: `url(${program.cover_image})` }}
-                        aria-hidden
-                      />
+                      <div className="relative min-h-[140px] w-full rounded-t-2xl">
+                        <div
+                          className="min-h-[140px] w-full bg-cover bg-center rounded-t-2xl"
+                          style={{ backgroundImage: `url(${program.cover_image})` }}
+                          aria-hidden
+                        />
+                        <div
+                          className="absolute inset-0 rounded-t-2xl pointer-events-none"
+                          style={{ backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1 }}
+                          aria-hidden
+                        />
+                      </div>
                     )}
                     <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
