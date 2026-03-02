@@ -95,7 +95,8 @@ export default function ExercisePickerPageWrapper() {
         });
       }
 
-      history.push(`/workouts/${templateId}/exercises`);
+      // Pop the picker so we're back on the existing workout entry; Back from workout then goes to Plans
+      history.goBack();
     } catch (error) {
       console.error('Failed to add/swap exercise:', error);
     }
