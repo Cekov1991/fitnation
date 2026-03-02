@@ -37,11 +37,9 @@ export default function ExercisePickerPageWrapper() {
   const pivotData = state?.pivotData;
 
   const handleClose = () => {
-    if (templateId) {
-      history.push(`/workouts/${templateId}/exercises`);
-    } else {
-      history.goBack();
-    }
+    // Go back so the picker is removed from history; pushing the workout URL
+    // would leave the picker in the stack and make "Back" on the workout page reopen it.
+    history.goBack();
   };
 
   const handleSelectExercise = async (exercise: { id: number; name: string }) => {

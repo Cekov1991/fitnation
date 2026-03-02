@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Play, Pause, Maximize } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useExercises, useExerciseHistory } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
@@ -245,20 +245,35 @@ export function ExerciseDetailPage({
       style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
     >
       <main className="relative z-10 max-w-md mx-auto">
-        {/* Header - Original design with back arrow and gradient title */}
+        {/* Header - back, title, plus (top right when primaryAction) */}
         <motion.div 
           {...modalTransition}
           className="flex items-center gap-4 p-6 pb-4"
         >
-          <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+          <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex-shrink-0">
             <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
           </button>
           <h1 
-            className="text-2xl font-bold bg-clip-text text-transparent"
+            className="text-2xl font-bold bg-clip-text text-transparent flex-1 min-w-0 truncate"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
           >
             {exercise?.name || exerciseName}
           </h1>
+          {primaryAction && (
+            <button
+              type="button"
+              onClick={primaryAction.onClick}
+              disabled={primaryAction.disabled}
+              className="flex-shrink-0 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              title={primaryAction.label}
+            >
+              {primaryAction.disabled ? (
+                <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-primary)' }} />
+              ) : (
+                <Plus className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
+              )}
+            </button>
+          )}
         </motion.div>
 
         {/* Tabs - Pill style */}
@@ -361,23 +376,6 @@ export function ExerciseDetailPage({
             )}
           </div>
         </motion.div>
-
-        {primaryAction && (
-          <motion.div {...modalTransition} className="px-6 mb-4">
-            <button
-              type="button"
-              onClick={primaryAction.onClick}
-              disabled={primaryAction.disabled}
-              className="w-full py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: 'var(--color-primary)',
-                color: 'white'
-              }}
-            >
-              {primaryAction.label}
-            </button>
-          </motion.div>
-        )}
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">

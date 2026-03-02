@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, ChevronRight } from 'lucide-react';
+import { X, Search, Plus, Loader2 } from 'lucide-react';
 import { useExercises, useMuscleGroups, useEquipmentTypes } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { ExerciseDetailPage } from './ExerciseDetailPage';
@@ -325,36 +325,56 @@ export function ExercisePickerPage({
                 {filteredExercises.map((exercise) => {
                   const isThisLoading = isSelecting && selectedExerciseId === exercise.id;
                   return (
-                    <button 
-                      key={exercise.id} 
+                    <div
+                      key={exercise.id}
                       {...modalTransition}
-                      onClick={() => setViewingExerciseId(exercise.id)} 
-                      disabled={isSelecting}
-                      className="w-full flex items-center gap-4 p-2 border rounded-2xl transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ 
+                      className="w-full flex items-center gap-4 p-2 border rounded-2xl"
+                      style={{
                         backgroundColor: 'var(--color-bg-surface)',
                         borderColor: 'var(--color-border-subtle)'
                       }}
                     >
-                      {/* Exercise Image/Muscle Diagram */}
-                      <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative">
-                        <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
-                        {isThisLoading && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
-                            <span className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>Adding...</span>
-                          </div>
+                      {/* View area: image + title opens detail */}
+                      <button
+                        type="button"
+                        onClick={() => !isSelecting && setViewingExerciseId(exercise.id)}
+                        disabled={isSelecting}
+                        className="flex flex-1 items-center gap-4 min-w-0 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative">
+                          <ExerciseImage src={exercise.imageUrl} alt={exercise.name} className="w-full h-full" />
+                          {isThisLoading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
+                              <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+                            {exercise.name}
+                          </h3>
+                        </div>
+                      </button>
+
+                      {/* Plus icon: add exercise */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isSelecting) handleSelectExercise(exercise);
+                        }}
+                        disabled={isSelecting}
+                        className="flex-shrink-0 p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                        title={mode === 'swap' ? 'Use this exercise' : 'Add to workout'}
+                      >
+                        {isThisLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                        ) : (
+                          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
                         )}
-                      </div>
-
-                      {/* Exercise Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
-                          {exercise.name}
-                        </h3>
-                      </div>
-
-                      <ChevronRight className="flex-shrink-0 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                    </button>
+                      </button>
+                    </div>
                   );
                 })}
               </div> : <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
