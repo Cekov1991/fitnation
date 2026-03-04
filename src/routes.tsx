@@ -2,6 +2,8 @@ import React, { Suspense } from 'react';
 import { Route, Switch, BrowserRouter } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { RegisterPage } from './components/RegisterPage';
+import { ForgotPasswordPage } from './components/ForgotPasswordPage';
+import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 
@@ -54,6 +56,19 @@ export function AppRoutes() {
           {/* Register route - public */}
           <Route exact path="/register">
             <RegisterPage />
+          </Route>
+
+          {/* Forgot password - public */}
+          <Route exact path="/forgot-password">
+            <ForgotPasswordPage />
+          </Route>
+
+          {/* Reset password - public (token/email from state, query, or path: /reset-password/:token?email=...) */}
+          <Route exact path="/reset-password">
+            <ResetPasswordPage />
+          </Route>
+          <Route exact path="/reset-password/:token">
+            <ResetPasswordPage />
           </Route>
 
           {/* Onboarding route - protected */}

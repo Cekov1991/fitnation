@@ -20,6 +20,27 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+// Helper for public endpoints (no auth) - throws on non-OK with { message, errors?, status }
+async function fetchPublic(url: string, options: RequestInit = {}) {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  const response = await fetch(`${API_BASE_URL}${url}`, {
+    ...options,
+    headers,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const err: any = new Error(data.message || 'An error occurred');
+    err.status = response.status;
+    err.errors = data.errors;
+    throw err;
+  }
+  return data;
+}
+
 // Helper function for making authenticated requests
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('authToken');
@@ -86,7 +107,24 @@ export const authApi = {
   },
   getCurrentUser: async () => {
     return fetchWithAuth('/user');
-  }
+  },
+  forgotPassword: async (email: string) => {
+    return fetchPublic('/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+  resetPassword: async (data: {
+    token: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+  }) => {
+    return fetchPublic('/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // ============================================================================

@@ -185,6 +185,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 <div className="flex justify-end">
                   <button
                     type="button"
+                    onClick={() => history.push('/forgot-password')}
                     className="text-sm transition-colors"
                     style={{ color: 'var(--color-primary)' }}
                   >
