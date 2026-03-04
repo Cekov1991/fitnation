@@ -3,6 +3,7 @@ import { AuthProvider } from './hooks/useAuth';
 import { BrandingProvider } from './hooks/useBranding';
 import { ModalsProvider } from './contexts/ModalsContext';
 import { InstallPromptProvider } from './contexts/InstallPromptContext';
+import { NetworkStatusBanner } from './components/NetworkStatusBanner';
 import { AppRoutes } from './routes';
 
 const queryClient = new QueryClient({
@@ -22,6 +23,7 @@ export function App() {
         <AuthProvider>
           <BrandingProvider>
             <ModalsProvider>
+              <NetworkStatusBanner />
               <AppRoutes />
             </ModalsProvider>
           </BrandingProvider>
