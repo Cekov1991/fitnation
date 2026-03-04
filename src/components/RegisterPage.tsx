@@ -124,8 +124,8 @@ export function RegisterPage() {
             </div>
             <button
               onClick={() => history.push('/login')}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-semibold transition-all hover:shadow-lg"
-              style={{ color: 'var(--color-text-button)' }}
+              className="w-full py-3 rounded-xl font-semibold transition-all hover:shadow-lg"
+              style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', color: 'var(--color-text-button)' }}
             >
               Go to Login
             </button>
@@ -168,7 +168,10 @@ export function RegisterPage() {
                 <Dumbbell className="text-white w-10 h-10" />
               </div>
             )}
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <h1
+              className="text-3xl font-bold mb-2 bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+            >
               Create Your Account
             </h1>
             <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
@@ -362,10 +365,14 @@ export function RegisterPage() {
                 type="submit"
                 isLoading={isSubmitting}
                 loadingText="Creating account..."
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group"
+                className="w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
+                style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
               >
                 <span className="relative z-10">Create Account</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', filter: 'brightness(1.15)' }}
+                />
               </LoadingButton>
             </form>
 

@@ -2,7 +2,6 @@ import { useEffect, useState, createContext, useContext, ReactNode } from 'react
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../services/api';
 import type { UserResource } from '../types/api';
-import { updatePWAManifest } from '../utils/pwa';
 interface AuthContextType {
   user: UserResource | null;
   loading: boolean;
@@ -37,20 +36,13 @@ export function AuthProvider({
           // Save partner slug for PWA manifest selection
           if (response.user.partner?.slug) {
             localStorage.setItem('partner-slug', response.user.partner.slug);
-            // Update PWA manifest and icons dynamically
-            updatePWAManifest(response.user.partner.slug);
           } else {
             localStorage.removeItem('partner-slug');
-            updatePWAManifest(null);
           }
         } catch (error) {
           localStorage.removeItem('authToken');
           localStorage.removeItem('partner-slug');
-          updatePWAManifest(null);
         }
-      } else {
-        // No user logged in, reset to default
-        updatePWAManifest(null);
       }
       setLoading(false);
     };
@@ -65,11 +57,8 @@ export function AuthProvider({
     // Save partner slug for PWA manifest selection
     if (response.user.partner?.slug) {
       localStorage.setItem('partner-slug', response.user.partner.slug);
-      // Update PWA manifest and icons dynamically
-      updatePWAManifest(response.user.partner.slug);
     } else {
       localStorage.removeItem('partner-slug');
-      updatePWAManifest(null);
     }
   };
   const logout = async () => {
@@ -84,8 +73,6 @@ export function AuthProvider({
     // Clear all React Query cache to prevent previous user's data from persisting
     queryClient.clear();
     setUser(null);
-    // Reset PWA manifest to default
-    updatePWAManifest(null);
   };
   const register = async (data: {
     name: string;
@@ -100,11 +87,8 @@ export function AuthProvider({
     // Save partner slug for PWA manifest selection
     if (response.user.partner?.slug) {
       localStorage.setItem('partner-slug', response.user.partner.slug);
-      // Update PWA manifest and icons dynamically
-      updatePWAManifest(response.user.partner.slug);
     } else {
       localStorage.removeItem('partner-slug');
-      updatePWAManifest(null);
     }
   };
   const refetchUser = async () => {
@@ -119,17 +103,13 @@ export function AuthProvider({
       // Save partner slug for PWA manifest selection
       if (response.user.partner?.slug) {
         localStorage.setItem('partner-slug', response.user.partner.slug);
-        // Update PWA manifest and icons dynamically
-        updatePWAManifest(response.user.partner.slug);
       } else {
         localStorage.removeItem('partner-slug');
-        updatePWAManifest(null);
       }
     } catch (error) {
       // If refetch fails, user might be logged out
       localStorage.removeItem('authToken');
       localStorage.removeItem('partner-slug');
-      updatePWAManifest(null);
       setUser(null);
     }
   };

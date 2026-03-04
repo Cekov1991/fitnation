@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { Dumbbell, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { authApi } from '../services/api';
+import { useBranding } from '../hooks/useBranding';
 import { resetPasswordSchema, ResetPasswordFormData } from '../schemas/passwordReset';
 import { LoadingButton } from './ui';
 
@@ -36,7 +37,8 @@ function MissingLinkView({
           <button
             type="button"
             onClick={onRequestNewLink}
-            className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg text-white shadow-lg"
+            className="w-full py-4 rounded-xl font-bold text-lg text-white shadow-lg"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
           >
             Request a new link
           </button>
@@ -128,6 +130,8 @@ function ResetPasswordFormView({
   showConfirmPassword,
   setShowConfirmPassword,
 }: ResetPasswordFormViewProps) {
+  const { logo, partnerName, hasBranding } = useBranding();
+
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center px-6"
@@ -150,10 +154,21 @@ function ResetPasswordFormView({
 
       <div className="relative z-10 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-3xl shadow-2xl shadow-blue-500/30 mb-6 flex items-center justify-center">
-            <Dumbbell className="text-white w-10 h-10" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          {hasBranding && logo ? (
+            <img
+              src={logo}
+              alt={partnerName || 'Partner'}
+              className="w-20 h-20 object-contain mb-6 rounded-2xl"
+            />
+          ) : (
+            <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-3xl shadow-2xl shadow-blue-500/30 mb-6 flex items-center justify-center">
+              <Dumbbell className="text-white w-10 h-10" />
+            </div>
+          )}
+          <h1
+            className="text-3xl font-bold mb-2 bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+          >
             New password
           </h1>
           <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
@@ -278,10 +293,14 @@ function ResetPasswordFormView({
               type="submit"
               isLoading={isSubmitting}
               loadingText="Resetting..."
-              className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow relative overflow-hidden group"
+              className="w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group"
+              style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
             >
               <span className="relative z-10">Reset password</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', filter: 'brightness(1.15)' }}
+              />
             </LoadingButton>
           </form>
 

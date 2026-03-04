@@ -1,5 +1,8 @@
 import React, { useEffect, createContext, useContext, ReactNode, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
+import { partnersApi } from '../services/api';
+import { getPartnerSlugFromSubdomain } from '../utils/subdomain';
+import { updatePWAManifest } from '../utils/pwa';
 import type { PartnerVisualIdentityResource } from '../types/api';
 
 export type Theme = 'light' | 'dark' | 'system';
@@ -11,6 +14,8 @@ interface BrandingContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  partnerSlug: string | null;
+  subdomainLoading: boolean;
 }
 
 const BrandingContext = createContext<BrandingContextType | undefined>(undefined);
@@ -47,13 +52,73 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() => 
     getEffectiveTheme(theme)
   );
-  
-  // Extract branding information from user's partner
-  const visualIdentity: PartnerVisualIdentityResource | null = 
-    user?.partner?.visual_identity || null;
-  
-  const logo = visualIdentity?.logo || null;
-  const partnerName = user?.partner?.name || null;
+
+  // --- Subdomain-based branding (for unauthenticated routes) ---
+  const [subdomainBranding, setSubdomainBranding] = useState<{
+    name: string;
+    slug: string;
+    visual_identity: PartnerVisualIdentityResource | null;
+  } | null>(null);
+  const [subdomainLoading, setSubdomainLoading] = useState(false);
+
+  const detectedSlug = getPartnerSlugFromSubdomain();
+
+  // TODO: Remove debug logs after verifying subdomain branding works
+  console.log('[Branding] detectedSlug:', detectedSlug);
+
+  // Fetch partner branding on mount if subdomain is detected
+  useEffect(() => {
+    console.log('[Branding] useEffect fired, detectedSlug:', detectedSlug);
+    if (!detectedSlug) return;
+
+    let cancelled = false;
+    setSubdomainLoading(true);
+
+    partnersApi.getBrandingBySlug(detectedSlug)
+      .then((response) => {
+        console.log('[Branding] API response:', response);
+        if (!cancelled) {
+          // Transform backend response: map 'identity' to 'visual_identity' to match frontend expectations
+          const branding = {
+            name: response.data.name,
+            slug: response.data.slug,
+            visual_identity: response.data.visual_identity || null,
+          };
+          console.log('[Branding] Setting subdomainBranding:', branding);
+          setSubdomainBranding(branding);
+        }
+      })
+      .catch((err) => {
+        console.warn('[Branding] Failed to load partner branding for subdomain:', detectedSlug, err);
+        if (!cancelled) setSubdomainBranding(null);
+      })
+      .finally(() => {
+        if (!cancelled) setSubdomainLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [detectedSlug]);
+
+  // --- Resolve which branding to use ---
+  // Authenticated: use user's partner branding (existing behavior)
+  // Unauthenticated: use subdomain branding
+  const visualIdentity: PartnerVisualIdentityResource | null =
+    user
+      ? (user.partner?.visual_identity || null)
+      : (subdomainBranding?.visual_identity || null);
+
+  const logo = user
+    ? (user.partner?.visual_identity?.logo || null)
+    : (subdomainBranding?.visual_identity?.logo || null);
+
+  const partnerName = user
+    ? (user.partner?.name || null)
+    : (subdomainBranding?.name || null);
+
+  const partnerSlug = user
+    ? (user.partner?.slug || null)
+    : (subdomainBranding?.slug || detectedSlug);
+
   const hasBranding = !!visualIdentity;
 
   // Apply theme to document and update effective theme
@@ -88,11 +153,13 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  // Apply CSS variables when user is logged in and has branding
+  // Apply CSS variables when branding is available (from user or subdomain)
+  console.log('[Branding] Render - visualIdentity:', visualIdentity, 'hasBranding:', hasBranding, 'effectiveTheme:', effectiveTheme);
   useEffect(() => {
     const root = document.documentElement;
+    console.log('[Branding] CSS effect - visualIdentity:', visualIdentity);
     
-    if (user && visualIdentity) {
+    if (visualIdentity) {
       // Apply partner branding colors based on effective theme
       // Use dark variants in dark theme, fallback to regular colors if dark variants aren't available
       const primaryColor = effectiveTheme === 'dark' 
@@ -103,23 +170,23 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
         ? (visualIdentity.secondary_color_dark || visualIdentity.secondary_color)
         : visualIdentity.secondary_color;
       
-      if (primaryColor) {
-        root.style.setProperty('--color-primary', primaryColor);
-      } else {
-        root.style.setProperty('--color-primary', DEFAULT_PRIMARY);
-      }
-      
-      if (secondaryColor) {
-        root.style.setProperty('--color-secondary', secondaryColor);
-      } else {
-        root.style.setProperty('--color-secondary', DEFAULT_SECONDARY);
-      }
+      root.style.setProperty('--color-primary', primaryColor || DEFAULT_PRIMARY);
+      root.style.setProperty('--color-secondary', secondaryColor || DEFAULT_SECONDARY);
     } else {
-      // Reset to defaults when user logs out or has no branding
+      // Reset to defaults when no branding is available
       root.style.setProperty('--color-primary', DEFAULT_PRIMARY);
       root.style.setProperty('--color-secondary', DEFAULT_SECONDARY);
     }
-  }, [user, visualIdentity, effectiveTheme]);
+  }, [visualIdentity, effectiveTheme]);
+
+  // Update PWA manifest based on partner slug
+  useEffect(() => {
+    if (partnerSlug) {
+      updatePWAManifest(partnerSlug);
+    } else {
+      updatePWAManifest(null);
+    }
+  }, [partnerSlug]);
 
   // Theme management functions
   const setTheme = useCallback((newTheme: Theme) => {
@@ -144,6 +211,8 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
         theme,
         setTheme,
         toggleTheme,
+        partnerSlug,
+        subdomainLoading,
       }}
     >
       {children}
