@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useMemo, useEffect } from 'react';
+import { useForm, type FieldErrors, type UseFormRegister, type UseFormHandleSubmit } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { Dumbbell, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
@@ -7,145 +7,127 @@ import { authApi } from '../services/api';
 import { resetPasswordSchema, ResetPasswordFormData } from '../schemas/passwordReset';
 import { LoadingButton } from './ui';
 
-export function ResetPasswordPage() {
-  const history = useHistory();
-  const location = useLocation<{ token?: string; email?: string }>();
-  const params = useParams<{ token?: string }>();
-  const search = useMemo(() => new URLSearchParams(location.search), [location.search]);
-
-  // Token from route path (/reset-password/:token), state, or query
-  const token = params.token ?? location.state?.token ?? search.get('token') ?? '';
-  const email = location.state?.email ?? search.get('email') ?? '';
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { password: '', password_confirmation: '' },
-  });
-
-  const onSubmit = async (data: ResetPasswordFormData) => {
-    setError(null);
-    try {
-      await authApi.resetPassword({
-        token,
-        email: decodeURIComponent(email),
-        password: data.password,
-        password_confirmation: data.password_confirmation,
-      });
-      setSuccess(true);
-      setTimeout(() => history.replace('/login'), 2000);
-    } catch (err: any) {
-      const msg = err.message || 'Something went wrong.';
-      const isInvalidToken =
-        err.status === 422 &&
-        (msg.toLowerCase().includes('token') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('expired'));
-      if (isInvalidToken) {
-        setError('This password reset link is invalid or has expired.');
-      } else {
-        if (err.errors?.password) {
-          const first = Array.isArray(err.errors.password) ? err.errors.password[0] : err.errors.password;
-          setError(first);
-        } else if (err.errors?.password_confirmation) {
-          const first = Array.isArray(err.errors.password_confirmation)
-            ? err.errors.password_confirmation[0]
-            : err.errors.password_confirmation;
-          setError(first);
-        } else {
-          setError(msg);
-        }
-      }
-    }
-  };
-
-  if (!token || !email) {
-    return (
-      <div
-        className="min-h-screen w-full flex items-center justify-center px-6"
-        style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
-      >
-        <div className="relative z-10 w-full max-w-md">
-          <div
-            className="border rounded-3xl p-8 shadow-2xl text-center"
-            style={{
-              backgroundColor: 'var(--color-bg-surface)',
-              borderColor: 'var(--color-border)',
-            }}
+function MissingLinkView({
+  onRequestNewLink,
+  onBackToLogin,
+}: {
+  onRequestNewLink: () => void;
+  onBackToLogin: () => void;
+}) {
+  return (
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-6"
+      style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+    >
+      <div className="relative z-10 w-full max-w-md">
+        <div
+          className="border rounded-3xl p-8 shadow-2xl text-center"
+          style={{
+            backgroundColor: 'var(--color-bg-surface)',
+            borderColor: 'var(--color-border)',
+          }}
+        >
+          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-amber-400" />
+          <h2 className="text-xl font-bold mb-2">Missing reset link</h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+            This page needs a valid reset link (with token and email). If your link expired or
+            didn’t open correctly, request a new one.
+          </p>
+          <button
+            type="button"
+            onClick={onRequestNewLink}
+            className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg text-white shadow-lg"
           >
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-amber-400" />
-            <h2 className="text-xl font-bold mb-2">Missing reset link</h2>
-            <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
-              This page needs a valid reset link (with token and email). If your link expired or
-              didn’t open correctly, request a new one.
-            </p>
-            <button
-              type="button"
-              onClick={() => history.push('/forgot-password')}
-              className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-lg text-white shadow-lg"
-            >
-              Request a new link
-            </button>
-            <button
-              type="button"
-              onClick={() => history.push('/login')}
-              className="w-full mt-4 py-3 rounded-xl font-medium"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              Back to sign in
-            </button>
-          </div>
+            Request a new link
+          </button>
+          <button
+            type="button"
+            onClick={onBackToLogin}
+            className="w-full mt-4 py-3 rounded-xl font-medium"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            Back to sign in
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  if (success) {
-    return (
-      <div
-        className="min-h-screen w-full flex items-center justify-center px-6"
-        style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
-      >
-        <div className="relative z-10 w-full max-w-md">
+function ResetSuccessView({ onGoToLogin }: { onGoToLogin: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(() => onGoToLogin(), 2000);
+    return () => clearTimeout(t);
+  }, [onGoToLogin]);
+
+  return (
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-6"
+      style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+    >
+      <div className="relative z-10 w-full max-w-md">
+        <div
+          className="border rounded-3xl p-8 shadow-2xl text-center"
+          style={{
+            backgroundColor: 'var(--color-bg-surface)',
+            borderColor: 'var(--color-border)',
+          }}
+        >
           <div
-            className="border rounded-3xl p-8 shadow-2xl text-center"
+            className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
             style={{
-              backgroundColor: 'var(--color-bg-surface)',
-              borderColor: 'var(--color-border)',
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
             }}
           >
-            <div
-              className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-              }}
-            >
-              <Lock className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
-            </div>
-            <h2 className="text-xl font-bold mb-2">Password reset</h2>
-            <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
-              Your password has been reset. Redirecting you to sign in...
-            </p>
-            <button
-              type="button"
-              onClick={() => history.replace('/login')}
-              className="text-sm font-semibold"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              Go to sign in now
-            </button>
+            <Lock className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
           </div>
+          <h2 className="text-xl font-bold mb-2">Password reset</h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+            Your password has been reset. Redirecting you to sign in...
+          </p>
+          <button
+            type="button"
+            onClick={onGoToLogin}
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            Go to sign in now
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
+interface ResetPasswordFormViewProps {
+  error: string | null;
+  isInvalidOrExpiredLink: boolean;
+  onRequestNewLink: () => void;
+  register: UseFormRegister<ResetPasswordFormData>;
+  handleSubmit: UseFormHandleSubmit<ResetPasswordFormData>;
+  errors: FieldErrors<ResetPasswordFormData>;
+  isSubmitting: boolean;
+  onSubmit: (data: ResetPasswordFormData) => void;
+  showPassword: boolean;
+  setShowPassword: (v: boolean) => void;
+  showConfirmPassword: boolean;
+  setShowConfirmPassword: (v: boolean) => void;
+}
+
+function ResetPasswordFormView({
+  error,
+  isInvalidOrExpiredLink,
+  onRequestNewLink,
+  register,
+  handleSubmit,
+  errors,
+  isSubmitting,
+  onSubmit,
+  showPassword,
+  setShowPassword,
+  showConfirmPassword,
+  setShowConfirmPassword,
+}: ResetPasswordFormViewProps) {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center px-6"
@@ -194,10 +176,10 @@ export function ResetPasswordPage() {
               </div>
             )}
 
-            {error && error.toLowerCase().includes('invalid') && (
+            {isInvalidOrExpiredLink && (
               <button
                 type="button"
-                onClick={() => history.push('/forgot-password')}
+                onClick={onRequestNewLink}
                 className="text-sm font-semibold w-full py-2 rounded-lg border"
                 style={{
                   borderColor: 'var(--color-border)',
@@ -306,7 +288,7 @@ export function ResetPasswordPage() {
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => history.push('/forgot-password')}
+              onClick={onRequestNewLink}
               className="text-sm font-semibold transition-colors"
               style={{ color: 'var(--color-primary)' }}
             >
@@ -316,5 +298,95 @@ export function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function ResetPasswordPage() {
+  const history = useHistory();
+  const location = useLocation<{ token?: string; email?: string }>();
+  const params = useParams<{ token?: string }>();
+  const search = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
+  const token = params.token ?? location.state?.token ?? search.get('token') ?? '';
+  const email = location.state?.email ?? search.get('email') ?? '';
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isInvalidOrExpiredLink, setIsInvalidOrExpiredLink] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: '', password_confirmation: '' },
+  });
+
+  const onSubmit = async (data: ResetPasswordFormData) => {
+    setError(null);
+    setIsInvalidOrExpiredLink(false);
+    try {
+      await authApi.resetPassword({
+        token,
+        email: decodeURIComponent(email),
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+      });
+      setSuccess(true);
+    } catch (err: any) {
+      const msg = err.message || 'Something went wrong.';
+      const isInvalidToken =
+        err.status === 422 &&
+        (msg.toLowerCase().includes('token') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('expired'));
+      if (isInvalidToken) {
+        setError('This password reset link is invalid or has expired.');
+        setIsInvalidOrExpiredLink(true);
+      } else {
+        if (err.errors?.password) {
+          const first = Array.isArray(err.errors.password) ? err.errors.password[0] : err.errors.password;
+          setError(first);
+        } else if (err.errors?.password_confirmation) {
+          const first = Array.isArray(err.errors.password_confirmation)
+            ? err.errors.password_confirmation[0]
+            : err.errors.password_confirmation;
+          setError(first);
+        } else {
+          setError(msg);
+        }
+      }
+    }
+  };
+
+  if (!token || !email) {
+    return (
+      <MissingLinkView
+        onRequestNewLink={() => history.push('/forgot-password')}
+        onBackToLogin={() => history.push('/login')}
+      />
+    );
+  }
+
+  if (success) {
+    return <ResetSuccessView onGoToLogin={() => history.replace('/login')} />;
+  }
+
+  return (
+    <ResetPasswordFormView
+      error={error}
+      isInvalidOrExpiredLink={isInvalidOrExpiredLink}
+      onRequestNewLink={() => history.push('/forgot-password')}
+      register={register}
+      handleSubmit={handleSubmit}
+      errors={errors}
+      isSubmitting={isSubmitting}
+      onSubmit={onSubmit}
+      showPassword={showPassword}
+      setShowPassword={setShowPassword}
+      showConfirmPassword={showConfirmPassword}
+      setShowConfirmPassword={setShowConfirmPassword}
+    />
   );
 }
