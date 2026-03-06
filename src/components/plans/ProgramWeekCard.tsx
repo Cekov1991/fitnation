@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import type { WorkoutTemplateResource } from '../../types/api';
 
 interface ProgramWeekCardProps {
@@ -11,6 +11,8 @@ interface ProgramWeekCardProps {
   /** Full next-workout template; used to compute completed (earlier week or same week lower order_index). */
   nextWorkout?: WorkoutTemplateResource | null;
   onWorkoutClick?: (templateId: number) => void;
+  /** Called when a completed day badge is clicked; receives the session ID to show. */
+  onCompletedDayClick?: (sessionId: number) => void;
 }
 
 export function ProgramWeekCard({
@@ -20,7 +22,8 @@ export function ProgramWeekCard({
   accentColor,
   nextWorkoutId: nextWorkoutIdProp,
   nextWorkout = null,
-  onWorkoutClick
+  onWorkoutClick,
+  onCompletedDayClick
 }: ProgramWeekCardProps) {
   const primaryColor = accentColor || 'var(--color-primary)';
   const nextWorkoutId = nextWorkout?.id ?? nextWorkoutIdProp ?? null;
@@ -89,11 +92,19 @@ export function ProgramWeekCard({
           const isCompleted = isWorkoutCompleted(workout);
           const isInteractivePreview = onWorkoutClick && nextWorkoutId == null;
 
+          const handleClick = () => {
+            if (isCompleted && workout.last_completed_session_id && onCompletedDayClick) {
+              onCompletedDayClick(workout.last_completed_session_id);
+            } else {
+              onWorkoutClick?.(workout.id);
+            }
+          };
+
           return (
             <button
               key={workout.id}
               ref={isNextWorkout ? nextWorkoutButtonRef : null}
-              onClick={() => onWorkoutClick?.(workout.id)}
+              onClick={handleClick}
               className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 relative"
               style={{
                 background: isNextWorkout
@@ -131,6 +142,7 @@ export function ProgramWeekCard({
                 />
               )}
               <span className="relative z-10 flex items-center gap-1.5">
+                {isNextWorkout && <Clock size={14} className="flex-shrink-0" />}
                 {isCompleted && <CheckCircle2 size={14} className="flex-shrink-0" />}
                 Day {workout.order_index + 1}
               </span>

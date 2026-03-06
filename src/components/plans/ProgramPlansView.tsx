@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Info, MoreVertical, ChevronDown, ChevronUp, Plus, Calendar } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
+import { SessionDetailModal } from '../SessionDetailModal';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { PlanMenu } from '../PlanMenu';
 import { usePrograms, useDeleteProgram, useUpdateProgram } from '../../hooks/useApi';
@@ -18,6 +19,13 @@ export function ProgramPlansView({
   const [isExpanded, setIsExpanded] = useState(true); // Active program expanded by default
   const [expandedInactivePrograms, setExpandedInactivePrograms] = useState<Set<number>>(new Set()); // Inactive programs closed by default
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [completedSessionId, setCompletedSessionId] = useState<number | null>(null);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+
+  const handleCompletedDayClick = (sessionId: number) => {
+    setCompletedSessionId(sessionId);
+    setIsSessionModalOpen(true);
+  };
   const [currentProgram, setCurrentProgram] = useState<{
     id: number;
     name: string;
@@ -271,6 +279,7 @@ export function ProgramPlansView({
                               nextWorkoutId={activeProgram?.next_workout?.id || null}
                               nextWorkout={activeProgram?.next_workout ?? null}
                               onWorkoutClick={onNavigateToWorkout}
+                              onCompletedDayClick={handleCompletedDayClick}
                             />
                           </div>
                         </div>
@@ -451,6 +460,7 @@ export function ProgramPlansView({
                                   nextWorkoutId={program.is_active ? (activeProgram?.next_workout?.id || null) : null}
                                   nextWorkout={program.is_active ? (activeProgram?.next_workout ?? null) : null}
                                   onWorkoutClick={onNavigateToWorkout}
+                                  onCompletedDayClick={handleCompletedDayClick}
                                 />
                               </div>
                             </div>
@@ -507,6 +517,16 @@ export function ProgramPlansView({
         confirmText="Delete"
         variant="danger"
         isLoading={deleteProgram.isPending}
+      />
+
+      {/* Completed Day Session Detail */}
+      <SessionDetailModal
+        isOpen={isSessionModalOpen}
+        onClose={() => {
+          setIsSessionModalOpen(false);
+          setCompletedSessionId(null);
+        }}
+        sessionId={completedSessionId}
       />
     </>
   );

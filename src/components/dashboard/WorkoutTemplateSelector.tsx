@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import type { WorkoutTemplateResource } from '../../types/api';
 
 interface WorkoutTemplateSelectorProps {
@@ -8,13 +8,16 @@ interface WorkoutTemplateSelectorProps {
   onTemplateSelect: (templateId: number) => void;
   /** Template that is "next" in the program. Used for next/completed styling. */
   nextWorkout?: WorkoutTemplateResource | null;
+  /** Called when a completed day badge is clicked; receives the session ID to show. */
+  onCompletedDayClick?: (sessionId: number) => void;
 }
 
 export function WorkoutTemplateSelector({
   templates,
   selectedTemplateId,
   onTemplateSelect,
-  nextWorkout = null
+  nextWorkout = null,
+  onCompletedDayClick
 }: WorkoutTemplateSelectorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -55,11 +58,19 @@ export function WorkoutTemplateSelector({
           template.order_index < nextOrderIndex;
         const isSelected = selectedTemplateId === template.id;
 
+        const handleClick = () => {
+          if (isCompleted && template.last_completed_session_id && onCompletedDayClick) {
+            onCompletedDayClick(template.last_completed_session_id);
+          } else {
+            onTemplateSelect(template.id);
+          }
+        };
+
         return (
           <button
             key={template.id}
             ref={isSelected ? selectedButtonRef : null}
-            onClick={() => onTemplateSelect(template.id)}
+            onClick={handleClick}
             className={`mt-2 flex-shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 relative ${
               isSelected ? 'shadow-sm ring-1' : 'hover:opacity-80'
             }`}
@@ -95,6 +106,7 @@ export function WorkoutTemplateSelector({
               />
             )}
             <span className="relative z-10 flex items-center gap-1.5">
+              {isNext && <Clock size={14} className="flex-shrink-0" />}
               {isCompleted && <CheckCircle2 size={14} className="flex-shrink-0" />}
               Day {index + 1}
             </span>

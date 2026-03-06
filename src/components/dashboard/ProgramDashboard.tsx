@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
 import { WorkoutTemplateSelector } from './WorkoutTemplateSelector';
 import { WorkoutCard } from '../WorkoutCard';
+import { SessionDetailModal } from '../SessionDetailModal';
 import { usePrograms, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
 
@@ -45,6 +46,13 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
   // Use lazy initializer to ensure we get the latest defaultSelectedId on mount
   // The key prop on this component ensures remount when program/week changes
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(() => defaultSelectedId);
+  const [completedSessionId, setCompletedSessionId] = useState<number | null>(null);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+
+  const handleCompletedDayClick = (sessionId: number) => {
+    setCompletedSessionId(sessionId);
+    setIsSessionModalOpen(true);
+  };
 
   // Get selected workout template
   const selectedWorkout = useMemo(() => {
@@ -167,6 +175,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
             selectedTemplateId={selectedTemplateId}
             onTemplateSelect={setSelectedTemplateId}
             nextWorkout={activeProgram?.next_workout ?? null}
+            onCompletedDayClick={handleCompletedDayClick}
           />
         </div>
       )}
@@ -215,6 +224,15 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
           <p>No workouts available for this week</p>
         </div>
       )}
+
+      <SessionDetailModal
+        isOpen={isSessionModalOpen}
+        onClose={() => {
+          setIsSessionModalOpen(false);
+          setCompletedSessionId(null);
+        }}
+        sessionId={completedSessionId}
+      />
     </div>
   );
 }

@@ -234,6 +234,7 @@ export interface WorkoutTemplateResource {
   day_of_week: DayOfWeek | null;
   week_number: number;     // For programs: which week (1-52)
   order_index: number;     // For programs: sequence order (0+)
+  last_completed_session_id: number | null;
   plan: PlanResource | null;
   exercises: TemplateExercise[] | null;
   created_at: string;
