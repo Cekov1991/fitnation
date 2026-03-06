@@ -1,11 +1,20 @@
 import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, Clock, LogOut, ChevronDown, Download } from 'lucide-react';
+import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
 import { LoadingButton } from './ui';
+
+// Duration options: label -> backend value (always the higher amount)
+const DURATION_OPTIONS = [
+  { label: '20-30 min', value: 30 },
+  { label: '30-45 min', value: 45 },
+  { label: '45-60 min', value: 60 },
+  { label: '60-90 min', value: 90 },
+  { label: '90+ min', value: 120 },
+];
 
 interface ProfilePageProps {
   onLogout: () => void;
@@ -449,60 +458,29 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                   {/* Workout Duration */}
                   <div>
                     <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                      Workout Duration (minutes)
+                      Workout Duration
                     </label>
-                    <div className="relative">
-                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                      <Controller
-                        name="workout_duration_minutes"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                            placeholder="e.g. 45"
-                            min="15"
-                            max="180"
-                            className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
-                            style={{
-                              backgroundColor: 'var(--color-bg-surface)',
-                              borderColor: errors.workout_duration_minutes ? '#f87171' : 'var(--color-border)',
-                              color: 'var(--color-text-primary)'
-                            }}
-                            onFocus={(e) => {
-                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-                            }}
-                            onBlur={(e) => {
-                              e.currentTarget.style.borderColor = 'var(--color-border)';
-                            }}
-                          />
-                        )}
-                      />
-                    </div>
-
-                    {/* Quick select buttons */}
                     <Controller
                       name="workout_duration_minutes"
                       control={control}
                       render={({ field }) => (
-                        <div className="flex gap-2 mt-3">
-                          {[30, 45, 60, 90].map((mins) => (
+                        <div className="flex gap-2 flex-wrap">
+                          {DURATION_OPTIONS.map((option) => (
                             <button
-                              key={mins}
+                              key={option.value}
                               type="button"
-                              onClick={() => field.onChange(mins)}
+                              onClick={() => field.onChange(option.value)}
                               className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
                               style={{
-                                backgroundColor: field.value === mins
+                                backgroundColor: field.value === option.value
                                   ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
                                   : 'var(--color-border-subtle)',
-                                color: field.value === mins
+                                color: field.value === option.value
                                   ? 'var(--color-primary)'
                                   : 'var(--color-text-secondary)',
                               }}
                             >
-                              {mins} mins
+                              {option.label}
                             </button>
                           ))}
                         </div>

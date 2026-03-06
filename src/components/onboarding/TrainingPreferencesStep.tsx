@@ -4,6 +4,15 @@ import { Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
 import { OnboardingFormData } from '../../schemas/onboarding';
 
+// Duration options: label -> backend value (always the higher amount)
+const DURATION_OPTIONS = [
+  { label: '20-30 min', value: 30 },
+  { label: '30-45 min', value: 45 },
+  { label: '45-60 min', value: 60 },
+  { label: '60-90 min', value: 90 },
+  { label: '90+ min', value: 120 },
+];
+
 interface TrainingPreferencesStepProps {
   control: Control<OnboardingFormData>;
   selectedDays: number | undefined;
@@ -176,22 +185,22 @@ export function TrainingPreferencesStep({
               control={control}
               render={({ field }) => (
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                  {[30, 45, 60, 90].map((mins) => (
+                  {DURATION_OPTIONS.map((option) => (
                     <button
-                      key={mins}
+                      key={option.value}
                       type="button"
-                      onClick={() => field.onChange(mins)}
+                      onClick={() => field.onChange(option.value)}
                       className="px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-all"
                       style={{
-                        backgroundColor: field.value === mins
+                        backgroundColor: field.value === option.value
                           ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
                           : 'var(--color-border-subtle)',
-                        color: field.value === mins
+                        color: field.value === option.value
                           ? 'var(--color-primary)'
                           : 'var(--color-text-secondary)',
                       }}
                     >
-                      {mins} mins
+                      {option.label}
                     </button>
                   ))}
                 </div>
