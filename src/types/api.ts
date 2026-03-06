@@ -557,9 +557,7 @@ export interface AngleResource {
 // ============================================
 
 export interface GenerateWorkoutInput {
-  focus_muscle_groups?: string[];
   target_regions?: string[];
-  equipment_types?: string[];
   movement_patterns?: string[];
   angles?: string[];
   duration_minutes?: number;
@@ -567,9 +565,7 @@ export interface GenerateWorkoutInput {
 }
 
 export interface RegenerateWorkoutInput {
-  focus_muscle_groups?: string[];
   target_regions?: string[];
-  equipment_types?: string[];
   movement_patterns?: string[];
   angles?: string[];
   duration_minutes?: number;
