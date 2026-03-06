@@ -1,32 +1,32 @@
 import { useRef, useEffect } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import type { WorkoutTemplateResource } from '../../types/api';
 
 interface WorkoutTemplateSelectorProps {
   templates: WorkoutTemplateResource[];
   selectedTemplateId: number | null;
   onTemplateSelect: (templateId: number) => void;
+  /** Template that is "next" in the program. Used for next/completed styling. */
+  nextWorkout?: WorkoutTemplateResource | null;
 }
 
-export function WorkoutTemplateSelector({ 
-  templates, 
-  selectedTemplateId, 
-  onTemplateSelect 
+export function WorkoutTemplateSelector({
+  templates,
+  selectedTemplateId,
+  onTemplateSelect,
+  nextWorkout = null
 }: WorkoutTemplateSelectorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Scroll to selected button when selection changes
   useEffect(() => {
     if (selectedButtonRef.current && containerRef.current) {
       const button = selectedButtonRef.current;
       const container = containerRef.current;
-      
-      // Calculate scroll position to center the button
       const buttonLeft = button.offsetLeft;
       const buttonWidth = button.offsetWidth;
       const containerWidth = container.offsetWidth;
       const scrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
-      
       container.scrollTo({
         left: scrollLeft,
         behavior: 'smooth'
@@ -38,36 +38,69 @@ export function WorkoutTemplateSelector({
     return null;
   }
 
+  const nextOrderIndex = nextWorkout?.order_index ?? -1;
+  const nextWeekNumber = nextWorkout?.week_number ?? null;
+
   return (
-    <div 
+    <div
       ref={containerRef}
       className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
     >
-      {templates.map((template, index) => (
-        <button
-          key={template.id}
-          ref={selectedTemplateId === template.id ? selectedButtonRef : null}
-          onClick={() => onTemplateSelect(template.id)}
-          className={`mt-2 flex-shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
-            selectedTemplateId === template.id
-              ? 'shadow-sm ring-1'
-              : 'hover:opacity-80'
-          }`}
-          style={{
-            backgroundColor: selectedTemplateId === template.id 
-              ? 'var(--color-bg-surface)' 
-              : 'var(--color-border-subtle)',
-            color: selectedTemplateId === template.id
-              ? 'var(--color-primary)'
-              : 'var(--color-text-secondary)',
-            borderColor: selectedTemplateId === template.id
-              ? 'var(--color-border-subtle)'
-              : 'transparent'
-          }}
-        >
-          Day {index + 1}
-        </button>
-      ))}
+      {templates.map((template, index) => {
+        const isNext = nextWorkout != null && template.id === nextWorkout.id;
+        const isCompleted =
+          nextWorkout != null &&
+          nextWeekNumber != null &&
+          template.week_number === nextWeekNumber &&
+          template.order_index < nextOrderIndex;
+        const isSelected = selectedTemplateId === template.id;
+
+        return (
+          <button
+            key={template.id}
+            ref={isSelected ? selectedButtonRef : null}
+            onClick={() => onTemplateSelect(template.id)}
+            className={`mt-2 flex-shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 relative ${
+              isSelected ? 'shadow-sm ring-1' : 'hover:opacity-80'
+            }`}
+            style={{
+              background: isSelected
+                ? 'var(--color-bg-surface)'
+                : isNext
+                  ? 'color-mix(in srgb, var(--color-primary) 14%, var(--color-bg-surface))'
+                  : isCompleted
+                    ? 'transparent'
+                    : 'var(--color-border-subtle)',
+              color: isSelected
+                ? 'var(--color-primary)'
+                : isNext
+                  ? 'var(--color-primary)'
+                  : isCompleted
+                    ? 'var(--color-text-button)'
+                    : 'var(--color-text-secondary)',
+              border: isSelected || isCompleted
+                ? '1px solid var(--color-border-subtle)'
+                : '1px solid transparent',
+              overflow: 'hidden'
+            }}
+          >
+            {isCompleted && (
+              <span
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                  zIndex: 0
+                }}
+                aria-hidden
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-1.5">
+              {isCompleted && <CheckCircle2 size={14} className="flex-shrink-0" />}
+              Day {index + 1}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

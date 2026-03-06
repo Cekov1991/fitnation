@@ -36,14 +36,14 @@ export function PlansPage({
   const history = useHistory();
   const location = useLocation();
   
-  // Get plan type from URL query parameter, default to 'customPlans'
+  // Get plan type from URL query parameter, default to 'programs'
   const planType = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const type = params.get('type');
     if (type === 'programs' || type === 'customPlans') {
       return type;
     }
-    return 'customPlans';
+    return 'programs';
   }, [location.search]);
 
   const handlePlanTypeChange = (type: 'customPlans' | 'programs') => {

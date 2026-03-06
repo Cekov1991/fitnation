@@ -269,6 +269,7 @@ export function ProgramPlansView({
                               isActive={week.isActive}
                               accentColor="var(--color-primary)"
                               nextWorkoutId={activeProgram?.next_workout?.id || null}
+                              nextWorkout={activeProgram?.next_workout ?? null}
                               onWorkoutClick={onNavigateToWorkout}
                             />
                           </div>
@@ -448,6 +449,7 @@ export function ProgramPlansView({
                                   isActive={week.isActive}
                                   accentColor="var(--color-primary)"
                                   nextWorkoutId={program.is_active ? (activeProgram?.next_workout?.id || null) : null}
+                                  nextWorkout={program.is_active ? (activeProgram?.next_workout ?? null) : null}
                                   onWorkoutClick={onNavigateToWorkout}
                                 />
                               </div>

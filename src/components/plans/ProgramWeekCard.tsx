@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import type { WorkoutTemplateResource } from '../../types/api';
 
 interface ProgramWeekCardProps {
@@ -7,6 +8,8 @@ interface ProgramWeekCardProps {
   isActive?: boolean;
   accentColor?: string;
   nextWorkoutId?: number | null;
+  /** Full next-workout template; used to compute completed (earlier week or same week lower order_index). */
+  nextWorkout?: WorkoutTemplateResource | null;
   onWorkoutClick?: (templateId: number) => void;
 }
 
@@ -15,25 +18,23 @@ export function ProgramWeekCard({
   workouts,
   isActive = false,
   accentColor,
-  nextWorkoutId,
+  nextWorkoutId: nextWorkoutIdProp,
+  nextWorkout = null,
   onWorkoutClick
 }: ProgramWeekCardProps) {
   const primaryColor = accentColor || 'var(--color-primary)';
+  const nextWorkoutId = nextWorkout?.id ?? nextWorkoutIdProp ?? null;
   const containerRef = useRef<HTMLDivElement>(null);
   const nextWorkoutButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Scroll to next workout when it's in this week
   useEffect(() => {
     if (nextWorkoutButtonRef.current && containerRef.current && nextWorkoutId) {
       const button = nextWorkoutButtonRef.current;
       const container = containerRef.current;
-      
-      // Calculate scroll position to center the button
       const buttonLeft = button.offsetLeft;
       const buttonWidth = button.offsetWidth;
       const containerWidth = container.offsetWidth;
       const scrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
-      
       container.scrollTo({
         left: scrollLeft,
         behavior: 'smooth'
@@ -43,13 +44,18 @@ export function ProgramWeekCard({
 
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const isWorkoutCompleted = (workout: WorkoutTemplateResource): boolean => {
+    if (nextWorkout == null) return false;
+    if (workout.week_number < nextWorkout.week_number) return true;
+    if (workout.week_number === nextWorkout.week_number && workout.order_index < nextWorkout.order_index) return true;
+    return false;
+  };
+
   return (
     <div
       ref={cardRef}
       className={`rounded-2xl p-3 pl-5 pt-5 transition-all overflow-hidden ${
-        isActive 
-          ? 'border-2 shadow-md' 
-          : 'border-2 border'
+        isActive ? 'border-2 shadow-md' : 'border-2 border'
       }`}
       style={{
         backgroundColor: 'var(--color-bg-surface)',
@@ -69,17 +75,18 @@ export function ProgramWeekCard({
         </h3>
       </div>
 
-      <div 
+      <div
         ref={containerRef}
         className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-        style={{ 
+        style={{
           minWidth: 0,
           maxWidth: '100%',
           width: '100%'
         }}
       >
-        {workouts.map((workout, index) => {
+        {workouts.map((workout) => {
           const isNextWorkout = workout.id === nextWorkoutId;
+          const isCompleted = isWorkoutCompleted(workout);
           const isInteractivePreview = onWorkoutClick && nextWorkoutId == null;
 
           return (
@@ -87,24 +94,46 @@ export function ProgramWeekCard({
               key={workout.id}
               ref={isNextWorkout ? nextWorkoutButtonRef : null}
               onClick={() => onWorkoutClick?.(workout.id)}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+              className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 relative"
               style={{
-                backgroundColor: isNextWorkout
+                background: isNextWorkout
                   ? primaryColor
-                  : isInteractivePreview
-                    ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)'
-                    : 'var(--color-bg-base)',
+                  : isCompleted
+                    ? 'transparent'
+                    : isInteractivePreview
+                      ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)'
+                      : 'var(--color-bg-base)',
                 color: isNextWorkout
                   ? 'white'
-                  : isInteractivePreview
-                    ? 'var(--color-primary)'
-                    : 'var(--color-text-muted)',
-                ...(isInteractivePreview && {
-                  border: '1px solid color-mix(in srgb, var(--color-primary) 35%, transparent)'
-                })
+                  : isCompleted
+                    ? 'var(--color-text-button)'
+                    : isInteractivePreview
+                      ? 'var(--color-primary)'
+                      : 'var(--color-text-muted)',
+                border: isNextWorkout
+                  ? '1px solid transparent'
+                  : isCompleted
+                    ? '1px solid var(--color-border-subtle)'
+                    : isInteractivePreview
+                      ? '1px solid color-mix(in srgb, var(--color-primary) 35%, transparent)'
+                      : '1px solid transparent',
+                overflow: 'hidden'
               }}
             >
-              Day {workout.order_index + 1}
+              {isCompleted && (
+                <span
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                    zIndex: 0
+                  }}
+                  aria-hidden
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {isCompleted && <CheckCircle2 size={14} className="flex-shrink-0" />}
+                Day {workout.order_index + 1}
+              </span>
             </button>
           );
         })}

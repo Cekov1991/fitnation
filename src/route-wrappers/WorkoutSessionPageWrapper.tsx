@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { WorkoutSessionPage } from '../components/workout-session';
 import { useTodayWorkout } from '../hooks/useApi';
 
@@ -8,6 +9,7 @@ export default function WorkoutSessionPageWrapper() {
   const history = useHistory();
   const location = useLocation<{ exerciseName?: string }>();
   const { sessionId } = useParams<{ sessionId: string }>();
+  const queryClient = useQueryClient();
   const { data: todayWorkout, refetch: refetchTodayWorkout } = useTodayWorkout();
 
   // Get workout name from todayWorkout or use default
@@ -21,12 +23,22 @@ export default function WorkoutSessionPageWrapper() {
   // Get initial exercise name from location state (when returning from detail page)
   const initialExerciseName = location.state?.exerciseName;
 
-  const handleBack = () => {
+  const refreshPrograms = async () => {
+    try {
+      await queryClient.refetchQueries({ queryKey: ['programs'], type: 'all' });
+    } catch (error) {
+      console.error('Failed to refetch programs:', error);
+    }
+  };
+
+  const handleBack = async () => {
+    await refreshPrograms();
     history.push('/');
     refetchTodayWorkout();
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
+    await refreshPrograms();
     history.push('/');
     refetchTodayWorkout();
   };

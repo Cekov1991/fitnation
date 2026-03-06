@@ -29,10 +29,12 @@ export function DashboardPage() {
     return programs.find((program: ProgramResource) => program.is_active) || null;
   }, [programs]);
 
-  // Create a key that changes when program or week changes to force remount
+  // Key changes when program or next workout changes so ProgramDashboard remounts with correct selected day
   const programDashboardKey = useMemo(() => {
     if (!activeProgram) return 'no-program';
-    return `${activeProgram.id}-${activeProgram.current_active_week ?? 1}`;
+    const weekKey = activeProgram.next_workout?.week_number ?? activeProgram.current_active_week ?? 1;
+    const nextId = activeProgram.next_workout?.id ?? 0;
+    return `${activeProgram.id}-${weekKey}-${nextId}`;
   }, [activeProgram]);
 
   // Get dashboard type from URL query parameter, default to 'programs'

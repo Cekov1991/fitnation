@@ -20,19 +20,21 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     return programs.find((program: ProgramResource) => program.is_active) || null;
   }, [programs]);
 
-  // Get workout templates for the current active week
+  // Prefer next_workout's week so the dashboard reflects program progression
+  const displayWeekNumber = useMemo(() => {
+    return activeProgram?.next_workout?.week_number ?? activeProgram?.current_active_week ?? 1;
+  }, [activeProgram]);
+
+  // Get workout templates for the displayed week
   const activeWeekWorkouts = useMemo(() => {
     if (!activeProgram?.workout_templates) return [];
-    
-    const currentWeek = activeProgram.current_active_week ?? 1;
-    
-    // Filter templates for current week and sort by order_index
+    const currentWeek = displayWeekNumber;
     return activeProgram.workout_templates
       .filter((template: WorkoutTemplateResource) => template.week_number === currentWeek)
       .sort((a: WorkoutTemplateResource, b: WorkoutTemplateResource) => a.order_index - b.order_index);
-  }, [activeProgram]);
+  }, [activeProgram, displayWeekNumber]);
 
-  // Default to first workout in active week, or next_workout if available
+  // Default to first workout in displayed week, or next_workout if available
   const defaultSelectedId = useMemo(() => {
     if (activeProgram?.next_workout && activeWeekWorkouts.some((w: WorkoutTemplateResource) => w.id === activeProgram.next_workout?.id)) {
       return activeProgram.next_workout.id;
@@ -56,15 +58,13 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
   // Get week info from active program
   const weekInfo = useMemo(() => {
     if (!activeProgram) return null;
-    
-    const currentWeek = activeProgram.current_active_week ?? 1;
+    const currentWeek = displayWeekNumber;
     const totalWeeks = activeProgram.duration_weeks ?? 1;
-    
     return {
       current: currentWeek,
       total: totalWeeks
     };
-  }, [activeProgram]);
+  }, [activeProgram, displayWeekNumber]);
 
   const handleExerciseClick = (exerciseName: string) => {
     history.push(`/exercises/${encodeURIComponent(exerciseName)}`);
@@ -162,10 +162,11 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
       {/* Workout Template Selector - Shows workouts for active week */}
       {activeWeekWorkouts.length > 0 && (
         <div className="mb-6 -mx-1 px-1">
-          <WorkoutTemplateSelector 
+          <WorkoutTemplateSelector
             templates={activeWeekWorkouts}
             selectedTemplateId={selectedTemplateId}
             onTemplateSelect={setSelectedTemplateId}
+            nextWorkout={activeProgram?.next_workout ?? null}
           />
         </div>
       )}
