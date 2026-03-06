@@ -35,14 +35,14 @@ export function DashboardPage() {
     return `${activeProgram.id}-${activeProgram.current_active_week ?? 1}`;
   }, [activeProgram]);
 
-  // Get dashboard type from URL query parameter, default to 'customPlans'
+  // Get dashboard type from URL query parameter, default to 'programs'
   const dashboardType = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const type = params.get('type');
     if (type === 'programs' || type === 'customPlans') {
       return type;
     }
-    return 'customPlans';
+    return 'programs';
   }, [location.search]);
 
   const handleDashboardTypeChange = (type: 'customPlans' | 'programs') => {

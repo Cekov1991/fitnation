@@ -110,6 +110,7 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
   return (
     <div className="pb-24">
       <div className="space-y-8">
+        <AIGeneratorCard onGenerate={handleGenerateWorkout} />
         <QuickStartCard onStartBlankSession={onStartBlankSession} />
 
         {/* Active Plan Workouts Section */}
@@ -158,8 +159,6 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
             </div>
           )}
         </div>
-
-        <AIGeneratorCard onGenerate={handleGenerateWorkout} />
       </div>
     </div>
   );
