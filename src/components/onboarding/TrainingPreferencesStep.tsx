@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Dumbbell, Clock, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Dumbbell, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
 import { OnboardingFormData } from '../../schemas/onboarding';
@@ -144,42 +144,8 @@ export function TrainingPreferencesStep({
               className="text-xs mb-2 block"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              Workout Duration (minutes)
+              Workout Duration
             </label>
-            <div className="relative">
-              <Clock 
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" 
-                style={{ color: 'var(--color-text-muted)' }} 
-              />
-              <Controller
-                name="workout_duration_minutes"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    type="number"
-                    value={field.value || ''}
-                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
-                    placeholder="e.g. 45"
-                    min="15"
-                    max="180"
-                    className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
-                    style={{
-                      backgroundColor: 'var(--color-bg-surface)',
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-text-primary)'
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-border)';
-                    }}
-                  />
-                )}
-              />
-            </div>
-
-            {/* Quick select buttons */}
             <Controller
               name="workout_duration_minutes"
               control={control}
