@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, onboardingApi, plansApi, programsApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
+import { profileApi, onboardingApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../services/api';
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -263,6 +263,32 @@ export function useNextWorkout(programId: number) {
       return response.data;
     },
     enabled: isAuthenticated() && !!programId
+  });
+}
+
+// ============================================================================
+// BROWSABLE ROUTINES HOOKS
+// ============================================================================
+
+export function useBrowsableRoutines() {
+  return useQuery({
+    queryKey: ['routines'],
+    queryFn: async () => {
+      const response = await routinesApi.getRoutines();
+      return response.data;
+    },
+    enabled: isAuthenticated()
+  });
+}
+
+export function useBrowsableRoutine(routineId: number) {
+  return useQuery({
+    queryKey: ['routines', routineId],
+    queryFn: async () => {
+      const response = await routinesApi.getRoutine(routineId);
+      return response.data;
+    },
+    enabled: isAuthenticated() && !!routineId
   });
 }
 

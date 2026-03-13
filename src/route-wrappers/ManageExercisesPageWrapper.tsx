@@ -26,7 +26,7 @@ export default function ManageExercisesPageWrapper() {
       if (history.length > 1) {
         history.goBack();
       } else {
-        history.push('/plans');
+        history.push('/plans?type=customPlans');
       }
     }
   };

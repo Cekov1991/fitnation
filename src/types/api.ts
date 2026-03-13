@@ -12,7 +12,7 @@ export type BalanceLevel = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_IMPROVEMENT';
 export type TrendDirection = 'up' | 'down' | 'same';
 export type BodyRegion = 'upper' | 'lower' | 'core';
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Monday, 6 = Sunday
-export type PlanType = 'custom' | 'library' | 'program';
+export type PlanType = 'routine' | 'program';
 
 // ============================================
 // USER RESOURCES
@@ -193,17 +193,17 @@ export interface PlanResource {
   updated_at: string;
 }
 
-// Custom Plan Resource (type: 'custom')
+// Custom Plan Resource (type: 'routine')
 export interface CustomPlanResource extends PlanResource {
-  type: 'custom';
+  type: 'routine';
   user_id: number;
   partner_id: null;
   duration_weeks: null;
 }
 
-// Library Program Resource (type: 'library' - partner-designed templates)
+// Library Program Resource (type: 'program' - partner-designed templates)
 export interface LibraryProgramResource extends PlanResource {
-  type: 'library';
+  type: 'program';
   user_id: null;
   partner_id: number;
   duration_weeks: number;
@@ -220,6 +220,14 @@ export interface ProgramResource extends PlanResource {
   progress_percentage: number | null;
   next_workout: WorkoutTemplateResource | null;
   current_active_week?: number;
+}
+
+// Browsable Routine Resource (type: 'routine' - partner-provided browsable routines)
+export interface RoutinePlanResource extends PlanResource {
+  type: 'routine';
+  user_id: null;
+  partner_id: number;
+  duration_weeks: null;
 }
 
 // ============================================

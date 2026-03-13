@@ -42,7 +42,7 @@ export default function EditPlanPageWrapper() {
           is_active: data.isActive
         }
       });
-      history.push('/plans');
+      history.push('/plans?type=customPlans');
     } catch (error) {
       console.error('Failed to update plan:', error);
     }

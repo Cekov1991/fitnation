@@ -55,7 +55,7 @@ export default function EditWorkoutPageWrapper() {
         }
       });
 
-      history.push('/plans');
+      history.push('/plans?type=customPlans');
     } catch (error) {
       console.error('Failed to update workout:', error);
     }

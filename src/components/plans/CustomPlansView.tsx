@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Info, MoreVertical, Dumbbell, Plus } from 'lucide-react';
+import { useHistory } from 'react-router-dom';
+import { MoreVertical, Dumbbell } from 'lucide-react';
 import { PlanMenu } from '../PlanMenu';
 import { WorkoutMenu } from '../WorkoutMenu';
 import { LoadingContent, ConfirmDialog } from '../ui';
-import { useDeletePlan, useDeleteTemplate, usePlans, useStartSession, useUpdatePlan, useTodayWorkout } from '../../hooks/useApi';
+import { RoutineCardSmall } from '../dashboard/RoutineCardSmall';
+import { useDeletePlan, useDeleteTemplate, usePlans, useBrowsableRoutines, useStartSession, useUpdatePlan, useTodayWorkout } from '../../hooks/useApi';
 import { DAY_NAMES } from '../../constants';
-import type { PlanResource, WorkoutTemplateResource } from '../../types/api';
+import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '../../types/api';
 
 interface CustomPlansViewProps {
-  onNavigateToCreate: () => void;
   onNavigateToEdit: (plan: {
     id: number;
     name: string;
@@ -32,13 +33,13 @@ interface CustomPlansViewProps {
 }
 
 export function CustomPlansView({
-  onNavigateToCreate,
   onNavigateToEdit,
   onNavigateToAddWorkout,
   onNavigateToEditWorkout,
   onNavigateToManageExercises,
   onContinueSession
 }: CustomPlansViewProps) {
+  const history = useHistory();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuType, setMenuType] = useState<'plan' | 'workout'>('plan');
   const [currentMenuPlan, setCurrentMenuPlan] = useState<{
@@ -65,6 +66,7 @@ export function CustomPlansView({
     error: plansError,
     refetch: refetchPlans
   } = usePlans();
+  const { data: browsableRoutines = [] } = useBrowsableRoutines();
   const updatePlan = useUpdatePlan();
   const deletePlan = useDeletePlan();
   const deleteTemplate = useDeleteTemplate();
@@ -522,20 +524,7 @@ export function CustomPlansView({
         </LoadingContent>
       </div>
 
-      {/* Create New Button */}
-      <button 
-        onClick={onNavigateToCreate} 
-        className="w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-shadow relative overflow-hidden group btn-primary"
-      >
-        <span className="relative z-10 text-white flex items-center justify-center gap-2">
-          <Plus className="w-5 h-5" />
-          CREATE NEW
-        </span>
-        <div 
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
-          style={{ background: 'linear-gradient(to right, var(--color-secondary), var(--color-primary))' }}
-        />
-      </button>
+
 
       {/* Plan Menu */}
       {menuType === 'plan' && (
@@ -593,6 +582,28 @@ export function CustomPlansView({
         variant="danger"
         isLoading={deleteTemplate.isPending}
       />
+
+      {/* Partner Routines Carousel */}
+      {browsableRoutines.length > 0 && (
+        <div className="mt-8">
+          <h2
+            className="font-bold text-lg mb-4 px-1"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            Recomended Workouts
+          </h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+            {browsableRoutines.map((routine: RoutinePlanResource) => (
+              <div key={routine.id} className="min-w-[200px] flex-shrink-0">
+                <RoutineCardSmall
+                  routine={routine}
+                  onClick={() => history.push(`/routines/${routine.id}`, { from: '/plans?type=customPlans' })}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }

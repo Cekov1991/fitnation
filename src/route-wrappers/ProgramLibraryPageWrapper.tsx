@@ -8,7 +8,7 @@ export default function ProgramLibraryPageWrapper() {
   const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
-    history.push('/dashboard');
+    history.push('/plans?type=programs');
   };
 
   return (
