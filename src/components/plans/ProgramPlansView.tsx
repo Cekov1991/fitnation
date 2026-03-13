@@ -1,31 +1,20 @@
 import React, { useMemo, useState } from 'react';
-import { Info, MoreVertical, ChevronDown, ChevronUp, Plus, Calendar } from 'lucide-react';
-import { ProgramWeekCard } from './ProgramWeekCard';
-import { SessionDetailModal } from '../SessionDetailModal';
+import { useHistory } from 'react-router-dom';
+import { MoreVertical, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { PlanMenu } from '../PlanMenu';
 import { usePrograms, useDeleteProgram, useUpdateProgram } from '../../hooks/useApi';
-import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
+import type { ProgramResource } from '../../types/api';
 
 interface ProgramPlansViewProps {
   onNavigateToBrowseLibrary: () => void;
-  onNavigateToWorkout: (templateId: number) => void;
 }
 
 export function ProgramPlansView({
   onNavigateToBrowseLibrary,
-  onNavigateToWorkout
 }: ProgramPlansViewProps) {
-  const [isExpanded, setIsExpanded] = useState(true); // Active program expanded by default
-  const [expandedInactivePrograms, setExpandedInactivePrograms] = useState<Set<number>>(new Set()); // Inactive programs closed by default
+  const history = useHistory();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [completedSessionId, setCompletedSessionId] = useState<number | null>(null);
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
-
-  const handleCompletedDayClick = (sessionId: number) => {
-    setCompletedSessionId(sessionId);
-    setIsSessionModalOpen(true);
-  };
   const [currentProgram, setCurrentProgram] = useState<{
     id: number;
     name: string;
@@ -52,44 +41,6 @@ export function ProgramPlansView({
   const inactivePrograms = useMemo(() => {
     return programs.filter((program: ProgramResource) => !program.is_active);
   }, [programs]);
-
-  // Helper function to group workouts by week for any program
-  const getProgramWeeks = (program: ProgramResource) => {
-    if (!program?.workout_templates) return [];
-
-    const weekMap = new Map<number, WorkoutTemplateResource[]>();
-    
-    program.workout_templates.forEach((template: WorkoutTemplateResource) => {
-      const weekNum = template.week_number || 1;
-      if (!weekMap.has(weekNum)) {
-        weekMap.set(weekNum, []);
-      }
-      const weekWorkouts = weekMap.get(weekNum);
-      if (weekWorkouts) {
-        weekWorkouts.push(template);
-      }
-    });
-
-    // Sort workouts within each week by order_index
-    weekMap.forEach((workouts) => {
-      workouts.sort((a, b) => a.order_index - b.order_index);
-    });
-
-    // Convert to array and sort by week number
-    const currentActiveWeek = program.current_active_week ?? 1;
-    return Array.from(weekMap.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([weekNumber, workouts]) => ({
-        weekNumber,
-        workouts,
-        isActive: weekNumber === currentActiveWeek && program.is_active
-      }));
-  };
-
-  // Group workouts by week for the active program
-  const programWeeks = useMemo(() => {
-    return getProgramWeeks(activeProgram || {} as ProgramResource);
-  }, [activeProgram]);
 
   const handleProgramMenuClick = (event: React.MouseEvent, menuId: string, program: {
     id: number;
@@ -129,16 +80,8 @@ export function ProgramPlansView({
     }
   };
 
-  const handleToggleInactiveProgram = (programId: number) => {
-    setExpandedInactivePrograms(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(programId)) {
-        newSet.delete(programId);
-      } else {
-        newSet.add(programId);
-      }
-      return newSet;
-    });
+  const handleViewProgramDetails = (programId: number) => {
+    history.push(`/programs/${programId}`, { from: '/plans?type=programs' });
   };
 
   return (
@@ -227,66 +170,19 @@ export function ProgramPlansView({
                   </span>
                 </div>
 
-                {/* Expand/Collapse Button */}
+                {/* View Program Details Button */}
                 <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="w-full flex items-center justify-between py-3 px-4 rounded-xl transition-colors mb-4"
+                  onClick={() => handleViewProgramDetails(activeProgram.id)}
+                  className="w-full flex items-center justify-between py-3 px-4 rounded-xl transition-colors"
                   style={{ 
                     backgroundColor: 'var(--color-bg-elevated)',
                   }}
                 >
                   <span className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
-                    {isExpanded ? 'Hide' : 'View'} Program Details
+                    View Program Details
                   </span>
-                  {isExpanded ? (
-                    <ChevronUp size={18} style={{ color: 'var(--color-primary)' }} />
-                  ) : (
-                    <ChevronDown size={18} style={{ color: 'var(--color-primary)' }} />
-                  )}
+                  <ChevronRight size={18} style={{ color: 'var(--color-primary)' }} />
                 </button>
-
-                {/* Collapsible Timeline with weeks */}
-                {isExpanded && programWeeks.length > 0 && (
-                  <div className="relative animate-in slide-in-from-top-2 duration-300">
-                    {/* Timeline line */}
-                    <div 
-                      className="absolute left-[9px] top-8 bottom-8 w-0.5" 
-                      style={{ backgroundColor: 'var(--color-border)' }}
-                    />
-
-                    {/* Week cards */}
-                    <div className="space-y-4 relative">
-                      {programWeeks.map((week) => (
-                        <div key={week.weekNumber} className="flex items-start">
-                          {/* Timeline dot */}
-                          <div className="relative z-10 mt-6 mr-4">
-                            <div
-                              className={`w-5 h-5 rounded-full border-2`}
-                              style={{
-                                backgroundColor: week.isActive ? 'var(--color-primary)' : 'var(--color-bg-surface)',
-                                borderColor: week.isActive ? 'var(--color-primary)' : 'var(--color-border)'
-                              }}
-                            />
-                          </div>
-
-                          {/* Week card */}
-                          <div className="flex-1" style={{ minWidth: 0, maxWidth: '100%' }}>
-                            <ProgramWeekCard
-                              weekNumber={week.weekNumber}
-                              workouts={week.workouts}
-                              isActive={week.isActive}
-                              accentColor="var(--color-primary)"
-                              nextWorkoutId={activeProgram?.next_workout?.id || null}
-                              nextWorkout={activeProgram?.next_workout ?? null}
-                              onWorkoutClick={onNavigateToWorkout}
-                              onCompletedDayClick={handleCompletedDayClick}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 </div>
               </div>
             ) : (
@@ -347,9 +243,6 @@ export function ProgramPlansView({
               </div>
             ) : (
               inactivePrograms.map((program: ProgramResource) => {
-                const isProgramExpanded = expandedInactivePrograms.has(program.id);
-                const programWeeksData = getProgramWeeks(program);
-
                 return (
                   <div 
                     key={program.id} 
@@ -408,66 +301,19 @@ export function ProgramPlansView({
                       </div>
                     </div>
 
-                    {/* Expand/Collapse Button */}
+                    {/* View Program Details Button */}
                     <button
-                      onClick={() => handleToggleInactiveProgram(program.id)}
-                      className="w-full flex items-center justify-between py-3 px-4 rounded-xl transition-colors mb-4"
+                      onClick={() => handleViewProgramDetails(program.id)}
+                      className="w-full flex items-center justify-between py-3 px-4 rounded-xl transition-colors"
                       style={{ 
                         backgroundColor: 'var(--color-bg-elevated)',
                       }}
                     >
                       <span className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
-                        {isProgramExpanded ? 'Hide' : 'View'} Program Details
+                        View Program Details
                       </span>
-                      {isProgramExpanded ? (
-                        <ChevronUp size={18} style={{ color: 'var(--color-primary)' }} />
-                      ) : (
-                        <ChevronDown size={18} style={{ color: 'var(--color-primary)' }} />
-                      )}
+                      <ChevronRight size={18} style={{ color: 'var(--color-primary)' }} />
                     </button>
-
-                    {/* Collapsible Timeline with weeks */}
-                    {isProgramExpanded && programWeeksData.length > 0 && (
-                      <div className="relative animate-in slide-in-from-top-2 duration-300">
-                        {/* Timeline line */}
-                        <div 
-                          className="absolute left-[9px] top-8 bottom-8 w-0.5" 
-                          style={{ backgroundColor: 'var(--color-border)' }}
-                        />
-
-                        {/* Week cards */}
-                        <div className="space-y-4 relative">
-                          {programWeeksData.map((week) => (
-                            <div key={week.weekNumber} className="flex items-start">
-                              {/* Timeline dot */}
-                              <div className="relative z-10 mt-6 mr-4">
-                                <div
-                                  className={`w-5 h-5 rounded-full border-2`}
-                                  style={{
-                                    backgroundColor: week.isActive ? 'var(--color-primary)' : 'var(--color-bg-surface)',
-                                    borderColor: week.isActive ? 'var(--color-primary)' : 'var(--color-border)'
-                                  }}
-                                />
-                              </div>
-
-                              {/* Week card */}
-                              <div className="flex-1">
-                                <ProgramWeekCard
-                                  weekNumber={week.weekNumber}
-                                  workouts={week.workouts}
-                                  isActive={week.isActive}
-                                  accentColor="var(--color-primary)"
-                                  nextWorkoutId={program.is_active ? (activeProgram?.next_workout?.id || null) : null}
-                                  nextWorkout={program.is_active ? (activeProgram?.next_workout ?? null) : null}
-                                  onWorkoutClick={onNavigateToWorkout}
-                                  onCompletedDayClick={handleCompletedDayClick}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     </div>
                   </div>
                 );
@@ -517,16 +363,6 @@ export function ProgramPlansView({
         confirmText="Delete"
         variant="danger"
         isLoading={deleteProgram.isPending}
-      />
-
-      {/* Completed Day Session Detail */}
-      <SessionDetailModal
-        isOpen={isSessionModalOpen}
-        onClose={() => {
-          setIsSessionModalOpen(false);
-          setCompletedSessionId(null);
-        }}
-        sessionId={completedSessionId}
       />
     </>
   );

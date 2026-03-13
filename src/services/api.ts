@@ -378,6 +378,19 @@ export const programsApi = {
 };
 
 // ============================================================================
+// BROWSABLE ROUTINES
+// ============================================================================
+
+export const routinesApi = {
+  getRoutines: async () => {
+    return fetchWithAuth('/routines');
+  },
+  getRoutine: async (routineId: number) => {
+    return fetchWithAuth(`/routines/${routineId}`);
+  }
+};
+
+// ============================================================================
 // WORKOUT TEMPLATES
 // ============================================================================
 

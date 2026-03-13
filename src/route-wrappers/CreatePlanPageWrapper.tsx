@@ -20,7 +20,7 @@ export default function CreatePlanPageWrapper() {
         description: data.description || undefined,
         is_active: data.isActive
       });
-      history.push('/plans');
+      history.push('/plans?type=customPlans');
     } catch (error) {
       console.error('Failed to create plan:', error);
     }

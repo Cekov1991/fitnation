@@ -3,11 +3,12 @@ import { useHistory } from 'react-router-dom';
 import { ArrowUpDown } from 'lucide-react';
 import { QuickStartCard } from './QuickStartCard';
 import { WorkoutCardSmall } from './WorkoutCardSmall';
+import { RoutineCardSmall } from './RoutineCardSmall';
 import { CreateCustomPlanCard } from './CreateCustomPlanCard';
 import { AIGeneratorCard } from './AIGeneratorCard';
-import { usePlans, useStartSession, useTodayWorkout } from '../../hooks/useApi';
+import { usePlans, useBrowsableRoutines, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import { estimateWorkoutDuration } from '../../utils/workoutHelpers';
-import type { PlanResource, WorkoutTemplateResource } from '../../types/api';
+import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '../../types/api';
 
 interface CustomPlansDashboardProps {
   onStartBlankSession: () => void;
@@ -97,6 +98,12 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
     history.push('/generate-workout');
   };
 
+  const handleViewRoutine = (routine: RoutinePlanResource) => {
+    history.push(`/routines/${routine.id}`, { from: '/dashboard?type=customPlans' });
+  };
+
+  const { data: browsableRoutines = [] } = useBrowsableRoutines();
+
   if (isLoading) {
     return (
       <div className="pb-24">
@@ -111,6 +118,31 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
     <div className="pb-24">
       <div className="space-y-8">
         <AIGeneratorCard onGenerate={handleGenerateWorkout} />
+
+        {/* Browsable Routines Section */}
+        {browsableRoutines.length > 0 && (
+          <div>
+            <div className="flex justify-between items-center mb-4 px-1">
+              <h2
+                className="font-bold text-lg"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                Recomended Workouts
+              </h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+              {browsableRoutines.map((routine: RoutinePlanResource) => (
+                <div key={routine.id} className="min-w-[200px] flex-shrink-0">
+                  <RoutineCardSmall
+                    routine={routine}
+                    onClick={() => handleViewRoutine(routine)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <QuickStartCard onStartBlankSession={onStartBlankSession} />
 
         {/* Active Plan Workouts Section */}
@@ -124,7 +156,7 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
             </h2>
             {activePlan && (
               <button 
-                onClick={() => history.push('/plans')}
+                onClick={() => history.push('/plans?type=customPlans')}
                 className="text-sm transition-colors"
                 style={{ color: 'var(--color-text-secondary)' }}
               >

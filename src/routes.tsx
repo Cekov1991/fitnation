@@ -14,6 +14,9 @@ const DashboardPageWrapper = React.lazy(() => import('./route-wrappers/Dashboard
 const GenerateWorkoutPageWrapper = React.lazy(() => import('./route-wrappers/GenerateWorkoutPageWrapper'));
 const WorkoutPreviewPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutPreviewPageWrapper'));
 const ProgramLibraryPageWrapper = React.lazy(() => import('./route-wrappers/ProgramLibraryPageWrapper'));
+const ProgramDetailPageWrapper = React.lazy(() => import('./route-wrappers/ProgramDetailPageWrapper'));
+const BrowsableRoutineDetailPageWrapper = React.lazy(() => import('./route-wrappers/BrowsableRoutineDetailPageWrapper'));
+const RoutineWorkoutDetailPageWrapper = React.lazy(() => import('./route-wrappers/RoutineWorkoutDetailPageWrapper'));
 const ExerciseDetailPageWrapper = React.lazy(() => import('./route-wrappers/ExerciseDetailPageWrapper'));
 const ExercisePickerPageWrapper = React.lazy(() => import('./route-wrappers/ExercisePickerPageWrapper'));
 const PlansPageWrapper = React.lazy(() => import('./route-wrappers/PlansPageWrapper'));
@@ -115,6 +118,25 @@ export function AppRoutes() {
           <Route exact path="/programs/library">
             <AuthGuard>
               <ProgramLibraryPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          <Route exact path="/programs/:programId">
+            <AuthGuard>
+              <ProgramDetailPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Browsable Routines routes */}
+          <Route exact path="/routines/:routineId">
+            <AuthGuard>
+              <BrowsableRoutineDetailPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          <Route exact path="/routines/:routineId/workouts/:workoutId">
+            <AuthGuard>
+              <RoutineWorkoutDetailPageWrapper />
             </AuthGuard>
           </Route>
 

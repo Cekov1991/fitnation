@@ -56,10 +56,6 @@ export function PlansPage({
     history.push('/programs/library');
   };
 
-  const handleNavigateToWorkout = (templateId: number) => {
-    history.push(`/workouts/${templateId}/exercises`);
-  };
-
   const handleContinueSession = (sessionId: number) => {
     history.push(`/session/${sessionId}`);
   };
@@ -97,7 +93,6 @@ export function PlansPage({
           {/* Conditional content based on plan type */}
           {planType === 'customPlans' ? (
             <CustomPlansView
-              onNavigateToCreate={onNavigateToCreate}
               onNavigateToEdit={onNavigateToEdit}
               onNavigateToAddWorkout={onNavigateToAddWorkout}
               onNavigateToEditWorkout={onNavigateToEditWorkout}
@@ -107,7 +102,6 @@ export function PlansPage({
           ) : (
             <ProgramPlansView
               onNavigateToBrowseLibrary={handleNavigateToBrowseLibrary}
-              onNavigateToWorkout={handleNavigateToWorkout}
             />
           )}
         </main>
