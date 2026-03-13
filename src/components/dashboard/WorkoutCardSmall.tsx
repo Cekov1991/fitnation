@@ -21,8 +21,8 @@ export function WorkoutCardSmall({
 }: WorkoutCardSmallProps) {
   return (
     <div 
-      className="rounded-2xl p-5 shadow-sm flex flex-col h-full transition-colors min-w-[160px] flex-shrink-0"
-      style={{ backgroundColor: 'var(--color-bg-surface)' }}
+      className="rounded-2xl p-5 shadow-sm flex flex-col h-full min-w-[160px] flex-shrink-0 active:scale-100"
+      style={{ backgroundColor: 'var(--color-bg-surface)', transform: 'scale(1)' }}
     >
       <div 
         className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
@@ -36,7 +36,7 @@ export function WorkoutCardSmall({
 
       <h3 
         onClick={onClick}
-        className={`text-lg font-bold mb-3 line-clamp-2 ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+        className={`text-lg font-bold mb-3 line-clamp-2 ${onClick ? 'cursor-pointer' : ''}`}
         style={{ color: 'var(--color-primary)' }}
       >
         {name}
@@ -65,10 +65,11 @@ export function WorkoutCardSmall({
             e.stopPropagation();
             onStart();
           }}
-          className="w-full py-2 rounded-xl font-semibold text-sm transition-transform active:scale-[0.98]"
+          className="w-full py-2 rounded-xl font-semibold text-sm active:scale-100"
           style={{
             background: 'var(--color-primary)',
-            color: 'var(--color-text-button)'
+            color: 'var(--color-text-button)',
+            transform: 'scale(1)'
           }}
         >
           {hasActiveSession ? 'Continue Workout' : 'Start'}
