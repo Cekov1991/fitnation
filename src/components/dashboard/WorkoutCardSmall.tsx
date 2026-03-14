@@ -21,8 +21,8 @@ export function WorkoutCardSmall({
 }: WorkoutCardSmallProps) {
   return (
     <div 
-      className="rounded-2xl p-5 shadow-sm flex flex-col h-full min-w-[160px] flex-shrink-0 active:scale-100"
-      style={{ backgroundColor: 'var(--color-bg-surface)', transform: 'scale(1)' }}
+      className="rounded-2xl p-5 shadow-sm flex flex-col h-full min-w-[160px] flex-shrink-0"
+      style={{ backgroundColor: 'var(--color-bg-surface)' }}
     >
       <div 
         className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
@@ -65,11 +65,10 @@ export function WorkoutCardSmall({
             e.stopPropagation();
             onStart();
           }}
-          className="w-full py-2 rounded-xl font-semibold text-sm active:scale-100"
+          className="w-full py-2 rounded-xl font-semibold text-sm"
           style={{
             background: 'var(--color-primary)',
             color: 'var(--color-text-button)',
-            transform: 'scale(1)'
           }}
         >
           {hasActiveSession ? 'Continue Workout' : 'Start'}
