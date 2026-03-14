@@ -13,7 +13,7 @@ export function RoutineCardSmall({ routine, onClick }: RoutineCardSmallProps) {
     <button
       type="button"
       onClick={onClick}
-      className="min-w-0 w-full rounded-2xl overflow-hidden shadow-sm transition-transform active:scale-[0.97] text-left"
+      className="min-w-0 w-full rounded-2xl overflow-hidden shadow-sm text-left"
       style={{ backgroundColor: 'var(--color-bg-surface)' }}
     >
       {/* Cover Image */}
