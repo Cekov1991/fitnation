@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useHistory, useLocation } from 'react-router-dom';
-import { Home, ClipboardList, BarChart3, User } from 'lucide-react';
+import { Home, ClipboardList, BarChart3, User, Dumbbell } from 'lucide-react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -20,6 +20,11 @@ const tabs = [{
   icon: BarChart3,
   path: '/progress'
 }, {
+  id: 'exercises',
+  label: 'Catalog',
+  icon: Dumbbell,
+  path: '/exercises'
+}, {
   id: 'profile',
   label: 'Profile',
   icon: User,
@@ -28,7 +33,7 @@ const tabs = [{
 
 interface BottomNavProps {
   currentPage?: string;
-  onPageChange?: (page: 'dashboard' | 'plans' | 'progress' | 'profile') => void;
+  onPageChange?: (page: 'dashboard' | 'plans' | 'progress' | 'exercises' | 'profile') => void;
 }
 
 export function BottomNav({
@@ -47,7 +52,7 @@ export function BottomNav({
     
     // Also call legacy onPageChange for backward compatibility during migration
     // This will be removed once all pages are migrated
-    onPageChange?.(tab.id as 'dashboard' | 'plans' | 'progress' | 'profile');
+    onPageChange?.(tab.id as 'dashboard' | 'plans' | 'progress' | 'exercises' | 'profile');
   };
 
   return (

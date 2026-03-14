@@ -17,9 +17,9 @@ interface Exercise {
   equipmentTypeId: number | null;
 }
 interface ExercisePickerPageProps {
-  mode: 'add' | 'swap';
+  mode: 'add' | 'swap' | 'browse';
   onClose: () => void;
-  onSelectExercise: (exercise: Exercise) => void;
+  onSelectExercise?: (exercise: Exercise) => void;
   isLoading?: boolean;
 }
 export function ExercisePickerPage({
@@ -142,56 +142,78 @@ export function ExercisePickerPage({
     }
   }, [viewingExerciseId, viewingExercise]);
 
+  const isBrowse = mode === 'browse';
+
   const handleSelectExercise = (exercise: Exercise) => {
-    if (isSelecting) return;
+    if (isSelecting || isBrowse) return;
     setSelectedExerciseId(exercise.id);
-    onSelectExercise(exercise);
+    onSelectExercise?.(exercise);
   };
 
   const handleAddFromDetail = () => {
-    if (!viewingExercise || isSelecting) return;
+    if (!viewingExercise || isSelecting || isBrowse) return;
     handleSelectExercise(viewingExercise);
     setViewingExerciseId(null);
   };
 
   if (viewingExercise != null) {
+    const detailWrapperClass = isBrowse
+      ? 'min-h-screen overflow-y-auto pb-24'
+      : 'fixed inset-0 z-[10000] overflow-y-auto';
     return (
       <div
-        className="fixed inset-0 z-[10000] overflow-y-auto"
+        className={detailWrapperClass}
         style={{ backgroundColor: 'var(--color-bg-base)' }}
       >
         <div className="relative z-10 min-h-full max-w-md mx-auto">
           <ExerciseDetailPage
             exerciseName={viewingExercise.name}
             onBack={() => setViewingExerciseId(null)}
-            primaryAction={{
-              label: mode === 'swap' ? 'Use this exercise' : 'Add to workout',
-              onClick: handleAddFromDetail,
-              disabled: isSelecting
-            }}
+            {...(!isBrowse && {
+              primaryAction: {
+                label: mode === 'swap' ? 'Use this exercise' : 'Add to workout',
+                onClick: handleAddFromDetail,
+                disabled: isSelecting
+              }
+            })}
           />
         </div>
       </div>
     );
   }
 
+  const listWrapperClass = isBrowse
+    ? 'min-h-screen pb-24'
+    : 'fixed inset-0 z-[10000]';
+
   return <div 
-    className="fixed inset-0 z-[10000]"
+    className={listWrapperClass}
     style={{ backgroundColor: 'var(--color-bg-base)' }}
   >
 
-      <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto">
+      <div className="relative z-10 h-full flex flex-col max-w-md mx-auto overflow-y-auto min-h-full">
         {/* Header */}
         <motion.div {...slideTransition} className="flex items-center justify-between p-6 pb-4">
-          <h1 
-            className="text-2xl font-bold bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-          >
-            {mode === 'add' ? 'Select Exercise' : 'Swap Exercise'}
-          </h1>
-          <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-          </button>
+          {isBrowse ? (
+            <h1 
+              className="text-2xl font-bold bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+            >
+              Exercises
+            </h1>
+          ) : (
+            <>
+              <h1 
+                className="text-2xl font-bold bg-clip-text text-transparent"
+                style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+              >
+                {mode === 'add' ? 'Select Exercise' : 'Swap Exercise'}
+              </h1>
+              <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+                <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
+              </button>
+            </>
+          )}
         </motion.div>
 
         {/* Search Bar */}
@@ -356,24 +378,25 @@ export function ExercisePickerPage({
                         </div>
                       </button>
 
-                      {/* Plus icon: add exercise */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isSelecting) handleSelectExercise(exercise);
-                        }}
-                        disabled={isSelecting}
-                        className="flex-shrink-0 p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                        title={mode === 'swap' ? 'Use this exercise' : 'Add to workout'}
-                      >
-                        {isThisLoading ? (
-                          <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-primary)' }} />
-                        ) : (
-                          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-                        )}
-                      </button>
+                      {!isBrowse && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isSelecting) handleSelectExercise(exercise);
+                          }}
+                          disabled={isSelecting}
+                          className="flex-shrink-0 p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+                          title={mode === 'swap' ? 'Use this exercise' : 'Add to workout'}
+                        >
+                          {isThisLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                          ) : (
+                            <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                          )}
+                        </button>
+                      )}
                     </div>
                   );
                 })}

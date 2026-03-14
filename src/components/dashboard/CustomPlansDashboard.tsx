@@ -143,7 +143,6 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
           </div>
         )}
 
-        <QuickStartCard onStartBlankSession={onStartBlankSession} />
 
         {/* Active Plan Workouts Section */}
         <div>
@@ -191,6 +190,9 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
             </div>
           )}
         </div>
+
+        {/* Quick Start Card */}
+        <QuickStartCard onStartBlankSession={onStartBlankSession} />
       </div>
     </div>
   );

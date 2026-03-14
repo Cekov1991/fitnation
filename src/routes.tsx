@@ -18,6 +18,7 @@ const ProgramDetailPageWrapper = React.lazy(() => import('./route-wrappers/Progr
 const BrowsableRoutineDetailPageWrapper = React.lazy(() => import('./route-wrappers/BrowsableRoutineDetailPageWrapper'));
 const RoutineWorkoutDetailPageWrapper = React.lazy(() => import('./route-wrappers/RoutineWorkoutDetailPageWrapper'));
 const ExerciseDetailPageWrapper = React.lazy(() => import('./route-wrappers/ExerciseDetailPageWrapper'));
+const ExerciseCatalogPageWrapper = React.lazy(() => import('./route-wrappers/ExerciseCatalogPageWrapper'));
 const ExercisePickerPageWrapper = React.lazy(() => import('./route-wrappers/ExercisePickerPageWrapper'));
 const PlansPageWrapper = React.lazy(() => import('./route-wrappers/PlansPageWrapper'));
 const CreatePlanPageWrapper = React.lazy(() => import('./route-wrappers/CreatePlanPageWrapper'));
@@ -160,6 +161,12 @@ export function AppRoutes() {
           </Route>
 
           {/* Exercise routes - migrated to router */}
+          <Route exact path="/exercises">
+            <AuthGuard>
+              <ExerciseCatalogPageWrapper />
+            </AuthGuard>
+          </Route>
+
           <Route exact path="/exercises/pick">
             <AuthGuard>
               <ExercisePickerPageWrapper />
