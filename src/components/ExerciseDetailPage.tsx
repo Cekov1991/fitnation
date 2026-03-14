@@ -11,6 +11,8 @@ interface ExerciseDetailPageProps {
   exerciseName: string;
   onBack: () => void;
   primaryAction?: { label: string; onClick: () => void; disabled?: boolean };
+  /** When true, only Guidance is shown (e.g. catalog browse). Hides Performance tab. */
+  hidePerformanceTab?: boolean;
 }
 
 // Helper function to format ISO date string (YYYY-MM-DD) to display format (e.g., "Jan 15")
@@ -29,7 +31,8 @@ function formatProgress(percentage: number): string {
 export function ExerciseDetailPage({
   exerciseName,
   onBack,
-  primaryAction
+  primaryAction,
+  hidePerformanceTab = false
 }: ExerciseDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -277,29 +280,31 @@ export function ExerciseDetailPage({
         </motion.div>
 
         {/* Tabs - Pill style */}
-        <motion.div 
-          {...modalTransition} 
-          className="px-6 mb-4"
-        >
-          <div 
-            className="flex p-1 rounded-full"
-            style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+        {!hidePerformanceTab && (
+          <motion.div 
+            {...modalTransition} 
+            className="px-6 mb-4"
           >
-            {(['guidance', 'performance'] as const).map(tab => (
-              <button 
-                key={tab} 
-                onClick={() => setActiveTab(tab)} 
-                className="flex-1 py-3 px-6 rounded-full font-medium text-sm transition-all relative"
-                style={{ 
-                  color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                  backgroundColor: activeTab === tab ? 'var(--color-bg-surface)' : 'transparent'
-                }}
-              >
-                <span className="relative z-10 capitalize">{tab}</span>
-              </button>
-            ))}
-          </div>
-        </motion.div>
+            <div 
+              className="flex p-1 rounded-full"
+              style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+            >
+              {(['guidance', 'performance'] as const).map(tab => (
+                <button 
+                  key={tab} 
+                  onClick={() => setActiveTab(tab)} 
+                  className="flex-1 py-3 px-6 rounded-full font-medium text-sm transition-all relative"
+                  style={{ 
+                    color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                    backgroundColor: activeTab === tab ? 'var(--color-bg-surface)' : 'transparent'
+                  }}
+                >
+                  <span className="relative z-10 capitalize">{tab}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Video/Image Section - Full Width */}
         <motion.div 

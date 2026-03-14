@@ -169,6 +169,7 @@ export function ExercisePickerPage({
           <ExerciseDetailPage
             exerciseName={viewingExercise.name}
             onBack={() => setViewingExerciseId(null)}
+            hidePerformanceTab={isBrowse}
             {...(!isBrowse && {
               primaryAction: {
                 label: mode === 'swap' ? 'Use this exercise' : 'Add to workout',
