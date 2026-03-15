@@ -1,13 +1,26 @@
 import { useLocation } from 'react-router-dom';
 import { BottomNav } from '../components/BottomNav';
+import { InstallAppBanner } from '../components/InstallAppBanner';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
+
+// Space reserved when the install banner is visible (top-4 + banner height)
+const INSTALL_BANNER_OFFSET = 100;
 
 // Common layout wrapper for authenticated pages
 export function AuthenticatedLayout({ children, currentPage }: { children: React.ReactNode; currentPage: 'dashboard' | 'plans' | 'progress' | 'exercises' | 'profile' }) {
+  const { canInstall, isIOS } = useInstallPrompt();
+  const showInstallBar = canInstall || isIOS;
+
   return (
-    <div 
+    <div
       className="h-screen w-full overflow-y-auto"
     >
-      {children}
+      <InstallAppBanner />
+
+      <div style={{ paddingTop: showInstallBar ? INSTALL_BANNER_OFFSET : 0 }}>
+        {children}
+      </div>
+
       <BottomNav currentPage={currentPage} />
     </div>
   );
