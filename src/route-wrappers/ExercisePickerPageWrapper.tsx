@@ -14,6 +14,7 @@ interface LocationState {
   swapPivotId?: number;
   swapOrderIndex?: number;
   pivotData?: { target_sets?: number; target_reps?: number; target_weight?: number };
+  initialMuscleGroupIds?: number[];
 }
 
 // Exercise picker page wrapper
@@ -113,6 +114,7 @@ export default function ExercisePickerPageWrapper() {
       onClose={handleClose}
       onSelectExercise={handleSelectExercise}
       isLoading={isLoading}
+      initialMuscleGroupIds={mode === 'swap' ? state?.initialMuscleGroupIds : undefined}
     />
   );
 }

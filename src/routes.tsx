@@ -13,6 +13,7 @@ const ProgressPageWrapper = React.lazy(() => import('./route-wrappers/ProgressPa
 const DashboardPageWrapper = React.lazy(() => import('./route-wrappers/DashboardPageWrapper'));
 const GenerateWorkoutPageWrapper = React.lazy(() => import('./route-wrappers/GenerateWorkoutPageWrapper'));
 const WorkoutPreviewPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutPreviewPageWrapper'));
+const WorkoutPreviewExercisePickerWrapper = React.lazy(() => import('./route-wrappers/WorkoutPreviewExercisePickerWrapper'));
 const ProgramLibraryPageWrapper = React.lazy(() => import('./route-wrappers/ProgramLibraryPageWrapper'));
 const ProgramDetailPageWrapper = React.lazy(() => import('./route-wrappers/ProgramDetailPageWrapper'));
 const BrowsableRoutineDetailPageWrapper = React.lazy(() => import('./route-wrappers/BrowsableRoutineDetailPageWrapper'));
@@ -183,6 +184,13 @@ export function AppRoutes() {
           <Route exact path="/generate-workout">
             <AuthGuard>
               <GenerateWorkoutPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Workout preview picker (must be before preview so /pick matches) */}
+          <Route exact path="/generate-workout/preview/:sessionId/pick">
+            <AuthGuard>
+              <WorkoutPreviewExercisePickerWrapper />
             </AuthGuard>
           </Route>
 

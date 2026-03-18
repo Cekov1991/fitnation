@@ -13,6 +13,7 @@ export interface Exercise {
   name: string;
   type: string;
   muscleGroup: string;
+  primaryMuscleGroupIds: number[];
   sets: Set[];
   targetReps: string;
   targetSets: number;

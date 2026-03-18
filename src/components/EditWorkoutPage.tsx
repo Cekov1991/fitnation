@@ -22,7 +22,9 @@ interface Exercise {
   weight: string;
   muscleGroups: string[];
   primaryMuscle: string;
+  muscleGroupIds: number[];
   imageUrl: string;
+  muscleGroupImageUrl: string;
 }
 
 // Separate component for draggable exercise item to use its own useDragControls hook
@@ -163,7 +165,8 @@ export function EditWorkoutPage({
       reps: ex.pivot.target_reps ? String(ex.pivot.target_reps) : '0',
       weight: ex.pivot.target_weight ? String(ex.pivot.target_weight) : '0',
       muscleGroups: ex.muscle_groups?.map((mg: MuscleGroupResource) => mg.name) || [],
-      primaryMuscle: ex.muscle_groups?.[0]?.name || 'Unknown',
+      primaryMuscle: ex.muscle_groups?.find((mg: MuscleGroupResource) => mg.is_primary)?.name || ex.muscle_groups?.[0]?.name || 'Unknown',
+      muscleGroupIds: ex.muscle_groups?.filter((mg: MuscleGroupResource) => mg.is_primary).map((mg: MuscleGroupResource) => mg.id) || [],
       imageUrl: ex.image || ''
     }));
   }, [template]);
@@ -251,7 +254,8 @@ export function EditWorkoutPage({
       orderIndex,
       target_sets: editingExercise.sets,
       target_reps,
-      target_weight
+      target_weight,
+      muscleGroupIds: editingExercise.muscleGroupIds
     });
   };
   const handleRemoveExercise = async () => {

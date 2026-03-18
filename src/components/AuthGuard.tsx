@@ -1,6 +1,7 @@
 import React from 'react';
 import { Redirect, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTodayWorkout } from '../hooks/useApi';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { data: todayWorkout } = useTodayWorkout();
 
   if (loading) {
     return (
@@ -37,6 +39,19 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // If onboarding is completed but user is on onboarding page, redirect to dashboard
   if (user.onboarding_completed_at !== null && location.pathname === '/onboarding') {
     return <Redirect to="/" />;
+  }
+
+  // If there is an active (confirmed, not yet completed) session and the user is not
+  // already viewing that session, redirect them to it.
+  const activeSession = todayWorkout?.session;
+  const isActiveSession =
+    activeSession?.id != null &&
+    activeSession.performed_at != null &&
+    activeSession.completed_at == null;
+  const isOnSessionRoute = location.pathname.startsWith('/session/');
+
+  if (isActiveSession && !isOnSessionRoute) {
+    return <Redirect to={`/session/${activeSession!.id}`} />;
   }
 
   return <>{children}</>;

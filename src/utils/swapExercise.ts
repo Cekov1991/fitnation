@@ -17,4 +17,5 @@ export interface SwapExerciseContext {
   target_sets: number;
   target_reps: number;
   target_weight: number;
+  muscleGroupIds?: number[];
 }

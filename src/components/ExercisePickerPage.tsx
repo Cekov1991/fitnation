@@ -14,6 +14,7 @@ interface Exercise {
   muscleGroups: string[];
   muscleGroupIds: number[];
   imageUrl: string;
+  muscleGroupImageUrl: string;
   equipmentTypeId: number | null;
 }
 interface ExercisePickerPageProps {
@@ -21,12 +22,14 @@ interface ExercisePickerPageProps {
   onClose: () => void;
   onSelectExercise?: (exercise: Exercise) => void;
   isLoading?: boolean;
+  initialMuscleGroupIds?: number[];
 }
 export function ExercisePickerPage({
   mode,
   onClose,
   onSelectExercise,
-  isLoading: isSelecting = false
+  isLoading: isSelecting = false,
+  initialMuscleGroupIds
 }: ExercisePickerPageProps) {
   const modalTransition = useModalTransition();
   const slideTransition = useSlideTransition();
@@ -45,7 +48,9 @@ export function ExercisePickerPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [viewingExerciseId, setViewingExerciseId] = useState<number | null>(null);
-  const [selectedMuscleGroupIds, setSelectedMuscleGroupIds] = useState<Set<number>>(new Set());
+  const [selectedMuscleGroupIds, setSelectedMuscleGroupIds] = useState<Set<number>>(
+    () => new Set(initialMuscleGroupIds ?? [])
+  );
   const [selectedEquipmentTypeIds, setSelectedEquipmentTypeIds] = useState<Set<number>>(new Set());
   
   const availableExercises = useMemo<Exercise[]>(() => {
@@ -63,6 +68,7 @@ export function ExercisePickerPage({
         muscleGroups: (exercise.muscle_groups || []).map((group: { name: string }) => group.name),
         muscleGroupIds: primaryMuscleGroups.map((group: MuscleGroupResource) => group.id),
         imageUrl: exercise.image || '',
+        muscleGroupImageUrl: exercise.muscle_group_image || '',
         equipmentTypeId: exercise.equipment_type?.id || null
       };
     });
@@ -376,6 +382,14 @@ export function ExercisePickerPage({
                           <h3 className="text-sm font-bold mb-1 leading-tight" style={{ color: 'var(--color-text-primary)' }}>
                             {exercise.name}
                           </h3>
+                        </div>
+                        <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden relative">
+                          <ExerciseImage src={exercise.muscleGroupImageUrl} alt={exercise.name} className="w-20 h-20" />
+                          {isThisLoading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
+                              <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-primary)' }} />
+                            </div>
+                          )}
                         </div>
                       </button>
 

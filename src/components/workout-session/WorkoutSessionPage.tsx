@@ -115,6 +115,7 @@ export function WorkoutSessionPage({
         showExercisePicker={state.showExercisePicker}
         setShowExercisePicker={state.setShowExercisePicker}
         exercisePickerMode={state.exercisePickerMode}
+        swapMuscleGroupIds={state.swapMuscleGroupIds}
         showCancelConfirm={state.showCancelConfirm}
         setShowCancelConfirm={state.setShowCancelConfirm}
         showFinishConfirm={state.showFinishConfirm}

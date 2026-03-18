@@ -7,6 +7,7 @@ export { default as ProgressPageWrapper } from './ProgressPageWrapper';
 export { default as DashboardPageWrapper } from './DashboardPageWrapper';
 export { default as GenerateWorkoutPageWrapper } from './GenerateWorkoutPageWrapper';
 export { default as WorkoutPreviewPageWrapper } from './WorkoutPreviewPageWrapper';
+export { default as WorkoutPreviewExercisePickerWrapper } from './WorkoutPreviewExercisePickerWrapper';
 export { default as ProgramLibraryPageWrapper } from './ProgramLibraryPageWrapper';
 export { default as ExerciseDetailPageWrapper } from './ExerciseDetailPageWrapper';
 export { default as ExercisePickerPageWrapper } from './ExercisePickerPageWrapper';

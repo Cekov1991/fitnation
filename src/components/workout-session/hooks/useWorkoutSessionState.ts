@@ -54,6 +54,7 @@ interface UseWorkoutSessionStateReturn {
   handleRemoveExercise: () => Promise<void>;
   handleSwapExercise: () => void;
   handleViewExercise: () => void;
+  swapMuscleGroupIds: number[];
 
   // Menus & dialogs state
   showExerciseMenu: boolean;
@@ -535,6 +536,7 @@ export function useWorkoutSessionState({
     handleRemoveExercise,
     handleSwapExercise,
     handleViewExercise,
+    swapMuscleGroupIds: currentExercise?.primaryMuscleGroupIds ?? [],
 
     // Menus & dialogs state
     showExerciseMenu,

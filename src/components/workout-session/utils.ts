@@ -47,13 +47,18 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
 
     const equipmentCode = exercise?.equipment_type?.code || '';
 
+    const primaryGroups = exercise?.primary_muscle_groups?.length
+      ? exercise.primary_muscle_groups
+      : (exercise?.muscle_groups ?? []).filter(g => g.is_primary);
+
     return {
       id: `ex-${exDetail.session_exercise.id}`,
       exerciseId: exDetail.session_exercise.exercise_id,
       sessionExerciseId: exDetail.session_exercise.id,
       name: exercise?.name || 'Unknown Exercise',
       type: exercise?.category?.type?.toUpperCase() || 'COMPOUND',
-      muscleGroup: exercise?.primary_muscle_groups?.[0]?.name?.toUpperCase() || 'UNKNOWN',
+      muscleGroup: primaryGroups[0]?.name?.toUpperCase() || 'UNKNOWN',
+      primaryMuscleGroupIds: primaryGroups.map(g => g.id),
       sets,
       targetReps: exDetail.session_exercise.target_reps ? String(exDetail.session_exercise.target_reps) : '0',
       targetSets: exDetail.session_exercise.target_sets || 0,

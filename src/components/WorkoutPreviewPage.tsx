@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useHistory, useParams, useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -8,18 +7,15 @@ import { LoadingContent } from './ui/LoadingContent';
 import { BackgroundGradients } from './BackgroundGradients';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
-import { ExercisePickerPage } from './ExercisePickerPage';
 import {
   useConfirmDraftSession,
   useRegenerateDraftSession,
   useRemoveSessionExercise,
   useCancelSession,
   useSession,
-  useUpdateSessionExercise,
-  useAddSessionExercise,
-  useReorderSessionExercises
+  useUpdateSessionExercise
 } from '../hooks/useApi';
-import { SessionExerciseDetail, GenerateWorkoutInput } from '../types/api';
+import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '../types/api';
 
 interface LocationState {
   generationParams?: GenerateWorkoutInput;
@@ -35,14 +31,11 @@ export function WorkoutPreviewPage() {
     location.state?.generationParams
   );
   
-  const queryClient = useQueryClient();
   const confirmDraft = useConfirmDraftSession();
   const regenerateDraft = useRegenerateDraftSession();
   const removeExercise = useRemoveSessionExercise();
   const cancelSession = useCancelSession();
   const updateExercise = useUpdateSessionExercise();
-  const addExercise = useAddSessionExercise();
-  const reorderSessionExercises = useReorderSessionExercises();
 
   const { data: draftSession, isLoading } = useSession(Number(sessionId));
 
@@ -50,8 +43,6 @@ export function WorkoutPreviewPage() {
   const [selectedExercise, setSelectedExercise] = useState<SessionExerciseDetail | null>(null);
   const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
   const [isEditSetsRepsOpen, setIsEditSetsRepsOpen] = useState(false);
-  const [showExercisePicker, setShowExercisePicker] = useState(false);
-  const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
 
   const handleConfirm = async () => {
     if (!sessionId) return;
@@ -139,84 +130,31 @@ export function WorkoutPreviewPage() {
 
   const handleSwap = () => {
     setIsEditMenuOpen(false);
-    setExercisePickerMode('swap');
-    setShowExercisePicker(true);
+    const swapOrderIndex =
+      draftSession?.exercises?.findIndex(
+        (ex: SessionExerciseDetail) =>
+          ex.session_exercise.id === selectedExercise?.session_exercise.id
+      ) ?? -1;
+    const swapExercise = selectedExercise?.session_exercise.exercise;
+    const primaryMuscleGroupIds = (
+      swapExercise?.primary_muscle_groups?.length
+        ? swapExercise.primary_muscle_groups
+        : (swapExercise?.muscle_groups ?? []).filter((g: MuscleGroupResource) => g.is_primary)
+    ).map((g: MuscleGroupResource) => g.id);
+    history.push(`/generate-workout/preview/${sessionId}/pick?mode=swap`, {
+      swapExerciseId: selectedExercise?.session_exercise.id,
+      swapOrderIndex,
+      pivotData: {
+        target_sets: selectedExercise?.session_exercise.target_sets,
+        target_reps: selectedExercise?.session_exercise.target_reps,
+        target_weight: selectedExercise?.session_exercise.target_weight
+      },
+      initialMuscleGroupIds: primaryMuscleGroupIds
+    });
   };
 
   const handleAddExercise = () => {
-    setExercisePickerMode('add');
-    setShowExercisePicker(true);
-  };
-
-  const handleSelectExercise = async (exercise: { id: number; name: string; restTime: string; muscleGroups: string[]; imageUrl: string }) => {
-    if (!sessionId) return;
-
-    try {
-      if (exercisePickerMode === 'add') {
-        // Add new exercise to the workout
-        await addExercise.mutateAsync({
-          sessionId: Number(sessionId),
-          data: {
-            exercise_id: exercise.id,
-            target_sets: 3,
-            target_reps: 10,
-            target_weight: 0
-          }
-        });
-        setShowExercisePicker(false);
-      } else if (exercisePickerMode === 'swap' && selectedExercise) {
-        const sessionIdNum = Number(sessionId);
-        const swapIndex =
-          draftSession?.exercises?.findIndex(
-            (ex: SessionExerciseDetail) =>
-              ex.session_exercise.id === selectedExercise.session_exercise.id
-          ) ?? -1;
-
-        await removeExercise.mutateAsync({
-          sessionId: sessionIdNum,
-          exerciseId: selectedExercise.session_exercise.id
-        });
-        await addExercise.mutateAsync({
-          sessionId: sessionIdNum,
-          data: {
-            exercise_id: exercise.id,
-            order: swapIndex >= 0 ? swapIndex : undefined,
-            target_sets: selectedExercise.session_exercise.target_sets || 3,
-            target_reps: selectedExercise.session_exercise.target_reps || 10,
-            target_weight: selectedExercise.session_exercise.target_weight || 0
-          }
-        });
-
-        if (swapIndex >= 0) {
-          await queryClient.refetchQueries({ queryKey: ['sessions', sessionIdNum] });
-          const session = queryClient.getQueryData<{
-            exercises?: Array<{ session_exercise: { id: number; exercise_id: number } }>;
-          }>(['sessions', sessionIdNum]);
-          const sessionExercises = session?.exercises ?? [];
-          const newEntry = sessionExercises.find((ex) => ex.session_exercise.exercise_id === exercise.id);
-          const newSessionExerciseId = newEntry?.session_exercise.id;
-          const currentOrder = sessionExercises.map((ex) => ex.session_exercise.id);
-
-          if (newSessionExerciseId != null && currentOrder.length > 1) {
-            const newIndex = currentOrder.indexOf(newSessionExerciseId);
-            if (newIndex !== -1 && newIndex !== swapIndex) {
-              const reorderIds = [...currentOrder];
-              reorderIds.splice(newIndex, 1);
-              reorderIds.splice(swapIndex, 0, newSessionExerciseId);
-              await reorderSessionExercises.mutateAsync({
-                sessionId: sessionIdNum,
-                exerciseIds: reorderIds
-              });
-            }
-          }
-        }
-
-        setShowExercisePicker(false);
-        setIsEditMenuOpen(false);
-      }
-    } catch (error) {
-      console.error('Failed to add/swap exercise:', error);
-    }
+    history.push(`/generate-workout/preview/${sessionId}/pick?mode=add`);
   };
 
   const handleRemoveExerciseFromMenu = async () => {
@@ -464,16 +402,6 @@ export function WorkoutPreviewPage() {
           onSave={handleSaveSetsReps} 
           isLoading={updateExercise.isPending} 
           exerciseName={selectedExercise.session_exercise.exercise?.name}
-        />
-      )}
-
-      {/* Exercise Picker */}
-      {showExercisePicker && (
-        <ExercisePickerPage
-          mode={exercisePickerMode}
-          onClose={() => setShowExercisePicker(false)}
-          onSelectExercise={handleSelectExercise}
-          isLoading={addExercise.isPending || removeExercise.isPending}
         />
       )}
     </div>

@@ -45,7 +45,8 @@ export default function ManageExercisesPageWrapper() {
         target_sets: context.target_sets,
         target_reps: context.target_reps,
         target_weight: context.target_weight
-      }
+      },
+      initialMuscleGroupIds: context.muscleGroupIds ?? []
     });
   };
 

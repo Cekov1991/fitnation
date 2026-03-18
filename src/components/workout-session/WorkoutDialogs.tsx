@@ -16,6 +16,7 @@ interface WorkoutDialogsProps {
   showExercisePicker: boolean;
   setShowExercisePicker: (v: boolean) => void;
   exercisePickerMode: 'add' | 'swap';
+  swapMuscleGroupIds: number[];
   showCancelConfirm: boolean;
   setShowCancelConfirm: (v: boolean) => void;
   showFinishConfirm: boolean;
@@ -48,6 +49,7 @@ export function WorkoutDialogs({
   showExercisePicker,
   setShowExercisePicker,
   exercisePickerMode,
+  swapMuscleGroupIds,
   showCancelConfirm,
   setShowCancelConfirm,
   showFinishConfirm,
@@ -100,6 +102,7 @@ export function WorkoutDialogs({
           onClose={() => setShowExercisePicker(false)}
           onSelectExercise={onSelectExercise}
           isLoading={isAddExerciseLoading}
+          initialMuscleGroupIds={exercisePickerMode === 'swap' ? swapMuscleGroupIds : undefined}
         />
       )}
 
