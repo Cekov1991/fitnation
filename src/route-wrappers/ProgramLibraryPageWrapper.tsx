@@ -8,7 +8,11 @@ export default function ProgramLibraryPageWrapper() {
   const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
-    history.push('/plans?type=programs');
+    if (history.length > 1) {
+      history.goBack();
+    } else {
+      history.replace('/plans?type=programs');
+    }
   };
 
   return (
