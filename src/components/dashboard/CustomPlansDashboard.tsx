@@ -132,7 +132,7 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
               {browsableRoutines.map((routine: RoutinePlanResource) => (
-                <div key={routine.id} className="min-w-[200px] flex-shrink-0">
+                <div key={routine.id} className="w-[200px] min-w-[200px] flex-shrink-0">
                   <RoutineCardSmall
                     routine={routine}
                     onClick={() => handleViewRoutine(routine)}
@@ -169,22 +169,23 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
               {activePlanWorkouts.map((workout: WorkoutTemplateResource & { duration: string; exerciseCount: number }) => {
                 const activeSession = getActiveSessionForTemplate(workout.id);
                 return (
-                  <WorkoutCardSmall
-                    key={workout.id}
-                    name={workout.name}
-                    duration={workout.duration}
-                    exerciseCount={workout.exerciseCount}
-                    icon={<ArrowUpDown size={18} />}
-                    onClick={() => handleWorkoutClick(workout.id)}
-                    onStart={() => handleStartWorkout(workout.id)}
-                    hasActiveSession={!!activeSession}
-                  />
+                  <div key={workout.id} className="w-[180px] min-w-[180px] flex-shrink-0">
+                    <WorkoutCardSmall
+                      name={workout.name}
+                      duration={workout.duration}
+                      exerciseCount={workout.exerciseCount}
+                      icon={<ArrowUpDown size={18} />}
+                      onClick={() => handleWorkoutClick(workout.id)}
+                      onStart={() => handleStartWorkout(workout.id)}
+                      hasActiveSession={!!activeSession}
+                    />
+                  </div>
                 );
               })}
             </div>
           ) : (
             <div className="flex gap-4 -mx-1 px-1">
-              <div className="min-w-[160px] flex-shrink-0">
+              <div className="w-[160px] min-w-[160px] flex-shrink-0">
                 <CreateCustomPlanCard onClick={handleCreatePlan} />
               </div>
             </div>
