@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 
 interface NetworkConnection {
   effectiveType?: string;
-  downlink?: number;
   addEventListener?: (event: string, callback: () => void) => void;
   removeEventListener?: (event: string, callback: () => void) => void;
 }
@@ -25,8 +24,7 @@ export function useNetworkStatus() {
       if (connection) {
         setIsSlowConnection(
           connection.effectiveType === 'slow-2g' ||
-          connection.effectiveType === '2g' ||
-          (connection.downlink !== undefined && connection.downlink < 1.5)
+          connection.effectiveType === '2g'
         );
       }
     };
