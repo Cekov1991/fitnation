@@ -594,7 +594,7 @@ export function CustomPlansView({
           </h2>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
             {browsableRoutines.map((routine: RoutinePlanResource) => (
-              <div key={routine.id} className="min-w-[200px] flex-shrink-0">
+              <div key={routine.id} className="w-[200px] min-w-[200px] flex-shrink-0">
                 <RoutineCardSmall
                   routine={routine}
                   onClick={() => history.push(`/routines/${routine.id}`, { from: '/plans?type=customPlans' })}
