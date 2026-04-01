@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Scale } from 'lucide-react'
 import { useFitnessMetrics } from '../hooks/useApi'
 import { useModalTransition } from '../utils/animations'
+import { useBackGesture } from '../hooks/useBackGesture'
 
 interface BalanceModalProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ export function BalanceModal({
 }: BalanceModalProps) {
   const { data: metrics } = useFitnessMetrics()
   const modalTransition = useModalTransition()
+  const closeModal = useBackGesture(isOpen, onClose)
   
   const balance = metrics?.strength_balance
   const percentage = balance?.percentage ?? 0
@@ -96,7 +98,7 @@ export function BalanceModal({
           {/* Backdrop */}
     <motion.div
       {...modalTransition}
-      onClick={onClose}
+      onClick={closeModal}
       className="fixed inset-0 bg-black/60  "
       style={{ zIndex: 10000 }}
           />
@@ -126,7 +128,7 @@ export function BalanceModal({
                   Strength Balance Details
                 </h2>
                 <button
-                  onClick={onClose}
+                  onClick={closeModal}
                   className="p-2 rounded-full transition-colors"
                   style={{ backgroundColor: 'var(--color-border-subtle)' }}
                 >

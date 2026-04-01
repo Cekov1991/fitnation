@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { useFitnessMetrics } from '../hooks/useApi'
 import { useModalTransition } from '../utils/animations'
+import { useBackGesture } from '../hooks/useBackGesture'
 
 interface WeeklyProgressModalProps {
   isOpen: boolean
@@ -40,6 +41,7 @@ export function WeeklyProgressModal({
   onClose,
 }: WeeklyProgressModalProps) {
   const { data: metrics } = useFitnessMetrics()
+  const closeModal = useBackGesture(isOpen, onClose)
   
   const weeklyProgress = metrics?.weekly_progress
   const percentage = weeklyProgress?.percentage ?? 0
@@ -76,7 +78,7 @@ export function WeeklyProgressModal({
           {/* Backdrop */}
           <motion.div
           {...modalTransition}
-            onClick={onClose}
+            onClick={closeModal}
             className="fixed inset-0 bg-black/60  "
             style={{ zIndex: 10000 }}
           />
@@ -106,7 +108,7 @@ export function WeeklyProgressModal({
                   Weekly Progress
                 </h2>
                 <button
-                  onClick={onClose}
+                  onClick={closeModal}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors"
                 >
                   <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
