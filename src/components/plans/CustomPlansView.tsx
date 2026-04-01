@@ -449,20 +449,6 @@ export function CustomPlansView({
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-3 mb-4">
-                    <div 
-                      className="px-3 py-1.5 border rounded-full"
-                      style={{ 
-                        backgroundColor: 'var(--color-bg-elevated)',
-                        borderColor: 'var(--color-border)'
-                      }}
-                    >
-                      <span className="text-xs font-bold" style={{ color: 'var(--color-text-secondary)' }}>
-                        {plan.workouts} WORKOUT{plan.workouts !== 1 ? 'S' : ''}
-                      </span>
-                    </div>
-                  </div>
-
                   {plan.workoutList.length > 0 && (
                     <>
                       <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />

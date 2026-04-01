@@ -349,7 +349,7 @@ export function AddWorkoutPage({
               </div>
 
               {/* Day of Week - Single Selection */}
-              <div className="mb-8">
+              {/* <div className="mb-8">
                 <label className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                   Day of Week
                 </label>
@@ -413,7 +413,7 @@ export function AddWorkoutPage({
                     {clickedOccupiedDay} is already assigned to "{occupiedDays.get(clickedOccupiedDay)?.name}"
                   </p>
                 )}
-              </div>
+              </div> */}
 
               {/* Submit Button */}
               <LoadingButton
