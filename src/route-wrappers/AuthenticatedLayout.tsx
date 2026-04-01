@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { BottomNav } from '../components/BottomNav';
 import { InstallAppBanner } from '../components/InstallAppBanner';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { useScrollRestoration } from '../hooks/useScrollRestoration';
 
 // Space reserved when the install banner is visible (top-4 + banner height)
 const INSTALL_BANNER_OFFSET = 100;
@@ -10,9 +11,12 @@ const INSTALL_BANNER_OFFSET = 100;
 export function AuthenticatedLayout({ children, currentPage }: { children: React.ReactNode; currentPage: 'dashboard' | 'plans' | 'progress' | 'exercises' | 'profile' }) {
   const { canInstall, isIOS } = useInstallPrompt();
   const showInstallBar = canInstall || isIOS;
+  const location = useLocation();
+  const scrollRef = useScrollRestoration(location.pathname);
 
   return (
     <div
+      ref={scrollRef}
       className="h-screen w-full overflow-y-auto"
     >
       <InstallAppBanner />
