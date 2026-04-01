@@ -42,9 +42,11 @@ export function ProgressPage() {
 
   const balanceSubtitle = useMemo(() => {
     if (!metrics?.strength_balance) return undefined;
+    const groups = metrics.strength_balance.muscle_groups ?? {};
+    const activeCount = Object.values(groups).filter(v => (v as number) > 0).length;
     const change = metrics.strength_balance.recent_change;
     const sign = change >= 0 ? '+' : '';
-    return `${metrics.strength_balance.level} • ${sign}${change}%`;
+    return `${metrics.strength_balance.level} • ${sign}${change}% • ${activeCount} active`;
   }, [metrics]);
 
   const weeklyValue = useMemo(() => {

@@ -91,6 +91,9 @@ export function BalanceModal({
     .map(([name, value]) => ({ name, percentage: value as number }))
     .sort((a, b) => b.percentage - a.percentage)
 
+  const activeGroups = sortedMuscleGroups.filter(g => g.percentage > 0)
+  const totalGroups = sortedMuscleGroups.length
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -165,7 +168,7 @@ export function BalanceModal({
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div 
                     className="rounded-xl p-4 border"
                     style={{ 
@@ -173,8 +176,8 @@ export function BalanceModal({
                       borderColor: 'var(--color-border-subtle)'
                     }}
                   >
-                    <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Recent Change</p>
-                    <p className={`text-2xl font-bold ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
+                    <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Recent Change</p>
+                    <p className={`text-xl font-bold ${isPositive ? 'text-green-400' : isNeutral ? 'text-blue-400' : 'text-red-400'}`}>
                       {isPositive ? '+' : ''}{Math.round(recentChange)}%
                     </p>
                   </div>
@@ -185,9 +188,21 @@ export function BalanceModal({
                       borderColor: 'var(--color-border-subtle)'
                     }}
                   >
-                    <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Muscle Balance</p>
-                    <p className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
-                      {sortedMuscleGroups.length} Groups
+                    <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Active Groups</p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-primary)' }}>
+                      {activeGroups.length}/{totalGroups}
+                    </p>
+                  </div>
+                  <div 
+                    className="rounded-xl p-4 border"
+                    style={{ 
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)'
+                    }}
+                  >
+                    <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Period</p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-primary)' }}>
+                      30d
                     </p>
                   </div>
                 </div>
@@ -204,10 +219,14 @@ export function BalanceModal({
                     What This Means
                   </h3>
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
-                    Your strength balance of {Math.round(percentage)}% indicates {level.toLowerCase()} muscle group distribution. 
-                    {isPositive && ' You\'re improving your balance over time.'}
-                    {isNeutral && ' Your balance has remained steady.'}
-                    {!isPositive && !isNeutral && ' Consider focusing on underdeveloped muscle groups to improve balance.'}
+                    Your balance score is based on the last 30 days of completed sessions. It rewards both training more muscle groups (coverage) and distributing volume evenly across them.
+                  </p>
+                  <p className="text-sm leading-relaxed mt-2" style={{ color: 'var(--color-text-secondary)' }}>
+                    {activeGroups.length === 0 && 'No completed sessions in the last 30 days.'}
+                    {activeGroups.length > 0 && activeGroups.length < 5 && `You've trained ${activeGroups.length} out of ${totalGroups} groups. Adding more variety will boost your score.`}
+                    {activeGroups.length >= 5 && isPositive && 'You\'re improving your balance — keep it up!'}
+                    {activeGroups.length >= 5 && isNeutral && 'Your balance has remained steady.'}
+                    {activeGroups.length >= 5 && !isPositive && !isNeutral && 'Try spreading volume more evenly across muscle groups to improve your score.'}
                   </p>
                 </div>
 

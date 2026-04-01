@@ -845,12 +845,14 @@ interface StrengthScore {
 type StrengthLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
 interface StrengthBalance {
-  percentage: number;        // 0-100, how balanced training is
-  level: BalanceLevel;
-  recent_change: number;     // Change from previous period
-  muscle_groups: Record<MuscleGroupName, number>; // % distribution
+  percentage: number;        // 0-100, balance score = sqrt(coverage × evenness) × 100
+  level: BalanceLevel;       // EXCELLENT ≥80, GOOD ≥60, FAIR ≥40, NEEDS_IMPROVEMENT <40
+  recent_change: number;     // Change vs previous 30-day period (days 31-60)
+  muscle_groups: Record<MuscleGroupName, number>; // % distribution (sums to ~100)
   percentile?: number;       // 0-100, percentile ranking compared to similar users in same partner (optional)
 }
+// Balance formula: geometric mean of coverage (trained groups / 17) and evenness (normalized Shannon entropy).
+// Time window: last 30 days of completed sessions only. Volume = weight(kg) × reps, primary muscle groups.
 
 type BalanceLevel = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_IMPROVEMENT';
 
