@@ -274,7 +274,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
         }}
         onConfirm={handleWarningConfirm}
         title="Refresh personalized plan?"
-        message="Your current personalized plan has completed workouts. Refreshing will create a new plan and deactivate the current one."
+        message="Your current personalized plan has completed workouts. Refreshing will create a new plan and you will start from scratch."
         confirmText="Refresh Plan"
         variant="warning"
         isLoading={isBusy}

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import { RefreshCw, Zap } from 'lucide-react';
+import { RefreshCw, Trophy, Zap } from 'lucide-react';
 import { WorkoutTemplateSelector } from './WorkoutTemplateSelector';
 import { ProgramControls } from './ProgramControls';
 import { WorkoutCard } from '../WorkoutCard';
@@ -161,6 +161,39 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     return programs.filter((p: ProgramResource) => !p.is_active && !p.is_auto_generated);
   }, [programs]);
 
+  const isPlanComplete = useMemo(() => {
+    if (!activeProgram) return false;
+    return (
+      activeProgram.next_workout === null &&
+      (activeProgram.progress_percentage ?? 0) > 0
+    );
+  }, [activeProgram]);
+
+  const planCompleteStats = useMemo(() => {
+    const templates = activeProgram?.workout_templates ?? [];
+    let workoutsCompleted = 0;
+    let totalSets = 0;
+    const uniqueExerciseNames = new Set<string>();
+
+    for (const t of templates) {
+      if (t.last_completed_session_id !== null) workoutsCompleted += 1;
+      const exercises = t.exercises ?? [];
+      for (const e of exercises) {
+        uniqueExerciseNames.add(e.name);
+        totalSets += e.pivot?.target_sets ?? 0;
+      }
+    }
+
+    return {
+      durationWeeks: activeProgram?.duration_weeks ?? 0,
+      workoutsCompleted,
+      totalWorkouts: templates.length,
+      uniqueExercises: uniqueExerciseNames.size,
+      totalSets,
+      progressPercentage: activeProgram?.progress_percentage ?? 0,
+    };
+  }, [activeProgram]);
+
   if (isProgramsLoading) {
     return (
       <div className="pb-32">
@@ -238,8 +271,8 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
 
       {activeProgram && (
         <>
-          {/* Workout Template Selector - Shows workouts for active week */}
-          {activeWeekWorkouts.length > 0 && (
+          {/* Workout Template Selector - hidden when plan is complete */}
+          {!isPlanComplete && activeWeekWorkouts.length > 0 && (
             <div className="mb-6 -mx-1 px-1">
               <WorkoutTemplateSelector
                 templates={activeWeekWorkouts}
@@ -264,8 +297,113 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
             </div>
           )}
 
-          {/* Workout Card */}
-          {displayWorkout ? (
+          {/* Plan complete / Workout Card / empty */}
+          {isPlanComplete ? (
+            <div
+              className="rounded-2xl p-6 mb-6 text-center space-y-5"
+              style={{ backgroundColor: 'var(--color-bg-surface)' }}
+            >
+              <div className="flex justify-center">
+                <div
+                  className="flex items-center justify-center w-16 h-16 rounded-full"
+                  style={{
+                    backgroundColor: 'var(--color-bg-elevated)',
+                    color: 'var(--color-primary)',
+                  }}
+                >
+                  <Trophy size={32} strokeWidth={1.75} />
+                </div>
+              </div>
+              <div>
+                <h2
+                  className="text-xl font-bold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Plan complete!
+                </h2>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  You finished all {planCompleteStats.durationWeeks} week
+                  {planCompleteStats.durationWeeks !== 1 ? 's' : ''} of{' '}
+                  <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    {activeProgram.name}
+                  </span>
+                  .
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-left">
+                {[
+                  {
+                    label: 'Weeks',
+                    value: String(planCompleteStats.durationWeeks),
+                  },
+                  {
+                    label: 'Workouts',
+                    value:
+                      planCompleteStats.totalWorkouts > 0
+                        ? `${planCompleteStats.workoutsCompleted}/${planCompleteStats.totalWorkouts}`
+                        : String(planCompleteStats.workoutsCompleted),
+                  },
+                  {
+                    label: 'Exercises',
+                    value: String(planCompleteStats.uniqueExercises),
+                  },
+                  {
+                    label: 'Sets',
+                    value: String(planCompleteStats.totalSets),
+                  },
+                ].map((tile) => (
+                  <div
+                    key={tile.label}
+                    className="rounded-xl px-4 py-3 border"
+                    style={{
+                      backgroundColor: 'var(--color-bg-elevated)',
+                      borderColor: 'var(--color-border)',
+                    }}
+                  >
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wide mb-1"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      {tile.label}
+                    </p>
+                    <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                      {tile.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {planCompleteStats.progressPercentage > 0 && (
+                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                  Progress:{' '}
+                  <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>
+                    {planCompleteStats.progressPercentage}%
+                  </span>
+                </p>
+              )}
+
+              {activeProgram.is_auto_generated && (
+                <button
+                  type="button"
+                  onClick={handleGenerateFresh}
+                  disabled={isGenerating || regeneratePlan.isPending}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    color: 'var(--color-text-button)',
+                  }}
+                >
+                  {isGenerating || regeneratePlan.isPending ? (
+                    <RefreshCw size={16} className="animate-spin" />
+                  ) : (
+                    <Zap size={16} />
+                  )}
+                  Generate new plan
+                </button>
+              )}
+            </div>
+          ) : displayWorkout ? (
             <div className="mb-6">
               <WorkoutCard
                 template={displayWorkout}
