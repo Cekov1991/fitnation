@@ -21,6 +21,7 @@ interface ExercisePickerPageProps {
   mode: 'add' | 'swap' | 'browse';
   onClose: () => void;
   onSelectExercise?: (exercise: Exercise) => void;
+  onViewExercise?: (exerciseName: string) => void;
   isLoading?: boolean;
   initialMuscleGroupIds?: number[];
 }
@@ -28,6 +29,7 @@ export function ExercisePickerPage({
   mode,
   onClose,
   onSelectExercise,
+  onViewExercise,
   isLoading: isSelecting = false,
   initialMuscleGroupIds
 }: ExercisePickerPageProps) {
@@ -366,7 +368,14 @@ export function ExercisePickerPage({
                       {/* View area: image + title opens detail */}
                       <button
                         type="button"
-                        onClick={() => !isSelecting && setViewingExerciseId(exercise.id)}
+                        onClick={() => {
+                          if (isSelecting) return;
+                          if (onViewExercise) {
+                            onViewExercise(exercise.name);
+                          } else {
+                            setViewingExerciseId(exercise.id);
+                          }
+                        }}
                         disabled={isSelecting}
                         className="flex flex-1 items-center gap-4 min-w-0 text-left disabled:opacity-50 disabled:cursor-not-allowed"
                       >

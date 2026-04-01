@@ -31,9 +31,9 @@ export function useCurrentNavPage(): 'dashboard' | 'plans' | 'progress' | 'exerc
   const location = useLocation();
   const path = location.pathname;
   if (path === '/' || path === '/dashboard') return 'dashboard';
-  if (path === '/exercises') return 'exercises';
+  if (path.startsWith('/exercises')) return 'exercises';
   if (path.startsWith('/plans') || path.startsWith('/workouts') ||
-      path.startsWith('/exercises') || path.startsWith('/session')) return 'plans';
+      path.startsWith('/session')) return 'plans';
   if (path.startsWith('/profile')) return 'profile';
   if (path.startsWith('/progress')) return 'progress';
   return 'dashboard';

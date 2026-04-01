@@ -11,6 +11,7 @@ export default function ExerciseCatalogPageWrapper() {
       <ExercisePickerPage
         mode="browse"
         onClose={() => history.goBack()}
+        onViewExercise={(name) => history.push(`/exercises/${encodeURIComponent(name)}`)}
       />
     </AuthenticatedLayout>
   );
