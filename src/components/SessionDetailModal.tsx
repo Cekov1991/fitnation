@@ -5,6 +5,7 @@ import { X, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp } fro
 import { useSession, useCompleteSession, useTemplate } from '../hooks/useApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { useModalTransition } from '../utils/animations';
+import { useBackGesture } from '../hooks/useBackGesture';
 import { LoadingContent } from './ui/LoadingContent';
 import { LoadingButton } from './ui/LoadingButton';
 import { useWorkoutTimer } from './workout-session/hooks/useWorkoutTimer';
@@ -52,6 +53,7 @@ export function SessionDetailModal({
   const history = useHistory();
   const queryClient = useQueryClient();
   const modalTransition = useModalTransition();
+  const closeModal = useBackGesture(isOpen, onClose);
   const { data: sessionData, isLoading, error } = useSession(sessionId || 0);
   const completeSession = useCompleteSession();
   const [notes, setNotes] = useState('');
@@ -91,7 +93,7 @@ export function SessionDetailModal({
   const handleResumeSession = () => {
     if (sessionId) {
       history.push(`/session/${sessionId}`);
-      onClose();
+      closeModal();
     }
   };
 
@@ -125,7 +127,7 @@ export function SessionDetailModal({
           {/* Backdrop */}
           <motion.div
             {...modalTransition}
-            onClick={onClose}
+            onClick={closeModal}
             className="fixed inset-0 bg-black/60"
             style={{ zIndex: 10000 }}
           />
@@ -157,7 +159,7 @@ export function SessionDetailModal({
                   Session Details
                 </h2>
                 <button
-                  onClick={onClose}
+                  onClick={closeModal}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors"
                 >
                   <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />

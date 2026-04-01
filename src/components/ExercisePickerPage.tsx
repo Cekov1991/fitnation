@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Plus, Loader2 } from 'lucide-react';
 import { useExercises, useMuscleGroups, useEquipmentTypes } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { ExerciseDetailPage } from './ExerciseDetailPage';
+import { useBackGesture } from '../hooks/useBackGesture';
 import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
@@ -152,6 +153,9 @@ export function ExercisePickerPage({
 
   const isBrowse = mode === 'browse';
 
+  const clearViewing = useCallback(() => setViewingExerciseId(null), []);
+  const closeDetail = useBackGesture(viewingExerciseId != null && !isBrowse, clearViewing);
+
   const handleSelectExercise = (exercise: Exercise) => {
     if (isSelecting || isBrowse) return;
     setSelectedExerciseId(exercise.id);
@@ -176,7 +180,7 @@ export function ExercisePickerPage({
         <div className="relative z-10 min-h-full max-w-md mx-auto">
           <ExerciseDetailPage
             exerciseName={viewingExercise.name}
-            onBack={() => setViewingExerciseId(null)}
+            onBack={isBrowse ? clearViewing : closeDetail}
             hidePerformanceTab={isBrowse}
             {...(!isBrowse && {
               primaryAction: {
