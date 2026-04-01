@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react';
 import { PlanTypeSwitcher } from './plans/PlanTypeSwitcher';
 import { CustomPlansView } from './plans/CustomPlansView';
 import { ProgramPlansView } from './plans/ProgramPlansView';
+import { useProgramLibrary, usePrograms } from '../hooks/useApi';
+import type { ProgramResource } from '../types/api';
 interface PlansPageProps {
   onNavigateToCreate: () => void;
   onNavigateToEdit: (plan: {
@@ -35,18 +37,32 @@ export function PlansPage({
 }: PlansPageProps) {
   const history = useHistory();
   const location = useLocation();
+  const { data: programs = [] } = usePrograms();
+  const { data: libraryPrograms = [] } = useProgramLibrary();
+
+  const hasNonAutoPrograms = useMemo(() => {
+    return programs.some((program: ProgramResource) => !program.is_auto_generated);
+  }, [programs]);
+
+  const showProgramsTab = hasNonAutoPrograms || libraryPrograms.length > 0;
   
   // Get plan type from URL query parameter, default to 'programs'
   const planType = useMemo(() => {
+    if (!showProgramsTab) {
+      return 'customPlans';
+    }
     const params = new URLSearchParams(location.search);
     const type = params.get('type');
     if (type === 'programs' || type === 'customPlans') {
       return type;
     }
     return 'programs';
-  }, [location.search]);
+  }, [location.search, showProgramsTab]);
 
   const handlePlanTypeChange = (type: 'customPlans' | 'programs') => {
+    if (type === 'programs' && !showProgramsTab) {
+      return;
+    }
     const params = new URLSearchParams(location.search);
     params.set('type', type);
     history.push({ pathname: location.pathname, search: params.toString() });
@@ -88,7 +104,7 @@ export function PlansPage({
           </div>
 
           {/* Plan Type Switcher */}
-          <PlanTypeSwitcher activeType={planType} onTypeChange={handlePlanTypeChange} />
+          <PlanTypeSwitcher activeType={planType} onTypeChange={handlePlanTypeChange} showPrograms={showProgramsTab} />
 
           {/* Conditional content based on plan type */}
           {planType === 'customPlans' ? (

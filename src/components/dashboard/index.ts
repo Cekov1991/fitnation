@@ -4,5 +4,6 @@ export { QuickStartCard } from './QuickStartCard';
 export { WorkoutCardSmall } from './WorkoutCardSmall';
 export { CreateCustomPlanCard } from './CreateCustomPlanCard';
 export { AIGeneratorCard } from './AIGeneratorCard';
+export { ProgramControls } from './ProgramControls';
 export { DaySelector } from './DaySelector';
 export { WorkoutTemplateSelector } from './WorkoutTemplateSelector';

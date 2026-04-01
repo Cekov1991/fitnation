@@ -339,6 +339,12 @@ export const plansApi = {
     return fetchWithAuth(`/custom-plans/${planId}`, {
       method: 'DELETE'
     });
+  },
+  regeneratePlan: async () => {
+    return fetchWithAuth('/plans/regenerate', {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
   }
 };
 

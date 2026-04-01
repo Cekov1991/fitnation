@@ -34,13 +34,17 @@ export function ProgramPlansView({
   const updateProgram = useUpdateProgram();
   const deleteProgram = useDeleteProgram();
 
-  const activeProgram = useMemo(() => {
-    return programs.find((program: ProgramResource) => program.is_active) || null;
+  const visiblePrograms = useMemo(() => {
+    return programs.filter((program: ProgramResource) => !program.is_auto_generated);
   }, [programs]);
 
+  const activeProgram = useMemo(() => {
+    return visiblePrograms.find((program: ProgramResource) => program.is_active) || null;
+  }, [visiblePrograms]);
+
   const inactivePrograms = useMemo(() => {
-    return programs.filter((program: ProgramResource) => !program.is_active);
-  }, [programs]);
+    return visiblePrograms.filter((program: ProgramResource) => !program.is_active);
+  }, [visiblePrograms]);
 
   const handleProgramMenuClick = (event: React.MouseEvent, menuId: string, program: {
     id: number;

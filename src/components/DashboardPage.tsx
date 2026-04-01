@@ -6,9 +6,8 @@ import { PlanTypeSwitcher } from './plans/PlanTypeSwitcher';
 import { CustomPlansDashboard, ProgramDashboard } from './dashboard';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
-import { useStartSession, useTodayWorkout, usePrograms } from '../hooks/useApi';
+import { useStartSession, useTodayWorkout } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
-import type { ProgramResource } from '../types/api';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -17,25 +16,11 @@ export function DashboardPage() {
   const location = useLocation();
   const { data: todayWorkout } = useTodayWorkout();
   const startSession = useStartSession();
-  const { data: programs = [] } = usePrograms();
   const {
     isWorkoutSelectionOpen,
     openWorkoutSelection,
     closeWorkoutSelection,
   } = useModals();
-
-  // Get active program for key-based remounting
-  const activeProgram = useMemo(() => {
-    return programs.find((program: ProgramResource) => program.is_active) || null;
-  }, [programs]);
-
-  // Key changes when program or next workout changes so ProgramDashboard remounts with correct selected day
-  const programDashboardKey = useMemo(() => {
-    if (!activeProgram) return 'no-program';
-    const weekKey = activeProgram.next_workout?.week_number ?? activeProgram.current_active_week ?? 1;
-    const nextId = activeProgram.next_workout?.id ?? 0;
-    return `${activeProgram.id}-${weekKey}-${nextId}`;
-  }, [activeProgram]);
 
   // Get dashboard type from URL query parameter, default to 'programs'
   const dashboardType = useMemo(() => {
@@ -135,7 +120,7 @@ export function DashboardPage() {
         {dashboardType === 'customPlans' ? (
           <CustomPlansDashboard onStartBlankSession={handleStartBlankSession} />
         ) : (
-          <ProgramDashboard key={programDashboardKey} onStartWorkout={handleStartWorkoutClick} />
+          <ProgramDashboard onStartWorkout={handleStartWorkoutClick} />
         )}
       </main>
 

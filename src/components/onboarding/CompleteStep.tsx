@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, ArrowRight, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { CheckCircle, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useSlideTransition, useModalTransition } from '../../utils/animations';
 import { OnboardingFormData } from '../../schemas/onboarding';
 import { useUpdateProfile, useCompleteOnboarding } from '../../hooks/useApi';
 import { useAuth } from '../../hooks/useAuth';
 import { useBranding } from '../../hooks/useBranding';
+import { PlanGeneratingOverlay } from '../ui';
 
 interface CompleteStepProps {
   formData: OnboardingFormData;
@@ -237,38 +238,8 @@ export function CompleteStep({ formData }: CompleteStepProps) {
           </p>
         </motion.div>
       ) : phase === 'generating-plan' || phase === 'plan-success' ? (
-        <motion.div {...slideProps} className="flex flex-col items-center gap-6 max-w-sm">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          >
-            <Sparkles 
-              className="w-16 h-16" 
-              style={{ color: 'var(--color-primary)' }} 
-            />
-          </motion.div>
-          <div className="space-y-2">
-            <h2 
-              className="text-2xl font-bold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Generating your personalized plan
-            </h2>
-            {partnerName && (
-              <p 
-                className="text-base"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Courtesy of <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>{partnerName}</span>
-              </p>
-            )}
-            <p 
-              className="text-sm mt-2"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              This may take a moment...
-            </p>
-          </div>
+        <motion.div {...slideProps}>
+          <PlanGeneratingOverlay partnerName={partnerName} />
         </motion.div>
       ) : phase === 'error' ? (
         <motion.div {...slideProps} className="w-full space-y-6">

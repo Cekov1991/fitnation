@@ -186,6 +186,7 @@ export interface PlanResource {
   description: string | null;
   cover_image: string | null;
   is_active: boolean;
+  is_auto_generated: boolean;
   type: PlanType;
   duration_weeks: number | null;
   workout_templates: WorkoutTemplateResource[] | null;
