@@ -730,6 +730,9 @@ export function useCancelSession() {
         queryKey: ['sessions']
       });
       queryClient.invalidateQueries({
+        queryKey: ['sessions', 'today']
+      });
+      queryClient.invalidateQueries({
         queryKey: ['programs']
       });
     }

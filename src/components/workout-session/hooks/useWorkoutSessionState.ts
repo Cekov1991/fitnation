@@ -490,6 +490,16 @@ export function useWorkoutSessionState({
   const handleCancelWorkoutConfirm = async () => {
     try {
       await cancelSession.mutateAsync(sessionId);
+      queryClient.setQueryData(['sessions', 'today'], (old: any) => {
+        if (!old) {
+          return { template: null, session: null };
+        }
+        return {
+          ...old,
+          template: null,
+          session: null,
+        };
+      });
       setShowCancelConfirm(false);
       onBack();
     } catch (error) {

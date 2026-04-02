@@ -31,15 +31,15 @@ export default function WorkoutSessionPageWrapper() {
     }
   };
 
-  const handleBack = async () => {
-    await refreshPrograms();
+  const handleBack = () => {
     history.push('/');
+    refreshPrograms();
     refetchTodayWorkout();
   };
 
-  const handleFinish = async () => {
-    await refreshPrograms();
+  const handleFinish = () => {
     history.push('/');
+    refreshPrograms();
     refetchTodayWorkout();
   };
 
