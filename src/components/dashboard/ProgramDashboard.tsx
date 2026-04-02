@@ -104,44 +104,40 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     history.push(`/workouts/${templateId}/exercises`, { returnPath: '/dashboard?type=programs' });
   };
 
-  // Check if next_workout has an active session
-  const nextWorkoutActiveSession = useMemo(() => {
-    if (!activeProgram?.next_workout?.id || !todayWorkout?.session) return null;
+  // Check if there's an active (in-progress) session for the currently selected template
+  const activeSessionForSelected = useMemo(() => {
+    if (!selectedTemplateId || !todayWorkout?.session) return null;
     const session = todayWorkout.session;
-    if (!session.completed_at && session.workout_template_id === activeProgram.next_workout.id) {
+    if (!session.completed_at && session.workout_template_id === selectedTemplateId) {
       return session;
     }
     return null;
-  }, [activeProgram, todayWorkout]);
+  }, [selectedTemplateId, todayWorkout]);
 
-  const handleStartNextWorkout = async () => {
-    // If there's an active session for next_workout, continue it
-    if (nextWorkoutActiveSession?.id) {
-      history.push(`/session/${nextWorkoutActiveSession.id}`);
+  const handleStartSelectedWorkout = async () => {
+    if (activeSessionForSelected?.id) {
+      history.push(`/session/${activeSessionForSelected.id}`);
       return;
     }
 
-    if (!activeProgram?.next_workout?.id) {
-      // Fallback to onStartWorkout if no next_workout
+    const templateId = selectedTemplateId ?? activeProgram?.next_workout?.id;
+    if (!templateId) {
       onStartWorkout();
       return;
     }
 
     try {
-      const response = await startSession.mutateAsync(activeProgram.next_workout.id);
+      const response = await startSession.mutateAsync(templateId);
       const session = response.data?.session || response.data;
       if (session?.id) {
-        // Check if draft (performed_at is null)
         if (!session.performed_at) {
-          // Navigate to preview page to continue setup
           history.push(`/generate-workout/preview/${session.id}`);
         } else {
-          // Active session - continue workout
           history.push(`/session/${session.id}`);
         }
       }
     } catch (error) {
-      console.error('Failed to start next workout:', error);
+      console.error('Failed to start workout:', error);
     }
   };
 
@@ -408,16 +404,16 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
               <WorkoutCard
                 template={displayWorkout}
                 title={selectedWorkout?.name || "WORKOUT"}
-                onStartNextWorkout={handleStartNextWorkout}
+                onStartNextWorkout={handleStartSelectedWorkout}
                 showStartButton={true}
                 startButtonText={
-                  nextWorkoutActiveSession
+                  activeSessionForSelected
                     ? 'CONTINUE WORKOUT'
-                    : activeProgram.next_workout
+                    : selectedTemplateId
                       ? 'START WORKOUT'
                       : 'NO WORKOUTS AVAILABLE'
                 }
-                startButtonDisabled={!activeProgram.next_workout && !nextWorkoutActiveSession}
+                startButtonDisabled={!selectedTemplateId && !activeSessionForSelected}
                 onExerciseClick={handleExerciseClick}
                 onEditWorkout={handleEditWorkout}
               />
