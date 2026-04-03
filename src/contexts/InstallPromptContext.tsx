@@ -35,6 +35,8 @@ interface InstallPromptContextType {
   dismissInstall: () => void;
   // Reset dismissal (no-op)
   resetDismissal: () => void;
+  // Whether on iOS Safari specifically (vs Chrome/Firefox/etc on iOS)
+  isIOSSafari: boolean;
   // iOS Safari: step-by-step install overlay visibility
   showIOSOverlay: boolean;
   setShowIOSOverlay: (show: boolean) => void;
@@ -62,6 +64,11 @@ export function InstallPromptProvider({ children }: { children: ReactNode }) {
     typeof navigator !== 'undefined' && 
     /iPad|iPhone|iPod/.test(navigator.userAgent) && 
     !window.MSStream;
+
+  // Only Safari on iOS supports Add to Home Screen
+  const isIOSSafari = isIOS &&
+    /Safari/.test(navigator.userAgent) &&
+    !/CriOS|FxiOS|OPiOS|EdgiOS/.test(navigator.userAgent);
 
   // Check if app is already running in standalone mode (installed)
   const isStandalone = typeof window !== 'undefined' && (
@@ -135,8 +142,10 @@ export function InstallPromptProvider({ children }: { children: ReactNode }) {
   const value: InstallPromptContextType = {
     // Whether native install prompt is available (Android/Chrome)
     canInstall: canInstall && !isStandalone,
-    // Whether on iOS Safari (show custom instructions)
+    // Whether on iOS (any browser)
     isIOS: isIOS && !isStandalone,
+    // Whether on iOS Safari specifically
+    isIOSSafari: isIOSSafari && !isStandalone,
     // Whether app is already installed/running in standalone mode
     isStandalone,
     // Whether user has dismissed the prompt (always false now)

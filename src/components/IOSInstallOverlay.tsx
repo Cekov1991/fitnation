@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Copy, Check, ExternalLink } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 
 function IOSShareIcon({ className }: { className?: string }) {
@@ -61,8 +62,119 @@ function IOSAddToHomeIcon({ className }: { className?: string }) {
   );
 }
 
+function SafariInstallSteps() {
+  return (
+    <>
+      <ol className="mt-6 space-y-5">
+        <li className="flex gap-4">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+            <IOSShareIcon className="h-6 w-6" />
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-sm font-semibold text-white">Step 1</p>
+            <p className="mt-1 text-sm text-blue-100/85">
+              Tap the <strong className="text-white">Share</strong> button in Safari&apos;s
+              bottom toolbar.
+            </p>
+          </div>
+        </li>
+        <li className="flex gap-4">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+            <IOSAddToHomeIcon className="h-6 w-6" />
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-sm font-semibold text-white">Step 2</p>
+            <p className="mt-1 text-sm text-blue-100/85">
+              Scroll down and tap{' '}
+              <strong className="text-white">Add to Home Screen</strong>.
+            </p>
+          </div>
+        </li>
+        <li className="flex gap-4">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-sm font-bold text-white">
+            3
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-sm font-semibold text-white">Step 3</p>
+            <p className="mt-1 text-sm text-blue-100/85">
+              Tap <strong className="text-white">Add</strong> in the top-right corner to
+              confirm.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <div className="mt-8 flex flex-col items-center border-t border-white/10 pt-6">
+        <p className="mb-2 text-center text-xs font-medium uppercase tracking-wider text-blue-200/60">
+          Look for Share here
+        </p>
+        <motion.div
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="text-3xl text-white drop-shadow-lg"
+          aria-hidden
+        >
+          ↓
+        </motion.div>
+      </div>
+    </>
+  );
+}
+
+function OpenInSafariSteps() {
+  const [copied, setCopied] = useState(false);
+
+  const copyUrl = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }, []);
+
+  return (
+    <div className="mt-6 space-y-5">
+      <div className="flex gap-4">
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+          <ExternalLink className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 pt-0.5">
+          <p className="text-sm font-semibold text-white">
+            Open in Safari to install
+          </p>
+          <p className="mt-1 text-sm text-blue-100/85">
+            Adding to Home Screen is only available in{' '}
+            <strong className="text-white">Safari</strong>. Copy the link below
+            and paste it in Safari.
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={copyUrl}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20 active:scale-[0.98]"
+      >
+        {copied ? (
+          <>
+            <Check className="h-4 w-4 text-green-400" />
+            Link copied!
+          </>
+        ) : (
+          <>
+            <Copy className="h-4 w-4" />
+            Copy link
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
 export function IOSInstallOverlay() {
-  const { showIOSOverlay, setShowIOSOverlay } = useInstallPrompt();
+  const { showIOSOverlay, setShowIOSOverlay, isIOSSafari } = useInstallPrompt();
 
   return (
     <AnimatePresence>
@@ -105,58 +217,7 @@ export function IOSInstallOverlay() {
               Add Fit Nation to your Home Screen for quick access.
             </p>
 
-            <ol className="mt-6 space-y-5">
-              <li className="flex gap-4">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
-                  <IOSShareIcon className="h-6 w-6" />
-                </span>
-                <div className="min-w-0 pt-0.5">
-                  <p className="text-sm font-semibold text-white">Step 1</p>
-                  <p className="mt-1 text-sm text-blue-100/85">
-                    Tap the <strong className="text-white">Share</strong> button in Safari&apos;s
-                    bottom toolbar.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-4">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
-                  <IOSAddToHomeIcon className="h-6 w-6" />
-                </span>
-                <div className="min-w-0 pt-0.5">
-                  <p className="text-sm font-semibold text-white">Step 2</p>
-                  <p className="mt-1 text-sm text-blue-100/85">
-                    Scroll down and tap{' '}
-                    <strong className="text-white">Add to Home Screen</strong>.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-4">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-sm font-bold text-white">
-                  3
-                </span>
-                <div className="min-w-0 pt-0.5">
-                  <p className="text-sm font-semibold text-white">Step 3</p>
-                  <p className="mt-1 text-sm text-blue-100/85">
-                    Tap <strong className="text-white">Add</strong> in the top-right corner to
-                    confirm.
-                  </p>
-                </div>
-              </li>
-            </ol>
-
-            <div className="mt-8 flex flex-col items-center border-t border-white/10 pt-6">
-              <p className="mb-2 text-center text-xs font-medium uppercase tracking-wider text-blue-200/60">
-                Look for Share here
-              </p>
-              <motion.div
-                animate={{ y: [0, 12, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="text-3xl text-white drop-shadow-lg"
-                aria-hidden
-              >
-                ↓
-              </motion.div>
-            </div>
+            {isIOSSafari ? <SafariInstallSteps /> : <OpenInSafariSteps />}
           </motion.div>
         </motion.div>
       )}
