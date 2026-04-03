@@ -62,7 +62,7 @@ function IOSAddToHomeIcon({ className }: { className?: string }) {
   );
 }
 
-function SafariInstallSteps() {
+function SafariInstallSteps({ onDismiss }: { onDismiss: () => void }) {
   return (
     <>
       <ol className="mt-6 space-y-5">
@@ -104,19 +104,13 @@ function SafariInstallSteps() {
         </li>
       </ol>
 
-      <div className="mt-8 flex flex-col items-center border-t border-white/10 pt-6">
-        <p className="mb-2 text-center text-xs font-medium uppercase tracking-wider text-blue-200/60">
-          Look for Share here
-        </p>
-        <motion.div
-          animate={{ y: [0, 12, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="text-3xl text-white drop-shadow-lg"
-          aria-hidden
-        >
-          ↓
-        </motion.div>
-      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="mt-6 flex w-full items-center justify-center rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20 active:scale-[0.98]"
+      >
+        Got it
+      </button>
     </>
   );
 }
@@ -217,7 +211,7 @@ export function IOSInstallOverlay() {
               Add Fit Nation to your Home Screen for quick access.
             </p>
 
-            {isIOSSafari ? <SafariInstallSteps /> : <OpenInSafariSteps />}
+            {isIOSSafari ? <SafariInstallSteps onDismiss={() => setShowIOSOverlay(false)} /> : <OpenInSafariSteps />}
           </motion.div>
         </motion.div>
       )}
