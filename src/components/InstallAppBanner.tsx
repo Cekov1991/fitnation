@@ -7,8 +7,16 @@ import { useInstallPrompt } from '../hooks/useInstallPrompt';
  * Shown on all authenticated pages until the app is installed (standalone).
  */
 export function InstallAppBanner() {
-  const { canInstall, isIOS, promptInstall } = useInstallPrompt();
+  const { canInstall, isIOS, promptInstall, setShowIOSOverlay } = useInstallPrompt();
   const showBanner = canInstall || isIOS;
+
+  const handleInstall = () => {
+    if (isIOS) {
+      setShowIOSOverlay(true);
+    } else {
+      void promptInstall();
+    }
+  };
 
   if (!showBanner) return null;
 
@@ -60,7 +68,7 @@ export function InstallAppBanner() {
         {/* GET button - same gym gradient as START WORKOUT */}
         <button
           type="button"
-          onClick={promptInstall}
+          onClick={handleInstall}
           className="flex h-8 flex-shrink-0 items-center justify-center rounded-full px-4 text-xs font-bold shadow-lg transition-transform hover:scale-105 active:scale-95"
           style={{
             background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',

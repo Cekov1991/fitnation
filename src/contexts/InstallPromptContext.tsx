@@ -35,6 +35,9 @@ interface InstallPromptContextType {
   dismissInstall: () => void;
   // Reset dismissal (no-op)
   resetDismissal: () => void;
+  // iOS Safari: step-by-step install overlay visibility
+  showIOSOverlay: boolean;
+  setShowIOSOverlay: (show: boolean) => void;
 }
 
 const InstallPromptContext = createContext<InstallPromptContextType | undefined>(undefined);
@@ -45,6 +48,9 @@ export function InstallPromptProvider({ children }: { children: ReactNode }) {
   
   // Whether native install prompt is available (Android/Chrome)
   const [canInstall, setCanInstall] = useState(false);
+
+  // iOS: show manual install instructions overlay
+  const [showIOSOverlay, setShowIOSOverlay] = useState(false);
   
   // Whether user has previously dismissed the install prompt
   // Note: Currently disabled - always show install button
@@ -141,6 +147,9 @@ export function InstallPromptProvider({ children }: { children: ReactNode }) {
     dismissInstall,
     // Reset dismissal (no-op)
     resetDismissal,
+    // iOS install overlay
+    showIOSOverlay,
+    setShowIOSOverlay,
   };
 
   return (
