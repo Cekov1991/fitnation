@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 
 /**
  * BeforeInstallPromptEvent interface
@@ -27,13 +27,12 @@ interface InstallPromptContextType {
   isIOS: boolean;
   // Whether app is already installed/running in standalone mode
   isStandalone: boolean;
-  // Whether user has dismissed the prompt (always false now)
+  // Whether user dismissed the top install banner (persisted in localStorage)
   isDismissed: boolean;
   // Trigger native install prompt (Android/Chrome)
   promptInstall: () => Promise<void>;
-  // Dismiss (no-op)
   dismissInstall: () => void;
-  // Reset dismissal (no-op)
+  /** Clears dismissal flag (e.g. for testing or future settings) */
   resetDismissal: () => void;
   // Whether on iOS Safari specifically (vs Chrome/Firefox/etc on iOS)
   isIOSSafari: boolean;
@@ -41,6 +40,8 @@ interface InstallPromptContextType {
   showIOSOverlay: boolean;
   setShowIOSOverlay: (show: boolean) => void;
 }
+
+const INSTALL_BANNER_DISMISSED_KEY = 'installBannerDismissed';
 
 const InstallPromptContext = createContext<InstallPromptContextType | undefined>(undefined);
 
@@ -53,10 +54,15 @@ export function InstallPromptProvider({ children }: { children: ReactNode }) {
 
   // iOS: show manual install instructions overlay
   const [showIOSOverlay, setShowIOSOverlay] = useState(false);
-  
-  // Whether user has previously dismissed the install prompt
-  // Note: Currently disabled - always show install button
-  const isDismissed = false;
+
+  const [installBannerDismissed, setInstallBannerDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem(INSTALL_BANNER_DISMISSED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // iOS Safari detection
   // Check for iOS devices that are NOT running in standalone mode
@@ -125,36 +131,37 @@ export function InstallPromptProvider({ children }: { children: ReactNode }) {
     setCanInstall(false);
   }, []);
 
-  /**
-   * Manually dismiss the install prompt (no-op, always show button)
-   */
   const dismissInstall = useCallback(() => {
-    // No-op - always show install button
+    try {
+      localStorage.setItem(INSTALL_BANNER_DISMISSED_KEY, 'true');
+    } catch {
+      /* ignore quota / private mode */
+    }
+    setInstallBannerDismissed(true);
   }, []);
 
-  /**
-   * Reset dismissal state (no-op)
-   */
   const resetDismissal = useCallback(() => {
-    // No-op
+    try {
+      localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY);
+    } catch {
+      /* ignore */
+    }
+    setInstallBannerDismissed(false);
   }, []);
 
   const value: InstallPromptContextType = {
     // Whether native install prompt is available (Android/Chrome)
-    canInstall: canInstall && !isStandalone,
+    canInstall: canInstall && !isStandalone && !installBannerDismissed,
     // Whether on iOS (any browser)
-    isIOS: isIOS && !isStandalone,
-    // Whether on iOS Safari specifically
+    isIOS: isIOS && !isStandalone && !installBannerDismissed,
+    // Whether on iOS Safari specifically (not affected by banner dismiss — Profile entry point)
     isIOSSafari: isIOSSafari && !isStandalone,
     // Whether app is already installed/running in standalone mode
     isStandalone,
-    // Whether user has dismissed the prompt (always false now)
-    isDismissed,
+    isDismissed: installBannerDismissed,
     // Trigger native install prompt (Android/Chrome)
     promptInstall,
-    // Dismiss (no-op)
     dismissInstall,
-    // Reset dismissal (no-op)
     resetDismissal,
     // iOS install overlay
     showIOSOverlay,

@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown } from 'lucide-react';
+import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '../hooks/useApi';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
 import { LoadingButton } from './ui';
 
@@ -22,6 +23,7 @@ interface ProfilePageProps {
 export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { isIOSSafari, setShowIOSOverlay } = useInstallPrompt();
 
   const {
     register,
@@ -495,6 +497,29 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                 SAVE CHANGES
               </LoadingButton>
             </form>
+
+            {isIOSSafari && (
+              <button
+                type="button"
+                onClick={() => setShowIOSOverlay(true)}
+                className="w-full py-4 mb-4 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2"
+                style={{
+                  borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
+                  backgroundColor: 'var(--color-bg-surface)',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                <Download className="w-5 h-5" />
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                  }}
+                >
+                  INSTALL APP
+                </span>
+              </button>
+            )}
 
             {/* Log Out Button */}
             <button 

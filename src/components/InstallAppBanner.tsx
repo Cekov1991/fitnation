@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Download } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 
 /**
@@ -7,7 +7,7 @@ import { useInstallPrompt } from '../hooks/useInstallPrompt';
  * Shown on all authenticated pages until the app is installed (standalone).
  */
 export function InstallAppBanner() {
-  const { canInstall, isIOS, promptInstall, setShowIOSOverlay } = useInstallPrompt();
+  const { canInstall, isIOS, promptInstall, setShowIOSOverlay, dismissInstall } = useInstallPrompt();
   const showBanner = canInstall || isIOS;
 
   const handleInstall = () => {
@@ -25,7 +25,7 @@ export function InstallAppBanner() {
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-      className="fixed left-4 right-4 top-4 z-[9998] overflow-hidden rounded-2xl bg-gradient-to-r from-[#112240] via-[#1a365d] to-[#2563eb] p-4 shadow-2xl shadow-blue-900/20"
+      className="fixed left-4 right-4 top-4 z-[9998] overflow-hidden rounded-2xl bg-gradient-to-r from-[#112240] via-[#1a365d] to-[#2563eb] p-4 pr-12 shadow-2xl shadow-blue-900/20"
     >
       {/* Shimmer animation */}
       <style>
@@ -42,6 +42,15 @@ export function InstallAppBanner() {
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="install-banner-shimmer absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12" />
       </div>
+
+      <button
+        type="button"
+        onClick={dismissInstall}
+        className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+        aria-label="Dismiss install prompt"
+      >
+        <X className="h-5 w-5" />
+      </button>
 
       <div className="relative z-10 flex items-center gap-4">
         {/* Icon with pulse */}
