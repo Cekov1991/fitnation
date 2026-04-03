@@ -48,10 +48,7 @@ export function ProgramWeekCard({
   const cardRef = useRef<HTMLDivElement>(null);
 
   const isWorkoutCompleted = (workout: WorkoutTemplateResource): boolean => {
-    if (nextWorkout == null) return false;
-    if (workout.week_number < nextWorkout.week_number) return true;
-    if (workout.week_number === nextWorkout.week_number && workout.order_index < nextWorkout.order_index) return true;
-    return false;
+    return workout.last_completed_session_id != null;
   };
 
   return (
