@@ -41,9 +41,6 @@ export function WorkoutTemplateSelector({
     return null;
   }
 
-  const nextOrderIndex = nextWorkout?.order_index ?? -1;
-  const nextWeekNumber = nextWorkout?.week_number ?? null;
-
   return (
     <div
       ref={containerRef}
@@ -51,11 +48,7 @@ export function WorkoutTemplateSelector({
     >
       {templates.map((template, index) => {
         const isNext = nextWorkout != null && template.id === nextWorkout.id;
-        const isCompleted =
-          nextWorkout != null &&
-          nextWeekNumber != null &&
-          template.week_number === nextWeekNumber &&
-          template.order_index < nextOrderIndex;
+        const isCompleted = template.last_completed_session_id != null;
         const isSelected = selectedTemplateId === template.id;
 
         const handleClick = () => {
