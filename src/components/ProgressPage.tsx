@@ -6,6 +6,7 @@ import { StrengthScoreModal } from './StrengthScoreModal';
 import { BalanceModal } from './BalanceModal';
 import { WeeklyProgressModal } from './WeeklyProgressModal';
 import { WeeklyCalendar } from './WeeklyCalendar';
+import { ProgressMetricsSkeleton } from './ProgressPageSkeleton';
 import { useFitnessMetrics } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
 import {
@@ -122,7 +123,7 @@ export function ProgressPage() {
     [history, location.pathname, location.search, weekStartDisplay, selectedCalendarDate]
   );
 
-  const { data: metrics } = useFitnessMetrics();
+  const { data: metrics, isLoading: isMetricsLoading } = useFitnessMetrics();
   const {
     isStrengthModalOpen,
     isBalanceModalOpen,
@@ -239,30 +240,36 @@ export function ProgressPage() {
 
           {progressTab === 'metrics' && (
             <div className="mb-8 space-y-4" id="progress-panel-metrics" role="tabpanel" aria-labelledby="progress-tab-metrics">
-              <MetricCard
-                title="Strength Score"
-                value={strengthScoreValue}
-                icon={Dumbbell}
-                delay={0.1}
-                subtitle={strengthScoreSubtitle}
-                onClick={openStrengthModal}
-              />
-              <MetricCard
-                title="Balance"
-                value={balanceValue}
-                icon={TrendingUp}
-                delay={0.2}
-                subtitle={balanceSubtitle}
-                onClick={openBalanceModal}
-              />
-              <MetricCard
-                title="Weekly Progress"
-                value={weeklyValue}
-                icon={TrendingDown}
-                delay={0.3}
-                subtitle={weeklySubtitle}
-                onClick={openProgressModal}
-              />
+              {isMetricsLoading ? (
+                <ProgressMetricsSkeleton />
+              ) : (
+                <>
+                  <MetricCard
+                    title="Strength Score"
+                    value={strengthScoreValue}
+                    icon={Dumbbell}
+                    delay={0.1}
+                    subtitle={strengthScoreSubtitle}
+                    onClick={openStrengthModal}
+                  />
+                  <MetricCard
+                    title="Balance"
+                    value={balanceValue}
+                    icon={TrendingUp}
+                    delay={0.2}
+                    subtitle={balanceSubtitle}
+                    onClick={openBalanceModal}
+                  />
+                  <MetricCard
+                    title="Weekly Progress"
+                    value={weeklyValue}
+                    icon={TrendingDown}
+                    delay={0.3}
+                    subtitle={weeklySubtitle}
+                    onClick={openProgressModal}
+                  />
+                </>
+              )}
             </div>
           )}
         </main>

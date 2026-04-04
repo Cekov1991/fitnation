@@ -5,6 +5,7 @@ import { useCalendar } from '../hooks/useApi';
 import { WEEKDAY_LABELS } from '../constants';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { formatCalendarDateKey, formatWeekRangeLabel } from '../utils/calendarWeek';
+import { ProgressCalendarSkeleton } from './ProgressPageSkeleton';
 import type { WorkoutSessionCalendarResource } from '../types/api';
 
 interface DayStatus {
@@ -61,7 +62,7 @@ export function WeeklyCalendar({
     return end;
   }, [weekStartMonday]);
 
-  const { data: calendar } = useCalendar(
+  const { data: calendar, isLoading: isCalendarLoading } = useCalendar(
     formatCalendarDateKey(weekStartMonday),
     formatCalendarDateKey(weekEnd)
   );
@@ -108,6 +109,10 @@ export function WeeklyCalendar({
   }, [sessionsByDate, todayKey, weekStartMonday]);
 
   const selectedSessions = sessionsByDate.get(selectedDateKey) ?? [];
+
+  if (isCalendarLoading) {
+    return <ProgressCalendarSkeleton />;
+  }
 
   return (
     <div

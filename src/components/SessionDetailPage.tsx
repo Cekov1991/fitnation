@@ -5,6 +5,7 @@ import { useSession, useCompleteSession, useTemplate } from '../hooks/useApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
+import { SessionDetailPageSkeleton } from './SessionDetailPageSkeleton';
 import { useWorkoutTimer } from './workout-session/hooks/useWorkoutTimer';
 import { formatWeight } from './workout-session/utils';
 import type { SessionExerciseDetail, SetLogResource } from '../types/api';
@@ -127,15 +128,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
 
       <div className="px-4 py-6 space-y-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div
-              className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4"
-              style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }}
-            />
-            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              Loading...
-            </p>
-          </div>
+          <SessionDetailPageSkeleton />
         ) : error || !sessionData ? (
           <div className="text-center py-8">
             <p style={{ color: 'var(--color-text-secondary)' }}>

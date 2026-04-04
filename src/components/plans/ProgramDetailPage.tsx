@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
 import { LoadingContent } from '../ui';
+import { ProgramDetailPageSkeleton } from './ProgramDetailPageSkeleton';
 import { useProgram } from '../../hooks/useApi';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
 
@@ -80,6 +81,7 @@ export function ProgramDetailPage({ programId, onBack, onNavigateToWorkout }: Pr
           isError={isError}
           error={error}
           onRetry={refetch}
+          loadingFallback={<ProgramDetailPageSkeleton />}
         >
           {program && (
             <>
