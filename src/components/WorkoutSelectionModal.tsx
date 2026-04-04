@@ -59,7 +59,7 @@ export function WorkoutSelectionModal({
   onSelectTemplate
 }: WorkoutSelectionModalProps) {
   const history = useHistory();
-  const modalTransition = useModalTransition();
+  const { backdrop, panel } = useModalTransition();
   const { data: plans = [] } = usePlans();
   const { data: todayWorkout } = useTodayWorkout();
 
@@ -118,10 +118,10 @@ export function WorkoutSelectionModal({
   return <AnimatePresence>
       {isOpen && <>
           {/* Backdrop */}
-          <motion.div {...modalTransition} onClick={onClose} className="fixed inset-0 bg-black/80  " style={{ zIndex: 10000 }} />
+          <motion.div {...backdrop} onClick={onClose} className="fixed inset-0 bg-black/80  " style={{ zIndex: 10000 }} />
 
           {/* Modal */}
-          <motion.div {...modalTransition} className="fixed inset-x-0 bottom-0 max-h-[85vh] overflow-hidden" style={{ zIndex: 10001 }}>
+          <motion.div {...panel} className="fixed inset-x-0 bottom-0 max-h-[85vh] overflow-hidden origin-bottom" style={{ zIndex: 10001 }}>
             <div 
               className="  border-t rounded-t-3xl shadow-2xl"
               style={{ 

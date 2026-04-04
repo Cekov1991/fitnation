@@ -151,7 +151,7 @@ export function EditWorkoutPage({
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
   const reorderExercises = useReorderTemplateExercises();
-  const modalTransition = useModalTransition();
+  const { fade } = useModalTransition();
   const shouldReduceMotion = useReducedMotion();
   const skipDragAnimation = shouldReduceMotion || isIOS;
 
@@ -279,7 +279,7 @@ export function EditWorkoutPage({
 
       <main className="relative z-10 max-w-md mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div {...modalTransition} className="flex items-center gap-4 mb-8">
+        <motion.div {...fade} className="flex items-center gap-4 mb-8">
           <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
           </button>
@@ -293,7 +293,7 @@ export function EditWorkoutPage({
 
         {/* Workout Info Card */}
         {/* <motion.div 
-        {...modalTransition}  
+        {...fade}  
         className="border rounded-3xl p-4 mb-8 text-center"
         style={{ 
           background: 'var(--color-bg-surface)',
@@ -307,7 +307,7 @@ export function EditWorkoutPage({
         </motion.div> */}
 
         {/* Exercises Section */}
-        <motion.div {...modalTransition}>
+        <motion.div {...fade}>
           {/* Exercises Header */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Exercises</h3>

@@ -53,14 +53,14 @@ export function WorkoutSummaryScreen({
   formattedDuration,
   onDone,
 }: WorkoutSummaryScreenProps) {
-  const modalTransition = useModalTransition();
+  const { panel } = useModalTransition();
   const slideTransition = useSlideTransition('up');
   const stats = useMemo(() => calculateStats(exercises, formattedDuration), [exercises, formattedDuration]);
 
   return (
     <AnimatePresence>
       <motion.div
-        {...modalTransition}
+        {...panel}
         className="min-h-screen w-full pb-32"
         style={{ backgroundColor: 'var(--color-bg-base)' }}
       >

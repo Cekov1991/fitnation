@@ -23,7 +23,7 @@ export function SetOptionsMenu({
   isRemoveLoading = false,
   isLastSet = false,
 }: SetOptionsMenuProps) {
-  const modalTransition = useModalTransition();
+  const { backdrop, panel } = useModalTransition();
   if (!selectedSet) return null;
 
   return (
@@ -31,14 +31,14 @@ export function SetOptionsMenu({
       {isOpen && selectedSet && (
         <>
           <motion.div
-            {...modalTransition}
+            {...backdrop}
             onClick={onClose}
             className="fixed inset-0 bg-black/60   z-40"
           />
 
           <motion.div
-            {...modalTransition}
-            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
+            {...panel}
+            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto origin-bottom"
           >
             <div 
               className="rounded-t-3xl shadow-2xl p-6 pb-32"
