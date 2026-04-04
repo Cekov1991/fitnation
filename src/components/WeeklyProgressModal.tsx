@@ -74,49 +74,49 @@ export function WeeklyProgressModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="weekly-progress-modal-title"
           {...backdrop}
-            onClick={closeModal}
-            className="fixed inset-0 bg-black/60  "
-            style={{ zIndex: 10000 }}
-          />
-
-          {/* Modal */}
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 px-5 backdrop-blur-sm"
+          onClick={closeModal}
+        >
           <motion.div
-           {...panel}
-            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto origin-bottom"
-            style={{ zIndex: 10001 }}
+            {...panel}
+            className="relative flex w-full max-w-md max-h-[min(85vh,calc(100vh-2.5rem))] flex-col overflow-hidden rounded-3xl border shadow-2xl"
+            style={{
+              backgroundColor: 'var(--color-bg-modal)',
+              borderColor: 'var(--color-border)',
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div 
-              className="rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
-              style={{ backgroundColor: 'var(--color-bg-modal)' }}
+            <div
+              className="flex shrink-0 items-center justify-between border-b p-6"
+              style={{
+                backgroundColor: 'var(--color-bg-modal)',
+                borderColor: 'var(--color-border)',
+              }}
             >
-              {/* Header */}
-              <div 
-                className="sticky top-0 border-b p-6 flex items-center justify-between rounded-t-3xl"
-                style={{ 
-                  backgroundColor: 'var(--color-bg-modal)',
-                  borderColor: 'var(--color-border)'
-                }}
+              <h2
+                id="weekly-progress-modal-title"
+                className="pr-2 text-2xl font-bold bg-clip-text text-transparent"
+                style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
               >
-                <h2 
-                  className="text-2xl font-bold bg-clip-text text-transparent"
-                  style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-                >
-                  Weekly Progress
-                </h2>
-                <button
-                  onClick={closeModal}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                >
-                  <X className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-                </button>
-              </div>
+                Weekly Progress
+              </h2>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="shrink-0 rounded-full p-2 transition-colors hover:bg-white/10"
+                style={{ color: 'var(--color-text-secondary)' }}
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
 
-              {/* Content */}
-              <div className="p-6 space-y-6">
+            <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Main Progress Card */}
                 <div 
                   className="bg-gradient-to-br rounded-2xl p-6 border"
@@ -351,10 +351,9 @@ export function WeeklyProgressModal({
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   )

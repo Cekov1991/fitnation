@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useHistory } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
-import { SessionDetailModal } from '../SessionDetailModal';
 import { LoadingContent } from '../ui';
 import { useProgram } from '../../hooks/useApi';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
@@ -40,9 +40,8 @@ function groupWorkoutsByWeek(program: ProgramResource) {
 }
 
 export function ProgramDetailPage({ programId, onBack, onNavigateToWorkout }: ProgramDetailPageProps) {
+  const history = useHistory();
   const { data: program, isLoading, isError, error, refetch } = useProgram(programId);
-  const [completedSessionId, setCompletedSessionId] = useState<number | null>(null);
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
 
   const programWeeks = useMemo(() => {
     if (!program) return [];
@@ -50,8 +49,7 @@ export function ProgramDetailPage({ programId, onBack, onNavigateToWorkout }: Pr
   }, [program]);
 
   const handleCompletedDayClick = (sessionId: number) => {
-    setCompletedSessionId(sessionId);
-    setIsSessionModalOpen(true);
+    history.push(`/sessions/${sessionId}`, { navPage: 'plans' });
   };
 
   return (
@@ -193,14 +191,6 @@ export function ProgramDetailPage({ programId, onBack, onNavigateToWorkout }: Pr
           )}
         </LoadingContent>
 
-        <SessionDetailModal
-          isOpen={isSessionModalOpen}
-          onClose={() => {
-            setIsSessionModalOpen(false);
-            setCompletedSessionId(null);
-          }}
-          sessionId={completedSessionId}
-        />
       </main>
     </div>
   );

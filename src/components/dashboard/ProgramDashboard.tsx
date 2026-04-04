@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { RefreshCw, Trophy, Zap } from 'lucide-react';
 import { WorkoutTemplateSelector } from './WorkoutTemplateSelector';
 import { ProgramControls } from './ProgramControls';
 import { WorkoutCard } from '../WorkoutCard';
-import { SessionDetailModal } from '../SessionDetailModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import { PlanGeneratingOverlay } from '../ui';
@@ -68,12 +67,8 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
       setSelectedTemplateId(defaultSelectedId);
     }
   }, [defaultSelectedId]);
-  const [completedSessionId, setCompletedSessionId] = useState<number | null>(null);
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
-
   const handleCompletedDayClick = (sessionId: number) => {
-    setCompletedSessionId(sessionId);
-    setIsSessionModalOpen(true);
+    history.push(`/sessions/${sessionId}`, { navPage: 'dashboard' });
   };
 
   // Get selected workout template
@@ -432,14 +427,6 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
         </>
       )}
 
-      <SessionDetailModal
-        isOpen={isSessionModalOpen}
-        onClose={() => {
-          setIsSessionModalOpen(false);
-          setCompletedSessionId(null);
-        }}
-        sessionId={completedSessionId}
-      />
     </div>
   );
 }

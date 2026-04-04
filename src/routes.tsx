@@ -29,6 +29,7 @@ const EditWorkoutPageWrapper = React.lazy(() => import('./route-wrappers/EditWor
 const ManageExercisesPageWrapper = React.lazy(() => import('./route-wrappers/ManageExercisesPageWrapper'));
 const WorkoutSessionPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutSessionPageWrapper'));
 const WorkoutSessionExerciseDetailPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutSessionExerciseDetailPageWrapper'));
+const SessionDetailPageWrapper = React.lazy(() => import('./route-wrappers/SessionDetailPageWrapper'));
 
 // Simple loading fallback for Suspense
 function LoadingFallback() {
@@ -211,6 +212,13 @@ export function AppRoutes() {
           <Route exact path="/dashboard">
             <AuthGuard>
               <DashboardPageWrapper />
+            </AuthGuard>
+          </Route>
+
+          {/* Past session summary (must not use /session/:id — that is the live workout) */}
+          <Route exact path="/sessions/:sessionId">
+            <AuthGuard>
+              <SessionDetailPageWrapper />
             </AuthGuard>
           </Route>
 

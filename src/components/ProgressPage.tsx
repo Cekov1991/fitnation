@@ -1,18 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Dumbbell, TrendingUp, TrendingDown } from 'lucide-react';
 import { MetricCard } from './MetricCard';
 import { StrengthScoreModal } from './StrengthScoreModal';
 import { BalanceModal } from './BalanceModal';
 import { WeeklyProgressModal } from './WeeklyProgressModal';
 import { WeeklyCalendar } from './WeeklyCalendar';
-import { SessionDetailModal } from './SessionDetailModal';
 import { useFitnessMetrics } from '../hooks/useApi';
 import { useModals } from '../contexts/ModalsContext';
 
 export function ProgressPage() {
+  const history = useHistory();
   const { data: metrics } = useFitnessMetrics();
-  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const {
     isStrengthModalOpen,
     isBalanceModalOpen,
@@ -62,14 +61,8 @@ export function ProgressPage() {
 
   const handleDateClick = (sessionId: number | null) => {
     if (sessionId) {
-      setSelectedSessionId(sessionId);
-      setIsSessionModalOpen(true);
+      history.push(`/sessions/${sessionId}`, { navPage: 'progress' });
     }
-  };
-
-  const handleCloseSessionModal = () => {
-    setIsSessionModalOpen(false);
-    setSelectedSessionId(null);
   };
 
   return (
@@ -127,11 +120,6 @@ export function ProgressPage() {
       <StrengthScoreModal isOpen={isStrengthModalOpen} onClose={closeStrengthModal} />
       <BalanceModal isOpen={isBalanceModalOpen} onClose={closeBalanceModal} />
       <WeeklyProgressModal isOpen={isProgressModalOpen} onClose={closeProgressModal} />
-      <SessionDetailModal
-        isOpen={isSessionModalOpen}
-        onClose={handleCloseSessionModal}
-        sessionId={selectedSessionId}
-      />
     </>
   );
 }
