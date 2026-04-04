@@ -20,7 +20,7 @@ export function ExerciseNavTabs({
   getCompletionStatus,
   onAddExercise,
 }: ExerciseNavTabsProps) {
-  const modalTransition = useModalTransition();
+  const { fade } = useModalTransition();
   const tabRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
   
   // Auto-scroll to active tab when currentIndex changes
@@ -50,7 +50,7 @@ export function ExerciseNavTabs({
 
   return (
     <motion.div
-    {...modalTransition}
+    {...fade}
       className="px-6 pb-4"
     >
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

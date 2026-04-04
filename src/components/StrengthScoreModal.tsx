@@ -14,7 +14,7 @@ export function StrengthScoreModal({
   onClose,
 }: StrengthScoreModalProps) {
   const { data: metrics } = useFitnessMetrics()
-  const modalTransition = useModalTransition()
+  const { backdrop, panel } = useModalTransition()
   const closeModal = useBackGesture(isOpen, onClose)
   
   const strengthScore = metrics?.strength_score
@@ -86,7 +86,7 @@ export function StrengthScoreModal({
         <>
           {/* Backdrop */}
           <motion.div
-            {...modalTransition}
+            {...backdrop}
             onClick={closeModal}
             className="fixed inset-0 bg-black/60  "
             style={{ zIndex: 10000 }}
@@ -94,8 +94,8 @@ export function StrengthScoreModal({
 
           {/* Modal */}
           <motion.div
-            {...modalTransition}
-            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto"
+            {...panel}
+            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto origin-bottom"
             style={{ zIndex: 10001 }}
           >
             <div 

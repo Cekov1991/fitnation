@@ -25,7 +25,7 @@ export function ConfirmDialog({
   variant = 'danger',
   isLoading = false,
 }: ConfirmDialogProps) {
-  const modalTransition = useModalTransition();
+  const { backdrop, panel } = useModalTransition();
 
   const variantStyles = {
     danger: {
@@ -60,7 +60,7 @@ export function ConfirmDialog({
         <>
           {/* Backdrop */}
           <motion.div
-            {...modalTransition}
+            {...backdrop}
             onClick={onClose}
             className="fixed inset-0 bg-black/60"
             style={{ zIndex: 10000 }}
@@ -68,7 +68,7 @@ export function ConfirmDialog({
 
           {/* Dialog */}
           <motion.div
-            {...modalTransition}
+            {...panel}
             className="fixed inset-0 flex items-center justify-center p-6"
             style={{ zIndex: 10001 }}
           >

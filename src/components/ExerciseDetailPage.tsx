@@ -38,7 +38,7 @@ export function ExerciseDetailPage({
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  const modalTransition = useModalTransition();
+  const { fade } = useModalTransition();
   const {
     data: exercises = []
   } = useExercises();
@@ -250,7 +250,7 @@ export function ExerciseDetailPage({
       <main className="relative z-10 max-w-md mx-auto">
         {/* Header - back, title, plus (top right when primaryAction) */}
         <motion.div 
-          {...modalTransition}
+          {...fade}
           className="flex items-center gap-4 p-6 pb-4"
         >
           <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors flex-shrink-0">
@@ -282,7 +282,7 @@ export function ExerciseDetailPage({
         {/* Tabs - Pill style */}
         {!hidePerformanceTab && (
           <motion.div 
-            {...modalTransition} 
+            {...fade} 
             className="px-6 mb-4"
           >
             <div 
@@ -308,7 +308,7 @@ export function ExerciseDetailPage({
 
         {/* Video/Image Section - Full Width */}
         <motion.div 
-          {...modalTransition}
+          {...fade}
           className="mb-6"
         >
           <div 
@@ -385,7 +385,7 @@ export function ExerciseDetailPage({
         {/* Tab Content */}
         <AnimatePresence mode="wait">
           {activeTab === 'guidance' && (
-            <motion.div key="guidance" {...modalTransition}>
+            <motion.div key="guidance" {...fade}>
               {/* Horizontally Scrolling Cards */}
               <div 
                 className="flex gap-4 overflow-x-auto pb-4 px-6"
@@ -481,7 +481,7 @@ export function ExerciseDetailPage({
           )}
 
           {activeTab === 'performance' && (
-            <motion.div key="performance" {...modalTransition} className="px-6">
+            <motion.div key="performance" {...fade} className="px-6">
               <div 
                 className="rounded-2xl p-6"
                 style={{ backgroundColor: 'var(--color-bg-surface)' }}

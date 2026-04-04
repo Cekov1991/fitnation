@@ -34,7 +34,7 @@ export function ExercisePickerPage({
   isLoading: isSelecting = false,
   initialMuscleGroupIds
 }: ExercisePickerPageProps) {
-  const modalTransition = useModalTransition();
+  const { fade } = useModalTransition();
   const slideTransition = useSlideTransition();
   const {
     data: exercises = [],
@@ -230,7 +230,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Search Bar */}
-        <motion.div {...modalTransition} className="px-4 pb-4">
+        <motion.div {...fade} className="px-4 pb-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-primary)' }} />
             <input 
@@ -255,7 +255,7 @@ export function ExercisePickerPage({
         </motion.div>
 
         {/* Filters Section */}
-        <motion.div {...modalTransition} className="px-4 pb-4 space-y-3">
+        <motion.div {...fade} className="px-4 pb-4 space-y-3">
           {/* Equipment Type Filters */}
           {!isLoadingEquipmentTypes && equipmentTypes.length > 0 && (
             <div>
@@ -348,7 +348,7 @@ export function ExercisePickerPage({
         {/* Exercise List */}
         <div className="flex-1 px-4 pb-6">
           <AnimatePresence mode="popLayout">
-            {isLoading ? <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
+            {isLoading ? <motion.div {...fade} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
                   className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
                   style={{ backgroundColor: 'var(--color-bg-elevated)' }}
@@ -360,9 +360,9 @@ export function ExercisePickerPage({
                 {filteredExercises.map((exercise) => {
                   const isThisLoading = isSelecting && selectedExerciseId === exercise.id;
                   return (
-                    <div
+                    <motion.div
                       key={exercise.id}
-                      {...modalTransition}
+                      {...fade}
                       className="w-full flex items-center gap-4 p-2 border rounded-2xl"
                       style={{
                         backgroundColor: 'var(--color-bg-surface)',
@@ -425,10 +425,10 @@ export function ExercisePickerPage({
                           )}
                         </button>
                       )}
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </div> : <motion.div {...modalTransition} className="flex flex-col items-center justify-center py-12 text-center">
+              </div> : <motion.div {...fade} className="flex flex-col items-center justify-center py-12 text-center">
                 <div 
                   className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
                   style={{ backgroundColor: 'var(--color-bg-elevated)' }}

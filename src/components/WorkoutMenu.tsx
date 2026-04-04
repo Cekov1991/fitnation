@@ -27,7 +27,7 @@ export function WorkoutMenu({
   isCurrentWorkoutActive = false
 }: WorkoutMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  const modalTransition = useModalTransition();
+  const { backdrop, panel } = useModalTransition();
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -71,7 +71,7 @@ export function WorkoutMenu({
       {isOpen && <>
           {/* Backdrop */}
           <motion.div 
-            {...modalTransition}
+            {...backdrop}
             onClick={onClose} 
             className="fixed inset-0 bg-black/60  " 
             style={{ zIndex: 10000 }} 
@@ -80,8 +80,8 @@ export function WorkoutMenu({
           {/* Bottom Sheet */}
           <motion.div 
             ref={menuRef} 
-            {...modalTransition}
-            className="fixed inset-x-0 bottom-0   border-t rounded-t-3xl shadow-2xl max-w-md mx-auto"
+            {...panel}
+            className="fixed inset-x-0 bottom-0   border-t rounded-t-3xl shadow-2xl max-w-md mx-auto origin-bottom"
         style={{ 
           zIndex: 10001,
           backgroundColor: 'var(--color-bg-modal)',

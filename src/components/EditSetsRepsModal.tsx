@@ -29,7 +29,7 @@ export function EditSetsRepsModal({
   isLoading = false,
   exerciseName
 }: EditSetsRepsModalProps) {
-  const modalTransition = useModalTransition();
+  const { backdrop, panel } = useModalTransition();
   const {
     handleSubmit,
     control,
@@ -67,7 +67,7 @@ export function EditSetsRepsModal({
         <>
           {/* Backdrop */}
           <motion.div 
-            {...modalTransition}
+            {...backdrop}
             onClick={onClose} 
             className="fixed inset-0 bg-black/80  " 
             style={{ zIndex: 10000 }} 
@@ -75,7 +75,7 @@ export function EditSetsRepsModal({
 
           {/* Modal */}
           <motion.div 
-            {...modalTransition}
+            {...panel}
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm" 
             style={{ zIndex: 10001 }}
           >

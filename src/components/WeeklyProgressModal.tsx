@@ -53,7 +53,7 @@ export function WeeklyProgressModal({
   const volumeDifference = weeklyProgress?.volume_difference ?? 0
   const volumeDifferencePercent = weeklyProgress?.volume_difference_percent ?? 0
   const dailyBreakdown = weeklyProgress?.daily_breakdown ?? []
-  const modalTransition = useModalTransition()
+  const { backdrop, panel } = useModalTransition()
 
   const isPositive = trend === 'up'
   const isNeutral = trend === 'same'
@@ -77,7 +77,7 @@ export function WeeklyProgressModal({
         <>
           {/* Backdrop */}
           <motion.div
-          {...modalTransition}
+          {...backdrop}
             onClick={closeModal}
             className="fixed inset-0 bg-black/60  "
             style={{ zIndex: 10000 }}
@@ -85,8 +85,8 @@ export function WeeklyProgressModal({
 
           {/* Modal */}
           <motion.div
-           {...modalTransition}
-            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto"
+           {...panel}
+            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto origin-bottom"
             style={{ zIndex: 10001 }}
           >
             <div 

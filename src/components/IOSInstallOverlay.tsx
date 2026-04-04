@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X, Copy, Check, ExternalLink } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { useModalTransition } from '../utils/animations';
 
 function IOSShareIcon({ className }: { className?: string }) {
   return (
@@ -169,6 +170,7 @@ function OpenInSafariSteps() {
 
 export function IOSInstallOverlay() {
   const { showIOSOverlay, setShowIOSOverlay, isIOSSafari } = useInstallPrompt();
+  const { backdrop, panel } = useModalTransition();
 
   return (
     <AnimatePresence>
@@ -177,18 +179,12 @@ export function IOSInstallOverlay() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="ios-install-title"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          {...backdrop}
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-5 backdrop-blur-sm"
           onClick={() => setShowIOSOverlay(false)}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            {...panel}
             className="relative w-full max-w-md rounded-3xl border border-white/10 bg-gradient-to-b from-[#112240] to-[#1a1a2e] p-6 pb-8 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >

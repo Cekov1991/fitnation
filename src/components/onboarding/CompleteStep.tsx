@@ -115,7 +115,7 @@ export function CompleteStep({ formData }: CompleteStepProps) {
     }
   };
 
-  const modalTransition = useModalTransition();
+  const { backdrop, panel } = useModalTransition();
 
   return (
     <>
@@ -125,14 +125,14 @@ export function CompleteStep({ formData }: CompleteStepProps) {
           <>
             {/* Backdrop */}
             <motion.div
-              {...modalTransition}
+              {...backdrop}
               className="fixed inset-0 bg-black/60"
               style={{ zIndex: 10000 }}
             />
 
             {/* Modal */}
             <motion.div
-              {...modalTransition}
+              {...panel}
               className="fixed inset-0 flex items-center justify-center p-6"
               style={{ zIndex: 10001 }}
             >
