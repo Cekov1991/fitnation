@@ -2,7 +2,6 @@ import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { EditWorkoutPage } from '../components/EditWorkoutPage';
 import type { SwapExerciseContext } from '../utils/swapExercise';
 import { useTemplate } from '../hooks/useApi';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Manage exercises page wrapper
 export default function ManageExercisesPageWrapper() {
@@ -10,7 +9,6 @@ export default function ManageExercisesPageWrapper() {
   const location = useLocation<{ templateId?: number; name?: string; description?: string; returnPath?: string }>();
   const { templateId } = useParams<{ templateId: string }>();
   const { data: template } = useTemplate(parseInt(templateId));
-  const currentPage = useCurrentNavPage();
 
   // Get workout info from state or API
   const workoutFromState = location.state;
@@ -55,16 +53,14 @@ export default function ManageExercisesPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <EditWorkoutPage
-        templateId={parseInt(templateId)}
-        workoutName={workoutName}
-        workoutDescription={workoutDescription}
-        onBack={handleBack}
-        onAddExercise={handleAddExercise}
-        onSwapExercise={handleSwapExercise}
-        onViewExerciseDetail={handleViewExerciseDetail}
-      />
-    </AuthenticatedLayout>
+    <EditWorkoutPage
+      templateId={parseInt(templateId)}
+      workoutName={workoutName}
+      workoutDescription={workoutDescription}
+      onBack={handleBack}
+      onAddExercise={handleAddExercise}
+      onSwapExercise={handleSwapExercise}
+      onViewExerciseDetail={handleViewExerciseDetail}
+    />
   );
 }

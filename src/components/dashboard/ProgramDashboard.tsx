@@ -7,7 +7,7 @@ import { WorkoutCard } from '../WorkoutCard';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import { PlanGeneratingOverlay } from '../ui';
-import { ProgramDashboardSkeleton } from './ProgramDashboardSkeleton';
+import { ProgramDashboardContentSkeleton } from './ProgramDashboardSkeleton';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
 
 interface ProgramDashboardProps {
@@ -187,7 +187,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
   }, [activeProgram]);
 
   if (isProgramsLoading) {
-    return <ProgramDashboardSkeleton />;
+    return <ProgramDashboardContentSkeleton />;
   }
 
   return (

@@ -1,6 +1,5 @@
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { ExerciseDetailPage } from '../components/ExerciseDetailPage';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Exercise detail page wrapper
 export default function ExerciseDetailPageWrapper() {
@@ -11,7 +10,6 @@ export default function ExerciseDetailPageWrapper() {
     initialActiveTab?: 'guidance' | 'performance';
   }>();
   const { exerciseName } = useParams<{ exerciseName: string }>();
-  const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
     const state = location.state;
@@ -24,12 +22,10 @@ export default function ExerciseDetailPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <ExerciseDetailPage 
-        exerciseName={decodeURIComponent(exerciseName)} 
-        onBack={handleBack}
-        initialActiveTab={location.state?.initialActiveTab}
-      />
-    </AuthenticatedLayout>
+    <ExerciseDetailPage
+      exerciseName={decodeURIComponent(exerciseName)}
+      onBack={handleBack}
+      initialActiveTab={location.state?.initialActiveTab}
+    />
   );
 }

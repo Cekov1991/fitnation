@@ -2,7 +2,6 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { AddWorkoutPage } from '../components/AddWorkoutPage';
 import { usePlans, useCreateTemplate } from '../hooks/useApi';
 import { dayNameToIndex, type DayName } from '../constants';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Create workout page wrapper
 export default function CreateWorkoutPageWrapper() {
@@ -10,7 +9,6 @@ export default function CreateWorkoutPageWrapper() {
   const location = useLocation();
   const { data: plans = [] } = usePlans();
   const createTemplate = useCreateTemplate();
-  const currentPage = useCurrentNavPage();
 
   // Get plan name from query params
   const searchParams = new URLSearchParams(location.search);
@@ -28,7 +26,7 @@ export default function CreateWorkoutPageWrapper() {
         return;
       }
 
-      const dayOfWeek = data.daysOfWeek.length > 0 
+      const dayOfWeek = data.daysOfWeek.length > 0
         ? dayNameToIndex(data.daysOfWeek[0] as DayName)
         : undefined;
 
@@ -40,13 +38,13 @@ export default function CreateWorkoutPageWrapper() {
       });
 
       const templateId = response?.data?.id || response?.id;
-      
+
       if (templateId) {
         // Navigate to manage exercises for the new workout
-        history.push(`/workouts/${templateId}/exercises`, { 
-          templateId, 
-          name: data.name, 
-          description: data.description 
+        history.push(`/workouts/${templateId}/exercises`, {
+          templateId,
+          name: data.name,
+          description: data.description
         });
       }
     } catch (error) {
@@ -55,8 +53,6 @@ export default function CreateWorkoutPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <AddWorkoutPage mode="create" planName={planName} onBack={handleBack} onSubmit={handleSubmit} isLoading={createTemplate.isPending} />
-    </AuthenticatedLayout>
+    <AddWorkoutPage mode="create" planName={planName} onBack={handleBack} onSubmit={handleSubmit} isLoading={createTemplate.isPending} />
   );
 }

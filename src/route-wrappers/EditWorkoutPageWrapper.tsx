@@ -2,7 +2,6 @@ import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { AddWorkoutPage } from '../components/AddWorkoutPage';
 import { usePlans, useTemplate, useUpdateTemplate } from '../hooks/useApi';
 import { dayNameToIndex, type DayName } from '../constants';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Edit workout page wrapper
 export default function EditWorkoutPageWrapper() {
@@ -12,7 +11,6 @@ export default function EditWorkoutPageWrapper() {
   const { data: plans = [] } = usePlans();
   const { data: template } = useTemplate(parseInt(templateId));
   const updateTemplate = useUpdateTemplate();
-  const currentPage = useCurrentNavPage();
   const templateIdNum = parseInt(templateId);
 
   // Get data from API (preferred) or route state as fallback while loading
@@ -41,7 +39,7 @@ export default function EditWorkoutPageWrapper() {
       const plan = plans.find((p: { name: string }) => p.name === data.plan);
       if (!plan) return;
 
-      const dayOfWeek = data.daysOfWeek.length > 0 
+      const dayOfWeek = data.daysOfWeek.length > 0
         ? dayNameToIndex(data.daysOfWeek[0] as DayName)
         : undefined;
 
@@ -67,7 +65,7 @@ export default function EditWorkoutPageWrapper() {
 
     try {
       // Get the day indices
-      const currentDayIndex = data.currentWorkoutDay 
+      const currentDayIndex = data.currentWorkoutDay
         ? dayNameToIndex(data.currentWorkoutDay as DayName)
         : null;
       const targetDayIndex = dayNameToIndex(data.targetDay as DayName);
@@ -76,7 +74,7 @@ export default function EditWorkoutPageWrapper() {
       const targetWorkout = plans
         .flatMap((p: { workout_templates?: { id: number; name: string }[] }) => p.workout_templates || [])
         .find((t: { id: number }) => t.id === data.targetWorkoutId);
-      
+
       if (!targetWorkout) {
         console.error('Target workout not found');
         return;
@@ -106,25 +104,21 @@ export default function EditWorkoutPageWrapper() {
 
   if (!initialData) {
     return (
-      <AuthenticatedLayout currentPage={currentPage}>
-        <div className="min-h-screen flex items-center justify-center">
-          <div style={{ color: 'var(--color-text-secondary)' }}>Loading workout...</div>
-        </div>
-      </AuthenticatedLayout>
+      <div className="min-h-screen flex items-center justify-center">
+        <div style={{ color: 'var(--color-text-secondary)' }}>Loading workout...</div>
+      </div>
     );
   }
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <AddWorkoutPage 
-        mode="edit" 
-        templateId={templateIdNum}
-        initialData={initialData} 
-        onBack={handleBack} 
-        onSubmit={handleSubmit} 
-        onSwap={handleSwap}
-        isLoading={updateTemplate.isPending}
-      />
-    </AuthenticatedLayout>
+    <AddWorkoutPage
+      mode="edit"
+      templateId={templateIdNum}
+      initialData={initialData}
+      onBack={handleBack}
+      onSubmit={handleSubmit}
+      onSwap={handleSwap}
+      isLoading={updateTemplate.isPending}
+    />
   );
 }

@@ -7,6 +7,7 @@ import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 import { RouteSuspenseFallback } from './components/ui/RouteSuspenseFallback';
+import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
 
 // Eagerly imported skeletons — tiny pure-UI components, no need to lazy-load them.
 // These are used as Suspense fallbacks so they must be available before the route
@@ -99,105 +100,131 @@ export function AppRoutes() {
 
           <Route exact path="/profile">
             <AuthGuard>
-              <S fallback={<ProfilePageSkeleton />}>
-                <ProfilePageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ProfilePageSkeleton />}>
+                  <ProfilePageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/progress">
             <AuthGuard>
-              <S fallback={<ProgressCalendarSkeleton />}>
-                <ProgressPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ProgressCalendarSkeleton />}>
+                  <ProgressPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/plans">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
-                <PlansPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<RouteSuspenseFallback />}>
+                  <PlansPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/plans/create">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
-                <CreatePlanPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<RouteSuspenseFallback />}>
+                  <CreatePlanPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/plans/:planId/edit">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
-                <EditPlanPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<RouteSuspenseFallback />}>
+                  <EditPlanPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/programs/library">
             <AuthGuard>
-              <S fallback={<ProgramLibraryPageSkeleton />}>
-                <ProgramLibraryPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ProgramLibraryPageSkeleton />}>
+                  <ProgramLibraryPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/programs/:programId">
             <AuthGuard>
-              <S fallback={<ProgramDetailPageSkeleton />}>
-                <ProgramDetailPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ProgramDetailPageSkeleton />}>
+                  <ProgramDetailPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/routines/:routineId">
             <AuthGuard>
-              <S fallback={<BrowsableRoutineDetailPageSkeleton />}>
-                <BrowsableRoutineDetailPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<BrowsableRoutineDetailPageSkeleton />}>
+                  <BrowsableRoutineDetailPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/routines/:routineId/workouts/:workoutId">
             <AuthGuard>
-              <S fallback={<RoutineWorkoutDetailPageSkeleton />}>
-                <RoutineWorkoutDetailPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<RoutineWorkoutDetailPageSkeleton />}>
+                  <RoutineWorkoutDetailPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/workouts/create">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
-                <CreateWorkoutPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<RouteSuspenseFallback />}>
+                  <CreateWorkoutPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/workouts/:templateId/edit">
             <AuthGuard>
-              <S fallback={<EditWorkoutPageSkeleton />}>
-                <EditWorkoutPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<EditWorkoutPageSkeleton />}>
+                  <EditWorkoutPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/workouts/:templateId/exercises">
             <AuthGuard>
-              <S fallback={<EditWorkoutPageSkeleton />}>
-                <ManageExercisesPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<EditWorkoutPageSkeleton />}>
+                  <ManageExercisesPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/exercises">
             <AuthGuard>
-              <S fallback={<ExercisePickerPageSkeleton isBrowse />}>
-                <ExerciseCatalogPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ExercisePickerPageSkeleton isBrowse />}>
+                  <ExerciseCatalogPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
@@ -211,9 +238,11 @@ export function AppRoutes() {
 
           <Route exact path="/exercises/:exerciseName">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
-                <ExerciseDetailPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<RouteSuspenseFallback />}>
+                  <ExerciseDetailPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
@@ -245,26 +274,32 @@ export function AppRoutes() {
           {/* Dashboard — default tab is Programs */}
           <Route exact path="/">
             <AuthGuard>
-              <S fallback={<ProgramDashboardSkeleton />}>
-                <DashboardPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ProgramDashboardSkeleton />}>
+                  <DashboardPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           <Route exact path="/dashboard">
             <AuthGuard>
-              <S fallback={<ProgramDashboardSkeleton />}>
-                <DashboardPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<ProgramDashboardSkeleton />}>
+                  <DashboardPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 
           {/* Past session summary (must not use /session/:id — that is the live workout) */}
           <Route exact path="/sessions/:sessionId">
             <AuthGuard>
-              <S fallback={<SessionDetailPageSkeleton />}>
-                <SessionDetailPageWrapper />
-              </S>
+              <AuthenticatedLayout>
+                <S fallback={<SessionDetailPageSkeleton />}>
+                  <SessionDetailPageWrapper />
+                </S>
+              </AuthenticatedLayout>
             </AuthGuard>
           </Route>
 

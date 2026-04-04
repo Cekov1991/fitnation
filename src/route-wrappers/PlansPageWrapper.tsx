@@ -1,11 +1,9 @@
 import { useHistory } from 'react-router-dom';
 import { PlansPage } from '../components/PlansPage';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Plans page wrapper with router-based navigation
 export default function PlansPageWrapper() {
   const history = useHistory();
-  const currentPage = useCurrentNavPage();
 
   const handleNavigateToCreate = () => {
     history.push('/plans/create');
@@ -32,14 +30,12 @@ export default function PlansPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <PlansPage
-        onNavigateToCreate={handleNavigateToCreate}
-        onNavigateToEdit={handleNavigateToEdit}
-        onNavigateToAddWorkout={handleNavigateToAddWorkout}
-        onNavigateToEditWorkout={handleNavigateToEditWorkout}
-        onNavigateToManageExercises={handleNavigateToManageExercises}
-      />
-    </AuthenticatedLayout>
+    <PlansPage
+      onNavigateToCreate={handleNavigateToCreate}
+      onNavigateToEdit={handleNavigateToEdit}
+      onNavigateToAddWorkout={handleNavigateToAddWorkout}
+      onNavigateToEditWorkout={handleNavigateToEditWorkout}
+      onNavigateToManageExercises={handleNavigateToManageExercises}
+    />
   );
 }

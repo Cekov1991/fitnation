@@ -1,6 +1,4 @@
-import { motion } from 'framer-motion';
 import { Skeleton } from './ui/Skeleton';
-import { useModalTransition } from '../utils/animations';
 
 interface ExercisePickerPageSkeletonProps {
   /** Hide trailing add/swap action column (browse mode). */
@@ -31,12 +29,11 @@ export function ExercisePickerPageSkeleton({
   isBrowse = false,
   rowCount = 8,
 }: ExercisePickerPageSkeletonProps) {
-  const { fade } = useModalTransition();
   return (
-    <motion.div {...fade} className="space-y-2" aria-busy aria-label="Loading exercises">
+    <div className="space-y-2" aria-busy aria-label="Loading exercises">
       {Array.from({ length: rowCount }, (_, i) => (
         <ExerciseRowSkeleton key={i} isBrowse={isBrowse} />
       ))}
-    </motion.div>
+    </div>
   );
 }

@@ -9,7 +9,16 @@ import { useScrollRestoration } from '../hooks/useScrollRestoration';
 const INSTALL_BANNER_OFFSET = 100;
 
 // Common layout wrapper for authenticated pages
-export function AuthenticatedLayout({ children, currentPage }: { children: React.ReactNode; currentPage: BottomNavPage }) {
+export function AuthenticatedLayout({
+  children,
+  currentPage,
+}: {
+  children: React.ReactNode;
+  /** When omitted, derived from the current URL via useCurrentNavPage(). */
+  currentPage?: BottomNavPage;
+}) {
+  const derivedPage = useCurrentNavPage();
+  const activePage = currentPage ?? derivedPage;
   const { canInstall, isIOS } = useInstallPrompt();
   const showInstallBar = canInstall || isIOS;
   const location = useLocation();
@@ -27,7 +36,7 @@ export function AuthenticatedLayout({ children, currentPage }: { children: React
         {children}
       </div>
 
-      <BottomNav currentPage={currentPage} />
+      <BottomNav currentPage={activePage} />
     </div>
   );
 }

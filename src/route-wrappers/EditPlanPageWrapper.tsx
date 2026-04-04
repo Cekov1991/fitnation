@@ -1,7 +1,6 @@
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { CreatePlanPage } from '../components/CreatePlanPage';
 import { usePlans, useUpdatePlan } from '../hooks/useApi';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Edit plan page wrapper
 export default function EditPlanPageWrapper() {
@@ -10,12 +9,11 @@ export default function EditPlanPageWrapper() {
   const { planId } = useParams<{ planId: string }>();
   const { data: plans = [] } = usePlans();
   const updatePlan = useUpdatePlan();
-  const currentPage = useCurrentNavPage();
 
   // Get plan data from route state or fetch from API
   const planFromState = location.state;
   const planFromApi = plans.find((p: { id: number }) => p.id === parseInt(planId));
-  
+
   const initialData = planFromState || (planFromApi ? {
     id: planFromApi.id,
     name: planFromApi.name,
@@ -50,17 +48,13 @@ export default function EditPlanPageWrapper() {
 
   if (!initialData) {
     return (
-      <AuthenticatedLayout currentPage={currentPage}>
-        <div className="min-h-screen flex items-center justify-center">
-          <div style={{ color: 'var(--color-text-secondary)' }}>Loading plan...</div>
-        </div>
-      </AuthenticatedLayout>
+      <div className="min-h-screen flex items-center justify-center">
+        <div style={{ color: 'var(--color-text-secondary)' }}>Loading plan...</div>
+      </div>
     );
   }
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <CreatePlanPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} isLoading={updatePlan.isPending} />
-    </AuthenticatedLayout>
+    <CreatePlanPage mode="edit" initialData={initialData} onBack={handleBack} onSubmit={handleSubmit} isLoading={updatePlan.isPending} />
   );
 }

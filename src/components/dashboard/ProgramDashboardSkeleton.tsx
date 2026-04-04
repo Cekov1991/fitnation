@@ -15,7 +15,8 @@ function ExerciseRowSkeleton() {
   );
 }
 
-export function ProgramDashboardSkeleton() {
+/** Program tab body only — use inside DashboardPage (below header + PlanTypeSwitcher). */
+export function ProgramDashboardContentSkeleton() {
   return (
     <div className="pb-32" aria-busy aria-label="Loading program">
       {/* ProgramControls — horizontal scroll of controls */}
@@ -71,5 +72,28 @@ export function ProgramDashboardSkeleton() {
         <Skeleton className="h-12 w-full rounded-xl mt-6" />
       </div>
     </div>
+  );
+}
+
+/**
+ * Full dashboard chrome + program tab — Suspense fallback while the dashboard chunk loads.
+ * Matches DashboardPage layout (main, header, PlanTypeSwitcher, program body).
+ */
+export function ProgramDashboardSkeleton() {
+  return (
+    <main className="relative z-10 max-w-md mx-auto px-4 py-8" aria-busy aria-label="Loading dashboard">
+      <header className="flex flex-col items-center mb-8">
+        <Skeleton className="w-16 h-16 rounded-2xl mb-4" />
+        <Skeleton className="h-9 w-48 rounded-xl mb-2" />
+        <Skeleton className="h-4 w-44 rounded-lg" />
+      </header>
+
+      <div className="flex gap-2 justify-center mb-8">
+        <Skeleton className="h-10 flex-1 max-w-[9rem] rounded-xl" />
+        <Skeleton className="h-10 flex-1 max-w-[9rem] rounded-xl" />
+      </div>
+
+      <ProgramDashboardContentSkeleton />
+    </main>
   );
 }

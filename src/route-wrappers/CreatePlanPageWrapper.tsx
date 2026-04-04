@@ -1,13 +1,11 @@
 import { useHistory } from 'react-router-dom';
 import { CreatePlanPage } from '../components/CreatePlanPage';
 import { useCreatePlan } from '../hooks/useApi';
-import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 
 // Create plan page wrapper
 export default function CreatePlanPageWrapper() {
   const history = useHistory();
   const createPlan = useCreatePlan();
-  const currentPage = useCurrentNavPage();
 
   const handleBack = () => {
     history.goBack();
@@ -27,8 +25,6 @@ export default function CreatePlanPageWrapper() {
   };
 
   return (
-    <AuthenticatedLayout currentPage={currentPage}>
-      <CreatePlanPage mode="create" onBack={handleBack} onSubmit={handleSubmit} isLoading={createPlan.isPending} />
-    </AuthenticatedLayout>
+    <CreatePlanPage mode="create" onBack={handleBack} onSubmit={handleSubmit} isLoading={createPlan.isPending} />
   );
 }
