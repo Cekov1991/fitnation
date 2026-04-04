@@ -101,35 +101,37 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
       className="min-h-screen w-full pb-32 max-w-md mx-auto"
       style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
     >
-      <header
-        className="sticky top-0 z-20 border-b px-4 py-4 flex items-center gap-3"
-        style={{
-          backgroundColor: 'var(--color-bg-base)',
-          borderColor: 'var(--color-border)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
-          aria-label="Back"
-        >
-          <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-        </button>
-        <h1
-          className="text-xl font-bold bg-clip-text text-transparent flex-1"
-          style={{
-            backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-          }}
-        >
-          Session Details
-        </h1>
-      </header>
+      {isLoading ? (
+        <SessionDetailPageSkeleton onBack={onBack} />
+      ) : (
+        <>
+          <header
+            className="sticky top-0 z-20 border-b px-4 py-4 flex items-center gap-3"
+            style={{
+              backgroundColor: 'var(--color-bg-base)',
+              borderColor: 'var(--color-border)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={onBack}
+              className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+              aria-label="Back"
+            >
+              <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
+            </button>
+            <h1
+              className="text-xl font-bold bg-clip-text text-transparent flex-1"
+              style={{
+                backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+              }}
+            >
+              Session Details
+            </h1>
+          </header>
 
-      <div className="px-4 py-6 space-y-6">
-        {isLoading ? (
-          <SessionDetailPageSkeleton />
-        ) : error || !sessionData ? (
+          <div className="px-4 py-6 space-y-6">
+        {error || !sessionData ? (
           <div className="text-center py-8">
             <p style={{ color: 'var(--color-text-secondary)' }}>
               {error ? 'Failed to load session details' : 'No session data available'}
@@ -570,7 +572,9 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
             )}
           </>
         )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Calendar, Info } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Calendar, Info, RefreshCw } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { ProgramLibraryPageSkeleton } from './ProgramLibraryPageSkeleton';
 import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '../../hooks/useApi';
@@ -27,6 +27,38 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
   const updateProgram = useUpdateProgram();
 
   const isPending = cloneProgram.isPending || updateProgram.isPending;
+
+  const libraryHeaderAndBanner = (
+    <>
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          type="button"
+          onClick={onBack}
+          className="p-2 rounded-full transition-colors"
+          style={{ backgroundColor: 'var(--color-border-subtle)' }}
+        >
+          <ArrowLeft className="w-5 h-5" style={{ color: 'var(--color-text-primary)' }} />
+        </button>
+        <h1
+          className="text-3xl font-bold bg-clip-text text-transparent"
+          style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+        >
+          Program Library
+        </h1>
+      </div>
+      <div
+        className="flex gap-3 p-4 rounded-xl mb-6"
+        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+      >
+        <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+          Browse professionally designed programs from your gym. Start a program to add it to your collection and set it as your active program.
+        </p>
+      </div>
+    </>
+  );
+
+  const errorMessage = error instanceof Error ? error.message : error || 'Something went wrong';
 
   const handleStartProgramFromDetail = () => {
     if (!viewingProgram) return;
@@ -76,43 +108,43 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
           style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
         >
           <main className="relative z-10 max-w-md mx-auto px-4 py-8">
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-              <button
-                onClick={onBack}
-                className="p-2 rounded-full transition-colors"
-                style={{ backgroundColor: 'var(--color-border-subtle)' }}
-              >
-                <ArrowLeft className="w-5 h-5" style={{ color: 'var(--color-text-primary)' }} />
-              </button>
-              <h1 
-                className="text-3xl font-bold bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-              >
-                Program Library
-              </h1>
-            </div>
-
-            {/* Info Banner */}
-            <div 
-              className="flex gap-3 p-4 rounded-xl mb-6"
-              style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-            >
-              <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                Browse professionally designed programs from your gym. Start a program to add it to your collection and set it as your active program.
-              </p>
-            </div>
-
-            {/* Library Programs */}
             <LoadingContent
               isLoading={isLoading}
               isError={isError}
               error={error}
               onRetry={refetch}
               loadingFallback={<ProgramLibraryPageSkeleton />}
+              errorFallback={
+                <>
+                  {libraryHeaderAndBanner}
+                  <div
+                    className="flex flex-col items-center justify-center py-8 px-4 rounded-2xl border"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)',
+                      borderColor: 'color-mix(in srgb, #ef4444 30%, transparent)',
+                    }}
+                  >
+                    <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
+                    <p className="text-sm text-red-400 text-center mb-4">{errorMessage}</p>
+                    <button
+                      type="button"
+                      onClick={() => refetch()}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: 'color-mix(in srgb, #ef4444 20%, transparent)',
+                        color: '#f87171',
+                      }}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Try Again
+                    </button>
+                  </div>
+                </>
+              }
             >
-              <div className="space-y-4">
+              <>
+                {libraryHeaderAndBanner}
+                <div className="space-y-4">
                 {libraryPrograms.length === 0 ? (
                   <div 
                     className="text-center py-12 border rounded-2xl"
@@ -202,7 +234,8 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
                     </button>
                   ))
                 )}
-              </div>
+                </div>
+              </>
             </LoadingContent>
           </main>
         </div>

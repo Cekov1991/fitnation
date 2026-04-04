@@ -28,6 +28,12 @@ function WeekCardSkeleton() {
 export function ProgramDetailPageSkeleton() {
   return (
     <div aria-busy aria-label="Loading program">
+      {/* Matches ProgramDetailPage header (back + title) */}
+      <div className="flex items-center gap-4 mb-6">
+        <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+        <Skeleton className="h-8 w-48 max-w-[min(200px,100%)] rounded-lg" />
+      </div>
+
       <div
         className="rounded-2xl overflow-hidden mb-6"
         style={{

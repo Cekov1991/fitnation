@@ -21,7 +21,10 @@ function ExerciseRowSkeleton() {
 export function RoutineWorkoutDetailPageSkeleton() {
   return (
     <div aria-busy aria-label="Loading workout">
-      <Skeleton className="h-8 w-48 max-w-full mb-4" />
+      <div className="flex items-center gap-4 mb-6">
+        <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+        <Skeleton className="h-8 flex-1 max-w-[220px] rounded-lg" />
+      </div>
       <Skeleton className="h-3 w-20 mb-4" />
       <div className="space-y-3">
         <ExerciseRowSkeleton />

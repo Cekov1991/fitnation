@@ -6,23 +6,8 @@ import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
-import { RouteSuspenseFallback } from './components/ui/RouteSuspenseFallback';
 import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
-
-// Eagerly imported skeletons — tiny pure-UI components, no need to lazy-load them.
-// These are used as Suspense fallbacks so they must be available before the route
-// chunk downloads.
 import { ProgramDashboardSkeleton } from './components/dashboard/ProgramDashboardSkeleton';
-import { ProfilePageSkeleton } from './components/ProfilePageSkeleton';
-import { ProgressCalendarSkeleton } from './components/ProgressPageSkeleton';
-import { SessionDetailPageSkeleton } from './components/SessionDetailPageSkeleton';
-import { ProgramDetailPageSkeleton } from './components/plans/ProgramDetailPageSkeleton';
-import { ProgramLibraryPageSkeleton } from './components/plans/ProgramLibraryPageSkeleton';
-import { BrowsableRoutineDetailPageSkeleton } from './components/plans/BrowsableRoutineDetailPageSkeleton';
-import { RoutineWorkoutDetailPageSkeleton } from './components/plans/RoutineWorkoutDetailPageSkeleton';
-import { EditWorkoutPageSkeleton } from './components/EditWorkoutPageSkeleton';
-import { WorkoutPreviewPageSkeleton } from './components/WorkoutPreviewPageSkeleton';
-import { ExercisePickerPageSkeleton } from './components/ExercisePickerPageSkeleton';
 
 // Lazy load all route wrappers for code-splitting
 const ProfilePageWrapper = React.lazy(() => import('./route-wrappers/ProfilePageWrapper'));
@@ -48,8 +33,7 @@ const WorkoutSessionPageWrapper = React.lazy(() => import('./route-wrappers/Work
 const WorkoutSessionExerciseDetailPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutSessionExerciseDetailPageWrapper'));
 const SessionDetailPageWrapper = React.lazy(() => import('./route-wrappers/SessionDetailPageWrapper'));
 
-/** Wraps a lazy page in its own Suspense with a page-specific fallback skeleton.
- *  The outer global Suspense (below) is a safety net for anything not covered here. */
+/** Per-route lazy boundary. Dashboard keeps a skeleton while the chunk loads; all other routes use null to avoid double-skeleton with in-page data loading. */
 function S({ fallback, children }: { fallback: React.ReactNode; children: React.ReactNode }) {
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
@@ -66,8 +50,7 @@ function S({ fallback, children }: { fallback: React.ReactNode; children: React.
 export function AppRoutes() {
   return (
     <BrowserRouter>
-      {/* Outer Suspense is a safety net for any unhandled lazy boundary */}
-      <Suspense fallback={<RouteSuspenseFallback />}>
+      <Suspense fallback={null}>
         <Switch>
           {/* ── Public routes (not lazy, no Suspense needed) ── */}
 
@@ -101,7 +84,7 @@ export function AppRoutes() {
           <Route exact path="/profile">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<ProfilePageSkeleton />}>
+                <S fallback={null}>
                   <ProfilePageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -111,7 +94,7 @@ export function AppRoutes() {
           <Route exact path="/progress">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<ProgressCalendarSkeleton />}>
+                <S fallback={null}>
                   <ProgressPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -121,7 +104,7 @@ export function AppRoutes() {
           <Route exact path="/plans">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<RouteSuspenseFallback />}>
+                <S fallback={null}>
                   <PlansPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -131,7 +114,7 @@ export function AppRoutes() {
           <Route exact path="/plans/create">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<RouteSuspenseFallback />}>
+                <S fallback={null}>
                   <CreatePlanPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -141,7 +124,7 @@ export function AppRoutes() {
           <Route exact path="/plans/:planId/edit">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<RouteSuspenseFallback />}>
+                <S fallback={null}>
                   <EditPlanPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -151,7 +134,7 @@ export function AppRoutes() {
           <Route exact path="/programs/library">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<ProgramLibraryPageSkeleton />}>
+                <S fallback={null}>
                   <ProgramLibraryPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -161,7 +144,7 @@ export function AppRoutes() {
           <Route exact path="/programs/:programId">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<ProgramDetailPageSkeleton />}>
+                <S fallback={null}>
                   <ProgramDetailPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -171,7 +154,7 @@ export function AppRoutes() {
           <Route exact path="/routines/:routineId">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<BrowsableRoutineDetailPageSkeleton />}>
+                <S fallback={null}>
                   <BrowsableRoutineDetailPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -181,7 +164,7 @@ export function AppRoutes() {
           <Route exact path="/routines/:routineId/workouts/:workoutId">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<RoutineWorkoutDetailPageSkeleton />}>
+                <S fallback={null}>
                   <RoutineWorkoutDetailPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -191,7 +174,7 @@ export function AppRoutes() {
           <Route exact path="/workouts/create">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<RouteSuspenseFallback />}>
+                <S fallback={null}>
                   <CreateWorkoutPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -201,7 +184,7 @@ export function AppRoutes() {
           <Route exact path="/workouts/:templateId/edit">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<EditWorkoutPageSkeleton />}>
+                <S fallback={null}>
                   <EditWorkoutPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -211,7 +194,7 @@ export function AppRoutes() {
           <Route exact path="/workouts/:templateId/exercises">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<EditWorkoutPageSkeleton />}>
+                <S fallback={null}>
                   <ManageExercisesPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -221,7 +204,7 @@ export function AppRoutes() {
           <Route exact path="/exercises">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<ExercisePickerPageSkeleton isBrowse />}>
+                <S fallback={null}>
                   <ExerciseCatalogPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -230,7 +213,7 @@ export function AppRoutes() {
 
           <Route exact path="/exercises/pick">
             <AuthGuard>
-              <S fallback={<ExercisePickerPageSkeleton />}>
+              <S fallback={null}>
                 <ExercisePickerPageWrapper />
               </S>
             </AuthGuard>
@@ -239,7 +222,7 @@ export function AppRoutes() {
           <Route exact path="/exercises/:exerciseName">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<RouteSuspenseFallback />}>
+                <S fallback={null}>
                   <ExerciseDetailPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -248,7 +231,7 @@ export function AppRoutes() {
 
           <Route exact path="/generate-workout">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
+              <S fallback={null}>
                 <GenerateWorkoutPageWrapper />
               </S>
             </AuthGuard>
@@ -257,7 +240,7 @@ export function AppRoutes() {
           {/* Workout preview picker (must be before preview so /pick matches) */}
           <Route exact path="/generate-workout/preview/:sessionId/pick">
             <AuthGuard>
-              <S fallback={<ExercisePickerPageSkeleton />}>
+              <S fallback={null}>
                 <WorkoutPreviewExercisePickerWrapper />
               </S>
             </AuthGuard>
@@ -265,13 +248,13 @@ export function AppRoutes() {
 
           <Route exact path="/generate-workout/preview/:sessionId">
             <AuthGuard>
-              <S fallback={<WorkoutPreviewPageSkeleton />}>
+              <S fallback={null}>
                 <WorkoutPreviewPageWrapper />
               </S>
             </AuthGuard>
           </Route>
 
-          {/* Dashboard — default tab is Programs */}
+          {/* Dashboard — only route that shows a chunk-load skeleton */}
           <Route exact path="/">
             <AuthGuard>
               <AuthenticatedLayout>
@@ -292,11 +275,10 @@ export function AppRoutes() {
             </AuthGuard>
           </Route>
 
-          {/* Past session summary (must not use /session/:id — that is the live workout) */}
           <Route exact path="/sessions/:sessionId">
             <AuthGuard>
               <AuthenticatedLayout>
-                <S fallback={<SessionDetailPageSkeleton />}>
+                <S fallback={null}>
                   <SessionDetailPageWrapper />
                 </S>
               </AuthenticatedLayout>
@@ -305,7 +287,7 @@ export function AppRoutes() {
 
           <Route exact path="/session/:sessionId">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
+              <S fallback={null}>
                 <WorkoutSessionPageWrapper />
               </S>
             </AuthGuard>
@@ -313,7 +295,7 @@ export function AppRoutes() {
 
           <Route exact path="/session/:sessionId/exercise/:exerciseName">
             <AuthGuard>
-              <S fallback={<RouteSuspenseFallback />}>
+              <S fallback={null}>
                 <WorkoutSessionExerciseDetailPageWrapper />
               </S>
             </AuthGuard>

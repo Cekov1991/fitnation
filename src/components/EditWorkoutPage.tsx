@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, Reorder, useDragControls } from 'framer-motion';
-import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Plus, Edit2, GripVertical, RefreshCw } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { LoadingContent } from './ui';
@@ -271,6 +271,23 @@ export function EditWorkoutPage({
       }
     }
   };
+
+  const errorMessage = error instanceof Error ? error.message : error || 'Something went wrong';
+
+  const editWorkoutHeader = (
+    <motion.div {...fade} className="flex items-center gap-4 mb-8">
+      <button type="button" onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+        <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
+      </button>
+      <h1
+        className="text-3xl font-bold bg-clip-text text-transparent"
+        style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+      >
+        {workoutName}
+      </h1>
+    </motion.div>
+  );
+
   return <div>
       <div>
         <div 
@@ -279,99 +296,97 @@ export function EditWorkoutPage({
         >
 
       <main className="relative z-10 max-w-md mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div {...fade} className="flex items-center gap-4 mb-8">
-          <button onClick={onBack} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            <ArrowLeft className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} />
-          </button>
-          <h1 
-            className="text-3xl font-bold bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-          >
-            {workoutName}
-          </h1>
-        </motion.div>
-
-        {/* Workout Info Card */}
-        {/* <motion.div 
-        {...fade}  
-        className="border rounded-3xl p-4 mb-8 text-center"
-        style={{ 
-          background: 'var(--color-bg-surface)',
-          borderColor: 'var(--color-border)'
-        }}
-      >
-          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>{workoutName}</h2>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            {workoutDescription || 'New Workout'}
-          </p>
-        </motion.div> */}
-
-        {/* Exercises Section */}
-        <motion.div {...fade}>
-          {/* Exercises Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Exercises</h3>
-          </div>
-
-          {/* Exercise List */}
-          <div className="mb-4">
-            {/* Loading indicator when refetching */}
-            
-            <LoadingContent
-              isLoading={isLoading}
-              isError={isError}
-              error={error}
-              onRetry={() => refetch()}
-              loadingFallback={<EditWorkoutPageSkeleton />}
-            >
-              {exercises.length === 0 ? (
-                <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
-                  No exercises in this workout yet.
-                </div>
-              ) : (
-                <Reorder.Group 
-                  axis="y" 
-                  values={exercises} 
-                  onReorder={handleReorder}
-                  className="space-y-3"
-                >
-                  {exercises.map((exercise) => (
-                    <DraggableExerciseItem
-                      key={exercise.id}
-                      exercise={exercise}
-                      onEditClick={handleExerciseEditClick}
-                      onDragEnd={handleDragEnd}
-                      onClick={handleExerciseClick}
-                      skipDragAnimation={skipDragAnimation}
-                    />
-                  ))}
-                </Reorder.Group>
-              )}
-            </LoadingContent>
-          </div>
-
-          {/* Add Exercise Button */}
-          <button
-          onClick={onAddExercise} 
-          className="w-full py-6 border-2 border-dashed rounded-2xl transition-all group"
-          style={{
-            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
-          }}
-        >
-            <div className="flex items-center justify-center gap-3">
-              <div 
-                className="p-2 rounded-lg transition-colors"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}
+        <LoadingContent
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          onRetry={() => refetch()}
+          loadingFallback={<EditWorkoutPageSkeleton />}
+          errorFallback={
+            <>
+              {editWorkoutHeader}
+              <div
+                className="flex flex-col items-center justify-center py-8 px-4 rounded-2xl border"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)',
+                  borderColor: 'color-mix(in srgb, #ef4444 30%, transparent)',
+                }}
               >
-                <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
+                <p className="text-sm text-red-400 text-center mb-4">{errorMessage}</p>
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, #ef4444 20%, transparent)',
+                    color: '#f87171',
+                  }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Try Again
+                </button>
               </div>
-              <span className="text-base font-semibold" style={{ color: 'var(--color-primary)' }}>
-                Add Exercise
-              </span>
-            </div>
-          </button>
-        </motion.div>
+            </>
+          }
+        >
+          <>
+            {editWorkoutHeader}
+
+            <motion.div {...fade}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>Exercises</h3>
+              </div>
+
+              <div className="mb-4">
+                {exercises.length === 0 ? (
+                  <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+                    No exercises in this workout yet.
+                  </div>
+                ) : (
+                  <Reorder.Group
+                    axis="y"
+                    values={exercises}
+                    onReorder={handleReorder}
+                    className="space-y-3"
+                  >
+                    {exercises.map((exercise) => (
+                      <DraggableExerciseItem
+                        key={exercise.id}
+                        exercise={exercise}
+                        onEditClick={handleExerciseEditClick}
+                        onDragEnd={handleDragEnd}
+                        onClick={handleExerciseClick}
+                        skipDragAnimation={skipDragAnimation}
+                      />
+                    ))}
+                  </Reorder.Group>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={onAddExercise}
+                className="w-full py-6 border-2 border-dashed rounded-2xl transition-all group"
+                style={{
+                  borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)'
+                }}
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <div
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' }}
+                  >
+                    <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                  </div>
+                  <span className="text-base font-semibold" style={{ color: 'var(--color-primary)' }}>
+                    Add Exercise
+                  </span>
+                </div>
+              </button>
+            </motion.div>
+          </>
+        </LoadingContent>
       </main>
 
       {/* Exercise Edit Menu */}

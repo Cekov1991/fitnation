@@ -22,10 +22,19 @@ function ExerciseRowSkeleton() {
 
 export function EditWorkoutPageSkeleton() {
   return (
-    <div className="space-y-3" aria-busy aria-label="Loading workout">
-      {[1, 2, 3, 4].map((i) => (
-        <ExerciseRowSkeleton key={i} />
-      ))}
+    <div aria-busy aria-label="Loading workout">
+      <div className="flex items-center gap-4 mb-8">
+        <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+        <Skeleton className="h-9 flex-1 max-w-[min(280px,100%)] rounded-xl" />
+      </div>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-7 w-28 rounded-lg" />
+      </div>
+      <div className="space-y-3 mb-4">
+        {[1, 2, 3, 4].map((i) => (
+          <ExerciseRowSkeleton key={i} />
+        ))}
+      </div>
     </div>
   );
 }

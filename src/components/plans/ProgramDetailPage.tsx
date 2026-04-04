@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
 import { LoadingContent } from '../ui';
 import { ProgramDetailPageSkeleton } from './ProgramDetailPageSkeleton';
@@ -53,37 +53,71 @@ export function ProgramDetailPage({ programId, onBack, onNavigateToWorkout }: Pr
     history.push(`/sessions/${sessionId}`, { navPage: 'plans' });
   };
 
+  const programDetailHeader = (
+    <div className="flex items-center gap-4 mb-6">
+      <button
+        type="button"
+        onClick={onBack}
+        className="p-2 rounded-full transition-colors"
+        style={{ backgroundColor: 'var(--color-border-subtle)' }}
+      >
+        <ArrowLeft className="w-5 h-5" style={{ color: 'var(--color-text-primary)' }} />
+      </button>
+      <h1
+        className="text-2xl font-bold bg-clip-text text-transparent"
+        style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
+      >
+        Program Details
+      </h1>
+    </div>
+  );
+
+  const errorMessage = error instanceof Error ? error.message : error || 'Something went wrong';
+
   return (
     <div
       className="min-h-screen w-full pb-32"
       style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
     >
       <main className="relative z-10 max-w-md mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={onBack}
-            className="p-2 rounded-full transition-colors"
-            style={{ backgroundColor: 'var(--color-border-subtle)' }}
-          >
-            <ArrowLeft className="w-5 h-5" style={{ color: 'var(--color-text-primary)' }} />
-          </button>
-          <h1
-            className="text-2xl font-bold bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-          >
-            Program Details
-          </h1>
-        </div>
-
         <LoadingContent
           isLoading={isLoading}
           isError={isError}
           error={error}
           onRetry={refetch}
           loadingFallback={<ProgramDetailPageSkeleton />}
+          errorFallback={
+            <>
+              {programDetailHeader}
+              <div
+                className="flex flex-col items-center justify-center py-8 px-4 rounded-2xl border"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)',
+                  borderColor: 'color-mix(in srgb, #ef4444 30%, transparent)',
+                }}
+              >
+                <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
+                <p className="text-sm text-red-400 text-center mb-4">{errorMessage}</p>
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, #ef4444 20%, transparent)',
+                    color: '#f87171',
+                  }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Try Again
+                </button>
+              </div>
+            </>
+          }
         >
-          {program && (
+          <>
+            {programDetailHeader}
+
+            {program && (
             <>
               {/* Program Info */}
               <div
@@ -190,7 +224,8 @@ export function ProgramDetailPage({ programId, onBack, onNavigateToWorkout }: Pr
                 </div>
               )}
             </>
-          )}
+            )}
+          </>
         </LoadingContent>
 
       </main>
