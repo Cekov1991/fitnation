@@ -4,6 +4,7 @@ import { MoreVertical, Dumbbell } from 'lucide-react';
 import { PlanMenu } from '../PlanMenu';
 import { WorkoutMenu } from '../WorkoutMenu';
 import { LoadingContent, ConfirmDialog } from '../ui';
+import { CustomPlansActivePlanSkeleton, CustomPlansAllPlansSkeleton } from './CustomPlansViewSkeleton';
 import { RoutineCardSmall } from '../dashboard/RoutineCardSmall';
 import { useDeletePlan, useDeleteTemplate, usePlans, useBrowsableRoutines, useStartSession, useUpdatePlan, useTodayWorkout } from '../../hooks/useApi';
 import { DAY_NAMES } from '../../constants';
@@ -298,6 +299,7 @@ export function CustomPlansView({
             isError={isPlansError}
             error={plansError}
             onRetry={refetchPlans}
+            loadingFallback={<CustomPlansActivePlanSkeleton />}
           >
             <div 
               className="relative bg-gradient-to-br border rounded-3xl p-6 shadow-xl"
@@ -418,6 +420,7 @@ export function CustomPlansView({
           isError={isPlansError}
           error={plansError}
           onRetry={refetchPlans}
+          loadingFallback={<CustomPlansAllPlansSkeleton />}
         >
           <div className="space-y-4 mb-6">
             {allPlans.length === 0 ? (

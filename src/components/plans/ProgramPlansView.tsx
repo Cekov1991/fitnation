@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { MoreVertical, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
+import { ProgramPlansActiveSectionSkeleton, ProgramPlansAllProgramsSkeleton } from './ProgramPlansViewSkeleton';
 import { PlanMenu } from '../PlanMenu';
 import { usePrograms, useDeleteProgram, useUpdateProgram } from '../../hooks/useApi';
 import type { ProgramResource } from '../../types/api';
@@ -116,6 +117,7 @@ export function ProgramPlansView({
             isError={isProgramsError}
             error={programsError}
             onRetry={refetchPrograms}
+            loadingFallback={<ProgramPlansActiveSectionSkeleton />}
           >
             {activeProgram ? (
               <div 
@@ -239,6 +241,7 @@ export function ProgramPlansView({
           isError={isProgramsError}
           error={programsError}
           onRetry={refetchPrograms}
+          loadingFallback={<ProgramPlansAllProgramsSkeleton />}
         >
           <div className="space-y-4 mb-6">
             {inactivePrograms.length === 0 ? (

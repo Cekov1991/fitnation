@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Plus, Loader2 } from 'lucide-react';
 import { useExercises, useMuscleGroups, useEquipmentTypes } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
+import { ExercisePickerPageSkeleton } from './ExercisePickerPageSkeleton';
 import { ExerciseDetailPage } from './ExerciseDetailPage';
 import { useBackGesture } from '../hooks/useBackGesture';
 import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
@@ -348,15 +349,9 @@ export function ExercisePickerPage({
         {/* Exercise List */}
         <div className="flex-1 px-4 pb-6">
           <AnimatePresence mode="popLayout">
-            {isLoading ? <motion.div {...fade} className="flex flex-col items-center justify-center py-12 text-center">
-                <div 
-                  className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                  style={{ backgroundColor: 'var(--color-bg-elevated)' }}
-                >
-                  <Search className="w-8 h-8" style={{ color: 'var(--color-text-muted)' }} />
-                </div>
-                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loading exercises...</p>
-              </motion.div> : filteredExercises.length > 0 ? <div className="space-y-2">
+            {isLoading ? (
+              <ExercisePickerPageSkeleton isBrowse={isBrowse} />
+            ) : filteredExercises.length > 0 ? <div className="space-y-2">
                 {filteredExercises.map((exercise) => {
                   const isThisLoading = isSelecting && selectedExerciseId === exercise.id;
                   return (

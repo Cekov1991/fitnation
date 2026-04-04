@@ -7,6 +7,7 @@ import { WorkoutCard } from '../WorkoutCard';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import { PlanGeneratingOverlay } from '../ui';
+import { ProgramDashboardSkeleton } from './ProgramDashboardSkeleton';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
 
 interface ProgramDashboardProps {
@@ -186,19 +187,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
   }, [activeProgram]);
 
   if (isProgramsLoading) {
-    return (
-      <div className="pb-32">
-        <div className="flex flex-col items-center justify-center py-12">
-          <div 
-            className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4"
-            style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }}
-          />
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            Loading...
-          </p>
-        </div>
-      </div>
-    );
+    return <ProgramDashboardSkeleton />;
   }
 
   return (

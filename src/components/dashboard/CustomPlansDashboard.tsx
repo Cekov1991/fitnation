@@ -6,6 +6,7 @@ import { WorkoutCardSmall } from './WorkoutCardSmall';
 import { RoutineCardSmall } from './RoutineCardSmall';
 import { CreateCustomPlanCard } from './CreateCustomPlanCard';
 import { AIGeneratorCard } from './AIGeneratorCard';
+import { CustomPlansDashboardSkeleton } from './CustomPlansDashboardSkeleton';
 import { usePlans, useBrowsableRoutines, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import { estimateWorkoutDuration } from '../../utils/workoutHelpers';
 import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '../../types/api';
@@ -105,13 +106,7 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
   const { data: browsableRoutines = [] } = useBrowsableRoutines();
 
   if (isLoading) {
-    return (
-      <div className="pb-24">
-        <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-          Loading plans...
-        </div>
-      </div>
-    );
+    return <CustomPlansDashboardSkeleton />;
   }
 
   return (

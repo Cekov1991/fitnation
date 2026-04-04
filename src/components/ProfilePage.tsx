@@ -6,6 +6,7 @@ import { useProfile, useUpdateProfile } from '../hooks/useApi';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { profileSchema, ProfileFormData } from '../schemas/profile';
 import { LoadingButton } from './ui';
+import { ProfilePageSkeleton } from './ProfilePageSkeleton';
 
 // Duration options: label -> backend value (always the higher amount)
 const DURATION_OPTIONS = [
@@ -75,6 +76,23 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     { value: 'strength', label: 'Strength' },
     { value: 'general_fitness', label: 'General Fitness' },
   ], []);
+
+  if (isLoading) {
+    return (
+      <div>
+        <div>
+          <div
+            className="min-h-screen w-full pb-32"
+            style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+          >
+            <main className="relative z-10 max-w-md mx-auto px-4 py-8">
+              <ProfilePageSkeleton />
+            </main>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const onSubmit = async (data: ProfileFormData) => {
     await updateProfile.mutateAsync({
