@@ -8,6 +8,21 @@ import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 import { RouteSuspenseFallback } from './components/ui/RouteSuspenseFallback';
 
+// Eagerly imported skeletons — tiny pure-UI components, no need to lazy-load them.
+// These are used as Suspense fallbacks so they must be available before the route
+// chunk downloads.
+import { ProgramDashboardSkeleton } from './components/dashboard/ProgramDashboardSkeleton';
+import { ProfilePageSkeleton } from './components/ProfilePageSkeleton';
+import { ProgressCalendarSkeleton } from './components/ProgressPageSkeleton';
+import { SessionDetailPageSkeleton } from './components/SessionDetailPageSkeleton';
+import { ProgramDetailPageSkeleton } from './components/plans/ProgramDetailPageSkeleton';
+import { ProgramLibraryPageSkeleton } from './components/plans/ProgramLibraryPageSkeleton';
+import { BrowsableRoutineDetailPageSkeleton } from './components/plans/BrowsableRoutineDetailPageSkeleton';
+import { RoutineWorkoutDetailPageSkeleton } from './components/plans/RoutineWorkoutDetailPageSkeleton';
+import { EditWorkoutPageSkeleton } from './components/EditWorkoutPageSkeleton';
+import { WorkoutPreviewPageSkeleton } from './components/WorkoutPreviewPageSkeleton';
+import { ExercisePickerPageSkeleton } from './components/ExercisePickerPageSkeleton';
+
 // Lazy load all route wrappers for code-splitting
 const ProfilePageWrapper = React.lazy(() => import('./route-wrappers/ProfilePageWrapper'));
 const ProgressPageWrapper = React.lazy(() => import('./route-wrappers/ProgressPageWrapper'));
@@ -32,36 +47,41 @@ const WorkoutSessionPageWrapper = React.lazy(() => import('./route-wrappers/Work
 const WorkoutSessionExerciseDetailPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutSessionExerciseDetailPageWrapper'));
 const SessionDetailPageWrapper = React.lazy(() => import('./route-wrappers/SessionDetailPageWrapper'));
 
+/** Wraps a lazy page in its own Suspense with a page-specific fallback skeleton.
+ *  The outer global Suspense (below) is a safety net for anything not covered here. */
+function S({ fallback, children }: { fallback: React.ReactNode; children: React.ReactNode }) {
+  return <Suspense fallback={fallback}>{children}</Suspense>;
+}
+
 /**
  * Phase 2: Individual page routes
- * 
+ *
  * Using Switch instead of IonRouterOutlet to avoid z-index stacking context issues
  * with fixed elements like BottomNav and modals.
- * 
+ *
  * Once all pages are migrated, we can switch back to IonRouterOutlet for
  * native page transitions.
  */
 export function AppRoutes() {
   return (
     <BrowserRouter>
+      {/* Outer Suspense is a safety net for any unhandled lazy boundary */}
       <Suspense fallback={<RouteSuspenseFallback />}>
         <Switch>
-          {/* Login route - public */}
+          {/* ── Public routes (not lazy, no Suspense needed) ── */}
+
           <Route exact path="/login">
             <LoginPage />
           </Route>
 
-          {/* Register route - public */}
           <Route exact path="/register">
             <RegisterPage />
           </Route>
 
-          {/* Forgot password - public */}
           <Route exact path="/forgot-password">
             <ForgotPasswordPage />
           </Route>
 
-          {/* Reset password - public (token/email from state, query, or path: /reset-password/:token?email=...) */}
           <Route exact path="/reset-password">
             <ResetPasswordPage />
           </Route>
@@ -69,161 +89,198 @@ export function AppRoutes() {
             <ResetPasswordPage />
           </Route>
 
-          {/* Onboarding route - protected */}
           <Route exact path="/onboarding">
             <AuthGuard>
               <OnboardingFlow />
             </AuthGuard>
           </Route>
 
-          {/* Profile page - migrated to router */}
+          {/* ── Authenticated routes — each wrapped with its own Suspense ── */}
+
           <Route exact path="/profile">
             <AuthGuard>
-              <ProfilePageWrapper />
+              <S fallback={<ProfilePageSkeleton />}>
+                <ProfilePageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Progress page - migrated to router */}
           <Route exact path="/progress">
             <AuthGuard>
-              <ProgressPageWrapper />
+              <S fallback={<ProgressCalendarSkeleton />}>
+                <ProgressPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Plans routes - migrated to router */}
           <Route exact path="/plans">
             <AuthGuard>
-              <PlansPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <PlansPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/plans/create">
             <AuthGuard>
-              <CreatePlanPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <CreatePlanPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/plans/:planId/edit">
             <AuthGuard>
-              <EditPlanPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <EditPlanPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Program routes */}
           <Route exact path="/programs/library">
             <AuthGuard>
-              <ProgramLibraryPageWrapper />
+              <S fallback={<ProgramLibraryPageSkeleton />}>
+                <ProgramLibraryPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/programs/:programId">
             <AuthGuard>
-              <ProgramDetailPageWrapper />
+              <S fallback={<ProgramDetailPageSkeleton />}>
+                <ProgramDetailPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Browsable Routines routes */}
           <Route exact path="/routines/:routineId">
             <AuthGuard>
-              <BrowsableRoutineDetailPageWrapper />
+              <S fallback={<BrowsableRoutineDetailPageSkeleton />}>
+                <BrowsableRoutineDetailPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/routines/:routineId/workouts/:workoutId">
             <AuthGuard>
-              <RoutineWorkoutDetailPageWrapper />
+              <S fallback={<RoutineWorkoutDetailPageSkeleton />}>
+                <RoutineWorkoutDetailPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Workout routes - migrated to router */}
           <Route exact path="/workouts/create">
             <AuthGuard>
-              <CreateWorkoutPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <CreateWorkoutPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/workouts/:templateId/edit">
             <AuthGuard>
-              <EditWorkoutPageWrapper />
+              <S fallback={<EditWorkoutPageSkeleton />}>
+                <EditWorkoutPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/workouts/:templateId/exercises">
             <AuthGuard>
-              <ManageExercisesPageWrapper />
+              <S fallback={<EditWorkoutPageSkeleton />}>
+                <ManageExercisesPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Exercise routes - migrated to router */}
           <Route exact path="/exercises">
             <AuthGuard>
-              <ExerciseCatalogPageWrapper />
+              <S fallback={<ExercisePickerPageSkeleton isBrowse />}>
+                <ExerciseCatalogPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/exercises/pick">
             <AuthGuard>
-              <ExercisePickerPageWrapper />
+              <S fallback={<ExercisePickerPageSkeleton />}>
+                <ExercisePickerPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/exercises/:exerciseName">
             <AuthGuard>
-              <ExerciseDetailPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <ExerciseDetailPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Generate workout route */}
           <Route exact path="/generate-workout">
             <AuthGuard>
-              <GenerateWorkoutPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <GenerateWorkoutPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           {/* Workout preview picker (must be before preview so /pick matches) */}
           <Route exact path="/generate-workout/preview/:sessionId/pick">
             <AuthGuard>
-              <WorkoutPreviewExercisePickerWrapper />
+              <S fallback={<ExercisePickerPageSkeleton />}>
+                <WorkoutPreviewExercisePickerWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Workout preview route */}
           <Route exact path="/generate-workout/preview/:sessionId">
             <AuthGuard>
-              <WorkoutPreviewPageWrapper />
+              <S fallback={<WorkoutPreviewPageSkeleton />}>
+                <WorkoutPreviewPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Dashboard route - migrated to router */}
+          {/* Dashboard — default tab is Programs */}
           <Route exact path="/">
             <AuthGuard>
-              <DashboardPageWrapper />
+              <S fallback={<ProgramDashboardSkeleton />}>
+                <DashboardPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/dashboard">
             <AuthGuard>
-              <DashboardPageWrapper />
+              <S fallback={<ProgramDashboardSkeleton />}>
+                <DashboardPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           {/* Past session summary (must not use /session/:id — that is the live workout) */}
           <Route exact path="/sessions/:sessionId">
             <AuthGuard>
-              <SessionDetailPageWrapper />
+              <S fallback={<SessionDetailPageSkeleton />}>
+                <SessionDetailPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
-          {/* Workout session routes - migrated to router */}
           <Route exact path="/session/:sessionId">
             <AuthGuard>
-              <WorkoutSessionPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <WorkoutSessionPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
 
           <Route exact path="/session/:sessionId/exercise/:exerciseName">
             <AuthGuard>
-              <WorkoutSessionExerciseDetailPageWrapper />
+              <S fallback={<RouteSuspenseFallback />}>
+                <WorkoutSessionExerciseDetailPageWrapper />
+              </S>
             </AuthGuard>
           </Route>
         </Switch>
