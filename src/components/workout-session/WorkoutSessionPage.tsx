@@ -12,7 +12,10 @@ interface WorkoutSessionPageProps {
   workoutName: string;
   onBack: () => void;
   onFinish: () => void;
-  onViewExerciseDetail: (exerciseName: string) => void;
+  onViewExerciseDetail: (
+    exerciseName: string,
+    options?: { initialActiveTab?: 'guidance' | 'performance' }
+  ) => void;
   initialExerciseName?: string | null;
 }
 
@@ -71,6 +74,7 @@ export function WorkoutSessionPage({
           onSelectExercise={state.handleSwitchExercise}
             getCompletionStatus={getExerciseCompletionStatus}
           onAddExercise={state.handleAddExercise}
+          onViewExerciseDetail={onViewExerciseDetail}
         />
 
         <ExerciseContent

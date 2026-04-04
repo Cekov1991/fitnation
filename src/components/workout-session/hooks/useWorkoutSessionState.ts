@@ -11,7 +11,10 @@ interface UseWorkoutSessionStateProps {
   sessionId: number;
   onBack: () => void;
   onFinish: () => void;
-  onViewExerciseDetail: (exerciseName: string) => void;
+  onViewExerciseDetail: (
+    exerciseName: string,
+    options?: { initialActiveTab?: 'guidance' | 'performance' }
+  ) => void;
   initialExerciseName?: string | null;
 }
 

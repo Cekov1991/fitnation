@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
 import { useSession, useCompleteSession, useTemplate } from '../hooks/useApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
@@ -403,6 +403,9 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                     const exerciseName = exercise?.name || 'Unknown Exercise';
                     const imageSrc = exercise?.image ?? exercise?.muscle_group_image ?? null;
 
+                    const canOpenExercise =
+                      Boolean(exercise?.name) && exerciseName !== 'Unknown Exercise';
+
                     return (
                       <div
                         key={exerciseDetail.session_exercise.id}
@@ -412,7 +415,26 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                           borderColor: 'var(--color-border-subtle)',
                         }}
                       >
-                        <div className="flex items-center justify-between mb-3 gap-2">
+                        <button
+                          type="button"
+                          disabled={!canOpenExercise}
+                          onClick={() => {
+                            if (!canOpenExercise) return;
+                            history.push(`/exercises/${encodeURIComponent(exercise!.name)}`, {
+                              initialActiveTab: 'performance',
+                            });
+                          }}
+                          className={`flex w-full items-center justify-between mb-3 gap-2 rounded-lg -mx-1 px-1 py-1 text-left transition ${
+                            canOpenExercise
+                              ? 'cursor-pointer hover:opacity-90 active:opacity-80'
+                              : 'cursor-default opacity-70'
+                          }`}
+                          aria-label={
+                            canOpenExercise
+                              ? `View performance for ${exerciseName}`
+                              : undefined
+                          }
+                        >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div
                               className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 border"
@@ -430,10 +452,19 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                               {exerciseName}
                             </h4>
                           </div>
-                          {exerciseDetail.is_completed && (
-                            <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                          )}
-                        </div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {exerciseDetail.is_completed && (
+                              <CheckCircle2 className="w-4 h-4 text-green-400" aria-hidden />
+                            )}
+                            {canOpenExercise && (
+                              <ChevronRight
+                                className="w-5 h-5"
+                                style={{ color: 'var(--color-text-muted)' }}
+                                aria-hidden
+                              />
+                            )}
+                          </div>
+                        </button>
 
                         {loggedSets.length > 0 ? (
                           <div className="space-y-2">

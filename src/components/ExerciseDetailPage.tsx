@@ -13,6 +13,8 @@ interface ExerciseDetailPageProps {
   primaryAction?: { label: string; onClick: () => void; disabled?: boolean };
   /** When true, only Guidance is shown (e.g. catalog browse). Hides Performance tab. */
   hidePerformanceTab?: boolean;
+  /** Initial tab when opening (e.g. from workout session exercise list). */
+  initialActiveTab?: 'guidance' | 'performance';
 }
 
 // Helper function to format ISO date string (YYYY-MM-DD) to display format (e.g., "Jan 15")
@@ -32,9 +34,16 @@ export function ExerciseDetailPage({
   exerciseName,
   onBack,
   primaryAction,
-  hidePerformanceTab = false
+  hidePerformanceTab = false,
+  initialActiveTab
 }: ExerciseDetailPageProps) {
-  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance');
+  const resolvedInitialTab =
+    hidePerformanceTab ? 'guidance' : (initialActiveTab ?? 'guidance');
+  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>(resolvedInitialTab);
+
+  useEffect(() => {
+    setActiveTab(hidePerformanceTab ? 'guidance' : (initialActiveTab ?? 'guidance'));
+  }, [exerciseName, hidePerformanceTab, initialActiveTab]);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);

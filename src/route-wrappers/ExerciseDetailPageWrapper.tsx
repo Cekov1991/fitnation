@@ -5,7 +5,11 @@ import { AuthenticatedLayout, useCurrentNavPage } from './AuthenticatedLayout';
 // Exercise detail page wrapper
 export default function ExerciseDetailPageWrapper() {
   const history = useHistory();
-  const location = useLocation<{ from?: string; sessionId?: string }>();
+  const location = useLocation<{
+    from?: string;
+    sessionId?: string;
+    initialActiveTab?: 'guidance' | 'performance';
+  }>();
   const { exerciseName } = useParams<{ exerciseName: string }>();
   const currentPage = useCurrentNavPage();
 
@@ -23,7 +27,8 @@ export default function ExerciseDetailPageWrapper() {
     <AuthenticatedLayout currentPage={currentPage}>
       <ExerciseDetailPage 
         exerciseName={decodeURIComponent(exerciseName)} 
-        onBack={handleBack} 
+        onBack={handleBack}
+        initialActiveTab={location.state?.initialActiveTab}
       />
     </AuthenticatedLayout>
   );

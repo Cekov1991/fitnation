@@ -26,7 +26,10 @@ interface ExerciseContentProps {
   onStartTimer: () => void;
   onSaveEdit: () => Promise<void>;
   onCancelEdit: () => void;
-  onViewExerciseDetail: (exerciseName: string) => void;
+  onViewExerciseDetail: (
+    exerciseName: string,
+    options?: { initialActiveTab?: 'guidance' | 'performance' }
+  ) => void;
   onOpenExerciseMenu: () => void;
   isAddSetLoading: boolean;
 }

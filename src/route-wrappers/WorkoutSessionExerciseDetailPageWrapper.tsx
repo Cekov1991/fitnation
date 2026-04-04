@@ -1,9 +1,13 @@
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { ExerciseDetailPage } from '../components/ExerciseDetailPage';
 
 // Workout session exercise detail page wrapper (no BottomNav for full-screen workout experience)
 export default function WorkoutSessionExerciseDetailPageWrapper() {
   const history = useHistory();
+  const location = useLocation<{
+    exerciseName?: string;
+    initialActiveTab?: 'guidance' | 'performance';
+  }>();
   const { sessionId, exerciseName } = useParams<{ sessionId: string; exerciseName: string }>();
 
   const handleBack = () => {
@@ -18,7 +22,8 @@ export default function WorkoutSessionExerciseDetailPageWrapper() {
     <div className="h-screen w-full overflow-y-auto">
       <ExerciseDetailPage 
         exerciseName={decodeURIComponent(exerciseName)} 
-        onBack={handleBack} 
+        onBack={handleBack}
+        initialActiveTab={location.state?.initialActiveTab}
       />
     </div>
   );

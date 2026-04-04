@@ -11,6 +11,10 @@ interface ExerciseNavTabsProps {
   onSelectExercise: (index: number) => void;
   getCompletionStatus: (exercise: Exercise) => ExerciseCompletionStatus;
   onAddExercise?: () => void;
+  onViewExerciseDetail: (
+    exerciseName: string,
+    options?: { initialActiveTab?: 'guidance' | 'performance' }
+  ) => void;
 }
 
 export function ExerciseNavTabs({
@@ -19,9 +23,10 @@ export function ExerciseNavTabs({
   onSelectExercise,
   getCompletionStatus,
   onAddExercise,
+  onViewExerciseDetail,
 }: ExerciseNavTabsProps) {
   const { fade } = useModalTransition();
-  const tabRefs = useRef<Map<number, HTMLButtonElement | null>>(new Map());
+  const tabRefs = useRef<Map<number, HTMLElement | null>>(new Map());
   
   // Auto-scroll to active tab when currentIndex changes
   useEffect(() => {
@@ -58,12 +63,25 @@ export function ExerciseNavTabs({
           const status = getCompletionStatus(exercise);
           const isActive = index === currentIndex;
           
+          const openExercisePerformance = () => {
+            onSelectExercise(index);
+            onViewExerciseDetail(exercise.name, { initialActiveTab: 'performance' });
+          };
+
           return (
-            <button
+            <div
               key={exercise.id}
               ref={(el) => { tabRefs.current.set(index, el); }}
-              onClick={() => onSelectExercise(index)}
-              className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+              role="button"
+              tabIndex={0}
+              onClick={openExercisePerformance}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openExercisePerformance();
+                }
+              }}
+              className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition cursor-pointer ${
                 isActive 
                   ? 'shadow-lg' 
                   : status.isComplete 
@@ -98,7 +116,7 @@ export function ExerciseNavTabs({
                   <Check className="text-green-400 w-4 h-4" />
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
         {/* Add Exercise Button */}

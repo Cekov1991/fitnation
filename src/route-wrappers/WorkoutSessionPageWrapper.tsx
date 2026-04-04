@@ -43,10 +43,16 @@ export default function WorkoutSessionPageWrapper() {
     refetchTodayWorkout();
   };
 
-  const handleViewExerciseDetail = (exerciseName: string) => {
+  const handleViewExerciseDetail = (
+    exerciseName: string,
+    options?: { initialActiveTab?: 'guidance' | 'performance' }
+  ) => {
     // Pass exercise name via route state to preserve active tab on back navigation
     history.push(`/session/${sessionId}/exercise/${encodeURIComponent(exerciseName)}`, {
-      exerciseName
+      exerciseName,
+      ...(options?.initialActiveTab === 'performance'
+        ? { initialActiveTab: 'performance' as const }
+        : {}),
     });
   };
 
