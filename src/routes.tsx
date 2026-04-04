@@ -6,6 +6,7 @@ import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
+import { RouteSuspenseFallback } from './components/ui/RouteSuspenseFallback';
 
 // Lazy load all route wrappers for code-splitting
 const ProfilePageWrapper = React.lazy(() => import('./route-wrappers/ProfilePageWrapper'));
@@ -31,15 +32,6 @@ const WorkoutSessionPageWrapper = React.lazy(() => import('./route-wrappers/Work
 const WorkoutSessionExerciseDetailPageWrapper = React.lazy(() => import('./route-wrappers/WorkoutSessionExerciseDetailPageWrapper'));
 const SessionDetailPageWrapper = React.lazy(() => import('./route-wrappers/SessionDetailPageWrapper'));
 
-// Simple loading fallback for Suspense
-function LoadingFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div style={{ color: 'var(--color-text-secondary)' }}>Loading...</div>
-    </div>
-  );
-}
-
 /**
  * Phase 2: Individual page routes
  * 
@@ -52,7 +44,7 @@ function LoadingFallback() {
 export function AppRoutes() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<RouteSuspenseFallback />}>
         <Switch>
           {/* Login route - public */}
           <Route exact path="/login">

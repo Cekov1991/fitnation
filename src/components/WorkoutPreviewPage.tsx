@@ -3,7 +3,7 @@ import { useHistory, useParams, useLocation } from 'react-router-dom';
 import { Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
-import { LoadingContent } from './ui/LoadingContent';
+import { WorkoutPreviewPageSkeleton } from './WorkoutPreviewPageSkeleton';
 import { BackgroundGradients } from './BackgroundGradients';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
@@ -175,15 +175,7 @@ export function WorkoutPreviewPage() {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
         <BackgroundGradients />
-        <LoadingContent
-          isLoading
-          loadingFallback={
-            <div className="flex flex-col items-center justify-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-              Loading workout preview...
-            </div>
-          }
-          children={null}
-        />
+        <WorkoutPreviewPageSkeleton />
       </div>
     );
   }

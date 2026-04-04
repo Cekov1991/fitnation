@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useHistory } from 'react-router-dom';
 import { LoadingContent } from '../ui';
+import { RoutineWorkoutDetailPageSkeleton } from './RoutineWorkoutDetailPageSkeleton';
 import { ExerciseImage } from '../ExerciseImage';
 import { useBrowsableRoutine, useStartSession, useTodayWorkout } from '../../hooks/useApi';
 import type { TemplateExercise } from '../../types/api';
@@ -73,6 +74,7 @@ export function RoutineWorkoutDetailPage({ routineId, workoutId, onBack }: Routi
             isError={isError}
             error={error}
             onRetry={refetch}
+            loadingFallback={<RoutineWorkoutDetailPageSkeleton />}
           >
             {!workout && !isLoading && (
               <div className="text-center py-12">

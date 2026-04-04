@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Calendar, Info } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
+import { ProgramLibraryPageSkeleton } from './ProgramLibraryPageSkeleton';
 import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '../../hooks/useApi';
 import { LibraryProgramDetailView } from './LibraryProgramDetailView';
 import type { LibraryProgramResource } from '../../types/api';
@@ -109,6 +110,7 @@ export function ProgramLibraryPage({ onBack }: ProgramLibraryPageProps) {
               isError={isError}
               error={error}
               onRetry={refetch}
+              loadingFallback={<ProgramLibraryPageSkeleton />}
             >
               <div className="space-y-4">
                 {libraryPrograms.length === 0 ? (

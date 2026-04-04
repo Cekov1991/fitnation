@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Edit2, GripVertical } from 'lucide-react';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { LoadingContent } from './ui';
+import { EditWorkoutPageSkeleton } from './EditWorkoutPageSkeleton';
 import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises } from '../hooks/useApi';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
@@ -322,6 +323,7 @@ export function EditWorkoutPage({
               isError={isError}
               error={error}
               onRetry={() => refetch()}
+              loadingFallback={<EditWorkoutPageSkeleton />}
             >
               {exercises.length === 0 ? (
                 <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>

@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { LoadingContent } from '../ui';
+import { BrowsableRoutineDetailPageSkeleton } from './BrowsableRoutineDetailPageSkeleton';
 import { useBrowsableRoutine } from '../../hooks/useApi';
 import { BrowsableRoutineDetailView } from './BrowsableRoutineDetailView';
 
@@ -38,6 +39,7 @@ export function BrowsableRoutineDetailPage({ routineId, onBack }: BrowsableRouti
             isError={isError}
             error={error}
             onRetry={refetch}
+            loadingFallback={<BrowsableRoutineDetailPageSkeleton />}
           >
             <div />
           </LoadingContent>
