@@ -1,6 +1,6 @@
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
-const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isIOS = false;//typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 export function useSimpleTransition() {
   const shouldReduce = useReducedMotion();
