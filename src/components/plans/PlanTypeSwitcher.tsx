@@ -23,7 +23,7 @@ export function PlanTypeSwitcher({
   return (
     <div
       className="mb-6 flex rounded-full p-1"
-      style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+      style={{ backgroundColor: 'var(--color-segment-track)' }}
       role="tablist"
       aria-label="Plan type"
     >
@@ -38,7 +38,8 @@ export function PlanTypeSwitcher({
           className="flex flex-1 items-center justify-center gap-2 rounded-full py-3 px-4 text-sm font-medium transition-all"
           style={{
             color: activeType === id ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-            backgroundColor: activeType === id ? 'var(--color-bg-surface)' : 'transparent',
+            backgroundColor: activeType === id ? 'var(--color-segment-active)' : 'transparent',
+            boxShadow: activeType === id ? 'var(--color-segment-active-shadow)' : undefined,
           }}
         >
           <Icon size={16} className="shrink-0" strokeWidth={2} aria-hidden />

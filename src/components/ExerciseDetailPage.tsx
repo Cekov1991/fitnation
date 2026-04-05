@@ -296,7 +296,7 @@ export function ExerciseDetailPage({
           >
             <div 
               className="flex p-1 rounded-full"
-              style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+              style={{ backgroundColor: 'var(--color-segment-track)' }}
             >
               {(['guidance', 'performance'] as const).map(tab => (
                 <button 
@@ -305,7 +305,8 @@ export function ExerciseDetailPage({
                   className="flex-1 py-3 px-6 rounded-full font-medium text-sm transition-all relative"
                   style={{ 
                     color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                    backgroundColor: activeTab === tab ? 'var(--color-bg-surface)' : 'transparent'
+                    backgroundColor: activeTab === tab ? 'var(--color-segment-active)' : 'transparent',
+                    boxShadow: activeTab === tab ? 'var(--color-segment-active-shadow)' : undefined,
                   }}
                 >
                   <span className="relative z-10 capitalize">{tab}</span>

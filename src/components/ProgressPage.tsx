@@ -195,7 +195,7 @@ export function ProgressPage() {
 
           <div
             className="mb-6 flex rounded-full p-1"
-            style={{ backgroundColor: 'var(--color-bg-elevated)' }}
+            style={{ backgroundColor: 'var(--color-segment-track)' }}
             role="tablist"
             aria-label="Progress sections"
           >
@@ -216,7 +216,8 @@ export function ProgressPage() {
                 className="flex-1 rounded-full py-3 px-4 text-sm font-medium transition-all"
                 style={{
                   color: progressTab === id ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                  backgroundColor: progressTab === id ? 'var(--color-bg-surface)' : 'transparent',
+                  backgroundColor: progressTab === id ? 'var(--color-segment-active)' : 'transparent',
+                  boxShadow: progressTab === id ? 'var(--color-segment-active-shadow)' : undefined,
                 }}
               >
                 {label}
