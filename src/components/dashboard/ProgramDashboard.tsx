@@ -11,7 +11,39 @@ import { PlanGeneratingOverlay } from '../ui';
 import { ProgramDashboardContentSkeleton } from './ProgramDashboardSkeleton';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
 
-const PROGRAM_MILESTONE_THRESHOLDS = [20, 50, 75] as const;
+const PROGRAM_MILESTONE_THRESHOLDS = [25, 50, 75] as const;
+
+const MILESTONE_MESSAGES: Record<number, string[]> = {
+  25: [
+    "The hardest part is starting — and you've already done it.",
+    "One quarter down. The momentum is yours.",
+    "You showed up. Now keep showing up.",
+    "25% in — your future self is already thanking you.",
+    "Every rep from here builds on what you've already earned.",
+  ],
+  50: [
+    "Halfway there. Most people never make it this far.",
+    "You're at the midpoint — the second half is where it gets real.",
+    "50% done. The results are starting to compound.",
+    "Half the plan, twice the strength. Keep pushing.",
+    "You've earned the halfway mark. Don't stop now.",
+  ],
+  75: [
+    "75% done — this is where champions are made.",
+    "Almost there. Don't let up now.",
+    "Three quarters through. Dig in for the final stretch.",
+    "You're in the home stretch — finish what you started.",
+    "Most quit before 75%. You're not most people.",
+  ],
+};
+
+function getMilestoneMessage(milestone: number, programId: number): string {
+  const messages = MILESTONE_MESSAGES[milestone];
+  if (!messages?.length) return `You're ${milestone}% through your plan — keep it up!`;
+  // Stable per user+program+milestone — same message every time they see this banner
+  const index = (programId + milestone) % messages.length;
+  return messages[index];
+}
 
 function milestoneStorageKey(programId: number): string {
   return `milestone_celebrated_${programId}`;
@@ -29,7 +61,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
   const queryClient = useQueryClient();
   const regeneratePlan = useRegeneratePlan();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [milestoneDismissVersion, setMilestoneDismissVersion] = useState(0);
+  const [lastCelebratedMilestone, setLastCelebratedMilestone] = useState<number>(0);
 
   // Get active program
   const activeProgram = useMemo(() => {
@@ -169,21 +201,26 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     );
   }, [activeProgram]);
 
+  // Sync lastCelebratedMilestone from localStorage when active program changes
+  useEffect(() => {
+    if (!activeProgram?.id) return;
+    const stored = Number(localStorage.getItem(milestoneStorageKey(activeProgram.id)) ?? 0);
+    setLastCelebratedMilestone(stored);
+  }, [activeProgram?.id]);
+
   const pendingMilestone = useMemo(() => {
     if (!activeProgram?.id || isPlanComplete) return null;
     const pct = activeProgram.progress_percentage;
     if (pct == null || pct < PROGRAM_MILESTONE_THRESHOLDS[0]) return null;
-    const storageKey = milestoneStorageKey(activeProgram.id);
-    const lastCelebrated = Number(localStorage.getItem(storageKey) ?? 0);
     const reached = PROGRAM_MILESTONE_THRESHOLDS.filter((m) => pct >= m);
-    const next = reached.find((m) => m > lastCelebrated);
+    const next = reached.find((m) => m > lastCelebratedMilestone);
     return next ?? null;
-  }, [activeProgram, isPlanComplete, milestoneDismissVersion]);
+  }, [activeProgram, isPlanComplete, lastCelebratedMilestone]);
 
   const handleDismissMilestone = useCallback(() => {
     if (!activeProgram?.id || pendingMilestone == null) return;
     localStorage.setItem(milestoneStorageKey(activeProgram.id), String(pendingMilestone));
-    setMilestoneDismissVersion((v) => v + 1);
+    setLastCelebratedMilestone(pendingMilestone);
   }, [activeProgram?.id, pendingMilestone]);
 
   const planCompleteStats = useMemo(() => {
@@ -307,46 +344,74 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
             {!isPlanComplete && pendingMilestone != null && (
               <motion.div
                 key={pendingMilestone}
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
-                className="mb-4 rounded-2xl border p-4 flex gap-3 items-start"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 12%, var(--color-bg-surface))',
-                  borderColor: 'var(--color-border)',
-                }}
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                className="mb-4 rounded-2xl overflow-hidden relative"
                 role="status"
               >
+                {/* Gradient background */}
                 <div
-                  className="flex shrink-0 items-center justify-center w-11 h-11 rounded-full"
+                  className="absolute inset-0"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 25%, transparent)',
-                    color: 'var(--color-primary)',
+                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                    opacity: 0.15,
                   }}
-                >
-                  <Flame size={22} strokeWidth={2} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="text-sm font-bold mb-0.5"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
-                    {pendingMilestone}% milestone
-                  </p>
+                />
+                <div
+                  className="absolute inset-0 rounded-2xl border"
+                  style={{
+                    borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
+                  }}
+                />
+
+                <div className="relative p-4 flex gap-3 items-center">
+                  {/* Pulsing icon */}
+                  <div className="relative shrink-0">
+                    <motion.div
+                      animate={{ scale: [1, 1.18, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                        opacity: 0.35,
+                      }}
+                    />
+                    <div
+                      className="relative flex items-center justify-center w-11 h-11 rounded-full"
+                      style={{
+                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                      }}
+                    >
+                      <Flame size={20} strokeWidth={2} className="text-white" />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-sm font-extrabold mb-0.5 bg-clip-text text-transparent"
+                      style={{
+                        backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                      }}
+                    >
+                      {pendingMilestone}% milestone reached!
+                    </p>
                   <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    You&apos;re {pendingMilestone}% through your plan — keep it up!
+                    {getMilestoneMessage(pendingMilestone, activeProgram.id)}
                   </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDismissMilestone}
+                    className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-white/10"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                    aria-label="Dismiss milestone"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleDismissMilestone}
-                  className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-white/10"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                  aria-label="Dismiss milestone"
-                >
-                  <X size={18} />
-                </button>
               </motion.div>
             )}
           </AnimatePresence>
