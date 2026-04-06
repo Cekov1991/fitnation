@@ -353,6 +353,9 @@ export const plansApi = {
 // ============================================================================
 
 export const programsApi = {
+  getActiveProgram: async () => {
+    return fetchWithAuth('/programs/active');
+  },
   getPrograms: async () => {
     return fetchWithAuth('/programs');
   },

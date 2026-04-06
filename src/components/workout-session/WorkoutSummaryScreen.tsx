@@ -1,14 +1,16 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Clock, Dumbbell, TrendingUp, Target, Award } from 'lucide-react';
+import { CheckCircle2, Clock, Dumbbell, TrendingUp, Target, Award, Trophy } from 'lucide-react';
 import { useModalTransition, useSlideTransition } from '../../utils/animations';
 import { formatWeight } from './utils';
 import type { Exercise } from './types';
+import type { NewPrResource } from '../../types/api';
 
 interface WorkoutSummaryScreenProps {
   exercises: Exercise[];
   formattedDuration: string;
   onDone: () => void;
+  newPrs?: NewPrResource[];
 }
 
 interface SummaryStats {
@@ -52,6 +54,7 @@ export function WorkoutSummaryScreen({
   exercises,
   formattedDuration,
   onDone,
+  newPrs = [],
 }: WorkoutSummaryScreenProps) {
   const { panel } = useModalTransition();
   const slideTransition = useSlideTransition('up');
@@ -227,6 +230,68 @@ export function WorkoutSummaryScreen({
                 </div>
               </div>
             </motion.div>
+
+            {/* New PRs */}
+            {newPrs.length > 0 && (
+              <motion.div
+                {...slideTransition}
+                transition={{ delay: 0.25 }}
+                className="mb-8"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+                  <h2
+                    className="text-xl font-bold"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    New Personal Records
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  {newPrs.map((pr) => (
+                    <motion.div
+                      key={`${pr.exercise_id}-${pr.pr_type}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="rounded-xl p-4 border flex items-center justify-between"
+                      style={{
+                        background: 'linear-gradient(to right, color-mix(in srgb, var(--color-primary) 10%, var(--color-bg-surface)), var(--color-bg-surface))',
+                        borderColor: 'color-mix(in srgb, var(--color-primary) 30%, var(--color-border-subtle))',
+                      }}
+                    >
+                      <div>
+                        <p
+                          className="text-sm font-bold mb-0.5"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
+                          {pr.exercise_name}
+                        </p>
+                        <p
+                          className="text-xs"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {pr.pr_type === 'weight' ? 'Max weight' : 'Max reps'}
+                          {pr.previous_best > 0 && (
+                            <span> · was {pr.pr_type === 'weight' ? `${formatWeight(pr.previous_best)} kg` : `${pr.previous_best} reps`}</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className="text-lg font-black"
+                          style={{ color: 'var(--color-primary)' }}
+                        >
+                          {pr.pr_type === 'weight'
+                            ? `${formatWeight(pr.new_best)} kg`
+                            : `${pr.new_best} reps`}
+                        </p>
+                        <p className="text-xs font-semibold text-green-400">NEW PR</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             {/* Exercise Breakdown */}
             {exercises.length > 0 && (

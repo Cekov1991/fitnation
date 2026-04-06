@@ -15,6 +15,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  CompleteSessionResponse,
 } from '../types/api';
 
 // ============================================================================
@@ -199,7 +200,7 @@ export function usePrograms() {
   return useQuery({
     queryKey: ['programs'],
     queryFn: async () => {
-      const response = await programsApi.getPrograms();
+      const response = await programsApi.getActiveProgram();
       return response.data;
     },
     enabled: isAuthenticated()
@@ -697,13 +698,10 @@ export function useSession(sessionId: number) {
 }
 export function useCompleteSession() {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<CompleteSessionResponse, Error, { sessionId: number; notes?: string }>({
     mutationFn: ({
       sessionId,
       notes
-    }: {
-      sessionId: number;
-      notes?: string;
     }) => sessionsApi.completeSession(sessionId, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({

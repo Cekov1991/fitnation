@@ -6,6 +6,7 @@ import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
 import { mapSessionToExercises } from '../utils';
 import type { Exercise, Set } from '../types';
+import type { NewPrResource } from '../../../types/api';
 
 interface UseWorkoutSessionStateProps {
   sessionId: number;
@@ -88,6 +89,7 @@ interface UseWorkoutSessionStateReturn {
   handleCancelWorkoutConfirm: () => Promise<void>;
   showSummary: boolean;
   handleSummaryDismiss: () => void;
+  sessionNewPrs: NewPrResource[];
 
   // Loading states (for UI)
   isCancelLoading: boolean;
@@ -151,6 +153,7 @@ export function useWorkoutSessionState({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [sessionNewPrs, setSessionNewPrs] = useState<NewPrResource[]>([]);
   
   // Stop timer when summary is shown or session is completed
   const { formattedDuration } = useWorkoutTimer(
@@ -278,10 +281,11 @@ export function useWorkoutSessionState({
 
   const handleFinish = async () => {
     try {
-      await completeSession.mutateAsync({
+      const result = await completeSession.mutateAsync({
         sessionId,
         notes: undefined
       });
+      setSessionNewPrs(result.new_prs ?? []);
       setShowSummary(true);
     } catch (error) {
       console.error('Failed to complete session:', error);
@@ -580,6 +584,7 @@ export function useWorkoutSessionState({
     handleCancelWorkoutConfirm,
     showSummary,
     handleSummaryDismiss,
+    sessionNewPrs,
 
     // Loading states
     isCancelLoading: cancelSession.isPending,

@@ -351,7 +351,38 @@ export interface FitnessMetrics {
     trend: TrendDirection;
     current_week_workouts: number;
     previous_week_workouts: number;
+    current_week_volume?: number;
+    current_week_time_minutes?: number;
+    previous_week_volume?: number;
+    volume_difference?: number;
+    volume_difference_percent?: number;
+    daily_breakdown?: Array<{
+      day_of_week: number;
+      date: string;
+      volume: number;
+      workouts: number;
+      time_minutes: number;
+    }>;
+    historical_weeks?: Array<{ week: string; workouts: number }>;
   };
+}
+
+// ============================================
+// SESSION COMPLETE RESOURCES
+// ============================================
+
+export interface NewPrResource {
+  exercise_id: number;
+  exercise_name: string;
+  pr_type: 'weight' | 'reps';
+  previous_best: number;
+  new_best: number;
+}
+
+export interface CompleteSessionResponse {
+  data: WorkoutSessionResource;
+  message: string;
+  new_prs: NewPrResource[];
 }
 
 // ============================================

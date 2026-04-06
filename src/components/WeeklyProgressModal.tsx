@@ -3,13 +3,15 @@ import { X, TrendingUp, Calendar, Dumbbell } from 'lucide-react'
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useFitnessMetrics } from '../hooks/useApi'
+import { useFitnessMetrics, useProfile } from '../hooks/useApi'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 
@@ -36,11 +38,31 @@ function minutesToHours(minutes: number): string {
   return `${hours.toFixed(1)}h`
 }
 
+function formatIsoWeekLabel(week: string): string {
+  const match = week.match(/W(\d+)/i)
+  return match ? `W${match[1]}` : week
+}
+
+function getWeeklyGoalMessage(
+  currentWeekWorkouts: number,
+  trainingDaysGoal: number | null
+): string | null {
+  if (trainingDaysGoal == null || trainingDaysGoal <= 0) return null
+  if (currentWeekWorkouts > trainingDaysGoal) {
+    return `You exceeded your ${trainingDaysGoal}-day goal — great week!`
+  }
+  if (currentWeekWorkouts === trainingDaysGoal) {
+    return `You hit your ${trainingDaysGoal}-day goal this week`
+  }
+  return `${currentWeekWorkouts} of ${trainingDaysGoal} day${trainingDaysGoal !== 1 ? 's' : ''} done — finish strong!`
+}
+
 export function WeeklyProgressModal({
   isOpen,
   onClose,
 }: WeeklyProgressModalProps) {
   const { data: metrics } = useFitnessMetrics()
+  const { data: profileUser } = useProfile()
   const closeModal = useBackGesture(isOpen, onClose)
   
   const weeklyProgress = metrics?.weekly_progress
@@ -53,6 +75,9 @@ export function WeeklyProgressModal({
   const volumeDifference = weeklyProgress?.volume_difference ?? 0
   const volumeDifferencePercent = weeklyProgress?.volume_difference_percent ?? 0
   const dailyBreakdown = weeklyProgress?.daily_breakdown ?? []
+  const historicalWeeks = weeklyProgress?.historical_weeks ?? []
+  const trainingDaysGoal = profileUser?.profile?.training_days_per_week ?? null
+  const weeklyGoalMessage = getWeeklyGoalMessage(currentWeekWorkouts, trainingDaysGoal)
   const { backdrop, panel } = useModalTransition()
 
   const isPositive = trend === 'up'
@@ -70,6 +95,13 @@ export function WeeklyProgressModal({
     volume: day.volume,
     workouts: day.workouts,
   }))
+
+  const historicalWeekChartData = historicalWeeks.map(
+    (hw: { week: string; workouts: number }) => ({
+      label: formatIsoWeekLabel(hw.week),
+      workouts: hw.workouts,
+    })
+  )
 
   return (
     <AnimatePresence>
@@ -221,6 +253,20 @@ export function WeeklyProgressModal({
                   </div>
                 </div>
 
+                {weeklyGoalMessage && (
+                  <div
+                    className="rounded-xl px-4 py-3 border text-center"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-bg-surface))',
+                      borderColor: 'var(--color-border-subtle)',
+                    }}
+                  >
+                    <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                      {weeklyGoalMessage}
+                    </p>
+                  </div>
+                )}
+
                 {/* Weekly Volume Chart */}
                 {chartData.length > 0 && (
                   <div 
@@ -273,6 +319,52 @@ export function WeeklyProgressModal({
                             }}
                           />
                         </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* 8-week workout history */}
+                {historicalWeekChartData.length > 0 && (
+                  <div
+                    className="rounded-xl p-4 border"
+                    style={{
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: 'var(--color-border-subtle)',
+                    }}
+                  >
+                    <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                      Workouts per week (last {historicalWeekChartData.length})
+                    </h3>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={historicalWeekChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis
+                            dataKey="label"
+                            stroke="#9CA3AF"
+                            style={{ fontSize: '11px' }}
+                          />
+                          <YAxis
+                            allowDecimals={false}
+                            stroke="#9CA3AF"
+                            style={{ fontSize: '12px' }}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#1F2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: '#fff',
+                            }}
+                            formatter={(value: number) => [value, 'Workouts']}
+                          />
+                          <Bar
+                            dataKey="workouts"
+                            fill="var(--color-primary)"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>

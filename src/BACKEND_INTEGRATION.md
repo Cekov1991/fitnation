@@ -845,14 +845,12 @@ interface StrengthScore {
 type StrengthLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
 interface StrengthBalance {
-  percentage: number;        // 0-100, balance score = sqrt(coverage × evenness) × 100
-  level: BalanceLevel;       // EXCELLENT ≥80, GOOD ≥60, FAIR ≥40, NEEDS_IMPROVEMENT <40
-  recent_change: number;     // Change vs previous 30-day period (days 31-60)
-  muscle_groups: Record<MuscleGroupName, number>; // % distribution (sums to ~100)
+  percentage: number;        // 0-100, how balanced training is
+  level: BalanceLevel;
+  recent_change: number;     // Change from previous period
+  muscle_groups: Record<MuscleGroupName, number>; // % distribution
   percentile?: number;       // 0-100, percentile ranking compared to similar users in same partner (optional)
 }
-// Balance formula: geometric mean of coverage (trained groups / 17) and evenness (normalized Shannon entropy).
-// Time window: last 30 days of completed sessions only. Volume = weight(kg) × reps, primary muscle groups.
 
 type BalanceLevel = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_IMPROVEMENT';
 
@@ -1991,6 +1989,15 @@ interface CompleteSessionRequest {
 interface CompleteSessionResponse {
   data: WorkoutSessionResource;
   message: "Workout completed! Great job! 💪";
+  new_prs: NewPrResource[];  // Personal records set in this session vs. all prior completed sessions (empty if none)
+}
+
+interface NewPrResource {
+  exercise_id: number;
+  exercise_name: string;
+  pr_type: 'weight' | 'reps';
+  previous_best: number;  // 0 if first time logging this exercise in completed sessions
+  new_best: number;       // Session max weight (kg) or max single-set reps, depending on pr_type
 }
 ```
 

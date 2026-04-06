@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
-import { RefreshCw, Trophy, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { RefreshCw, Trophy, Zap, Flame, X } from 'lucide-react';
 import { WorkoutTemplateSelector } from './WorkoutTemplateSelector';
 import { ProgramControls } from './ProgramControls';
 import { WorkoutCard } from '../WorkoutCard';
@@ -9,6 +10,12 @@ import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from
 import { PlanGeneratingOverlay } from '../ui';
 import { ProgramDashboardContentSkeleton } from './ProgramDashboardSkeleton';
 import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
+
+const PROGRAM_MILESTONE_THRESHOLDS = [20, 50, 75] as const;
+
+function milestoneStorageKey(programId: number): string {
+  return `milestone_celebrated_${programId}`;
+}
 
 interface ProgramDashboardProps {
   onStartWorkout: () => void;
@@ -22,6 +29,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
   const queryClient = useQueryClient();
   const regeneratePlan = useRegeneratePlan();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [milestoneDismissVersion, setMilestoneDismissVersion] = useState(0);
 
   // Get active program
   const activeProgram = useMemo(() => {
@@ -161,6 +169,23 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     );
   }, [activeProgram]);
 
+  const pendingMilestone = useMemo(() => {
+    if (!activeProgram?.id || isPlanComplete) return null;
+    const pct = activeProgram.progress_percentage;
+    if (pct == null || pct < PROGRAM_MILESTONE_THRESHOLDS[0]) return null;
+    const storageKey = milestoneStorageKey(activeProgram.id);
+    const lastCelebrated = Number(localStorage.getItem(storageKey) ?? 0);
+    const reached = PROGRAM_MILESTONE_THRESHOLDS.filter((m) => pct >= m);
+    const next = reached.find((m) => m > lastCelebrated);
+    return next ?? null;
+  }, [activeProgram, isPlanComplete, milestoneDismissVersion]);
+
+  const handleDismissMilestone = useCallback(() => {
+    if (!activeProgram?.id || pendingMilestone == null) return;
+    localStorage.setItem(milestoneStorageKey(activeProgram.id), String(pendingMilestone));
+    setMilestoneDismissVersion((v) => v + 1);
+  }, [activeProgram?.id, pendingMilestone]);
+
   const planCompleteStats = useMemo(() => {
     const templates = activeProgram?.workout_templates ?? [];
     let workoutsCompleted = 0;
@@ -276,6 +301,55 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
               </p>
             </div>
           )}
+
+          {/* Mid-program milestone (25% / 50% / 75%) */}
+          <AnimatePresence>
+            {!isPlanComplete && pendingMilestone != null && (
+              <motion.div
+                key={pendingMilestone}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="mb-4 rounded-2xl border p-4 flex gap-3 items-start"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 12%, var(--color-bg-surface))',
+                  borderColor: 'var(--color-border)',
+                }}
+                role="status"
+              >
+                <div
+                  className="flex shrink-0 items-center justify-center w-11 h-11 rounded-full"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 25%, transparent)',
+                    color: 'var(--color-primary)',
+                  }}
+                >
+                  <Flame size={22} strokeWidth={2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="text-sm font-bold mb-0.5"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    {pendingMilestone}% milestone
+                  </p>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    You&apos;re {pendingMilestone}% through your plan — keep it up!
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDismissMilestone}
+                  className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-white/10"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                  aria-label="Dismiss milestone"
+                >
+                  <X size={18} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Plan complete / Workout Card / empty */}
           {isPlanComplete ? (

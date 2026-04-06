@@ -51,6 +51,7 @@ export function WorkoutSessionPage({
         exercises={state.exercises}
         formattedDuration={state.formattedDuration}
         onDone={state.handleSummaryDismiss}
+        newPrs={state.sessionNewPrs}
       />
     );
   }
