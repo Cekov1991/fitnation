@@ -58,14 +58,19 @@ export function ExerciseNavTabs({
           const status = getCompletionStatus(exercise);
           const isActive = index === currentIndex;
           
-
-
           return (
             <div
               key={exercise.id}
               ref={(el) => { tabRefs.current.set(index, el); }}
               role="button"
-
+              tabIndex={0}
+              onClick={() => onSelectExercise(index)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectExercise(index);
+                }
+              }}
               className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition cursor-pointer ${
                 isActive 
                   ? 'shadow-lg' 

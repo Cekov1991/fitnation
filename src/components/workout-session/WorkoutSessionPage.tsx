@@ -75,7 +75,6 @@ export function WorkoutSessionPage({
           onSelectExercise={state.handleSwitchExercise}
             getCompletionStatus={getExerciseCompletionStatus}
           onAddExercise={state.handleAddExercise}
-          onViewExerciseDetail={onViewExerciseDetail}
         />
 
         <ExerciseContent
