@@ -7,6 +7,7 @@ export default function ExerciseCatalogPageWrapper() {
   return (
     <ExercisePickerPage
       mode="browse"
+      syncFiltersToUrl
       onClose={() => history.goBack()}
       onViewExercise={(name) => history.push(`/exercises/${encodeURIComponent(name)}`)}
     />

@@ -6,6 +6,7 @@ import { ExerciseImage } from './ExerciseImage';
 import { ExercisePickerPageSkeleton } from './ExercisePickerPageSkeleton';
 import { ExerciseDetailPage } from './ExerciseDetailPage';
 import { useBackGesture } from '../hooks/useBackGesture';
+import { useFilterParams } from '../hooks/useFilterParams';
 import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
@@ -26,6 +27,7 @@ interface ExercisePickerPageProps {
   onViewExercise?: (exerciseName: string) => void;
   isLoading?: boolean;
   initialMuscleGroupIds?: number[];
+  syncFiltersToUrl?: boolean;
 }
 export function ExercisePickerPage({
   mode,
@@ -33,7 +35,8 @@ export function ExercisePickerPage({
   onSelectExercise,
   onViewExercise,
   isLoading: isSelecting = false,
-  initialMuscleGroupIds
+  initialMuscleGroupIds,
+  syncFiltersToUrl = false
 }: ExercisePickerPageProps) {
   const { fade } = useModalTransition();
   const slideTransition = useSlideTransition();
@@ -49,13 +52,23 @@ export function ExercisePickerPage({
     data: equipmentTypes = [],
     isLoading: isLoadingEquipmentTypes
   } = useEquipmentTypes();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
-  const [viewingExerciseId, setViewingExerciseId] = useState<number | null>(null);
-  const [selectedMuscleGroupIds, setSelectedMuscleGroupIds] = useState<Set<number>>(
+
+  // URL-synced filter state (used when syncFiltersToUrl is true)
+  const urlFilters = useFilterParams(initialMuscleGroupIds);
+
+  // Local filter state (used when syncFiltersToUrl is false)
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [localMuscleGroupIds, setLocalMuscleGroupIds] = useState<Set<number>>(
     () => new Set(initialMuscleGroupIds ?? [])
   );
-  const [selectedEquipmentTypeIds, setSelectedEquipmentTypeIds] = useState<Set<number>>(new Set());
+  const [localEquipmentTypeIds, setLocalEquipmentTypeIds] = useState<Set<number>>(new Set());
+
+  const searchQuery = syncFiltersToUrl ? urlFilters.searchQuery : localSearchQuery;
+  const selectedMuscleGroupIds = syncFiltersToUrl ? urlFilters.selectedMuscleGroupIds : localMuscleGroupIds;
+  const selectedEquipmentTypeIds = syncFiltersToUrl ? urlFilters.selectedEquipmentTypeIds : localEquipmentTypeIds;
+
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
+  const [viewingExerciseId, setViewingExerciseId] = useState<number | null>(null);
   
   const availableExercises = useMemo<Exercise[]>(() => {
     return exercises.map((exercise: ExerciseResource) => {
@@ -108,36 +121,44 @@ export function ExercisePickerPage({
   }, [availableExercises, searchQuery, selectedMuscleGroupIds, selectedEquipmentTypeIds]);
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
+    if (syncFiltersToUrl) {
+      urlFilters.setSearchQuery(query);
+    } else {
+      setLocalSearchQuery(query);
+    }
   };
 
-  const handleToggleMuscleGroup = (muscleGroupId: number) => {
-    setSelectedMuscleGroupIds(prev => {
+const handleToggleMuscleGroup = (muscleGroupId: number) => {
+  if (syncFiltersToUrl) {
+    urlFilters.toggleMuscleGroup(muscleGroupId);
+  } else {
+    setLocalMuscleGroupIds(prev => {
       const next = new Set(prev);
-      if (next.has(muscleGroupId)) {
-        next.delete(muscleGroupId);
-      } else {
-        next.add(muscleGroupId);
-      }
+      next.has(muscleGroupId) ? next.delete(muscleGroupId) : next.add(muscleGroupId);
       return next;
     });
+  }
   };
 
   const handleToggleEquipmentType = (equipmentTypeId: number) => {
-    setSelectedEquipmentTypeIds(prev => {
-      const next = new Set(prev);
-      if (next.has(equipmentTypeId)) {
-        next.delete(equipmentTypeId);
-      } else {
-        next.add(equipmentTypeId);
-      }
-      return next;
-    });
+    if (syncFiltersToUrl) {
+      urlFilters.toggleEquipmentType(equipmentTypeId);
+    } else {
+      setLocalEquipmentTypeIds(prev => {
+        const next = new Set(prev);
+        next.has(equipmentTypeId) ? next.delete(equipmentTypeId) : next.add(equipmentTypeId);
+        return next;
+      });
+    }
   };
 
   const handleClearFilters = () => {
-    setSelectedMuscleGroupIds(new Set());
-    setSelectedEquipmentTypeIds(new Set());
+    if (syncFiltersToUrl) {
+      urlFilters.clearFilters();
+    } else {
+      setLocalMuscleGroupIds(new Set());
+      setLocalEquipmentTypeIds(new Set());
+    }
   };
 
   const hasActiveFilters = selectedMuscleGroupIds.size > 0 || selectedEquipmentTypeIds.size > 0;
