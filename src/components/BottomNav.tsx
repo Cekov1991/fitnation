@@ -56,9 +56,9 @@ export function BottomNav({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 pt-2" style={{ zIndex: 9999 }}>
+    <div className="fixed bottom-0 left-0 right-0 px-2 pb-1" style={{ zIndex: 9999 }}>
       <div 
-        className="max-w-md mx-auto   border rounded-2xl shadow-2xl shadow-black/50"
+        className="border rounded-xl shadow-2xl shadow-black/50"
         style={{ 
           backgroundColor: 'var(--color-bg-modal)',
           borderColor: 'var(--color-border)'

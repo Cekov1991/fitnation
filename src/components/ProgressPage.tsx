@@ -240,7 +240,7 @@ export function ProgressPage() {
           )}
 
           {progressTab === 'metrics' && (
-            <div className="mb-8 space-y-4" id="progress-panel-metrics" role="tabpanel" aria-labelledby="progress-tab-metrics">
+            <div className="mb-20 space-y-4" id="progress-panel-metrics" role="tabpanel" aria-labelledby="progress-tab-metrics">
               {isMetricsLoading ? (
                 <ProgressMetricsSkeleton />
               ) : (
