@@ -10,7 +10,7 @@ import {
 interface LocationState {
   swapExerciseId?: number;
   swapOrderIndex?: number;
-  pivotData?: { target_sets?: number; target_reps?: number; target_weight?: number };
+  pivotData?: { target_sets?: number; min_target_reps?: number; max_target_reps?: number; target_weight?: number };
   initialMuscleGroupIds?: number[];
 }
 
@@ -57,7 +57,8 @@ export default function WorkoutPreviewExercisePickerWrapper() {
           data: {
             exercise_id: exercise.id,
             target_sets: 3,
-            target_reps: 10,
+            min_target_reps: 8,
+            max_target_reps: 12,
             target_weight: 0
           }
         });
@@ -72,7 +73,8 @@ export default function WorkoutPreviewExercisePickerWrapper() {
             exercise_id: exercise.id,
             order: swapOrderIndex >= 0 ? swapOrderIndex : undefined,
             target_sets: pivotData?.target_sets ?? 3,
-            target_reps: pivotData?.target_reps ?? 10,
+            min_target_reps: pivotData?.min_target_reps ?? 8,
+            max_target_reps: pivotData?.max_target_reps ?? 12,
             target_weight: pivotData?.target_weight ?? 0
           }
         });

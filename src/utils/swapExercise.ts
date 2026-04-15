@@ -15,7 +15,8 @@ export interface SwapExerciseContext {
   pivotId: number;
   orderIndex: number;
   target_sets: number;
-  target_reps: number;
+  min_target_reps: number;
+  max_target_reps: number;
   target_weight: number;
   muscleGroupIds?: number[];
 }

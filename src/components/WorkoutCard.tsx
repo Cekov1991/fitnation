@@ -3,6 +3,7 @@ import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { formatWeight } from './workout-session/utils';
 import { estimateWorkoutDuration } from '../utils/workoutHelpers';
+import { formatRepRange } from '../utils/repRange';
 import type { WorkoutTemplateResource, TemplateExercise } from '../types/api';
 
 interface WorkoutCardProps {
@@ -24,7 +25,8 @@ interface RawWorkoutTemplateExercise {
   exercise_id: number;
   order: number;
   target_sets: number | null;
-  target_reps: number | null;
+  min_target_reps: number | null;
+  max_target_reps: number | null;
   target_weight: string | null;
   rest_seconds: number | null;
   exercise: {
@@ -66,7 +68,8 @@ function normalizeExercises(template: WorkoutTemplateResource | null | Record<st
         id: item.id,
         order: item.order,
         target_sets: item.target_sets,
-        target_reps: item.target_reps,
+        min_target_reps: item.min_target_reps,
+        max_target_reps: item.max_target_reps,
         target_weight: item.target_weight ? parseFloat(item.target_weight) : null,
         rest_seconds: item.rest_seconds
       }
@@ -183,7 +186,8 @@ export function WorkoutCard({
           ) : (
             sortedExercises.map((exercise) => {
               const sets = exercise.pivot.target_sets || 0;
-              const reps = exercise.pivot.target_reps || 0;
+              const minReps = exercise.pivot.min_target_reps || 0;
+              const maxReps = exercise.pivot.max_target_reps || 0;
               const weight = exercise.pivot.target_weight || 0;
 
               return (
@@ -204,7 +208,7 @@ export function WorkoutCard({
                       {exercise.name}
                     </h5>
                     <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                      {sets} sets × {reps} reps × {formatWeight(weight)} kg
+                      {sets} sets × {formatRepRange(minReps, maxReps)} reps × {formatWeight(weight)} kg
                     </p>
                   </div>
                 </div>

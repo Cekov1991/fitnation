@@ -16,6 +16,7 @@ import {
   useUpdateSessionExercise
 } from '../hooks/useApi';
 import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '../types/api';
+import { formatRepRange } from '../utils/repRange';
 
 interface LocationState {
   generationParams?: GenerateWorkoutInput;
@@ -105,11 +106,10 @@ export function WorkoutPreviewPage() {
     setIsEditSetsRepsOpen(true);
   };
 
-  const handleSaveSetsReps = async (sets: number, reps: string, weight: string) => {
+  const handleSaveSetsReps = async (sets: number, minReps: number, maxReps: number, weight: string) => {
     if (!selectedExercise || !sessionId) return;
 
     try {
-      const repsNum = parseInt(reps.split('-')[0]) || 0;
       const weightNum = parseFloat(weight.replace(' kg', '')) || 0;
 
       await updateExercise.mutateAsync({
@@ -117,7 +117,8 @@ export function WorkoutPreviewPage() {
         exerciseId: selectedExercise.session_exercise.id,
         data: {
           target_sets: sets,
-          target_reps: repsNum,
+          min_target_reps: minReps,
+          max_target_reps: maxReps,
           target_weight: weightNum
         }
       });
@@ -146,7 +147,8 @@ export function WorkoutPreviewPage() {
       swapOrderIndex,
       pivotData: {
         target_sets: selectedExercise?.session_exercise.target_sets,
-        target_reps: selectedExercise?.session_exercise.target_reps,
+        min_target_reps: selectedExercise?.session_exercise.min_target_reps,
+        max_target_reps: selectedExercise?.session_exercise.max_target_reps,
         target_weight: selectedExercise?.session_exercise.target_weight
       },
       initialMuscleGroupIds: primaryMuscleGroupIds
@@ -273,7 +275,9 @@ export function WorkoutPreviewPage() {
                       <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                         <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_sets} sets</span>
                         <span className="mx-1 opacity-40">×</span>
-                        <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_reps} reps</span>
+                        <span style={{ color: 'var(--color-primary)' }}>
+                          {formatRepRange(sessionExercise.min_target_reps || 0, sessionExercise.max_target_reps || 0)} reps
+                        </span>
                         {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
                           <>
                             <span className="mx-1 opacity-40">×</span>
@@ -389,7 +393,8 @@ export function WorkoutPreviewPage() {
           isOpen={isEditSetsRepsOpen} 
           onClose={() => setIsEditSetsRepsOpen(false)} 
           initialSets={selectedExercise.session_exercise.target_sets || 0} 
-          initialReps={String(selectedExercise.session_exercise.target_reps || 0)} 
+          initialMinReps={selectedExercise.session_exercise.min_target_reps || 0}
+          initialMaxReps={selectedExercise.session_exercise.max_target_reps || 0}
           initialWeight={String(selectedExercise.session_exercise.target_weight || 0)} 
           onSave={handleSaveSetsReps} 
           isLoading={updateExercise.isPending} 

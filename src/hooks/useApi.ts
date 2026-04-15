@@ -1043,7 +1043,7 @@ export function useUpdateSessionExercise() {
               ...exDetail,
               session_exercise: {
                 ...exDetail.session_exercise,
-                ...variables.data, // Apply all updates (target_sets, target_reps, etc.)
+                ...variables.data, // Apply all updates (target_sets, rep range, etc.)
                 updated_at: new Date().toISOString()
               }
             };

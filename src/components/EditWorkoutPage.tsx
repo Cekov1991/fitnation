@@ -11,6 +11,7 @@ import { useModalTransition } from '../utils/animations';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { SwapExerciseContext } from '../utils/swapExercise';
 import type { TemplateExercise, MuscleGroupResource } from '../types/api';
+import { formatRepRange } from '../utils/repRange';
 
 const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
@@ -20,6 +21,8 @@ interface Exercise {
   name: string;
   sets: number;
   reps: string;
+  minReps: number;
+  maxReps: number;
   weight: string;
   muscleGroups: string[];
   primaryMuscle: string;
@@ -163,7 +166,9 @@ export function EditWorkoutPage({
       pivotId: ex.pivot.id,
       name: ex.name,
       sets: ex.pivot.target_sets || 0,
-      reps: ex.pivot.target_reps ? String(ex.pivot.target_reps) : '0',
+      reps: formatRepRange(ex.pivot.min_target_reps || 0, ex.pivot.max_target_reps || 0),
+      minReps: ex.pivot.min_target_reps || 0,
+      maxReps: ex.pivot.max_target_reps || 0,
       weight: ex.pivot.target_weight ? String(ex.pivot.target_weight) : '0',
       muscleGroups: ex.muscle_groups?.map((mg: MuscleGroupResource) => mg.name) || [],
       primaryMuscle: ex.muscle_groups?.find((mg: MuscleGroupResource) => mg.is_primary)?.name || ex.muscle_groups?.[0]?.name || 'Unknown',
@@ -225,10 +230,8 @@ export function EditWorkoutPage({
   const handleEditSetsReps = () => {
     setIsEditSetsRepsOpen(true);
   };
-  const handleSaveSetsReps = async (sets: number, reps: string, weight: string) => {
+  const handleSaveSetsReps = async (sets: number, minReps: number, maxReps: number, weight: string) => {
     if (editingExercise) {
-      // Parse reps (could be "8-10" or "10")
-      const repsNum = parseInt(reps.split('-')[0]) || 0;
       // Parse weight (remove "kg" suffix)
       const weightNum = parseFloat(weight.replace(' kg', '')) || 0;
       
@@ -237,7 +240,8 @@ export function EditWorkoutPage({
         pivotId: editingExercise.pivotId,
         data: {
           target_sets: sets,
-          target_reps: repsNum,
+          min_target_reps: minReps,
+          max_target_reps: maxReps,
           target_weight: weightNum
         }
       });
@@ -248,13 +252,13 @@ export function EditWorkoutPage({
     if (!editingExercise) return;
     const orderIndex = exercises.findIndex((ex) => ex.id === editingExercise.id);
     if (orderIndex < 0) return;
-    const target_reps = parseInt(editingExercise.reps.split('-')[0], 10) || 0;
     const target_weight = parseFloat(editingExercise.weight.replace(/ kg$/, '')) || 0;
     onSwapExercise({
       pivotId: editingExercise.pivotId,
       orderIndex,
       target_sets: editingExercise.sets,
-      target_reps,
+      min_target_reps: editingExercise.minReps,
+      max_target_reps: editingExercise.maxReps,
       target_weight,
       muscleGroupIds: editingExercise.muscleGroupIds
     });
@@ -393,7 +397,7 @@ export function EditWorkoutPage({
       <ExerciseEditMenu isOpen={isEditMenuOpen} onClose={() => setIsEditMenuOpen(false)} onEditSetsReps={handleEditSetsReps} onSwap={handleSwapExerciseClick} onRemove={handleRemoveExercise} isRemoveLoading={removeExercise.isPending} exerciseName={editingExercise?.name} />
 
       {/* Edit Sets/Reps Modal */}
-      {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialReps={editingExercise.reps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} isLoading={updateExercise.isPending} exerciseName={editingExercise.name} />}
+      {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialMinReps={editingExercise.minReps} initialMaxReps={editingExercise.maxReps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} isLoading={updateExercise.isPending} exerciseName={editingExercise.name} />}
     </div>
       </div>
     </div>;

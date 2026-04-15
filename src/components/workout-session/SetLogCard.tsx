@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { Timer } from 'lucide-react';
 import { formatWeight } from './utils';
+import { formatRepRange } from '../../utils/repRange';
 
 interface SetLogCardProps {
   weight: number | null;
@@ -15,6 +16,9 @@ interface SetLogCardProps {
   setNumber?: number;
   showTimerButton?: boolean;
   allowWeightLogging?: boolean;
+  goalMinReps?: number;
+  goalMaxReps?: number;
+  goalWeight?: number | null;
 }
 
 export function SetLogCard({
@@ -29,7 +33,12 @@ export function SetLogCard({
   setNumber,
   showTimerButton = false,
   allowWeightLogging = true,
+  goalMinReps,
+  goalMaxReps,
+  goalWeight,
 }: SetLogCardProps) {
+  const showGoalWeightBadge = goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight;
+
   return (
     <motion.div 
       initial={{ scale: 0.95, opacity: 0 }}
@@ -43,7 +52,7 @@ export function SetLogCard({
       <p className="text-sm font-bold mb-4" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
         {setNumber ? `Set ${setNumber}` : 'Log Your Set'}
       </p>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         {/* Weight Input */}
         {allowWeightLogging && (
           <div className="flex-1">
@@ -72,6 +81,11 @@ export function SetLogCard({
                 kg
               </span>
             </div>
+            {showGoalWeightBadge && (
+              <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+                Suggested: {formatWeight(goalWeight!)} kg based on your performance
+              </p>
+            )}
           </div>
         )}
 
@@ -102,6 +116,11 @@ export function SetLogCard({
               reps
             </span>
           </div>
+          {goalMinReps !== undefined && goalMaxReps !== undefined && (
+            <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+              Target: {formatRepRange(goalMinReps, goalMaxReps)} reps
+            </p>
+          )}
         </div>
       </div>
 

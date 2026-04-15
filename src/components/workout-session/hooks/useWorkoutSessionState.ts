@@ -388,7 +388,8 @@ export function useWorkoutSessionState({
           data: {
             exercise_id: exercise.id,
             target_sets: 3,
-            target_reps: 10,
+            min_target_reps: 8,
+            max_target_reps: 12,
             target_weight: 0
           }
         });
@@ -412,7 +413,8 @@ export function useWorkoutSessionState({
               exercise_id: exercise.id,
               order: swapIndex,
               target_sets: currentExercise.targetSets,
-              target_reps: parseInt(currentExercise.targetReps) || 10,
+              min_target_reps: currentExercise.minTargetReps,
+              max_target_reps: currentExercise.maxTargetReps,
               target_weight: currentExercise.suggestedWeight
             }
           });

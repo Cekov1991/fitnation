@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useSimpleTransition } from '../../utils/animations';
 import { ExerciseVideoCard } from './ExerciseVideoCard';
+import { ProgressionBanner } from './ProgressionBanner';
 import { RestTimer } from './RestTimer';
 import { SetsList } from './SetsList';
 import type { Exercise, Set } from './types';
@@ -116,6 +117,12 @@ export function ExerciseContent({
               onOpenMenu={onOpenExerciseMenu}
               onViewExercise={() => onViewExerciseDetail(currentExercise.name)}
             />
+            {!currentExercise.sets.some(s => s.completed) && (
+              <ProgressionBanner
+                status={currentExercise.progressionStatus}
+                maxTargetReps={currentExercise.maxTargetReps}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -157,6 +164,9 @@ export function ExerciseContent({
               isRestTimerActive={isRestTimerActive}
               restSeconds={currentExercise.restSeconds}
               allowWeightLogging={currentExercise.allowWeightLogging}
+              goalMinReps={currentExercise.minTargetReps}
+              goalMaxReps={currentExercise.maxTargetReps}
+              goalWeight={currentExercise.suggestedWeight}
               isAddSetLoading={isAddSetLoading}
             />
           </motion.div>

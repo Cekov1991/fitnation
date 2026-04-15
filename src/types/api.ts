@@ -263,7 +263,8 @@ export interface TemplateExercisePivot {
   id: number; // WorkoutTemplateExercise ID
   order: number;
   target_sets: number | null;
-  target_reps: number | null;
+  min_target_reps: number | null;
+  max_target_reps: number | null;
   target_weight: number | null;
   rest_seconds: number | null;
 }
@@ -300,7 +301,9 @@ export interface WorkoutSessionExerciseResource {
   exercise: ExerciseResource | null;
   order: number;
   target_sets: number | null;
-  target_reps: number | null;
+  min_target_reps: number | null;
+  max_target_reps: number | null;
+  progression_status: 'no_history' | 'below_min' | 'working' | 'ready';
   target_weight: number | null;
   rest_seconds: number | null;
   created_at: string;
@@ -501,14 +504,16 @@ export interface UpdateTemplateInput {
 export interface AddTemplateExerciseInput {
   exercise_id: number;
   target_sets?: number;
-  target_reps?: number;
+  min_target_reps?: number;
+  max_target_reps?: number;
   target_weight?: number;
   rest_seconds?: number;
 }
 
 export interface UpdateTemplateExerciseInput {
   target_sets?: number;
-  target_reps?: number;
+  min_target_reps?: number;
+  max_target_reps?: number;
   target_weight?: number;
   rest_seconds?: number;
 }
@@ -532,7 +537,8 @@ export interface AddSessionExerciseInput {
   exercise_id: number;
   order?: number;
   target_sets?: number;
-  target_reps?: number;
+  min_target_reps?: number;
+  max_target_reps?: number;
   target_weight?: number;
   rest_seconds?: number;
 }
@@ -540,7 +546,8 @@ export interface AddSessionExerciseInput {
 export interface UpdateSessionExerciseInput {
   order?: number;
   target_sets?: number;
-  target_reps?: number;
+  min_target_reps?: number;
+  max_target_reps?: number;
   target_weight?: number;
   rest_seconds?: number;
 }

@@ -12,9 +12,10 @@ interface EditSetsRepsModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialSets: number;
-  initialReps: string;
+  initialMinReps: number;
+  initialMaxReps: number;
   initialWeight: string;
-  onSave: (sets: number, reps: string, weight: string) => void;
+  onSave: (sets: number, minReps: number, maxReps: number, weight: string) => void;
   isLoading?: boolean;
   exerciseName?: string;
 }
@@ -23,7 +24,8 @@ export function EditSetsRepsModal({
   isOpen,
   onClose,
   initialSets,
-  initialReps,
+  initialMinReps,
+  initialMaxReps,
   initialWeight,
   onSave,
   isLoading = false,
@@ -39,7 +41,8 @@ export function EditSetsRepsModal({
     resolver: zodResolver(setsRepsSchema),
     defaultValues: {
       sets: initialSets,
-      reps: initialReps,
+      minReps: initialMinReps,
+      maxReps: initialMaxReps,
       weight: initialWeight,
     },
     mode: 'onChange',
@@ -50,14 +53,15 @@ export function EditSetsRepsModal({
     if (isOpen) {
       reset({
         sets: initialSets,
-        reps: initialReps,
+        minReps: initialMinReps,
+        maxReps: initialMaxReps,
         weight: initialWeight,
       });
     }
-  }, [isOpen, initialSets, initialReps, initialWeight, reset]);
+  }, [isOpen, initialSets, initialMinReps, initialMaxReps, initialWeight, reset]);
 
   const onSubmit = async (data: SetsRepsFormData) => {
-    await onSave(data.sets, data.reps, data.weight || '');
+    await onSave(data.sets, data.minReps, data.maxReps, data.weight || '');
     onClose();
   };
 
@@ -153,32 +157,66 @@ export function EditSetsRepsModal({
                       <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                         Reps
                       </label>
-                      <div 
-                        className="w-full px-4 py-3 border rounded-xl transition-all"
-                        style={{ 
-                          backgroundColor: 'var(--color-bg-elevated)',
-                          borderColor: errors.reps ? '#f87171' : 'var(--color-border)',
-                          color: 'var(--color-text-primary)'
-                        }}
-                      >
-                        <Controller
-                          name="reps"
-                          control={control}
-                          render={({ field }) => (
-                            <IonInput 
-                              type="number" 
-                              inputmode="numeric" 
-                              pattern="[0-9]*" 
-                              value={field.value || ''} 
-                              onIonInput={e => {
-                                const val = e.detail.value;
-                                field.onChange(val ? parseInt(val, 10).toString() || '0' : '0');
-                              }} 
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <p className="text-xs mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Min</p>
+                          <div
+                            className="w-full px-4 py-3 border rounded-xl transition-all"
+                            style={{
+                              backgroundColor: 'var(--color-bg-elevated)',
+                              borderColor: errors.minReps ? '#f87171' : 'var(--color-border)',
+                              color: 'var(--color-text-primary)'
+                            }}
+                          >
+                            <Controller
+                              name="minReps"
+                              control={control}
+                              render={({ field }) => (
+                                <IonInput
+                                  type="number"
+                                  inputmode="numeric"
+                                  pattern="[0-9]*"
+                                  value={field.value?.toString() || ''}
+                                  onIonInput={e => {
+                                    const val = e.detail.value;
+                                    field.onChange(val ? parseInt(val, 10) || 0 : 0);
+                                  }}
+                                />
+                              )}
                             />
-                          )}
-                        />
+                          </div>
+                          {errors.minReps && <p className="text-xs text-red-400 mt-1">{errors.minReps.message}</p>}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Max</p>
+                          <div
+                            className="w-full px-4 py-3 border rounded-xl transition-all"
+                            style={{
+                              backgroundColor: 'var(--color-bg-elevated)',
+                              borderColor: errors.maxReps ? '#f87171' : 'var(--color-border)',
+                              color: 'var(--color-text-primary)'
+                            }}
+                          >
+                            <Controller
+                              name="maxReps"
+                              control={control}
+                              render={({ field }) => (
+                                <IonInput
+                                  type="number"
+                                  inputmode="numeric"
+                                  pattern="[0-9]*"
+                                  value={field.value?.toString() || ''}
+                                  onIonInput={e => {
+                                    const val = e.detail.value;
+                                    field.onChange(val ? parseInt(val, 10) || 0 : 0);
+                                  }}
+                                />
+                              )}
+                            />
+                          </div>
+                          {errors.maxReps && <p className="text-xs text-red-400 mt-1">{errors.maxReps.message}</p>}
+                        </div>
                       </div>
-                      {errors.reps && <p className="text-xs text-red-400 mt-1">{errors.reps.message}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>

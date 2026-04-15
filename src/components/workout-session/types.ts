@@ -15,7 +15,9 @@ export interface Exercise {
   muscleGroup: string;
   primaryMuscleGroupIds: number[];
   sets: Set[];
-  targetReps: string;
+  minTargetReps: number;
+  maxTargetReps: number;
+  progressionStatus: 'no_history' | 'below_min' | 'working' | 'ready';
   targetSets: number;
   suggestedWeight: number;
   maxWeightLifted: number;

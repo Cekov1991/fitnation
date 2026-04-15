@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Calendar, Dumbbell } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
+import { formatRepRange } from '../../utils/repRange';
 import type { LibraryProgramResource, WorkoutTemplateResource, TemplateExercise } from '../../types/api';
 
 interface LibraryProgramDetailViewProps {
@@ -72,7 +73,8 @@ export function LibraryProgramDetailView({ program, onBack, onStartProgram }: Li
             <div className="space-y-2">
               {exercises.map((ex: TemplateExercise) => {
                 const sets = ex.pivot?.target_sets ?? 0;
-                const reps = ex.pivot?.target_reps ?? 0;
+                const minReps = ex.pivot?.min_target_reps ?? 0;
+                const maxReps = ex.pivot?.max_target_reps ?? 0;
                 const weight = ex.pivot?.target_weight ?? 0;
                 return (
                   <div
@@ -94,7 +96,7 @@ export function LibraryProgramDetailView({ program, onBack, onStartProgram }: Li
                         {ex.name}
                       </p>
                       <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                        {sets} sets · {reps} reps
+                        {sets} sets · {formatRepRange(minReps, maxReps)} reps
                         {weight != null && weight > 0 ? ` · ${weight} kg` : ' · 0 kg'}
                       </p>
                     </div>

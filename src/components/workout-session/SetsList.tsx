@@ -22,6 +22,9 @@ interface SetsListProps {
   isRestTimerActive: boolean;
   restSeconds: number | null;
   allowWeightLogging: boolean;
+  goalMinReps: number;
+  goalMaxReps: number;
+  goalWeight: number;
   isAddSetLoading?: boolean;
 }
 
@@ -42,6 +45,9 @@ export function SetsList({
   isRestTimerActive,
   restSeconds,
   allowWeightLogging,
+  goalMinReps,
+  goalMaxReps,
+  goalWeight,
   isAddSetLoading = false,
 }: SetsListProps) {
   return (
@@ -66,6 +72,9 @@ export function SetsList({
               setNumber={index + 1}
               showTimerButton={!isRestTimerActive && !!restSeconds}
               allowWeightLogging={allowWeightLogging}
+              goalMinReps={goalMinReps}
+              goalMaxReps={goalMaxReps}
+              goalWeight={goalWeight}
             />
           );
         }
