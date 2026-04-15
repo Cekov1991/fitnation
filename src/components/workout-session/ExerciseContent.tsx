@@ -121,6 +121,7 @@ export function ExerciseContent({
               <ProgressionBanner
                 status={currentExercise.progressionStatus}
                 maxTargetReps={currentExercise.maxTargetReps}
+                allowWeightLogging={currentExercise.allowWeightLogging}
               />
             )}
           </motion.div>
