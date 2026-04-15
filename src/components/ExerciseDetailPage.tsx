@@ -81,8 +81,8 @@ export function ExerciseDetailPage({
       reps: point.reps,
       volume: point.volume,
       sets: point.sets,
-      // Use weight for weighted exercises, best_set_reps for bodyweight
-      value: allowWeightLogging ? point.weight : point.best_set_reps
+      // Use volume for weighted exercises, best_set_reps for bodyweight
+      value: allowWeightLogging ? point.volume : point.best_set_reps
     }));
   }, [historyData, allowWeightLogging]);
 
@@ -92,6 +92,17 @@ export function ExerciseDetailPage({
     return [...historyData.performance_data]
       .reverse()
       .slice(0, 3);
+  }, [historyData]);
+
+  const currentVolume = useMemo(() => {
+    if (!historyData?.performance_data?.length) return 0;
+    const latest = historyData.performance_data[historyData.performance_data.length - 1];
+    return latest.volume;
+  }, [historyData]);
+
+  const bestVolume = useMemo(() => {
+    if (!historyData?.performance_data?.length) return 0;
+    return Math.max(...historyData.performance_data.map((point: PerformanceDataPoint) => point.volume));
   }, [historyData]);
 
   const primaryMuscles = useMemo(() => {
@@ -523,7 +534,7 @@ export function ExerciseDetailPage({
                         <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current</p>
                         <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                           {allowWeightLogging 
-                            ? `${historyData.stats.current_weight} kg`
+                            ? `${currentVolume}`
                             : `${historyData.stats.current_best_set_reps} reps`
                           }
                         </p>
@@ -535,7 +546,7 @@ export function ExerciseDetailPage({
                         <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Best</p>
                         <p className="text-lg font-bold text-green-400">
                           {allowWeightLogging 
-                            ? `${historyData.stats.best_weight} kg`
+                            ? `${bestVolume}`
                             : `${historyData.stats.best_set_reps} reps`
                           }
                         </p>
@@ -565,7 +576,7 @@ export function ExerciseDetailPage({
                             <YAxis 
                               stroke="#9CA3AF" 
                               style={{ fontSize: '12px' }}
-                              unit={allowWeightLogging ? ' kg' : ''}
+                              unit=""
                             />
                             <Tooltip 
                               contentStyle={{
@@ -577,7 +588,7 @@ export function ExerciseDetailPage({
                               formatter={(value: number, name: string) => {
                                 if (name === 'value') {
                                   return allowWeightLogging 
-                                    ? [`${value} kg`, 'Weight']
+                                    ? [`${value} kg`, 'Volume']
                                     : [`${value} reps`, 'Best Set'];
                                 }
                                 if (name === 'weight') return [`${value} kg`, 'Weight'];
@@ -623,7 +634,7 @@ export function ExerciseDetailPage({
                                 </p>
                                 <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                                   {allowWeightLogging 
-                                    ? `${session.weight} kg × ${session.reps} reps`
+                                    ? `${session.volume} kg volume · ${session.sets} sets`
                                     : `${session.best_set_reps} reps (best set) • ${session.sets} sets`
                                   }
                                 </p>

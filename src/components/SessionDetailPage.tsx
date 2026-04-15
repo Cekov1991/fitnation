@@ -64,14 +64,39 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
 
   const formattedDuration = duration ? formatDuration(duration) : 'N/A';
 
+  const hasWeightedExercises = sessionData
+    ? sessionData.exercises.some(
+        (exerciseDetail: SessionExerciseDetail) =>
+          exerciseDetail.session_exercise.progression_mode === 'double_progression'
+      )
+    : false;
+
   const totalVolume = sessionData
-    ? sessionData.exercises.reduce((total: number, exerciseDetail: SessionExerciseDetail) => {
-        const exerciseVolume = exerciseDetail.logged_sets.reduce(
-          (sum: number, set: SetLogResource) => sum + set.weight * set.reps,
+    ? sessionData.exercises
+        .filter(
+          (exerciseDetail: SessionExerciseDetail) =>
+            exerciseDetail.session_exercise.progression_mode === 'double_progression'
+        )
+        .reduce((total: number, exerciseDetail: SessionExerciseDetail) => {
+          const exerciseVolume = exerciseDetail.logged_sets.reduce(
+            (sum: number, set: SetLogResource) => sum + set.weight * set.reps,
+            0
+          );
+          return total + exerciseVolume;
+        }, 0)
+    : 0;
+
+  const totalBodyweightReps = sessionData
+    ? sessionData.exercises
+        .filter(
+          (exerciseDetail: SessionExerciseDetail) =>
+            exerciseDetail.session_exercise.progression_mode === 'total_reps'
+        )
+        .reduce(
+          (total: number, exerciseDetail: SessionExerciseDetail) =>
+            total + exerciseDetail.logged_sets.reduce((sum: number, set: SetLogResource) => sum + set.reps, 0),
           0
-        );
-        return total + exerciseVolume;
-      }, 0)
+        )
     : 0;
 
   const handleResumeSession = () => {
@@ -227,10 +252,10 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                 >
                   <TrendingUp className="w-4 h-4 mb-1" style={{ color: 'var(--color-primary)' }} />
                   <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                    {formatWeight(totalVolume)}
+                    {hasWeightedExercises ? formatWeight(totalVolume) : totalBodyweightReps}
                   </p>
                   <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                    Total Volume
+                    {hasWeightedExercises ? 'Total Volume' : 'Total Reps'}
                   </p>
                 </div>
               </div>
@@ -395,6 +420,8 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                   {sessionData.exercises.map((exerciseDetail: SessionExerciseDetail) => {
                     const exercise = exerciseDetail.session_exercise.exercise;
                     const loggedSets = exerciseDetail.logged_sets || [];
+                    const isBodyweightProgression =
+                      exerciseDetail.session_exercise.progression_mode === 'total_reps';
                     const exerciseName = exercise?.name || 'Unknown Exercise';
                     const imageSrc = exercise?.image ?? exercise?.muscle_group_image ?? null;
 
@@ -481,15 +508,19 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                                     >
                                       Set {set.set_number}
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                                        {formatWeight(set.weight)}
-                                      </span>
-                                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                                        kg
-                                      </span>
-                                    </div>
-                                    <span style={{ color: 'var(--color-border)' }}>×</span>
+                                    {!isBodyweightProgression && (
+                                      <>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                            {formatWeight(set.weight)}
+                                          </span>
+                                          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                            kg
+                                          </span>
+                                        </div>
+                                        <span style={{ color: 'var(--color-border)' }}>×</span>
+                                      </>
+                                    )}
                                     <div className="flex items-center gap-2">
                                       <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                                         {set.reps}
@@ -499,14 +530,16 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                                       </span>
                                     </div>
                                   </div>
-                                  <div className="text-right">
-                                    <div className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                                      {formatWeight(volume)} kg
+                                  {!isBodyweightProgression && (
+                                    <div className="text-right">
+                                      <div className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                                        {formatWeight(volume)} kg
+                                      </div>
+                                      <div className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                                        volume
+                                      </div>
                                     </div>
-                                    <div className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                                      volume
-                                    </div>
-                                  </div>
+                                  )}
                                 </div>
                               );
                             })}
@@ -516,16 +549,17 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                                 style={{ borderColor: 'var(--color-border-subtle)' }}
                               >
                                 <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
-                                  Volume
+                                  {isBodyweightProgression ? 'Total reps' : 'Volume'}
                                 </span>
                                 <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                                  {formatWeight(
-                                    loggedSets.reduce(
-                                      (sum: number, s: SetLogResource) => sum + s.weight * s.reps,
-                                      0
-                                    )
-                                  )}{' '}
-                                  kg
+                                  {isBodyweightProgression
+                                    ? `${loggedSets.reduce((sum: number, s: SetLogResource) => sum + s.reps, 0)} reps`
+                                    : `${formatWeight(
+                                        loggedSets.reduce(
+                                          (sum: number, s: SetLogResource) => sum + s.weight * s.reps,
+                                          0
+                                        )
+                                      )} kg`}
                                 </span>
                               </div>
                             )}
