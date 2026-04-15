@@ -22,6 +22,7 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
     const exercise = exDetail.session_exercise.exercise;
     const loggedSets = exDetail.logged_sets || [];
     const previousSets = exDetail.previous_sets || [];
+    const progressionMode = exDetail.session_exercise.progression_mode;
     const targetSets = exDetail.session_exercise.target_sets || 0;
     const minTargetReps = exDetail.session_exercise.min_target_reps || 0;
     const maxTargetReps = exDetail.session_exercise.max_target_reps || 0;
@@ -43,7 +44,7 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
         const previousSet = previousSets.find(s => s.set_number === i + 1);
         sets.push({
           id: `set-${exDetail.session_exercise.id}-${i}`,
-          reps: previousSet?.reps ?? minTargetReps,
+          reps: previousSet?.reps ?? (progressionMode === 'total_reps' ? 0 : minTargetReps),
           weight: previousSet?.weight ?? targetWeight,
           completed: false
         });
@@ -65,9 +66,12 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
       muscleGroup: primaryGroups[0]?.name?.toUpperCase() || 'UNKNOWN',
       primaryMuscleGroupIds: primaryGroups.map(g => g.id),
       sets,
+      progressionMode,
       minTargetReps,
       maxTargetReps,
       progressionStatus: exDetail.session_exercise.progression_status ?? 'no_history',
+      totalRepsPrevious: exDetail.session_exercise.total_reps_previous,
+      totalRepsTarget: exDetail.session_exercise.total_reps_target,
       targetSets: exDetail.session_exercise.target_sets || 0,
       suggestedWeight: targetWeight,
       maxWeightLifted: Math.max(...loggedSets.map(s => s.weight), 0),

@@ -25,6 +25,8 @@ interface SetsListProps {
   goalMinReps: number;
   goalMaxReps: number;
   goalWeight: number;
+  totalRepsPrevious: number | null;
+  totalRepsTarget: number | null;
   isAddSetLoading?: boolean;
 }
 
@@ -48,6 +50,8 @@ export function SetsList({
   goalMinReps,
   goalMaxReps,
   goalWeight,
+  totalRepsPrevious,
+  totalRepsTarget,
   isAddSetLoading = false,
 }: SetsListProps) {
   return (
@@ -75,6 +79,8 @@ export function SetsList({
               goalMinReps={goalMinReps}
               goalMaxReps={goalMaxReps}
               goalWeight={goalWeight}
+              totalRepsPrevious={totalRepsPrevious}
+              totalRepsTarget={totalRepsTarget}
             />
           );
         }

@@ -121,7 +121,9 @@ export function ExerciseContent({
               <ProgressionBanner
                 status={currentExercise.progressionStatus}
                 maxTargetReps={currentExercise.maxTargetReps}
-                allowWeightLogging={currentExercise.allowWeightLogging}
+                progressionMode={currentExercise.progressionMode}
+                totalRepsPrevious={currentExercise.totalRepsPrevious}
+                totalRepsTarget={currentExercise.totalRepsTarget}
               />
             )}
           </motion.div>
@@ -168,6 +170,8 @@ export function ExerciseContent({
               goalMinReps={currentExercise.minTargetReps}
               goalMaxReps={currentExercise.maxTargetReps}
               goalWeight={currentExercise.suggestedWeight}
+              totalRepsPrevious={currentExercise.totalRepsPrevious}
+              totalRepsTarget={currentExercise.totalRepsTarget}
               isAddSetLoading={isAddSetLoading}
             />
           </motion.div>

@@ -19,6 +19,8 @@ interface SetLogCardProps {
   goalMinReps?: number;
   goalMaxReps?: number;
   goalWeight?: number | null;
+  totalRepsPrevious?: number | null;
+  totalRepsTarget?: number | null;
 }
 
 export function SetLogCard({
@@ -36,8 +38,11 @@ export function SetLogCard({
   goalMinReps,
   goalMaxReps,
   goalWeight,
+  totalRepsPrevious,
+  totalRepsTarget,
 }: SetLogCardProps) {
   const showGoalWeightBadge = goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight;
+  const showTotalRepsHint = totalRepsTarget != null;
 
   return (
     <motion.div 
@@ -116,10 +121,18 @@ export function SetLogCard({
               reps
             </span>
           </div>
-          {goalMinReps !== undefined && goalMaxReps !== undefined && (
+          {showTotalRepsHint ? (
             <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-              Target: {formatRepRange(goalMinReps, goalMaxReps)} reps
+              {totalRepsPrevious != null
+                ? `Last: ${totalRepsPrevious} / Goal: ${totalRepsTarget} total reps`
+                : `Goal: ${totalRepsTarget} total reps`}
             </p>
+          ) : (
+            goalMinReps !== undefined && goalMaxReps !== undefined && (
+              <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+                Target: {formatRepRange(goalMinReps, goalMaxReps)} reps
+              </p>
+            )
           )}
         </div>
       </div>

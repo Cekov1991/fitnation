@@ -300,11 +300,14 @@ export interface WorkoutSessionExerciseResource {
   exercise_id: number;
   exercise: ExerciseResource | null;
   order: number;
+  progression_mode: 'double_progression' | 'total_reps';
   target_sets: number | null;
   min_target_reps: number | null;
   max_target_reps: number | null;
   progression_status: 'no_history' | 'below_min' | 'working' | 'ready';
   target_weight: number | null;
+  total_reps_previous: number | null;
+  total_reps_target: number | null;
   rest_seconds: number | null;
   created_at: string;
   updated_at: string;

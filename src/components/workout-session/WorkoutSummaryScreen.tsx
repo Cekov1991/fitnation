@@ -17,37 +17,49 @@ interface SummaryStats {
   duration: string;
   exercisesCount: number;
   totalSets: number;
-  totalReps: number;
-  totalVolume: number;
+  weightedVolume: number;
+  bodyweightReps: number;
+  hasWeightedExercises: boolean;
+  hasBodyweightExercises: boolean;
 }
 
 function calculateStats(exercises: Exercise[], formattedDuration: string): SummaryStats {
-  const completedSets = exercises.flatMap(ex => ex.sets.filter(s => s.completed));
-  const totalSets = completedSets.length;
-  const totalReps = completedSets.reduce((sum, set) => sum + set.reps, 0);
-  const totalVolume = completedSets.reduce((sum, set) => sum + set.weight * set.reps, 0);
+  const weightedExercises = exercises.filter(ex => ex.progressionMode === 'double_progression');
+  const bodyweightExercises = exercises.filter(ex => ex.progressionMode === 'total_reps');
+
+  const allCompletedSets = exercises.flatMap(ex => ex.sets.filter(s => s.completed));
+  const totalSets = allCompletedSets.length;
+
+  const weightedVolume = weightedExercises
+    .flatMap(ex => ex.sets.filter(s => s.completed))
+    .reduce((sum, set) => sum + set.weight * set.reps, 0);
+
+  const bodyweightReps = bodyweightExercises
+    .flatMap(ex => ex.sets.filter(s => s.completed))
+    .reduce((sum, set) => sum + set.reps, 0);
 
   return {
     duration: formattedDuration,
     exercisesCount: exercises.length,
     totalSets,
-    totalReps,
-    totalVolume,
+    weightedVolume,
+    bodyweightReps,
+    hasWeightedExercises: weightedExercises.length > 0,
+    hasBodyweightExercises: bodyweightExercises.length > 0,
   };
 }
 
-function getBestSet(exercise: Exercise): { weight: number; reps: number } | null {
+function getTotalReps(exercise: Exercise): number {
+  return exercise.sets.filter(s => s.completed).reduce((sum, set) => sum + set.reps, 0);
+}
+
+function getBestWeightedSet(exercise: Exercise): { weight: number; reps: number } | null {
   const completedSets = exercise.sets.filter(s => s.completed);
   if (completedSets.length === 0) return null;
 
-  // Find set with highest volume (weight * reps)
-  const bestSet = completedSets.reduce((best, current) => {
-    const currentVolume = current.weight * current.reps;
-    const bestVolume = best.weight * best.reps;
-    return currentVolume > bestVolume ? current : best;
-  });
-
-  return { weight: bestSet.weight, reps: bestSet.reps };
+  return completedSets.reduce((best, current) =>
+    current.weight * current.reps > best.weight * best.reps ? current : best
+  );
 }
 
 export function WorkoutSummaryScreen({
@@ -184,55 +196,59 @@ export function WorkoutSummaryScreen({
                   className="text-2xl font-bold mb-1"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
-                  {formatWeight(stats.totalVolume)}
+                  {stats.hasWeightedExercises
+                    ? formatWeight(stats.weightedVolume)
+                    : stats.bodyweightReps}
                 </p>
                 <p
                   className="text-xs"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  Total Volume (kg)
+                  {stats.hasWeightedExercises ? 'Volume (kg)' : 'Total Reps'}
                 </p>
               </div>
             </motion.div>
 
-            {/* Total Reps Card */}
-            <motion.div
-              {...slideTransition}
-              transition={{ delay: 0.2 }}
-              className="rounded-2xl p-6 mb-8 border"
-              style={{
-                background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
-                borderColor: 'var(--color-border-subtle)',
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p
-                    className="text-sm font-medium mb-1"
-                    style={{ color: 'var(--color-text-secondary)' }}
+            {/* Bodyweight Total Reps Card — only for mixed or bodyweight-only workouts */}
+            {stats.hasBodyweightExercises && stats.hasWeightedExercises && (
+              <motion.div
+                {...slideTransition}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl p-6 mb-8 border"
+                style={{
+                  background: 'linear-gradient(to bottom right, var(--color-bg-elevated), var(--color-bg-surface))',
+                  borderColor: 'var(--color-border-subtle)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p
+                      className="text-sm font-medium mb-1"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      Bodyweight Reps
+                    </p>
+                    <p
+                      className="text-3xl font-bold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
+                      {stats.bodyweightReps}
+                    </p>
+                  </div>
+                  <div
+                    className="p-3 rounded-xl"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
+                    }}
                   >
-                    Total Reps
-                  </p>
-                  <p
-                    className="text-3xl font-bold"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
-                    {stats.totalReps}
-                  </p>
+                    <CheckCircle2 className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
+                  </div>
                 </div>
-                <div
-                  className="p-3 rounded-xl"
-                  style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
-                  }}
-                >
-                  <CheckCircle2 className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            )}
 
             {/* New PRs */}
-            {newPrs.length > 0 && (
+            {newPrs.filter(pr => !(pr.pr_type === 'weight' && pr.new_best === 0)).length > 0 && (
               <motion.div
                 {...slideTransition}
                 transition={{ delay: 0.25 }}
@@ -248,7 +264,7 @@ export function WorkoutSummaryScreen({
                   </h2>
                 </div>
                 <div className="space-y-3">
-                  {newPrs.map((pr) => (
+                  {newPrs.filter(pr => !(pr.pr_type === 'weight' && pr.new_best === 0)).map((pr) => (
                     <motion.div
                       key={`${pr.exercise_id}-${pr.pr_type}`}
                       initial={{ opacity: 0, x: -20 }}
@@ -309,11 +325,12 @@ export function WorkoutSummaryScreen({
                 <div className="space-y-3">
                   {exercises.map((exercise, index) => {
                     const completedSets = exercise.sets.filter(s => s.completed);
-                    const bestSet = getBestSet(exercise);
-                    const exerciseVolume = completedSets.reduce(
-                      (sum, set) => sum + set.weight * set.reps,
-                      0
-                    );
+                    const isBodyweight = exercise.progressionMode === 'total_reps';
+                    const bestSet = isBodyweight ? null : getBestWeightedSet(exercise);
+                    const totalReps = isBodyweight ? getTotalReps(exercise) : null;
+                    const exerciseVolume = isBodyweight
+                      ? 0
+                      : completedSets.reduce((sum, set) => sum + set.weight * set.reps, 0);
 
                     return (
                       <motion.div
@@ -353,7 +370,23 @@ export function WorkoutSummaryScreen({
                               {completedSets.length} set{completedSets.length !== 1 ? 's' : ''} completed
                             </p>
                           </div>
-                          {bestSet && (
+                          {isBodyweight && totalReps !== null && totalReps > 0 && (
+                            <div className="text-right">
+                              <p
+                                className="text-sm font-bold"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
+                                {totalReps} reps
+                              </p>
+                              <p
+                                className="text-xs"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                Total reps
+                              </p>
+                            </div>
+                          )}
+                          {!isBodyweight && bestSet && (
                             <div className="text-right">
                               <p
                                 className="text-sm font-bold"
