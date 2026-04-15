@@ -105,6 +105,16 @@ export function ExerciseDetailPage({
     return Math.max(...historyData.performance_data.map((point: PerformanceDataPoint) => point.volume));
   }, [historyData]);
 
+  // Compute progress from the same metric the chart uses, so Current/Best/Progress are consistent
+  const progressPercentage = useMemo(() => {
+    if (!historyData?.performance_data?.length) return 0;
+    const data = historyData.performance_data;
+    const first = allowWeightLogging ? data[0].volume : data[0].best_set_reps;
+    const last  = allowWeightLogging ? data[data.length - 1].volume : data[data.length - 1].best_set_reps;
+    if (first === 0) return 0;
+    return ((last - first) / first) * 100;
+  }, [historyData, allowWeightLogging]);
+
   const primaryMuscles = useMemo(() => {
     if (!exercise?.muscle_groups) return [];
     return exercise.muscle_groups
@@ -557,7 +567,7 @@ export function ExerciseDetailPage({
                       >
                         <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Progress</p>
                         <p className="text-lg font-bold" style={{ color: 'var(--color-primary)' }}>
-                          {formatProgress(historyData.stats.progress_percentage)}
+                          {formatProgress(progressPercentage)}
                         </p>
                       </div>
                     </div>
