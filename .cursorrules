@@ -1,0 +1,243 @@
+# Fit Nation — Project Rules
+
+## What This Project Is
+Fit Nation is a fitness tracking SaaS app. It has a React web app and a React Native mobile app in a pnpm monorepo. The backend is Laravel with Sanctum auth (REST API, Bearer tokens). The app supports multi-tenant white-label partner branding.
+
+---
+
+## Monorepo Structure
+```
+fit-nation/
+├── apps/
+│   ├── web/          ← React 18 + Vite + Ionic + Tailwind (do NOT modify unless asked)
+│   └── mobile/       ← Expo React Native app (primary focus)
+├── packages/
+│   └── shared/       ← shared API, types, schemas, hooks, utils
+├── plans/            ← stage-by-stage implementation plans
+├── package.json      ← pnpm workspace root
+└── pnpm-workspace.yaml
+```
+
+---
+
+## Mobile Stack (All Decisions Final)
+
+| Concern | Library |
+|---|---|
+| Navigation | `@react-navigation/native` + native-stack + bottom-tabs |
+| Styling | `nativewind` (Tailwind classNames) |
+| Data fetching | `@tanstack/react-query` |
+| Forms | `react-hook-form` + `@hookform/resolvers/zod` |
+| Validation | `zod` |
+| Auth storage | `expo-secure-store` |
+| Charts | `react-native-gifted-charts` |
+| Animation | `react-native-reanimated` v3 |
+| Video | `expo-video` |
+| Images | `expo-image` |
+| Icons | `lucide-react-native` |
+| Theme | `ThemeContext` with `AppColors` object |
+
+**Never suggest alternatives to these. The decisions are made.**
+
+---
+
+## Shared Package (`@fit-nation/shared`)
+
+### What lives here (platform-agnostic code only)
+- `src/api.ts` — all API calls (uses `getConfig().baseUrl`, never `import.meta.env`)
+- `src/config.ts` — `initApi({ baseUrl })` injection pattern
+- `src/auth.ts` — `initAuth({ storage })` injection pattern + `AuthStorage` interface
+- `src/types/api.ts` — all TypeScript interfaces and types
+- `src/schemas/` — all Zod validation schemas
+- `src/hooks/useApi.ts` — all TanStack Query hooks
+- `src/utils/` — platform-agnostic utilities only
+
+### What does NOT live here
+- Any React Native components
+- Any web components
+- Framer Motion, CSS variables, PWA utils (web-only)
+- `localStorage` or `AsyncStorage` (platform-specific — injected via `initAuth`)
+
+### Import pattern
+```ts
+import { api, useExercises, useWorkoutSession } from '@fit-nation/shared'
+import type { ExerciseResource, WorkoutSessionResource } from '@fit-nation/shared'
+```
+
+---
+
+## Key Patterns — Mobile App
+
+### Colors — ALWAYS from ThemeContext
+```tsx
+// ✅ Correct
+const { colors } = useTheme()
+<View style={{ backgroundColor: colors.bgBase }} />
+<Text style={{ color: colors.textPrimary }} />
+
+// ❌ Never hardcode colors
+<View style={{ backgroundColor: '#0F0F0F' }} />
+```
+
+### NativeWind — use for layout, ThemeContext for brand colors
+```tsx
+// ✅ Layout classes via NativeWind
+<View className="flex-1 px-6 pt-4 flex-row items-center gap-3" />
+
+// ✅ Dynamic brand colors via inline style
+<View className="rounded-2xl p-4" style={{ backgroundColor: colors.bgSurface }} />
+
+// ❌ Don't use hardcoded Tailwind color classes for brand colors
+<View className="bg-gray-900" />  // wrong — won't respond to partner theming
+```
+
+### Navigation types — always typed
+```ts
+import type { AppScreenProps } from '../navigation/types'
+export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'ExerciseDetail'>) {}
+```
+
+### API initialisation — done once in App.tsx
+```ts
+// App.tsx
+initApi({ baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api' })
+```
+
+### Auth storage — injected in AuthContext.tsx
+```ts
+initAuth({
+  storage: {
+    getItem: (key) => SecureStore.getItemAsync(key),
+    setItem: (key, value) => SecureStore.setItemAsync(key, value),
+    removeItem: (key) => SecureStore.deleteItemAsync(key),
+  }
+})
+```
+
+### Safe area — always wrap screens
+```tsx
+import { SafeAreaView } from 'react-native'
+<SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+```
+
+### Skeletons — every data-fetching screen
+```tsx
+if (isLoading) return <SkeletonBox height={100} />
+if (isError) return <ErrorState onRetry={refetch} />
+```
+
+---
+
+## Navigation Structure
+
+```
+RootNavigator
+├── AuthNavigator (Stack) — shown when user = null
+│   ├── Login
+│   ├── Register
+│   ├── ForgotPassword
+│   └── ResetPassword
+└── AppNavigator (Stack) — shown when user exists
+    ├── Tabs (BottomTab)
+    │   ├── Dashboard
+    │   ├── Progress
+    │   ├── Plans
+    │   └── Profile
+    ├── Onboarding (fullScreenModal)
+    ├── WorkoutSession (fullScreenModal)
+    ├── WorkoutSessionExerciseDetail (modal)
+    ├── GenerateWorkout (fullScreenModal)
+    ├── WorkoutPreview
+    ├── ExercisePicker (modal)
+    ├── ExerciseDetail
+    ├── ExerciseCatalog
+    ├── CreatePlan / EditPlan
+    ├── CreateWorkout / EditWorkout
+    ├── ManageExercises
+    ├── ProgramLibrary / ProgramDetail
+    ├── RoutineDetail / RoutineWorkoutDetail
+    └── SessionDetail
+```
+
+---
+
+## Mobile App File Structure
+```
+apps/mobile/
+├── src/
+│   ├── navigation/
+│   │   ├── RootNavigator.tsx
+│   │   ├── AuthNavigator.tsx
+│   │   ├── AppNavigator.tsx
+│   │   ├── TabNavigator.tsx
+│   │   └── types.ts
+│   ├── screens/           ← one file per screen
+│   ├── components/
+│   │   ├── ui/            ← Button, Input, Card, SkeletonBox, ErrorState, etc.
+│   │   ├── exercises/     ← ExerciseCard, FilterChips
+│   │   ├── onboarding/    ← OptionCard, ProgressBar, DaySelector
+│   │   └── workout-session/ ← SetRow, ProgressionCue, RestTimer
+│   ├── context/
+│   │   ├── ThemeContext.tsx
+│   │   └── AuthContext.tsx
+│   └── constants/
+│       └── theme.ts       ← defaultColors + AppColors type
+├── App.tsx
+├── global.css
+├── app.json
+├── babel.config.js
+├── metro.config.js
+└── tailwind.config.js
+```
+
+---
+
+## Default Color Values (Fit Nation theme)
+```ts
+const defaultColors = {
+  bgBase: '#0F0F0F',
+  bgSurface: '#1A1A1A',
+  bgElevated: '#242424',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#A0A0A0',
+  textMuted: '#606060',
+  primary: '#3B82F6',
+  secondary: '#8B5CF6',
+  success: '#22C55E',
+  error: '#EF4444',
+  warning: '#F59E0B',
+  segmentTrack: '#1A1A1A',
+  segmentActive: '#2A2A2A',
+}
+```
+
+---
+
+## Implementation Plans
+All stages are documented in `/plans/`. Execute them in order:
+
+- `stage-0-monorepo-setup.md` — repo restructure, pnpm workspaces, Expo scaffold
+- `stage-1-shared-package.md` — extract shared API, types, schemas, hooks
+- `stage-2-app-foundation.md` — navigation skeleton, ThemeContext, AuthContext
+- `stage-3-auth-screens.md` — Login, Register, Forgot/Reset Password
+- `stage-4-onboarding.md` — multi-step onboarding with plan generation
+- `stage-5-core-tab-screens.md` — Dashboard, Progress, Plans, Profile
+- `stage-6-exercise-catalog-detail.md` — catalog, detail with video/chart, picker
+- `stage-7-plan-workout-management.md` — create/edit plans, workouts, programs
+- `stage-8-workout-session.md` — generate, preview, live session, completion
+- `stage-9-polish-production.md` — haptics, error states, EAS build, TestFlight
+
+---
+
+## Rules
+
+1. **Never modify `apps/web/`** unless explicitly asked
+2. **Never hardcode colors** — always use `colors.X` from `useTheme()`
+3. **Never use CSS variables** in React Native — they don't exist
+4. **Never use `localStorage`** in mobile code — use `expo-secure-store`
+5. **Never use `import.meta.env`** in `packages/shared/` — use `getConfig()`
+6. **Always type navigation props** using types from `src/navigation/types.ts`
+7. **Always show loading skeletons** while data fetches
+8. **Always show error states** with a retry button on API failure
+9. **Always wrap screens** in `SafeAreaView`
+10. **One commit per stage** — commit after verifying each stage's checklist
