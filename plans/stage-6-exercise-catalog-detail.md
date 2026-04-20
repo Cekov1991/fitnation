@@ -1,7 +1,20 @@
 # Stage 6 — Exercise Catalog & Detail
 
 ## Overview
-Build the exercise browsing experience: a searchable, filterable catalog of all exercises, a detailed exercise screen with video playback and performance history chart, and the exercise picker modal used when adding exercises to workouts.
+Enhance the exercise experience built in Stage 5. The Catalog tab screen already exists — this stage adds full filter chips (muscle group + equipment), builds the detailed exercise screen with video playback and performance history chart, and adds the exercise picker modal used when adding exercises to workouts.
+
+## Design Parity
+Before building each screen, read the corresponding web component and match the design exactly.
+
+| Mobile Screen | Read This Web File |
+|---|---|
+| `ExerciseCatalogScreen` (filter upgrade) | `apps/web/src/components/ExerciseCatalogPage.tsx` |
+| `ExerciseDetailScreen` | `apps/web/src/components/ExerciseDetailPage.tsx` |
+| `ExercisePickerScreen` | `apps/web/src/components/ExercisePickerPage.tsx` (or relevant picker component) |
+
+Match exactly: exercise card thumbnail + name + muscle tag layout, filter chip row style, search bar design, video player with play/pause overlay and fullscreen button, tab pill selector (Guidance/Performance), horizontally scrolling cards for Muscles Worked and Instructions, performance stats grid (Current/Best/Progress), chart style, recent sessions list rows. The `ExerciseDetailPage.tsx` web file is particularly detailed — read it carefully before starting.
+
+---
 
 ## Prerequisites
 - Stages 0–5 complete
@@ -12,7 +25,7 @@ Build the exercise browsing experience: a searchable, filterable catalog of all 
 - `apps/web/src/components/ExerciseImage.tsx`
 
 ## Screens Built This Stage
-- `ExerciseCatalogScreen` — searchable list with muscle group + equipment filters
+- `ExerciseCatalogScreen` (upgrade) — add muscle group + equipment filter chips to the basic version from Stage 5
 - `ExerciseDetailScreen` — video, muscle groups, instructions, performance chart
 - `ExercisePickerScreen` — modal version of catalog for selecting exercises
 

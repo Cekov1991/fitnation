@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import * as SecureStore from 'expo-secure-store'
 import { initAuth, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
 import type { UserResource } from '@fit-nation/shared'
+import { useTheme } from './ThemeContext'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -18,6 +19,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   setUser: (user: UserResource | null) => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -26,18 +28,31 @@ const AuthContext = createContext<AuthContextValue>({
   login: async () => {},
   logout: async () => {},
   setUser: () => {},
+  refreshUser: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { setColors } = useTheme()
+
+  function applyPartnerColors(currentUser: UserResource) {
+    const identity = currentUser.partner?.visual_identity
+    if (!identity) return
+    setColors({
+      ...(identity.primary_color ? { primary: identity.primary_color } : {}),
+      ...(identity.secondary_color ? { secondary: identity.secondary_color } : {}),
+      ...(identity.background_color ? { bgBase: identity.background_color } : {}),
+    })
+  }
 
   useEffect(() => {
     async function loadUser() {
       try {
         const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY)
         if (token) {
-          const currentUser = await authApi.getCurrentUser()
+          const { user: currentUser } = await authApi.getCurrentUser()
+          applyPartnerColors(currentUser)
           setUser(currentUser)
         }
       } catch {
@@ -47,12 +62,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     loadUser()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function login(email: string, password: string) {
     const response = await authApi.login(email, password)
     await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
-    setUser(response.user)
+    // Re-fetch after the token is stored — the login response may omit fields
+    // like onboarding_completed_at that the navigation logic depends on.
+    const { user: fullUser } = await authApi.getCurrentUser()
+    applyPartnerColors(fullUser)
+    setUser(fullUser)
   }
 
   async function logout() {
@@ -61,8 +81,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }
 
+  async function refreshUser() {
+    const { user: currentUser } = await authApi.getCurrentUser()
+    applyPartnerColors(currentUser)
+    setUser(currentUser)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

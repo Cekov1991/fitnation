@@ -3,6 +3,20 @@
 ## Overview
 Build all authentication screens: Login, Register, Forgot Password, and Reset Password. Wire them to the real API via the shared `useApi` hooks and React Hook Form + Zod. On successful login the app navigates to the main app. Mirrors the web app auth flow exactly.
 
+## Design Parity
+Before building each screen, read the corresponding web component and match the design exactly.
+
+| Mobile Screen | Read This Web File |
+|---|---|
+| `LoginScreen` | `apps/web/src/components/LoginPage.tsx` |
+| `RegisterScreen` | `apps/web/src/components/RegisterPage.tsx` |
+| `ForgotPasswordScreen` | `apps/web/src/components/ForgotPasswordPage.tsx` |
+| `ResetPasswordScreen` | `apps/web/src/components/ResetPasswordPage.tsx` |
+
+Match exactly: logo/title treatment, form field styling, error message styling, link styles, button design, background, spacing. Translate CSS variables to `colors.X`.
+
+---
+
 ## Prerequisites
 - Stage 0, 1, 2 complete
 - Backend running and accessible from device/simulator

@@ -1,7 +1,22 @@
 # Stage 5 — Core Tab Screens
 
 ## Overview
-Build the four main bottom tab screens: Dashboard, Progress, Plans, and Profile. These are the most-visited screens in the app. Each pulls real data from the shared API hooks. Progress includes the line chart for fitness metrics.
+Build all five bottom tab screens in web order: Dashboard, Plans, Progress, Catalog, and Profile. Each pulls real data from the shared API hooks. Progress includes the line chart for fitness metrics. The Catalog tab is a lightweight entry point — the full exercise detail screen lives in Stage 6.
+
+## Design Parity
+Before building each screen, read the corresponding web component and match the design exactly.
+
+| Mobile Screen | Read This Web File |
+|---|---|
+| `DashboardScreen` | `apps/web/src/components/DashboardPage.tsx` + `apps/web/src/components/dashboard/` (all files) |
+| `PlansScreen` | `apps/web/src/components/PlansPage.tsx` |
+| `ProgressScreen` | `apps/web/src/components/ProgressPage.tsx` |
+| `ExerciseCatalogScreen` | `apps/web/src/components/ExerciseCatalogPage.tsx` |
+| `ProfileScreen` | `apps/web/src/components/ProfilePage.tsx` |
+
+Match exactly: card layouts, gradient text headers, section spacing, stat display format, chart presentation, plan list item design, profile section groupings, empty states, and loading skeleton shapes. Every visual detail in the web version must appear in the mobile version.
+
+---
 
 ## Prerequisites
 - Stages 0–4 complete
@@ -9,8 +24,9 @@ Build the four main bottom tab screens: Dashboard, Progress, Plans, and Profile.
 
 ## Screens Built This Stage
 - `DashboardScreen` — today's workout, active plans, quick start
-- `ProgressScreen` — strength score, balance, weekly progress, calendar
 - `PlansScreen` — list custom plans and programs, CRUD actions
+- `ProgressScreen` — strength score, balance, weekly progress, calendar
+- `ExerciseCatalogScreen` (Catalog tab) — searchable exercise list, taps into ExerciseDetail
 - `ProfileScreen` — user info, photo, fitness profile, regenerate plan
 
 ---
@@ -348,7 +364,87 @@ Use `useDeletePlan`, `useToggleProgramActive` from shared hooks.
 
 ---
 
-## Step 4 — Build Profile Screen
+## Step 4 — Build Catalog Tab Screen
+
+This is a lightweight version of the exercise catalog — searchable list, filter by muscle group, taps navigate to `ExerciseDetail` (built fully in Stage 6). The full filter chips and performance chart are Stage 6's job.
+
+```tsx
+import { useState, useMemo } from 'react'
+import { View, TextInput, FlatList, SafeAreaView, Text } from 'react-native'
+import { Search } from 'lucide-react-native'
+import { useExercises } from '@fit-nation/shared'
+import { useNavigation } from '@react-navigation/native'
+import { useTheme } from '../../context/ThemeContext'
+import { ExerciseCard } from '../../components/exercises/ExerciseCard'
+import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import type { AppStackParamList } from '../../navigation/types'
+
+type Nav = NativeStackNavigationProp<AppStackParamList>
+
+export function ExerciseCatalogScreen() {
+  const { colors } = useTheme()
+  const navigation = useNavigation<Nav>()
+  const [search, setSearch] = useState('')
+  const { data: exercises = [], isLoading } = useExercises()
+
+  const filtered = useMemo(() =>
+    exercises.filter(ex => ex.name.toLowerCase().includes(search.toLowerCase())),
+    [exercises, search]
+  )
+
+  return (
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+      <View className="px-6 pt-6 pb-3">
+        <Text className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>
+          Exercises
+        </Text>
+        <View className="flex-row items-center px-4 py-3 rounded-xl gap-3"
+          style={{ backgroundColor: colors.bgSurface }}>
+          <Search size={18} color={colors.textMuted} />
+          <TextInput
+            className="flex-1 text-base"
+            style={{ color: colors.textPrimary }}
+            placeholder="Search exercises..."
+            placeholderTextColor={colors.textMuted}
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+      </View>
+
+      {isLoading ? (
+        <View className="px-6">
+          {Array.from({ length: 8 }).map((_, i) => <SkeletonBox key={i} height={72} className="mb-3" />)}
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
+          renderItem={({ item }) => (
+            <ExerciseCard
+              exercise={item}
+              onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
+            />
+          )}
+          ListEmptyComponent={
+            <Text className="text-center mt-8" style={{ color: colors.textSecondary }}>
+              No exercises found
+            </Text>
+          }
+        />
+      )}
+    </SafeAreaView>
+  )
+}
+```
+
+Note: `ExerciseCard` component is created in Stage 6. For this stage, use a simple `TouchableOpacity` row as a placeholder — Stage 6 will replace it with the proper card.
+
+---
+
+## Step 5 — Build Profile Screen
 
 Key data:
 - `useCurrentUser()` or `useAuth()` user state
@@ -371,16 +467,19 @@ Key interactions:
 
 ---
 
-## Step 5 — Verify All Tab Screens
+## Step 6 — Verify All Tab Screens
 
 ```bash
 pnpm dev:mobile
 ```
 
+- [ ] Tab bar shows 5 tabs in order: Dashboard → Plans → Progress → Exercises → Profile
 - [ ] Dashboard shows active plan (or empty state)
 - [ ] Dashboard "Start Workout" navigates to GenerateWorkout placeholder
-- [ ] Progress shows strength score and weekly stats
 - [ ] Plans lists all user plans
+- [ ] Progress shows strength score and weekly stats
+- [ ] Catalog tab shows searchable exercise list
+- [ ] Tapping exercise in Catalog navigates to ExerciseDetail placeholder
 - [ ] Profile shows user name, email, fitness profile
 - [ ] Logout works and returns to Login screen
 - [ ] Skeleton loaders show while data fetches
@@ -392,13 +491,13 @@ pnpm dev:mobile
 
 ```bash
 git add -A
-git commit -m "feat(mobile): core tab screens — dashboard, progress, plans, profile"
+git commit -m "feat(mobile): core tab screens — dashboard, plans, progress, catalog, profile"
 ```
 
 ---
 
 ## Verification Checklist
-- [ ] All 4 tab screens load real data
+- [ ] All 5 tab screens load real data
 - [ ] Loading skeletons display while fetching
 - [ ] Empty states handled (no active plan, no plans, etc.)
 - [ ] Navigation from tab screens to detail screens works (even if detail is placeholder)

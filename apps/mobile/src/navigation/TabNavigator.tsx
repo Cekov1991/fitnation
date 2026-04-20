@@ -1,8 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Home, TrendingUp, Dumbbell, User } from 'lucide-react-native'
+import { Home, ClipboardList, BarChart3, Dumbbell, User } from 'lucide-react-native'
 import { DashboardScreen } from '../screens/placeholders/DashboardScreen'
-import { ProgressScreen } from '../screens/placeholders/ProgressScreen'
 import { PlansScreen } from '../screens/placeholders/PlansScreen'
+import { ProgressScreen } from '../screens/placeholders/ProgressScreen'
+import { ExercisesScreen } from '../screens/placeholders/ExercisesScreen'
 import { ProfileScreen } from '../screens/placeholders/ProfileScreen'
 import type { TabParamList } from './types'
 
@@ -27,14 +28,19 @@ export function TabNavigator() {
         options={{ tabBarIcon: ({ color }) => <Home color={color} size={22} /> }}
       />
       <Tab.Screen
-        name="Progress"
-        component={ProgressScreen}
-        options={{ tabBarIcon: ({ color }) => <TrendingUp color={color} size={22} /> }}
-      />
-      <Tab.Screen
         name="Plans"
         component={PlansScreen}
-        options={{ tabBarIcon: ({ color }) => <Dumbbell color={color} size={22} /> }}
+        options={{ tabBarIcon: ({ color }) => <ClipboardList color={color} size={22} /> }}
+      />
+      <Tab.Screen
+        name="Progress"
+        component={ProgressScreen}
+        options={{ tabBarIcon: ({ color }) => <BarChart3 color={color} size={22} /> }}
+      />
+      <Tab.Screen
+        name="Exercises"
+        component={ExercisesScreen}
+        options={{ tabBarLabel: 'Catalog', tabBarIcon: ({ color }) => <Dumbbell color={color} size={22} /> }}
       />
       <Tab.Screen
         name="Profile"

@@ -53,11 +53,12 @@ export type AuthStackParamList = {
   ResetPassword: { token?: string }
 }
 
-// Bottom tabs
+// Bottom tabs — order matches web app: Dashboard → Plans → Progress → Catalog → Profile
 export type TabParamList = {
   Dashboard: undefined
-  Progress: undefined
   Plans: undefined
+  Progress: undefined
+  Catalog: undefined
   Profile: undefined
 }
 
@@ -72,7 +73,6 @@ export type AppStackParamList = {
   WorkoutPreviewExercisePicker: { sessionId: string }
   ExercisePicker: undefined
   ExerciseDetail: { exerciseName: string }
-  ExerciseCatalog: undefined
   CreatePlan: undefined
   EditPlan: { planId: number }
   CreateWorkout: undefined
@@ -312,15 +312,17 @@ export function DashboardScreen() {
 Create `apps/mobile/src/navigation/TabNavigator.tsx`:
 ```tsx
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Home, TrendingUp, Dumbbell, User } from 'lucide-react-native'
+import { Home, Dumbbell, TrendingUp, Search, User } from 'lucide-react-native'
 import { DashboardScreen } from '../screens/placeholders/DashboardScreen'
-import { ProgressScreen } from '../screens/placeholders/ProgressScreen'
 import { PlansScreen } from '../screens/placeholders/PlansScreen'
+import { ProgressScreen } from '../screens/placeholders/ProgressScreen'
+import { ExerciseCatalogScreen } from '../screens/placeholders/ExerciseCatalogScreen'
 import { ProfileScreen } from '../screens/placeholders/ProfileScreen'
 import type { TabParamList } from './types'
 
 const Tab = createBottomTabNavigator<TabParamList>()
 
+// Tab order matches web app: Dashboard → Plans → Progress → Catalog → Profile
 export function TabNavigator() {
   return (
     <Tab.Navigator
@@ -340,14 +342,19 @@ export function TabNavigator() {
         options={{ tabBarIcon: ({ color }) => <Home color={color} size={22} /> }}
       />
       <Tab.Screen
+        name="Plans"
+        component={PlansScreen}
+        options={{ tabBarIcon: ({ color }) => <Dumbbell color={color} size={22} /> }}
+      />
+      <Tab.Screen
         name="Progress"
         component={ProgressScreen}
         options={{ tabBarIcon: ({ color }) => <TrendingUp color={color} size={22} /> }}
       />
       <Tab.Screen
-        name="Plans"
-        component={PlansScreen}
-        options={{ tabBarIcon: ({ color }) => <Dumbbell color={color} size={22} /> }}
+        name="Catalog"
+        component={ExerciseCatalogScreen}
+        options={{ tabBarLabel: 'Exercises', tabBarIcon: ({ color }) => <Search color={color} size={22} /> }}
       />
       <Tab.Screen
         name="Profile"
@@ -399,7 +406,6 @@ import { WorkoutSessionScreen } from '../screens/placeholders/WorkoutSessionScre
 import { WorkoutSessionExerciseDetailScreen } from '../screens/placeholders/WorkoutSessionExerciseDetailScreen'
 import { GenerateWorkoutScreen } from '../screens/placeholders/GenerateWorkoutScreen'
 import { WorkoutPreviewScreen } from '../screens/placeholders/WorkoutPreviewScreen'
-import { ExerciseCatalogScreen } from '../screens/placeholders/ExerciseCatalogScreen'
 import { ExerciseDetailScreen } from '../screens/placeholders/ExerciseDetailScreen'
 import { ExercisePickerScreen } from '../screens/placeholders/ExercisePickerScreen'
 import { CreatePlanScreen } from '../screens/placeholders/CreatePlanScreen'
@@ -447,7 +453,6 @@ export function AppNavigator() {
         component={ExercisePickerScreen}
         options={{ presentation: 'modal' }}
       />
-      <Stack.Screen name="ExerciseCatalog" component={ExerciseCatalogScreen} />
       <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
       <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />
       <Stack.Screen name="EditPlan" component={EditPlanScreen} />

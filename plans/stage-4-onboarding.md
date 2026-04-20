@@ -3,6 +3,17 @@
 ## Overview
 Build the multi-step onboarding flow that new users go through after registering. Collects: fitness goal, age, gender, height, weight, experience level, training days per week, and workout duration. On completion, triggers AI plan generation and navigates to the Dashboard.
 
+## Design Parity
+Before building, read the web onboarding components and match the design exactly.
+
+| Mobile Screen | Read These Web Files |
+|---|---|
+| `OnboardingScreen` | `apps/web/src/components/onboarding/` (entire folder) |
+
+Match exactly: step layout, progress bar style, option card design (border, selected state highlight, icon placement), number/day selector, typography, button placement, transition animations between steps, and the generating/loading screen treatment.
+
+---
+
 ## Prerequisites
 - Stage 0–3 complete
 - User can log in and land on placeholder Dashboard

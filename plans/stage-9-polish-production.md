@@ -3,6 +3,17 @@
 ## Overview
 Final stage before app store submission. Covers animation polish, loading states, error handling, app configuration, EAS build setup, app store assets, and TestFlight deployment. The app should feel native, handle edge cases gracefully, and be ready for real users.
 
+## Design Parity Audit
+Before polishing, do a side-by-side review of every mobile screen against its web counterpart. For each screen:
+1. Open the web app in browser
+2. Open the mobile app in Expo Go
+3. Compare every card, spacing, typography, color, and state
+4. Fix any deviations — missing gradients, wrong font weights, different card padding, missing dividers, etc.
+
+The goal at this stage: a user familiar with the web app should feel immediately at home in the mobile app.
+
+---
+
 ## Prerequisites
 - Stages 0–8 complete
 - All screens functional with real data

@@ -17,6 +17,10 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  AuthResponse,
+  MessageResponse,
+  UserResource,
+  ValidateInvitationResponse,
 } from './types/api';
 
 const getBaseUrl = () => getConfig().baseUrl
@@ -80,7 +84,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 // ============================================================================
 
 export const authApi = {
-  validateInvitation: async (token: string) => {
+  validateInvitation: async (token: string): Promise<ValidateInvitationResponse> => {
     return fetchWithAuth(`/invitations/${token}`);
   },
   register: async (data: {
@@ -89,13 +93,13 @@ export const authApi = {
     password: string;
     password_confirmation: string;
     invitation_token: string;
-  }) => {
+  }): Promise<AuthResponse> => {
     return fetchWithAuth('/register', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string): Promise<AuthResponse> => {
     return fetchWithAuth('/login', {
       method: 'POST',
       body: JSON.stringify({
@@ -104,15 +108,15 @@ export const authApi = {
       })
     });
   },
-  logout: async () => {
+  logout: async (): Promise<MessageResponse> => {
     return fetchWithAuth('/logout', {
       method: 'POST'
     });
   },
-  getCurrentUser: async () => {
+  getCurrentUser: async (): Promise<{ user: UserResource }> => {
     return fetchWithAuth('/user');
   },
-  forgotPassword: async (email: string) => {
+  forgotPassword: async (email: string): Promise<MessageResponse> => {
     return fetchPublic('/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
@@ -123,7 +127,7 @@ export const authApi = {
     email: string;
     password: string;
     password_confirmation: string;
-  }) => {
+  }): Promise<MessageResponse> => {
     return fetchPublic('/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -146,10 +150,10 @@ export const partnersApi = {
 // ============================================================================
 
 export const profileApi = {
-  getProfile: async () => {
+  getProfile: async (): Promise<{ user: UserResource }> => {
     return fetchWithAuth('/profile');
   },
-  updateProfile: async (data: UpdateProfileInput) => {
+  updateProfile: async (data: UpdateProfileInput): Promise<{ user: UserResource }> => {
     // Use FormData if profile_photo is included
     if (data.profile_photo) {
       const formData = new FormData();
@@ -168,7 +172,7 @@ export const profileApi = {
       body: JSON.stringify(data)
     });
   },
-  deleteProfilePhoto: async () => {
+  deleteProfilePhoto: async (): Promise<{ user: UserResource }> => {
     return fetchWithAuth('/profile/photo', {
       method: 'DELETE'
     });

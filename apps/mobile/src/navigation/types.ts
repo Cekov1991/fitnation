@@ -6,14 +6,15 @@ export type AuthStackParamList = {
   Login: undefined
   Register: { invitationToken?: string }
   ForgotPassword: undefined
-  ResetPassword: { token?: string }
+  ResetPassword: { token?: string; email?: string }
 }
 
 // Bottom tabs
 export type TabParamList = {
   Dashboard: undefined
-  Progress: undefined
   Plans: undefined
+  Progress: undefined
+  Exercises: undefined
   Profile: undefined
 }
 

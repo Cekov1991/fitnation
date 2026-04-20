@@ -3,6 +3,25 @@
 ## Overview
 Build all screens for creating and managing plans, workout templates, exercises within templates, and browsing partner programs and routines. These are the "library" screens of the app — less complex than the session screen but with significant CRUD interactions.
 
+## Design Parity
+Before building each screen, read the corresponding web component and match the design exactly.
+
+| Mobile Screen | Read This Web File |
+|---|---|
+| `CreatePlanScreen` | `apps/web/src/components/CreatePlanPage.tsx` |
+| `EditPlanScreen` | `apps/web/src/components/EditPlanPage.tsx` |
+| `CreateWorkoutScreen` | `apps/web/src/components/CreateWorkoutPage.tsx` |
+| `EditWorkoutScreen` | `apps/web/src/components/EditWorkoutPage.tsx` |
+| `ManageExercisesScreen` | `apps/web/src/components/ManageExercisesPage.tsx` |
+| `ProgramLibraryScreen` | `apps/web/src/components/ProgramLibraryPage.tsx` |
+| `ProgramDetailScreen` | `apps/web/src/components/ProgramDetailPage.tsx` |
+| `RoutineDetailScreen` | `apps/web/src/components/BrowsableRoutineDetailPage.tsx` |
+| `RoutineWorkoutDetailScreen` | `apps/web/src/components/RoutineWorkoutDetailPage.tsx` (if exists) |
+
+Match exactly: form field layout and styling, exercise row design in manage exercises, program card grid layout, progress indicators, workout list item design, action button placement, and all empty/loading states.
+
+---
+
 ## Prerequisites
 - Stages 0–6 complete
 - Exercise picker modal working (from Stage 6)

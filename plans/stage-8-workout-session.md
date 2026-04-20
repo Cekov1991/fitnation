@@ -3,6 +3,21 @@
 ## Overview
 Build the workout session flow — the most complex and most important part of the app. This includes AI workout generation, the preview screen, the live session tracking screen, exercise detail during a session, and the session history view. The live session screen requires gesture handling, real-time set logging, and the double progression algorithm.
 
+## Design Parity
+Before building each screen, read the corresponding web component and match the design exactly.
+
+| Mobile Screen | Read This Web File |
+|---|---|
+| `GenerateWorkoutScreen` | `apps/web/src/components/GenerateWorkoutPage.tsx` |
+| `WorkoutPreviewScreen` | `apps/web/src/components/WorkoutPreviewPage.tsx` |
+| `WorkoutSessionScreen` | `apps/web/src/components/workout-session/` (entire folder — read all files) |
+| `WorkoutSessionExerciseDetailScreen` | `apps/web/src/components/WorkoutSessionExerciseDetail.tsx` (or relevant file in workout-session/) |
+| `SessionDetailScreen` | `apps/web/src/components/SessionDetailPage.tsx` |
+
+This is the most design-critical stage. The workout session folder contains multiple sub-components — read every file in it before starting. Match exactly: filter selector layout, exercise preview card design, set row input styling, progression cue card design and color coding, rest timer appearance, session header with exercise counter and timer, and the completion screen. These screens are the core UX of the app.
+
+---
+
 ## Prerequisites
 - Stages 0–7 complete
 - Exercise picker working (Stage 6)

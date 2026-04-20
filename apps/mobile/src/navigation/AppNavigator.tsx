@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { useAuth } from '../context/AuthContext'
 import { TabNavigator } from './TabNavigator'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
 import { WorkoutSessionScreen } from '../screens/placeholders/WorkoutSessionScreen'
@@ -23,8 +24,14 @@ import type { AppStackParamList } from './types'
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
 export function AppNavigator() {
+  const { user } = useAuth()
+  const needsOnboarding = !user?.onboarding_completed_at
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={needsOnboarding ? 'Onboarding' : 'Tabs'}
+    >
       <Stack.Screen name="Tabs" component={TabNavigator} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen

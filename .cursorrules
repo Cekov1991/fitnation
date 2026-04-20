@@ -138,10 +138,11 @@ RootNavigator
 │   ├── ForgotPassword
 │   └── ResetPassword
 └── AppNavigator (Stack) — shown when user exists
-    ├── Tabs (BottomTab)
+    ├── Tabs (BottomTab) — order matches web app
     │   ├── Dashboard
-    │   ├── Progress
     │   ├── Plans
+    │   ├── Progress
+    │   ├── Catalog        ← Exercise Catalog (5th tab, matches web)
     │   └── Profile
     ├── Onboarding (fullScreenModal)
     ├── WorkoutSession (fullScreenModal)
@@ -150,7 +151,6 @@ RootNavigator
     ├── WorkoutPreview
     ├── ExercisePicker (modal)
     ├── ExerciseDetail
-    ├── ExerciseCatalog
     ├── CreatePlan / EditPlan
     ├── CreateWorkout / EditWorkout
     ├── ManageExercises
@@ -226,6 +226,26 @@ All stages are documented in `/plans/`. Execute them in order:
 - `stage-7-plan-workout-management.md` — create/edit plans, workouts, programs
 - `stage-8-workout-session.md` — generate, preview, live session, completion
 - `stage-9-polish-production.md` — haptics, error states, EAS build, TestFlight
+
+---
+
+## Design Parity — Non-Negotiable
+
+Every mobile screen must be a faithful React Native recreation of its web counterpart. Before building any screen:
+
+1. **Read the corresponding web component file** in `apps/web/src/components/`
+2. **Match exactly**: layout structure, visual hierarchy, typography scale, spacing, card styles, gradients, color usage, empty states, loading states, error states, and interactive feedback
+3. **Translate, don't invent**:
+   - CSS variables → `colors.X` from `useTheme()`
+   - Tailwind classes → NativeWind equivalents (spacing, flex, rounded, font sizes)
+   - `<div>` → `<View>`, `<p>/<span>` → `<Text>`, `<img>` → `<Image>` (expo-image)
+   - `<video>` → `<VideoView>` (expo-video)
+   - `onClick` → `onPress`
+   - CSS `overflow-x: auto` horizontal scroll → `<ScrollView horizontal>`
+   - CSS `gap` → NativeWind `gap-X` or `style={{ gap }}`
+   - Gradient text (`bg-clip-text`) → LinearGradient from `expo-linear-gradient`
+4. **Do not simplify the design** — if the web has gradient text headers, the mobile has them too. If the web has horizontally scrolling cards, the mobile has them too.
+5. **Web file locations**: `apps/web/src/components/` — every page component is there
 
 ---
 
