@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
-import { View, Text, TextInput, FlatList, TouchableOpacity } from 'react-native'
+import { View, Text, TextInput, FlatList, TouchableOpacity, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Search, X, Plus, Dumbbell } from 'lucide-react-native'
-import { useExercises, useMuscleGroups, useEquipmentTypes } from '@fit-nation/shared'
+import { useExercises, useMuscleGroups, useEquipmentTypes, useAddTemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
 import { FilterChips } from '../../components/exercises/FilterChips'
@@ -12,15 +12,18 @@ import type { ExerciseResource } from '@fit-nation/shared'
 
 type Props = AppScreenProps<'ExercisePicker'>
 
-export function ExercisePickerScreen({ navigation }: Props) {
+export function ExercisePickerScreen({ route, navigation }: Props) {
+  const templateId = route.params?.templateId
   const { colors } = useTheme()
   const [search, setSearch] = useState('')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
+  const [addingId, setAddingId] = useState<number | null>(null)
 
   const { data: exercises = [], isLoading, isError, refetch } = useExercises()
   const { data: muscleGroups = [] } = useMuscleGroups()
   const { data: equipmentTypes = [] } = useEquipmentTypes()
+  const addTemplateExercise = useAddTemplateExercise()
 
   const filtered = useMemo(() => {
     return (exercises as ExerciseResource[]).filter(ex => {
@@ -127,16 +130,47 @@ export function ExercisePickerScreen({ navigation }: Props) {
           renderItem={({ item }) => (
             <ExerciseCard
               exercise={item}
-              onPress={() => navigation.goBack()}
+              onPress={() => {
+                if (!templateId) navigation.goBack()
+              }}
               rightAction={
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  className="ml-2 p-2 rounded-full"
-                  style={{ backgroundColor: `${colors.primary}20` }}
-                  activeOpacity={0.7}
-                >
-                  <Plus size={18} color={colors.primary} />
-                </TouchableOpacity>
+                templateId ? (
+                  <TouchableOpacity
+                    onPress={async () => {
+                      if (addingId === item.id) return
+                      setAddingId(item.id)
+                      try {
+                        await addTemplateExercise.mutateAsync({
+                          templateId,
+                          data: {
+                            exercise_id: item.id,
+                            target_sets: 3,
+                            min_target_reps: 8,
+                            max_target_reps: 12,
+                          },
+                        })
+                        navigation.goBack()
+                      } catch (e: any) {
+                        Alert.alert('Error', e?.message || 'Failed to add exercise')
+                        setAddingId(null)
+                      }
+                    }}
+                    className="ml-2 p-2 rounded-full"
+                    style={{ backgroundColor: `${colors.primary}20`, opacity: addingId === item.id ? 0.5 : 1 }}
+                    activeOpacity={0.7}
+                  >
+                    <Plus size={18} color={colors.primary} />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    className="ml-2 p-2 rounded-full"
+                    style={{ backgroundColor: `${colors.primary}20` }}
+                    activeOpacity={0.7}
+                  >
+                    <Plus size={18} color={colors.primary} />
+                  </TouchableOpacity>
+                )
               }
             />
           )}
