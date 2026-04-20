@@ -71,7 +71,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   // Missing token or email — link is incomplete
   if (!token || !email) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
         <View
           style={{
             backgroundColor: colors.bgSurface,
@@ -108,7 +108,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   // Success state
   if (success) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
         <View
           style={{
             backgroundColor: colors.bgSurface,
@@ -152,7 +152,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+    <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

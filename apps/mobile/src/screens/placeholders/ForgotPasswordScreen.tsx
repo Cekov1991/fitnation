@@ -44,7 +44,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+    <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

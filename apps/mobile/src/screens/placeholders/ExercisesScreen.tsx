@@ -1,4 +1,1 @@
-import { Placeholder } from './Placeholder'
-export function ExercisesScreen() {
-  return <Placeholder name="Exercises" />
-}
+export { ExerciseCatalogScreen as ExercisesScreen } from './ExerciseCatalogScreen'

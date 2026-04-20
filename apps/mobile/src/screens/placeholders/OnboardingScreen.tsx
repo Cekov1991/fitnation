@@ -134,7 +134,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   // ─── Complete / Generating screen ──────────────────────────────────────────
   if (isComplete) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
         {/* Success modal */}
         <Modal transparent animationType="fade" visible={phase === 'plan-success'}>
           <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
@@ -259,7 +259,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
   // ─── Steps 0–3 ─────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+    <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
 
       {/* Progress bar — steps 1-3 only */}
       {isDataStep && (

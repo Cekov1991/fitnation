@@ -1,21 +1,29 @@
+// Default palette — matches the web light theme at apps/web/src/index.css
+// ([data-theme="light"]). Gets overridden per partner from the API response
+// (see AuthContext.applyPartnerColors).
 export const defaultColors = {
   // Backgrounds
-  bgBase: '#0F0F0F',
-  bgSurface: '#1A1A1A',
-  bgElevated: '#242424',
+  bgBase: '#F2F2F2',
+  bgSurface: '#FFFFFF',
+  bgElevated: '#FFFFFF',
 
   // Text
-  textPrimary: '#FFFFFF',
-  textSecondary: '#A0A0A0',
-  textMuted: '#606060',
+  textPrimary: '#111827', // gray-900
+  textSecondary: '#4B5563', // gray-600
+  textMuted: '#9CA3AF', // gray-400
+  textButton: '#FFFFFF', // text on primary buttons
+
+  // Borders
+  border: 'rgba(0, 0, 0, 0.1)',
+  borderSubtle: 'rgba(0, 0, 0, 0.05)',
 
   // Brand (Fit Nation defaults — overridden per partner)
-  primary: '#3B82F6',
-  secondary: '#8B5CF6',
+  primary: '#2563EB', // blue-600
+  secondary: '#9333EA', // purple-600
 
   // Segment control
-  segmentTrack: '#1A1A1A',
-  segmentActive: '#2A2A2A',
+  segmentTrack: '#E5E7EB',
+  segmentActive: '#FFFFFF',
 
   // Status
   success: '#22C55E',

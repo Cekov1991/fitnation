@@ -5,21 +5,23 @@ import { PlansScreen } from '../screens/placeholders/PlansScreen'
 import { ProgressScreen } from '../screens/placeholders/ProgressScreen'
 import { ExercisesScreen } from '../screens/placeholders/ExercisesScreen'
 import { ProfileScreen } from '../screens/placeholders/ProfileScreen'
+import { useTheme } from '../context/ThemeContext'
 import type { TabParamList } from './types'
 
 const Tab = createBottomTabNavigator<TabParamList>()
 
 export function TabNavigator() {
+  const { colors } = useTheme()
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1A1A1A',
-          borderTopColor: '#2A2A2A',
+          backgroundColor: colors.bgSurface,
+          borderTopColor: colors.bgElevated,
         },
-        tabBarActiveTintColor: '#3B82F6',
-        tabBarInactiveTintColor: '#606060',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
       }}
     >
       <Tab.Screen

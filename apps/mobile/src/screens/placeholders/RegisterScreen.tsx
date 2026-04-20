@@ -74,7 +74,7 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
   // Loading state while validating
   if (validating) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text className="text-sm mt-4" style={{ color: colors.textSecondary }}>
           Validating invitation...
@@ -86,7 +86,7 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
   // Invalid token state
   if (invitationError || !invitation) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
         <View
           style={{
             backgroundColor: colors.bgSurface,
@@ -120,7 +120,7 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
   const logoUrl = invitation.partner?.visual_identity?.logo || null
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+    <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

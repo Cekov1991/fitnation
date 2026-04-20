@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import { Image } from 'expo-image'
-import LinearGradient from 'react-native-linear-gradient'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Dumbbell } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 

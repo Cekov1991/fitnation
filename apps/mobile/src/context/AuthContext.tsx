@@ -43,6 +43,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(identity.primary_color ? { primary: identity.primary_color } : {}),
       ...(identity.secondary_color ? { secondary: identity.secondary_color } : {}),
       ...(identity.background_color ? { bgBase: identity.background_color } : {}),
+      ...(identity.card_background_color
+        ? { bgSurface: identity.card_background_color, bgElevated: identity.card_background_color }
+        : {}),
+      ...(identity.text_primary_color ? { textPrimary: identity.text_primary_color } : {}),
+      ...(identity.text_secondary_color ? { textSecondary: identity.text_secondary_color } : {}),
+      ...(identity.text_on_primary_color ? { textButton: identity.text_on_primary_color } : {}),
+      ...(identity.border_color
+        ? { border: identity.border_color, borderSubtle: identity.border_color }
+        : {}),
     })
   }
 

@@ -1,5 +1,5 @@
 import { TouchableOpacity, Text, ActivityIndicator, View, type TouchableOpacityProps } from 'react-native'
-import LinearGradient from 'react-native-linear-gradient'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useTheme } from '../../context/ThemeContext'
 
 interface ButtonProps extends TouchableOpacityProps {
