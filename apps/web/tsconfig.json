@@ -14,6 +14,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases */
+    "paths": {
+      "@fit-nation/shared": ["../../packages/shared/src/index.ts"],
+      "@fit-nation/shared/*": ["../../packages/shared/src/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
