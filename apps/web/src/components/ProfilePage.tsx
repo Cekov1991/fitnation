@@ -2,9 +2,9 @@ import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download } from 'lucide-react';
-import { useProfile, useUpdateProfile } from '../hooks/useApi';
+import { useProfile, useUpdateProfile } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { profileSchema, ProfileFormData } from '../schemas/profile';
+import { profileSchema, ProfileFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 import { ProfilePageSkeleton } from './ProfilePageSkeleton';
 

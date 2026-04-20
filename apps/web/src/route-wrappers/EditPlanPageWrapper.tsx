@@ -1,6 +1,6 @@
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { CreatePlanPage } from '../components/CreatePlanPage';
-import { usePlans, useUpdatePlan } from '../hooks/useApi';
+import { usePlans, useUpdatePlan } from '@fit-nation/shared';
 
 // Edit plan page wrapper
 export default function EditPlanPageWrapper() {

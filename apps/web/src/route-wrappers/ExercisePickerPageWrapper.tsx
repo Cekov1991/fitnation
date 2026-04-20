@@ -5,8 +5,8 @@ import {
   useAddTemplateExercise,
   useRemoveTemplateExercise,
   useReorderTemplateExercises
-} from '../hooks/useApi';
-import type { WorkoutTemplateResource } from '../types/api';
+} from '@fit-nation/shared';
+import type { WorkoutTemplateResource } from '@fit-nation/shared';
 
 interface LocationState {
   mode?: 'add' | 'swap';

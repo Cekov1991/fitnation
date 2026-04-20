@@ -1,7 +1,7 @@
 import { AlertCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { LoadingContent } from '../ui';
 import { BrowsableRoutineDetailPageSkeleton } from './BrowsableRoutineDetailPageSkeleton';
-import { useBrowsableRoutine } from '../../hooks/useApi';
+import { useBrowsableRoutine } from '@fit-nation/shared';
 import { BrowsableRoutineDetailView } from './BrowsableRoutineDetailView';
 
 interface BrowsableRoutineDetailPageProps {

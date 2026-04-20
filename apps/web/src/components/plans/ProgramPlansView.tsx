@@ -4,8 +4,8 @@ import { MoreVertical, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { ProgramPlansActiveSectionSkeleton, ProgramPlansAllProgramsSkeleton } from './ProgramPlansViewSkeleton';
 import { PlanMenu } from '../PlanMenu';
-import { usePrograms, useDeleteProgram, useUpdateProgram } from '../../hooks/useApi';
-import type { ProgramResource } from '../../types/api';
+import { usePrograms, useDeleteProgram, useUpdateProgram } from '@fit-nation/shared';
+import type { ProgramResource } from '@fit-nation/shared';
 
 interface ProgramPlansViewProps {
   onNavigateToBrowseLibrary: () => void;

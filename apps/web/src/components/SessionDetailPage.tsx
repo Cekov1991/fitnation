@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
-import { useSession, useCompleteSession, useTemplate } from '../hooks/useApi';
+import { useSession, useCompleteSession, useTemplate } from '@fit-nation/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
 import { SessionDetailPageSkeleton } from './SessionDetailPageSkeleton';
 import { useWorkoutTimer } from './workout-session/hooks/useWorkoutTimer';
 import { formatWeight } from './workout-session/utils';
-import type { SessionExerciseDetail, SetLogResource } from '../types/api';
+import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared';
 
 interface SessionDetailPageProps {
   sessionId: number;

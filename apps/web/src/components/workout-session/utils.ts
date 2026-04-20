@@ -1,4 +1,4 @@
-import type { SessionDetailResponse } from '../../types/api';
+import type { SessionDetailResponse } from '@fit-nation/shared';
 import type { Exercise, ExerciseCompletionStatus } from './types';
 
 // Equipment types that don't require weight logging

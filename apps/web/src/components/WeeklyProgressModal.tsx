@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useFitnessMetrics, useProfile } from '../hooks/useApi'
+import { useFitnessMetrics, useProfile } from '@fit-nation/shared'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 

@@ -16,7 +16,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
-} from '../types/api';
+} from '@fit-nation/shared';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 

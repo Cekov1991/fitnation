@@ -1,6 +1,6 @@
 import { useHistory } from 'react-router-dom';
 import { CreatePlanPage } from '../components/CreatePlanPage';
-import { useCreatePlan } from '../hooks/useApi';
+import { useCreatePlan } from '@fit-nation/shared';
 
 // Create plan page wrapper
 export default function CreatePlanPageWrapper() {

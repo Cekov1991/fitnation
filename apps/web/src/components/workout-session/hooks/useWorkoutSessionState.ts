@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises } from '../../../hooks/useApi';
-import { exercisesApi } from '../../../services/api';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises } from '@fit-nation/shared';
+import { exercisesApi } from '@fit-nation/shared';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
 import { mapSessionToExercises } from '../utils';
 import type { Exercise, Set } from '../types';
-import type { NewPrResource } from '../../../types/api';
+import type { NewPrResource } from '@fit-nation/shared';
 
 interface UseWorkoutSessionStateProps {
   sessionId: number;

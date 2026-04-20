@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Circle } from 'lucide-react';
-import { useCalendar } from '../hooks/useApi';
+import { useCalendar } from '@fit-nation/shared';
 import { WEEKDAY_LABELS } from '../constants';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { formatCalendarDateKey, formatWeekRangeLabel } from '../utils/calendarWeek';
+import { formatCalendarDateKey, formatWeekRangeLabel } from '@fit-nation/shared';
 import { ProgressCalendarSkeleton } from './ProgressPageSkeleton';
-import type { WorkoutSessionCalendarResource } from '../types/api';
+import type { WorkoutSessionCalendarResource } from '@fit-nation/shared';
 
 interface DayStatus {
   day: string;

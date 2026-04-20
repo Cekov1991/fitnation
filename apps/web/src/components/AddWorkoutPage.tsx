@@ -3,10 +3,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { LoadingButton } from './ui';
-import { usePlans } from '../hooks/useApi';
+import { usePlans } from '@fit-nation/shared';
 import { DAYS_OF_WEEK } from '../constants';
-import { workoutSchema, WorkoutFormData } from '../schemas/workout';
-import type { PlanResource, WorkoutTemplateResource } from '../types/api';
+import { workoutSchema, WorkoutFormData } from '@fit-nation/shared';
+import type { PlanResource, WorkoutTemplateResource } from '@fit-nation/shared';
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Scale } from 'lucide-react'
-import { useFitnessMetrics } from '../hooks/useApi'
+import { useFitnessMetrics } from '@fit-nation/shared'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 

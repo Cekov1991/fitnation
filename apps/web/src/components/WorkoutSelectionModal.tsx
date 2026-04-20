@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHistory } from 'react-router-dom';
 import { X, Plus, Dumbbell, ChevronRight, Zap, Target, TrendingUp, Sparkles } from 'lucide-react';
-import { usePlans, useTodayWorkout } from '../hooks/useApi';
+import { usePlans, useTodayWorkout } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
-import type { PlanResource, WorkoutTemplateResource } from '../types/api';
+import type { PlanResource, WorkoutTemplateResource } from '@fit-nation/shared';
 
 interface WorkoutSelectionModalProps {
   isOpen: boolean;

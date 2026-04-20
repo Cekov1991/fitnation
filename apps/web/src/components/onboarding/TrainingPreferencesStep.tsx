@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Dumbbell, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData } from '../../schemas/onboarding';
+import { OnboardingFormData } from '@fit-nation/shared';
 
 // Duration options: label -> backend value (always the higher amount)
 const DURATION_OPTIONS = [

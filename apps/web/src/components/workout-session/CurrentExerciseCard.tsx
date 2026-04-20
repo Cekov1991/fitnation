@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { ExerciseImage } from '../ExerciseImage';
-import { useExerciseHistory } from '../../hooks/useApi';
+import { useExerciseHistory } from '@fit-nation/shared';
 import type { Exercise } from './types';
-import type { PerformanceDataPoint } from '../../types/api';
+import type { PerformanceDataPoint } from '@fit-nation/shared';
 
 interface CurrentExerciseCardProps {
   exercise: Exercise;

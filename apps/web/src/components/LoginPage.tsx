@@ -5,7 +5,7 @@ import { useLocation, useHistory } from 'react-router-dom';
 import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
-import { loginSchema, LoginFormData } from '../schemas/login';
+import { loginSchema, LoginFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 
 interface LocationState {

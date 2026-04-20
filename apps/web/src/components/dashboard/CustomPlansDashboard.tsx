@@ -7,9 +7,9 @@ import { RoutineCardSmall } from './RoutineCardSmall';
 import { CreateCustomPlanCard } from './CreateCustomPlanCard';
 import { AIGeneratorCard } from './AIGeneratorCard';
 import { CustomPlansDashboardSkeleton } from './CustomPlansDashboardSkeleton';
-import { usePlans, useBrowsableRoutines, useStartSession, useTodayWorkout } from '../../hooks/useApi';
-import { estimateWorkoutDuration } from '../../utils/workoutHelpers';
-import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '../../types/api';
+import { usePlans, useBrowsableRoutines, useStartSession, useTodayWorkout } from '@fit-nation/shared';
+import { estimateWorkoutDuration } from '@fit-nation/shared';
+import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '@fit-nation/shared';
 
 interface CustomPlansDashboardProps {
   onStartBlankSession: () => void;

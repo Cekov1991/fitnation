@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, RefreshCw } from 'lucide-react';
-import { useProfile, useRegeneratePlan, useUpdateProfile } from '../../hooks/useApi';
-import type { FitnessGoal, ProgramResource, TrainingExperience, UpdateProfileInput } from '../../types/api';
+import { useProfile, useRegeneratePlan, useUpdateProfile } from '@fit-nation/shared';
+import type { FitnessGoal, ProgramResource, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
 import { ConfirmDialog, PlanGeneratingOverlay } from '../ui';
 
 const DURATION_OPTIONS = [

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { CheckCircle2, Clock } from 'lucide-react';
-import type { WorkoutTemplateResource } from '../../types/api';
+import type { WorkoutTemplateResource } from '@fit-nation/shared';
 
 interface WorkoutTemplateSelectorProps {
   templates: WorkoutTemplateResource[];

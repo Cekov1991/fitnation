@@ -3,9 +3,9 @@ import { useForm, type FieldErrors, type UseFormRegister, type UseFormHandleSubm
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { Dumbbell, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { authApi } from '../services/api';
+import { authApi } from '@fit-nation/shared';
 import { useBranding } from '../hooks/useBranding';
-import { resetPasswordSchema, ResetPasswordFormData } from '../schemas/passwordReset';
+import { resetPasswordSchema, ResetPasswordFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 
 function MissingLinkView({

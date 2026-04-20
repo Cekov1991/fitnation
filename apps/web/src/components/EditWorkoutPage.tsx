@@ -5,13 +5,13 @@ import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { LoadingContent } from './ui';
 import { EditWorkoutPageSkeleton } from './EditWorkoutPageSkeleton';
-import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises } from '../hooks/useApi';
+import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { SwapExerciseContext } from '../utils/swapExercise';
-import type { TemplateExercise, MuscleGroupResource } from '../types/api';
-import { formatRepRange } from '../utils/repRange';
+import type { TemplateExercise, MuscleGroupResource } from '@fit-nation/shared';
+import { formatRepRange } from '@fit-nation/shared';
 
 const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 

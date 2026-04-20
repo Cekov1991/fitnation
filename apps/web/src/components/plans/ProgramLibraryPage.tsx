@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { AlertCircle, ArrowLeft, Calendar, Info, RefreshCw } from 'lucide-react';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { ProgramLibraryPageSkeleton } from './ProgramLibraryPageSkeleton';
-import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '../../hooks/useApi';
+import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '@fit-nation/shared';
 import { LibraryProgramDetailView } from './LibraryProgramDetailView';
-import type { LibraryProgramResource } from '../../types/api';
+import type { LibraryProgramResource } from '@fit-nation/shared';
 
 interface ProgramLibraryPageProps {
   onBack: () => void;

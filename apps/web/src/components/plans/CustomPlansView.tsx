@@ -6,9 +6,9 @@ import { WorkoutMenu } from '../WorkoutMenu';
 import { LoadingContent, ConfirmDialog } from '../ui';
 import { CustomPlansActivePlanSkeleton, CustomPlansAllPlansSkeleton } from './CustomPlansViewSkeleton';
 import { RoutineCardSmall } from '../dashboard/RoutineCardSmall';
-import { useDeletePlan, useDeleteTemplate, usePlans, useBrowsableRoutines, useStartSession, useUpdatePlan, useTodayWorkout } from '../../hooks/useApi';
+import { useDeletePlan, useDeleteTemplate, usePlans, useBrowsableRoutines, useStartSession, useUpdatePlan, useTodayWorkout } from '@fit-nation/shared';
 import { DAY_NAMES } from '../../constants';
-import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '../../types/api';
+import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '@fit-nation/shared';
 
 interface CustomPlansViewProps {
   onNavigateToEdit: (plan: {

@@ -4,9 +4,9 @@ import { useHistory } from 'react-router-dom';
 import { LoadingContent } from '../ui';
 import { RoutineWorkoutDetailPageSkeleton } from './RoutineWorkoutDetailPageSkeleton';
 import { ExerciseImage } from '../ExerciseImage';
-import { useBrowsableRoutine, useStartSession, useTodayWorkout } from '../../hooks/useApi';
-import { formatRepRange } from '../../utils/repRange';
-import type { TemplateExercise } from '../../types/api';
+import { useBrowsableRoutine, useStartSession, useTodayWorkout } from '@fit-nation/shared';
+import { formatRepRange } from '@fit-nation/shared';
+import type { TemplateExercise } from '@fit-nation/shared';
 
 interface RoutineWorkoutDetailPageProps {
   routineId: number;

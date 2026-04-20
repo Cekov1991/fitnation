@@ -4,7 +4,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { 
   useGenerateDraftSession,
   useProfile 
-} from '../hooks/useApi';
+} from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 
 // Preset target region mappings

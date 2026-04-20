@@ -1,7 +1,7 @@
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { EditWorkoutPage } from '../components/EditWorkoutPage';
 import type { SwapExerciseContext } from '../utils/swapExercise';
-import { useTemplate } from '../hooks/useApi';
+import { useTemplate } from '@fit-nation/shared';
 
 // Manage exercises page wrapper
 export default function ManageExercisesPageWrapper() {

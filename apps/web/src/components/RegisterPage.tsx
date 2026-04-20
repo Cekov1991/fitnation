@@ -4,10 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useHistory } from 'react-router-dom';
 import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle, User, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { registerSchema, RegisterFormData } from '../schemas/register';
+import { registerSchema, RegisterFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
-import { authApi } from '../services/api';
-import type { InvitationResource } from '../types/api';
+import { authApi } from '@fit-nation/shared';
+import type { InvitationResource } from '@fit-nation/shared';
 
 export function RegisterPage() {
   const { register: registerUser } = useAuth();

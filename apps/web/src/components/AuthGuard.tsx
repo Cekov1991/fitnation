@@ -1,7 +1,7 @@
 import React from 'react';
 import { Redirect, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useTodayWorkout } from '../hooks/useApi';
+import { useTodayWorkout } from '@fit-nation/shared';
 
 interface AuthGuardProps {
   children: React.ReactNode;

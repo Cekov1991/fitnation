@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { formatWeight } from './workout-session/utils';
-import { estimateWorkoutDuration } from '../utils/workoutHelpers';
-import { formatRepRange } from '../utils/repRange';
-import type { WorkoutTemplateResource, TemplateExercise } from '../types/api';
+import { estimateWorkoutDuration } from '@fit-nation/shared';
+import { formatRepRange } from '@fit-nation/shared';
+import type { WorkoutTemplateResource, TemplateExercise } from '@fit-nation/shared';
 
 interface WorkoutCardProps {
   template: WorkoutTemplateResource | null;

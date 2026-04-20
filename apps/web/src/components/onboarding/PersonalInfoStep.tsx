@@ -3,7 +3,7 @@ import { User, Mail, Calendar, Ruler, Weight, ArrowRight, ArrowLeft, ChevronDown
 import { UseFormRegister, FieldErrors, Control, Controller } from 'react-hook-form';
 import { useAuth } from '../../hooks/useAuth';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData } from '../../schemas/onboarding';
+import { OnboardingFormData } from '@fit-nation/shared';
 
 interface PersonalInfoStepProps {
   register: UseFormRegister<OnboardingFormData>;

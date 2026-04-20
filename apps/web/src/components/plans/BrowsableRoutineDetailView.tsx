@@ -1,7 +1,7 @@
 import { Dumbbell, ArrowLeft } from 'lucide-react';
 import { useHistory } from 'react-router-dom';
-import { useStartSession, useTodayWorkout } from '../../hooks/useApi';
-import type { RoutinePlanResource, WorkoutTemplateResource } from '../../types/api';
+import { useStartSession, useTodayWorkout } from '@fit-nation/shared';
+import type { RoutinePlanResource, WorkoutTemplateResource } from '@fit-nation/shared';
 
 interface BrowsableRoutineDetailViewProps {
   routine: RoutinePlanResource;

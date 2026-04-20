@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { WorkoutSessionPage } from '../components/workout-session';
-import { useTodayWorkout } from '../hooks/useApi';
+import { useTodayWorkout } from '@fit-nation/shared';
 
 // Workout session page wrapper (no BottomNav for full-screen workout experience)
 export default function WorkoutSessionPageWrapper() {

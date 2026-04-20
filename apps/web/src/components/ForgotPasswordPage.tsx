@@ -3,9 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory } from 'react-router-dom';
 import { Dumbbell, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
-import { authApi } from '../services/api';
+import { authApi } from '@fit-nation/shared';
 import { useBranding } from '../hooks/useBranding';
-import { forgotPasswordSchema, ForgotPasswordFormData } from '../schemas/passwordReset';
+import { forgotPasswordSchema, ForgotPasswordFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 
 const GENERIC_SUCCESS_MESSAGE =

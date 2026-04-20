@@ -1,9 +1,9 @@
 import React, { useEffect, createContext, useContext, ReactNode, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
-import { partnersApi } from '../services/api';
+import { partnersApi } from '@fit-nation/shared';
 import { getPartnerSlugFromSubdomain } from '../utils/subdomain';
 import { updatePWAManifest } from '../utils/pwa';
-import type { PartnerVisualIdentityResource } from '../types/api';
+import type { PartnerVisualIdentityResource } from '@fit-nation/shared';
 
 export type Theme = 'light' | 'dark' | 'system';
 

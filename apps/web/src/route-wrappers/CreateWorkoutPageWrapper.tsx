@@ -1,6 +1,6 @@
 import { useHistory, useLocation } from 'react-router-dom';
 import { AddWorkoutPage } from '../components/AddWorkoutPage';
-import { usePlans, useCreateTemplate } from '../hooks/useApi';
+import { usePlans, useCreateTemplate } from '@fit-nation/shared';
 import { dayNameToIndex, type DayName } from '../constants';
 
 // Create workout page wrapper

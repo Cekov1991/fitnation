@@ -7,7 +7,7 @@ import { BalanceModal } from './BalanceModal';
 import { WeeklyProgressModal } from './WeeklyProgressModal';
 import { WeeklyCalendar } from './WeeklyCalendar';
 import { ProgressMetricsSkeleton } from './ProgressPageSkeleton';
-import { useFitnessMetrics } from '../hooks/useApi';
+import { useFitnessMetrics } from '@fit-nation/shared';
 import { useModals } from '../contexts/ModalsContext';
 import {
   formatCalendarDateKey,
@@ -19,7 +19,7 @@ import {
   pickDefaultDateInWeek,
   calendarDateKeyToDate,
   addDaysToCalendarDateKey,
-} from '../utils/calendarWeek';
+} from '@fit-nation/shared';
 
 type ProgressTab = 'calendar' | 'metrics';
 

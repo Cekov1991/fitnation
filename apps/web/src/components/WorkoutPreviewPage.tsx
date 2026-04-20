@@ -14,9 +14,9 @@ import {
   useCancelSession,
   useSession,
   useUpdateSessionExercise
-} from '../hooks/useApi';
-import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '../types/api';
-import { formatRepRange } from '../utils/repRange';
+} from '@fit-nation/shared';
+import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '@fit-nation/shared';
+import { formatRepRange } from '@fit-nation/shared';
 
 interface LocationState {
   generationParams?: GenerateWorkoutInput;

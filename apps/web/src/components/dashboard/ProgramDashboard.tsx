@@ -6,10 +6,10 @@ import { WorkoutTemplateSelector } from './WorkoutTemplateSelector';
 import { ProgramControls } from './ProgramControls';
 import { WorkoutCard } from '../WorkoutCard';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from '../../hooks/useApi';
+import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from '@fit-nation/shared';
 import { PlanGeneratingOverlay } from '../ui';
 import { ProgramDashboardContentSkeleton } from './ProgramDashboardSkeleton';
-import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
+import type { ProgramResource, WorkoutTemplateResource } from '@fit-nation/shared';
 
 const PROGRAM_MILESTONE_THRESHOLDS = [25, 50, 75] as const;
 

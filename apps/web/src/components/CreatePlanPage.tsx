@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check } from 'lucide-react';
 import { LoadingButton } from './ui';
-import { planSchema, PlanFormData } from '../schemas/plan';
+import { planSchema, PlanFormData } from '@fit-nation/shared';
 
 interface CreatePlanPageProps {
   mode?: 'create' | 'edit';

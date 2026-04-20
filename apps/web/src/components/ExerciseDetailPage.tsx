@@ -2,9 +2,9 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises, useExerciseHistory } from '../hooks/useApi';
+import { useExercises, useExerciseHistory } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
-import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '../types/api';
+import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
 
 interface ExerciseDetailPageProps {

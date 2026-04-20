@@ -4,8 +4,8 @@ import { AlertCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
 import { LoadingContent } from '../ui';
 import { ProgramDetailPageSkeleton } from './ProgramDetailPageSkeleton';
-import { useProgram } from '../../hooks/useApi';
-import type { ProgramResource, WorkoutTemplateResource } from '../../types/api';
+import { useProgram } from '@fit-nation/shared';
+import type { ProgramResource, WorkoutTemplateResource } from '@fit-nation/shared';
 
 interface ProgramDetailPageProps {
   programId: number;

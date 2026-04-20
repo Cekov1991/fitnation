@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { Timer } from 'lucide-react';
 import { formatWeight } from './utils';
-import { formatRepRange } from '../../utils/repRange';
+import { formatRepRange } from '@fit-nation/shared';
 
 interface SetLogCardProps {
   weight: number | null;

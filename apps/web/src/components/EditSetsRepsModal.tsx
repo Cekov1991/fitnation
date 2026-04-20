@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { X, Check } from 'lucide-react';
 import { LoadingButton } from './ui';
-import { setsRepsSchema, SetsRepsFormData } from '../schemas/setsReps';
+import { setsRepsSchema, SetsRepsFormData } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
 
 interface EditSetsRepsModalProps {

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Plus, Loader2 } from 'lucide-react';
-import { useExercises, useMuscleGroups, useEquipmentTypes } from '../hooks/useApi';
+import { useExercises, useMuscleGroups, useEquipmentTypes } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import { ExercisePickerPageSkeleton } from './ExercisePickerPageSkeleton';
 import { ExerciseDetailPage } from './ExerciseDetailPage';
 import { useBackGesture } from '../hooks/useBackGesture';
 import { useFilterParams } from '../hooks/useFilterParams';
-import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '../types/api';
+import type { ExerciseResource, MuscleGroupResource, EquipmentTypeResource } from '@fit-nation/shared';
 import { useModalTransition, useSlideTransition } from '../utils/animations';
 
 interface Exercise {

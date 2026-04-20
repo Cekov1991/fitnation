@@ -4,8 +4,8 @@ import { Plus } from 'lucide-react';
 import { PlanTypeSwitcher } from './plans/PlanTypeSwitcher';
 import { CustomPlansView } from './plans/CustomPlansView';
 import { ProgramPlansView } from './plans/ProgramPlansView';
-import { useProgramLibrary, usePrograms } from '../hooks/useApi';
-import type { ProgramResource } from '../types/api';
+import { useProgramLibrary, usePrograms } from '@fit-nation/shared';
+import type { ProgramResource } from '@fit-nation/shared';
 interface PlansPageProps {
   onNavigateToCreate: () => void;
   onNavigateToEdit: (plan: {

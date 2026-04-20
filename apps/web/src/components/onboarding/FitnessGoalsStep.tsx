@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Target, TrendingDown, Dumbbell, HeartPulse } from 'lucide-react';
 import { Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData } from '../../schemas/onboarding';
+import { OnboardingFormData } from '@fit-nation/shared';
 
 interface FitnessGoalsStepProps {
   control: Control<OnboardingFormData>;

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Calendar, Dumbbell } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
-import { formatRepRange } from '../../utils/repRange';
-import type { LibraryProgramResource, WorkoutTemplateResource, TemplateExercise } from '../../types/api';
+import { formatRepRange } from '@fit-nation/shared';
+import type { LibraryProgramResource, WorkoutTemplateResource, TemplateExercise } from '@fit-nation/shared';
 
 interface LibraryProgramDetailViewProps {
   program: LibraryProgramResource;

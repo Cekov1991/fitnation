@@ -5,7 +5,7 @@ import {
   useAddSessionExercise,
   useRemoveSessionExercise,
   useReorderSessionExercises
-} from '../hooks/useApi';
+} from '@fit-nation/shared';
 
 interface LocationState {
   swapExerciseId?: number;

@@ -1,5 +1,5 @@
 import { Dumbbell } from 'lucide-react';
-import type { RoutinePlanResource } from '../../types/api';
+import type { RoutinePlanResource } from '@fit-nation/shared';
 
 interface RoutineCardSmallProps {
   routine: RoutinePlanResource;

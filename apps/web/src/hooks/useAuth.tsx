@@ -1,7 +1,8 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi } from '../services/api';
-import type { UserResource } from '../types/api';
+import { authApi, getAuthStorage, AUTH_TOKEN_KEY } from '@fit-nation/shared';
+import type { UserResource } from '@fit-nation/shared';
+
 interface AuthContextType {
   user: UserResource | null;
   loading: boolean;
@@ -27,49 +28,52 @@ export function AuthProvider({
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     // Check if user is already logged in
-    const initAuth = async () => {
-      const token = localStorage.getItem('authToken');
+    const initAuthCheck = async () => {
+      const storage = getAuthStorage()
+      const token = await storage.getItem(AUTH_TOKEN_KEY);
       if (token) {
         try {
           const response = await authApi.getCurrentUser();
           setUser(response.user);
           // Save partner slug for PWA manifest selection
           if (response.user.partner?.slug) {
-            localStorage.setItem('partner-slug', response.user.partner.slug);
+            await storage.setItem('partner-slug', response.user.partner.slug);
           } else {
-            localStorage.removeItem('partner-slug');
+            await storage.removeItem('partner-slug');
           }
         } catch (error) {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('partner-slug');
+          await storage.removeItem(AUTH_TOKEN_KEY);
+          await storage.removeItem('partner-slug');
         }
       }
       setLoading(false);
     };
-    initAuth();
+    initAuthCheck();
   }, []);
   const login = async (email: string, password: string) => {
     // Clear cache before login to ensure fresh data is fetched for the new user
     queryClient.clear();
+    const storage = getAuthStorage()
     const response = await authApi.login(email, password);
-    localStorage.setItem('authToken', response.token);
+    await storage.setItem(AUTH_TOKEN_KEY, response.token);
     setUser(response.user);
     // Save partner slug for PWA manifest selection
     if (response.user.partner?.slug) {
-      localStorage.setItem('partner-slug', response.user.partner.slug);
+      await storage.setItem('partner-slug', response.user.partner.slug);
     } else {
-      localStorage.removeItem('partner-slug');
+      await storage.removeItem('partner-slug');
     }
   };
   const logout = async () => {
+    const storage = getAuthStorage()
     try {
       await authApi.logout();
     } catch (error) {
       // Continue with logout even if API call fails
       console.error('Logout error:', error);
     }
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('partner-slug');
+    await storage.removeItem(AUTH_TOKEN_KEY);
+    await storage.removeItem('partner-slug');
     // Clear all React Query cache to prevent previous user's data from persisting
     queryClient.clear();
     setUser(null);
@@ -81,18 +85,20 @@ export function AuthProvider({
     password_confirmation: string;
     invitation_token: string;
   }) => {
+    const storage = getAuthStorage()
     const response = await authApi.register(data);
-    localStorage.setItem('authToken', response.token);
+    await storage.setItem(AUTH_TOKEN_KEY, response.token);
     setUser(response.user);
     // Save partner slug for PWA manifest selection
     if (response.user.partner?.slug) {
-      localStorage.setItem('partner-slug', response.user.partner.slug);
+      await storage.setItem('partner-slug', response.user.partner.slug);
     } else {
-      localStorage.removeItem('partner-slug');
+      await storage.removeItem('partner-slug');
     }
   };
   const refetchUser = async () => {
-    const token = localStorage.getItem('authToken');
+    const storage = getAuthStorage()
+    const token = await storage.getItem(AUTH_TOKEN_KEY);
     if (!token) {
       setUser(null);
       return;
@@ -102,14 +108,14 @@ export function AuthProvider({
       setUser(response.user);
       // Save partner slug for PWA manifest selection
       if (response.user.partner?.slug) {
-        localStorage.setItem('partner-slug', response.user.partner.slug);
+        await storage.setItem('partner-slug', response.user.partner.slug);
       } else {
-        localStorage.removeItem('partner-slug');
+        await storage.removeItem('partner-slug');
       }
     } catch (error) {
       // If refetch fails, user might be logged out
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('partner-slug');
+      await storage.removeItem(AUTH_TOKEN_KEY);
+      await storage.removeItem('partner-slug');
       setUser(null);
     }
   };

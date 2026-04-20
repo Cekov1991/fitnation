@@ -6,7 +6,7 @@ import { PlanTypeSwitcher } from './plans/PlanTypeSwitcher';
 import { CustomPlansDashboard, ProgramDashboard } from './dashboard';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
-import { useStartSession, useTodayWorkout } from '../hooks/useApi';
+import { useStartSession, useTodayWorkout } from '@fit-nation/shared';
 import { useModals } from '../contexts/ModalsContext';
 
 export function DashboardPage() {
