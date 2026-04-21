@@ -7,49 +7,91 @@ import {
   Alert,
   ActionSheetIOS,
   Platform,
+  StyleSheet,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
-import { Plus, Dumbbell, MoreVertical, ChevronRight } from 'lucide-react-native'
+import { Plus, Dumbbell, MoreVertical, ChevronRight, Calendar } from 'lucide-react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'expo-image'
 import {
   usePlans,
   usePrograms,
+  useProgramLibrary,
   useBrowsableRoutines,
   useDeletePlan,
+  useDeleteTemplate,
   useUpdatePlan,
+  useUpdateProgram,
+  useDeleteProgram,
   useStartSession,
 } from '@fit-nation/shared'
-import type { PlanResource, WorkoutTemplateResource, RoutinePlanResource } from '@fit-nation/shared'
+import type {
+  PlanResource,
+  WorkoutTemplateResource,
+  RoutinePlanResource,
+  ProgramResource,
+} from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { GradientText } from '../../components/ui/GradientText'
+import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwitcher'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { AppStackParamList } from '../../navigation/types'
 
 type Nav = NativeStackNavigationProp<AppStackParamList>
-type PlansTab = 'customPlans' | 'programs'
 
 export function PlansScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation<Nav>()
-  const [activeTab, setActiveTab] = useState<PlansTab>('customPlans')
+  const [activeTab, setActiveTab] = useState<PlanType>('programs')
 
-  const { data: plans = [], isLoading: isPlansLoading, refetch: refetchPlans } = usePlans()
+  // ── Data ──
+  const { data: plans = [], isLoading: isPlansLoading } = usePlans()
   const { data: programs = [], isLoading: isProgramsLoading } = usePrograms()
+  const { data: libraryPrograms = [] } = useProgramLibrary()
   const { data: browsableRoutines = [] } = useBrowsableRoutines()
   const deletePlan = useDeletePlan()
+  const deleteTemplate = useDeleteTemplate()
   const updatePlan = useUpdatePlan()
+  const updateProgram = useUpdateProgram()
+  const deleteProgram = useDeleteProgram()
   const startSession = useStartSession()
 
+  // ── Custom Plans ──
   const activePlan = useMemo(
     () => plans.find((p: PlanResource) => p.is_active) || null,
-    [plans]
+    [plans],
   )
   const allOtherPlans = useMemo(
     () => plans.filter((p: PlanResource) => !p.is_active),
-    [plans]
+    [plans],
   )
 
-  const sortedWorkouts = (templates: WorkoutTemplateResource[] | undefined) => {
+  // ── Programs ──
+  const hasNonAutoPrograms = useMemo(
+    () => programs.some((p: ProgramResource) => !p.is_auto_generated),
+    [programs],
+  )
+  const showProgramsTab = hasNonAutoPrograms || libraryPrograms.length > 0
+  // Mirror web: if Programs tab is hidden, force custom plans
+  const effectiveTab: PlanType = showProgramsTab ? activeTab : 'customPlans'
+
+  const visiblePrograms = useMemo(
+    () => programs.filter((p: ProgramResource) => !p.is_auto_generated),
+    [programs],
+  )
+  const activeProgram = useMemo(
+    () => visiblePrograms.find((p: ProgramResource) => p.is_active) || null,
+    [visiblePrograms],
+  )
+  const inactivePrograms = useMemo(
+    () => visiblePrograms.filter((p: ProgramResource) => !p.is_active),
+    [visiblePrograms],
+  )
+
+  // ── Helpers ──
+  const sortedWorkouts = (templates: WorkoutTemplateResource[] | null | undefined) => {
     if (!templates) return []
     return [...templates].sort((a, b) => {
       if (a.day_of_week === null && b.day_of_week === null) return 0
@@ -59,77 +101,20 @@ export function PlansScreen() {
     })
   }
 
-  const showPlanActionSheet = (plan: PlanResource) => {
-    const options = [
-      plan.is_active ? 'Deactivate' : 'Set as Active',
-      'Edit Plan',
-      'Add Workout',
-      'Delete Plan',
-      'Cancel',
-    ]
-    const destructiveIndex = 3
-    const cancelIndex = 4
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          destructiveButtonIndex: destructiveIndex,
-          cancelButtonIndex: cancelIndex,
-          title: plan.name,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 0) handleToggleActive(plan)
-          else if (buttonIndex === 1) navigation.navigate('EditPlan', { planId: plan.id })
-          else if (buttonIndex === 2) navigation.navigate('CreateWorkout')
-          else if (buttonIndex === 3) confirmDeletePlan(plan)
-        }
-      )
-    } else {
-      Alert.alert(plan.name, 'Choose an action', [
-        {
-          text: plan.is_active ? 'Deactivate' : 'Set as Active',
-          onPress: () => handleToggleActive(plan),
-        },
-        { text: 'Edit Plan', onPress: () => navigation.navigate('EditPlan', { planId: plan.id }) },
-        { text: 'Add Workout', onPress: () => navigation.navigate('CreateWorkout') },
-        { text: 'Delete Plan', style: 'destructive', onPress: () => confirmDeletePlan(plan) },
-        { text: 'Cancel', style: 'cancel' },
-      ])
+  // ── Handlers ──
+  const handleStartWorkout = async (templateId: number) => {
+    try {
+      const response = await startSession.mutateAsync(templateId)
+      const session = (response as any).data?.session || (response as any).data
+      if (session?.id) {
+        navigation.navigate('WorkoutSession', { sessionId: String(session.id) })
+      }
+    } catch (e) {
+      console.error('Start workout failed', e)
     }
   }
 
-  const showWorkoutActionSheet = (template: WorkoutTemplateResource, planName: string) => {
-    const options = ['Start Workout', 'Manage Exercises', 'Edit Workout', 'Cancel']
-    const cancelIndex = 3
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, cancelButtonIndex: cancelIndex, title: template.name },
-        (buttonIndex) => {
-          if (buttonIndex === 0) handleStartWorkout(template.id)
-          else if (buttonIndex === 1)
-            navigation.navigate('ManageExercises', { templateId: template.id })
-          else if (buttonIndex === 2)
-            navigation.navigate('EditWorkout', { templateId: template.id })
-        }
-      )
-    } else {
-      Alert.alert(template.name, 'Choose an action', [
-        { text: 'Start Workout', onPress: () => handleStartWorkout(template.id) },
-        {
-          text: 'Manage Exercises',
-          onPress: () => navigation.navigate('ManageExercises', { templateId: template.id }),
-        },
-        {
-          text: 'Edit Workout',
-          onPress: () => navigation.navigate('EditWorkout', { templateId: template.id }),
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ])
-    }
-  }
-
-  const handleToggleActive = async (plan: PlanResource) => {
+  const handleTogglePlanActive = async (plan: PlanResource) => {
     try {
       await updatePlan.mutateAsync({
         planId: plan.id,
@@ -143,7 +128,7 @@ export function PlansScreen() {
   const confirmDeletePlan = (plan: PlanResource) => {
     Alert.alert(
       'Delete Plan',
-      `Are you sure you want to delete "${plan.name}"? This will also delete all workouts in this plan.`,
+      `Are you sure you want to delete "${plan.name}"? This will also delete all workouts in this plan. This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -157,105 +142,323 @@ export function PlansScreen() {
             }
           },
         },
-      ]
+      ],
     )
   }
 
-  const handleStartWorkout = async (templateId: number) => {
+  const confirmDeleteWorkout = (template: WorkoutTemplateResource) => {
+    Alert.alert(
+      'Delete Workout',
+      `Are you sure you want to delete "${template.name}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteTemplate.mutateAsync(template.id)
+            } catch (e) {
+              console.error('Delete workout failed', e)
+            }
+          },
+        },
+      ],
+    )
+  }
+
+  const handleToggleProgramActive = async (program: ProgramResource) => {
     try {
-      const response = await startSession.mutateAsync(templateId)
-      const session = (response as any).data?.session || (response as any).data
-      if (session?.id) {
-        navigation.navigate('WorkoutSession', { sessionId: String(session.id) })
-      }
+      await updateProgram.mutateAsync({
+        programId: program.id,
+        data: { is_active: !program.is_active },
+      })
     } catch (e) {
-      console.error('Start workout failed', e)
+      console.error('Toggle program failed', e)
     }
   }
 
+  const confirmDeleteProgram = (program: ProgramResource) => {
+    Alert.alert(
+      'Delete Program',
+      `Are you sure you want to delete "${program.name}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteProgram.mutateAsync(program.id)
+            } catch (e) {
+              console.error('Delete program failed', e)
+            }
+          },
+        },
+      ],
+    )
+  }
+
+  const showPlanActionSheet = (plan: PlanResource) => {
+    const options = [
+      plan.is_active ? 'Deactivate' : 'Set as Active',
+      'Edit Plan',
+      'Add Workout',
+      'Delete Plan',
+      'Cancel',
+    ]
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, destructiveButtonIndex: 3, cancelButtonIndex: 4, title: plan.name },
+        (idx) => {
+          if (idx === 0) handleTogglePlanActive(plan)
+          else if (idx === 1) navigation.navigate('EditPlan', { planId: plan.id })
+          else if (idx === 2) navigation.navigate('CreateWorkout')
+          else if (idx === 3) confirmDeletePlan(plan)
+        },
+      )
+    } else {
+      Alert.alert(plan.name, 'Choose an action', [
+        {
+          text: plan.is_active ? 'Deactivate' : 'Set as Active',
+          onPress: () => handleTogglePlanActive(plan),
+        },
+        { text: 'Edit Plan', onPress: () => navigation.navigate('EditPlan', { planId: plan.id }) },
+        { text: 'Add Workout', onPress: () => navigation.navigate('CreateWorkout') },
+        { text: 'Delete Plan', style: 'destructive', onPress: () => confirmDeletePlan(plan) },
+        { text: 'Cancel', style: 'cancel' },
+      ])
+    }
+  }
+
+  const showWorkoutActionSheet = (template: WorkoutTemplateResource) => {
+    const options = ['Start Workout', 'Manage Exercises', 'Edit Workout', 'Delete Workout', 'Cancel']
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, destructiveButtonIndex: 3, cancelButtonIndex: 4, title: template.name },
+        (idx) => {
+          if (idx === 0) handleStartWorkout(template.id)
+          else if (idx === 1) navigation.navigate('ManageExercises', { templateId: template.id })
+          else if (idx === 2) navigation.navigate('EditWorkout', { templateId: template.id })
+          else if (idx === 3) confirmDeleteWorkout(template)
+        },
+      )
+    } else {
+      Alert.alert(template.name, 'Choose an action', [
+        { text: 'Start Workout', onPress: () => handleStartWorkout(template.id) },
+        {
+          text: 'Manage Exercises',
+          onPress: () => navigation.navigate('ManageExercises', { templateId: template.id }),
+        },
+        {
+          text: 'Edit Workout',
+          onPress: () => navigation.navigate('EditWorkout', { templateId: template.id }),
+        },
+        {
+          text: 'Delete Workout',
+          style: 'destructive',
+          onPress: () => confirmDeleteWorkout(template),
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ])
+    }
+  }
+
+  const showProgramActionSheet = (program: ProgramResource) => {
+    const options = [
+      program.is_active ? 'Deactivate' : 'Set as Active',
+      'Delete Program',
+      'Cancel',
+    ]
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, destructiveButtonIndex: 1, cancelButtonIndex: 2, title: program.name },
+        (idx) => {
+          if (idx === 0) handleToggleProgramActive(program)
+          else if (idx === 1) confirmDeleteProgram(program)
+        },
+      )
+    } else {
+      Alert.alert(program.name, 'Choose an action', [
+        {
+          text: program.is_active ? 'Deactivate' : 'Set as Active',
+          onPress: () => handleToggleProgramActive(program),
+        },
+        {
+          text: 'Delete Program',
+          style: 'destructive',
+          onPress: () => confirmDeleteProgram(program),
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ])
+    }
+  }
+
+  // ── Render: workout row ──
+  const renderWorkoutRow = (template: WorkoutTemplateResource) => (
+    <TouchableOpacity
+      key={template.id}
+      onPress={() => navigation.navigate('ManageExercises', { templateId: template.id })}
+      style={[styles.workoutRow, { backgroundColor: colors.bgElevated }]}
+    >
+      <View style={styles.workoutRowLeft}>
+        <View style={[styles.workoutIcon, { backgroundColor: `${colors.primary}18` }]}>
+          <Dumbbell size={15} color={colors.primary} />
+        </View>
+        <Text
+          style={[styles.workoutName, { color: colors.textPrimary }]}
+          numberOfLines={1}
+        >
+          {template.name}
+        </Text>
+      </View>
+      <TouchableOpacity
+        onPress={() => showWorkoutActionSheet(template)}
+        style={[styles.moreBtn, { backgroundColor: colors.bgSurface }]}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <MoreVertical size={16} color={colors.textMuted} />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  )
+
+  // ── Render: program card ──
+  const renderProgramCard = (program: ProgramResource, isActive: boolean) => (
+    <View
+      key={program.id}
+      style={[styles.programCard, { borderColor: colors.bgElevated }]}
+    >
+      <LinearGradient
+        colors={[colors.bgElevated, colors.bgSurface]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.programCardGradient}
+      >
+        {/* Cover image */}
+        {program.cover_image ? (
+          <View style={styles.coverImageContainer}>
+            <Image
+              source={{ uri: program.cover_image }}
+              style={StyleSheet.absoluteFill}
+              contentFit="cover"
+            />
+            <View style={styles.coverImageOverlay} />
+          </View>
+        ) : null}
+
+        <View style={styles.programCardBody}>
+          {/* Header row */}
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderText}>
+              <Text style={[styles.programName, { color: colors.textPrimary }]}>
+                {program.name}
+              </Text>
+              <Text style={[styles.programDescription, { color: colors.textSecondary }]}>
+                {program.description || 'Structured program from your library'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => showProgramActionSheet(program)}
+              style={[styles.moreBtn, { backgroundColor: colors.bgBase }]}
+            >
+              <MoreVertical size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Meta row */}
+          <View style={styles.metaRow}>
+            {program.duration_weeks ? (
+              <View style={styles.metaItem}>
+                <Calendar size={12} color={colors.textMuted} />
+                <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                  {program.duration_weeks} WEEKS
+                </Text>
+              </View>
+            ) : null}
+            {isActive && (
+              <View style={[styles.activeBadge, { backgroundColor: `${colors.success}20` }]}>
+                <Text style={[styles.activeBadgeText, { color: colors.success }]}>ACTIVE</Text>
+              </View>
+            )}
+          </View>
+
+          {/* View details button */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProgramDetail', { programId: program.id })}
+            style={[styles.viewDetailsBtn, { backgroundColor: colors.bgBase }]}
+          >
+            <Text style={[styles.viewDetailsBtnText, { color: colors.primary }]}>
+              View Program Details
+            </Text>
+            <ChevronRight size={18} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </View>
+  )
+
+  // ── Main render ──
   return (
-    <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+    <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: colors.bgBase }]}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between pt-8 pb-6">
-          <Text className="text-3xl font-bold" style={{ color: colors.primary }}>
-            Plans
-          </Text>
-          {activeTab === 'customPlans' && (
+        <View style={styles.header}>
+          <GradientText style={styles.headerTitle}>Plans</GradientText>
+          {effectiveTab === 'customPlans' && (
             <TouchableOpacity
               onPress={() => navigation.navigate('CreatePlan')}
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: `${colors.primary}22` }}
+              style={[styles.addBtn, { backgroundColor: `${colors.primary}22` }]}
             >
               <Plus size={22} color={colors.primary} />
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Segment Switcher */}
-        <View
-          className="flex-row rounded-full p-1 mb-6"
-          style={{ backgroundColor: colors.segmentTrack }}
-        >
-          {(['customPlans', 'programs'] as PlansTab[]).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className="flex-1 rounded-full py-3 items-center"
-              style={{
-                backgroundColor: activeTab === tab ? colors.segmentActive : 'transparent',
-              }}
-            >
-              <Text
-                className="text-sm font-semibold"
-                style={{ color: activeTab === tab ? colors.textPrimary : colors.textSecondary }}
-              >
-                {tab === 'customPlans' ? 'Custom Plans' : 'Programs'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Plan Type Switcher — only rendered when Programs tab is relevant */}
+        {showProgramsTab && (
+          <PlanTypeSwitcher
+            activeType={effectiveTab}
+            onTypeChange={setActiveTab}
+            showPrograms
+          />
+        )}
 
         {/* ── Custom Plans Tab ── */}
-        {activeTab === 'customPlans' && (
+        {effectiveTab === 'customPlans' && (
           <>
             {isPlansLoading ? (
               <>
-                <SkeletonBox height={160} className="mb-4" />
-                <SkeletonBox height={100} className="mb-4" />
-                <SkeletonBox height={100} className="mb-4" />
+                <SkeletonBox height={200} style={styles.skeleton} />
+                <SkeletonBox height={120} style={styles.skeleton} />
+                <SkeletonBox height={120} style={styles.skeleton} />
               </>
             ) : (
               <>
-                {/* Active Plan */}
-                {activePlan ? (
-                  <View className="mb-6">
-                    <Text
-                      className="text-xs font-bold uppercase tracking-wider mb-3"
-                      style={{ color: colors.primary }}
-                    >
+                {/* Active Plan — only shown when one exists */}
+                {activePlan && (
+                  <View style={styles.sectionContainer}>
+                    <Text style={[styles.sectionLabel, { color: colors.primary }]}>
                       Active Plan
                     </Text>
-                    <View
-                      className="rounded-3xl p-6"
-                      style={{ backgroundColor: colors.bgSurface }}
+                    <LinearGradient
+                      colors={[colors.bgElevated, colors.bgSurface]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.activePlanCard}
                     >
-                      <View className="flex-row items-start justify-between mb-4">
-                        <View className="flex-1 mr-3">
-                          <Text
-                            className="text-xl font-bold mb-2"
-                            style={{ color: colors.textPrimary }}
-                          >
+                      {/* Card header */}
+                      <View style={styles.cardHeaderRow}>
+                        <View style={styles.cardHeaderText}>
+                          <Text style={[styles.activePlanName, { color: colors.textPrimary }]}>
                             {activePlan.name}
                           </Text>
                           {activePlan.description ? (
                             <Text
-                              className="text-sm leading-relaxed"
-                              style={{ color: colors.textSecondary }}
+                              style={[styles.activePlanDesc, { color: colors.textSecondary }]}
                             >
                               {activePlan.description}
                             </Text>
@@ -263,149 +466,103 @@ export function PlansScreen() {
                         </View>
                         <TouchableOpacity
                           onPress={() => showPlanActionSheet(activePlan)}
-                          className="w-9 h-9 rounded-full items-center justify-center"
-                          style={{ backgroundColor: colors.bgElevated }}
+                          style={[styles.moreBtn, { backgroundColor: colors.bgBase }]}
                         >
                           <MoreVertical size={18} color={colors.textSecondary} />
                         </TouchableOpacity>
                       </View>
 
-                      <View className="flex-row items-center gap-4 mb-4">
-                        <Text className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                      {/* Meta row */}
+                      <View style={styles.metaRow}>
+                        <Text style={[styles.metaText, { color: colors.textMuted }]}>
                           {sortedWorkouts(activePlan.workout_templates).length} WORKOUT
                           {sortedWorkouts(activePlan.workout_templates).length !== 1 ? 'S' : ''}
                         </Text>
-                        <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.success}20` }}>
-                          <Text className="text-xs font-medium" style={{ color: colors.success }}>
+                        <View
+                          style={[
+                            styles.activeBadge,
+                            { backgroundColor: `${colors.success}20` },
+                          ]}
+                        >
+                          <Text style={[styles.activeBadgeText, { color: colors.success }]}>
                             ACTIVE
                           </Text>
                         </View>
                       </View>
 
+                      {/* Divider */}
                       <View
-                        className="h-px mb-4"
-                        style={{ backgroundColor: colors.bgElevated }}
+                        style={[styles.divider, { backgroundColor: colors.bgBase }]}
                       />
 
+                      {/* Workout list */}
                       {sortedWorkouts(activePlan.workout_templates).length === 0 ? (
-                        <Text
-                          className="text-sm text-center py-3"
-                          style={{ color: colors.textMuted }}
-                        >
+                        <Text style={[styles.emptyText, { color: colors.textMuted }]}>
                           No workouts in this plan yet.
                         </Text>
                       ) : (
-                        sortedWorkouts(activePlan.workout_templates).map((template) => (
-                          <TouchableOpacity
-                            key={template.id}
-                            onPress={() =>
-                              navigation.navigate('ManageExercises', { templateId: template.id })
-                            }
-                            className="flex-row items-center justify-between p-4 rounded-xl mb-2"
-                            style={{ backgroundColor: colors.bgElevated }}
-                          >
-                            <View className="flex-row items-center gap-3 flex-1">
-                              <View
-                                className="w-8 h-8 rounded-lg items-center justify-center"
-                                style={{ backgroundColor: `${colors.primary}18` }}
-                              >
-                                <Dumbbell size={15} color={colors.primary} />
-                              </View>
-                              <Text
-                                className="text-sm font-medium flex-1"
-                                style={{ color: colors.textPrimary }}
-                                numberOfLines={1}
-                              >
-                                {template.name}
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              onPress={() => showWorkoutActionSheet(template, activePlan.name)}
-                              className="w-8 h-8 rounded-full items-center justify-center"
-                              style={{ backgroundColor: colors.bgSurface }}
-                            >
-                              <MoreVertical size={16} color={colors.textMuted} />
-                            </TouchableOpacity>
-                          </TouchableOpacity>
-                        ))
+                        sortedWorkouts(activePlan.workout_templates).map(renderWorkoutRow)
                       )}
-                    </View>
-                  </View>
-                ) : (
-                  <View
-                    className="rounded-2xl p-6 mb-6 items-center"
-                    style={{ backgroundColor: colors.bgSurface }}
-                  >
-                    <Text className="font-semibold mb-3" style={{ color: colors.textSecondary }}>
-                      No active plan
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate('CreatePlan')}
-                      className="flex-row items-center gap-2 px-4 py-2 rounded-xl"
-                      style={{ backgroundColor: colors.primary }}
-                    >
-                      <Plus size={16} color="#fff" />
-                      <Text className="font-semibold text-white text-sm">Create Plan</Text>
-                    </TouchableOpacity>
+                    </LinearGradient>
                   </View>
                 )}
 
-                {/* All Other Plans */}
-                <Text
-                  className="text-xs font-bold uppercase tracking-wider mb-3"
-                  style={{ color: colors.textSecondary }}
-                >
+                {/* All Plans */}
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
                   All Plans
                 </Text>
 
                 {allOtherPlans.length === 0 ? (
-                  <Text className="text-sm text-center py-6" style={{ color: colors.textMuted }}>
+                  <Text style={[styles.emptyLargeText, { color: colors.textMuted }]}>
                     No other plans yet.
                   </Text>
                 ) : (
-                  allOtherPlans.map((plan: PlanResource) => (
-                    <View
-                      key={plan.id}
-                      className="rounded-2xl p-5 mb-3"
-                      style={{ backgroundColor: colors.bgSurface }}
-                    >
-                      <View className="flex-row items-start justify-between mb-3">
-                        <Text
-                          className="text-base font-bold flex-1 mr-2"
-                          style={{ color: colors.textPrimary }}
-                          numberOfLines={1}
-                        >
-                          {plan.name}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => showPlanActionSheet(plan)}
-                          className="w-8 h-8 rounded-full items-center justify-center"
-                          style={{ backgroundColor: colors.bgElevated }}
-                        >
-                          <MoreVertical size={16} color={colors.textSecondary} />
-                        </TouchableOpacity>
+                  allOtherPlans.map((plan: PlanResource) => {
+                    const workouts = sortedWorkouts(plan.workout_templates)
+                    return (
+                      <View
+                        key={plan.id}
+                        style={[styles.planCard, { backgroundColor: colors.bgSurface }]}
+                      >
+                        <View style={styles.cardHeaderRow}>
+                          <Text
+                            style={[styles.planCardName, { color: colors.textPrimary }]}
+                            numberOfLines={1}
+                          >
+                            {plan.name}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => showPlanActionSheet(plan)}
+                            style={[styles.moreBtn, { backgroundColor: colors.bgElevated }]}
+                          >
+                            <MoreVertical size={18} color={colors.textSecondary} />
+                          </TouchableOpacity>
+                        </View>
+
+                        <View style={[styles.divider, { backgroundColor: colors.bgElevated }]} />
+
+                        {workouts.length === 0 ? (
+                          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                            No workout templates in this plan.
+                          </Text>
+                        ) : (
+                          workouts.map(renderWorkoutRow)
+                        )}
                       </View>
-                      <Text className="text-xs" style={{ color: colors.textMuted }}>
-                        {(plan.workout_templates?.length ?? 0)} workout
-                        {(plan.workout_templates?.length ?? 0) !== 1 ? 's' : ''}
-                      </Text>
-                    </View>
-                  ))
+                    )
+                  })
                 )}
 
-                {/* Recommended routines */}
+                {/* Recommended Workouts carousel */}
                 {browsableRoutines.length > 0 && (
-                  <View className="mt-6">
-                    <Text
-                      className="text-base font-bold mb-3"
-                      style={{ color: colors.primary }}
-                    >
+                  <View style={styles.carouselSection}>
+                    <Text style={[styles.carouselTitle, { color: colors.primary }]}>
                       Recommended Workouts
                     </Text>
                     <ScrollView
                       horizontal
                       showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
+                      contentContainerStyle={styles.carouselContent}
                     >
                       {browsableRoutines.map((routine: RoutinePlanResource) => (
                         <TouchableOpacity
@@ -413,19 +570,48 @@ export function PlansScreen() {
                           onPress={() =>
                             navigation.navigate('RoutineDetail', { routineId: routine.id })
                           }
-                          className="w-44 rounded-2xl p-4"
-                          style={{ backgroundColor: colors.bgSurface }}
+                          style={[styles.routineCard, { backgroundColor: colors.bgSurface }]}
                         >
-                          <Text
-                            className="font-bold text-sm mb-1"
-                            style={{ color: colors.textPrimary }}
-                            numberOfLines={1}
-                          >
-                            {routine.name}
-                          </Text>
-                          <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                            {routine.workout_templates?.length ?? 0} workouts
-                          </Text>
+                          {/* Cover image */}
+                          <View style={styles.routineCover}>
+                            {routine.cover_image ? (
+                              <>
+                                <Image
+                                  source={{ uri: routine.cover_image }}
+                                  style={StyleSheet.absoluteFill}
+                                  contentFit="cover"
+                                />
+                                <LinearGradient
+                                  colors={['transparent', 'rgba(0,0,0,0.5)']}
+                                  style={StyleSheet.absoluteFill}
+                                />
+                              </>
+                            ) : (
+                              <LinearGradient
+                                colors={[colors.bgElevated, colors.bgSurface]}
+                                start={{ x: 0.3, y: 0 }}
+                                end={{ x: 0.7, y: 1 }}
+                                style={styles.routineCoverPlaceholder}
+                              >
+                                <Dumbbell size={40} color={colors.textMuted} />
+                              </LinearGradient>
+                            )}
+                          </View>
+                          {/* Info */}
+                          <View style={styles.routineInfo}>
+                            <Text
+                              style={[styles.routineName, { color: colors.textPrimary }]}
+                              numberOfLines={1}
+                            >
+                              {routine.name}
+                            </Text>
+                            <Text style={[styles.routineCount, { color: colors.textSecondary }]}>
+                              {routine.workout_templates?.length ?? 0}{' '}
+                              {(routine.workout_templates?.length ?? 0) === 1
+                                ? 'workout'
+                                : 'workouts'}
+                            </Text>
+                          </View>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -437,80 +623,55 @@ export function PlansScreen() {
         )}
 
         {/* ── Programs Tab ── */}
-        {activeTab === 'programs' && (
+        {effectiveTab === 'programs' && (
           <>
             {isProgramsLoading ? (
               <>
-                <SkeletonBox height={100} className="mb-3" />
-                <SkeletonBox height={100} className="mb-3" />
+                <SkeletonBox height={260} style={styles.skeleton} />
+                <SkeletonBox height={200} style={styles.skeleton} />
               </>
-            ) : programs.length === 0 ? (
-              <View className="items-center py-12">
-                <Text className="text-base mb-2" style={{ color: colors.textSecondary }}>
-                  No programs yet
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('ProgramLibrary')}
-                  className="px-5 py-3 rounded-xl"
-                  style={{ backgroundColor: colors.primary }}
-                >
-                  <Text className="font-semibold text-white">Browse Program Library</Text>
-                </TouchableOpacity>
-              </View>
             ) : (
               <>
-                {programs.map((prog: any) => (
-                  <TouchableOpacity
-                    key={prog.id}
-                    onPress={() => navigation.navigate('ProgramDetail', { programId: prog.id })}
-                    className="rounded-2xl p-5 mb-3 flex-row items-center"
-                    style={{ backgroundColor: colors.bgSurface }}
-                  >
-                    <View className="flex-1">
-                      <View className="flex-row items-center gap-2 mb-1">
-                        <Text
-                          className="text-base font-bold"
-                          style={{ color: colors.textPrimary }}
-                          numberOfLines={1}
-                        >
-                          {prog.name}
-                        </Text>
-                        {prog.is_active && (
-                          <View
-                            className="px-2 py-0.5 rounded-full"
-                            style={{ backgroundColor: `${colors.success}20` }}
-                          >
-                            <Text className="text-xs font-medium" style={{ color: colors.success }}>
-                              Active
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text className="text-xs" style={{ color: colors.textMuted }}>
-                        {prog.duration_weeks
-                          ? `${prog.duration_weeks} weeks`
-                          : `${prog.workout_templates?.length ?? 0} workouts`}
-                        {prog.progress_percentage != null
-                          ? ` • ${prog.progress_percentage}% done`
-                          : ''}
-                      </Text>
-                    </View>
-                    <ChevronRight size={18} color={colors.textMuted} />
-                  </TouchableOpacity>
-                ))}
+                {/* Active Program — only shown when one exists */}
+                {activeProgram && (
+                  <View style={styles.sectionContainer}>
+                    <Text style={[styles.sectionLabel, { color: colors.primary }]}>
+                      Active Program
+                    </Text>
+                    {renderProgramCard(activeProgram, true)}
+                  </View>
+                )}
 
+                {/* All Programs */}
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+                  All Programs
+                </Text>
+
+                {inactivePrograms.length === 0 ? (
+                  <Text style={[styles.emptyLargeText, { color: colors.textMuted }]}>
+                    No other programs yet.
+                  </Text>
+                ) : (
+                  inactivePrograms.map((prog: ProgramResource) =>
+                    renderProgramCard(prog, false),
+                  )
+                )}
+
+                {/* Browse Library button */}
                 <TouchableOpacity
                   onPress={() => navigation.navigate('ProgramLibrary')}
-                  className="py-4 rounded-2xl items-center mt-2"
-                  style={{
-                    backgroundColor: colors.bgSurface,
-                    borderWidth: 1,
-                    borderColor: `${colors.primary}30`,
-                  }}
+                  style={styles.browseLibraryBtn}
+                  activeOpacity={0.85}
                 >
-                  <Text className="font-semibold" style={{ color: colors.primary }}>
-                    Browse Program Library
-                  </Text>
+                  <LinearGradient
+                    colors={[colors.secondary, colors.primary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.browseLibraryGradient}
+                  >
+                    <Plus size={20} color="#fff" />
+                    <Text style={styles.browseLibraryText}>BROWSE LIBRARY</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               </>
             )}
@@ -520,3 +681,273 @@ export function PlansScreen() {
     </SafeAreaView>
   )
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 120,
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 32,
+    paddingBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: '700',
+  },
+  addBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Section labels
+  sectionContainer: {
+    marginBottom: 32,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
+
+  // Skeleton
+  skeleton: {
+    marginBottom: 16,
+  },
+
+  // Shared card elements
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  cardHeaderText: {
+    flex: 1,
+    marginRight: 12,
+  },
+  moreBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  activeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  activeBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 16,
+  },
+  emptyLargeText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 32,
+  },
+
+  // Active plan card
+  activePlanCard: {
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  activePlanName: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  activePlanDesc: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  // All Plans cards
+  planCard: {
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 16,
+  },
+  planCardName: {
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 8,
+  },
+
+  // Workout row
+  workoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  workoutRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  workoutIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workoutName: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+
+  // Recommended Workouts carousel
+  carouselSection: {
+    marginTop: 32,
+  },
+  carouselTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  carouselContent: {
+    gap: 12,
+    paddingBottom: 8,
+  },
+  routineCard: {
+    width: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  routineCover: {
+    height: 112,
+    overflow: 'hidden',
+  },
+  routineCoverPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routineInfo: {
+    padding: 12,
+  },
+  routineName: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  routineCount: {
+    fontSize: 12,
+  },
+
+  // Program cards
+  programCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  programCardGradient: {
+    borderRadius: 24,
+  },
+  coverImageContainer: {
+    height: 140,
+    overflow: 'hidden',
+  },
+  coverImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  programCardBody: {
+    padding: 24,
+  },
+  programName: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  programDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  viewDetailsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  viewDetailsBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  // Browse Library button
+  browseLibraryBtn: {
+    marginTop: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  browseLibraryGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  browseLibraryText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+})

@@ -14,13 +14,17 @@ import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import {
   Calendar,
+  ChevronRight,
+  Clock,
   Dumbbell,
   Play,
+  Plus,
   RefreshCw,
   Trophy,
   Zap,
 } from 'lucide-react-native'
 import {
+  estimateWorkoutDuration,
   useBrowsableRoutines,
   usePlans,
   usePrograms,
@@ -43,7 +47,6 @@ import { Card } from '../../components/ui/Card'
 import { FilterChip } from '../../components/ui/FilterChip'
 import { GradientText } from '../../components/ui/GradientText'
 import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwitcher'
-import { SectionHeader } from '../../components/ui/SectionHeader'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { WorkoutCard } from '../../components/ui/WorkoutCard'
 import { WorkoutTemplateSelector } from '../../components/ui/WorkoutTemplateSelector'
@@ -167,12 +170,22 @@ export function DashboardScreen() {
   const activePlan = useMemo(() => plans.find((p) => p.is_active) || null, [plans])
   const activePlanWorkouts = useMemo(() => {
     if (!activePlan?.workout_templates) return []
-    return [...activePlan.workout_templates].sort((a, b) => {
-      if (a.day_of_week === null && b.day_of_week === null) return 0
-      if (a.day_of_week === null) return 1
-      if (b.day_of_week === null) return -1
-      return a.day_of_week - b.day_of_week
-    })
+    return [...activePlan.workout_templates]
+      .sort((a, b) => {
+        if (a.day_of_week === null && b.day_of_week === null) return 0
+        if (a.day_of_week === null) return 1
+        if (b.day_of_week === null) return -1
+        return a.day_of_week - b.day_of_week
+      })
+      .map((template) => {
+        const exercises = template.exercises || []
+        const mins = estimateWorkoutDuration(exercises)
+        return {
+          ...template,
+          durationLabel: mins > 0 ? `${mins} min` : 'N/A',
+          exerciseCount: exercises.length,
+        }
+      })
   }, [activePlan])
 
   // ─── Handlers ───
@@ -256,7 +269,7 @@ export function DashboardScreen() {
   }
 
   const handleEditWorkout = (templateId: number) => {
-    navigation.navigate('EditWorkout', { templateId })
+    navigation.navigate('ManageExercises', { templateId })
   }
 
   const handleStartBlankSession = async () => {
@@ -588,40 +601,100 @@ export function DashboardScreen() {
         {/* ═══ Custom Plans Tab ═══ */}
         {activeTab === 'customPlans' && (
           <>
-            {/* AI generator */}
-            <Card>
+            {/* AI Generator Card — matches web AIGeneratorCard */}
+            <View
+              style={{
+                borderRadius: 16,
+                padding: 24,
+                marginBottom: 32,
+                overflow: 'hidden',
+                position: 'relative',
+                backgroundColor: colors.primary,
+              }}
+            >
+              {/* Background decoration circle */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: -40,
+                  right: -40,
+                  width: 128,
+                  height: 128,
+                  borderRadius: 64,
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                }}
+              />
+
+              {/* "Fit Nation Engine" label */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Zap size={16} color={colors.secondary} fill={colors.secondary} />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    letterSpacing: 1.5,
+                    textTransform: 'uppercase',
+                    color: colors.secondary,
+                  }}
+                >
+                  Fit Nation Engine
+                </Text>
+              </View>
+
+              <Text
+                style={{ fontSize: 20, fontWeight: '700', marginBottom: 8, color: colors.textButton }}
+              >
+                Not sure what to do?
+              </Text>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  marginBottom: 4,
-                  color: colors.primary,
+                  fontSize: 14,
+                  marginBottom: 24,
+                  lineHeight: 20,
+                  opacity: 0.8,
+                  color: colors.textButton,
                 }}
               >
-                AI Workout Generator
+                Let our AI generate a perfect workout based on your recovery and goals.
               </Text>
-              <Text style={{ fontSize: 14, marginBottom: 16, color: colors.textSecondary }}>
-                Generate a personalized workout based on your goals
-              </Text>
+
               <TouchableOpacity
                 onPress={() => navigation.navigate('GenerateWorkout')}
                 style={{
                   paddingVertical: 12,
+                  paddingHorizontal: 16,
                   borderRadius: 12,
+                  flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: colors.primary,
+                  justifyContent: 'space-between',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.2)',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                 }}
               >
-                <Text style={{ fontWeight: '700', color: colors.textButton }}>
-                  Generate Workout
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textButton }}>
+                  Generate Smart Workout
                 </Text>
+                <ChevronRight size={16} color={colors.textButton} strokeWidth={2} />
               </TouchableOpacity>
-            </Card>
+            </View>
 
-            {/* Recommended routines */}
+            {/* Recommended Routines */}
             {browsableRoutines.length > 0 && (
               <>
-                <SectionHeader title="Recommended Workouts" />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 16,
+                    paddingHorizontal: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary }}>
+                    Recommended Workouts
+                  </Text>
+                </View>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -630,97 +703,177 @@ export function DashboardScreen() {
                   {browsableRoutines.map((routine) => (
                     <TouchableOpacity
                       key={routine.id}
+                      activeOpacity={0.85}
                       onPress={() =>
                         navigation.navigate('RoutineDetail', { routineId: routine.id })
                       }
                       style={{
-                        width: 176,
+                        width: 200,
                         borderRadius: 16,
-                        padding: 16,
+                        overflow: 'hidden',
                         backgroundColor: colors.bgSurface,
-                        borderWidth: 1,
-                        borderColor: colors.borderSubtle,
                       }}
                     >
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          fontSize: 14,
-                          fontWeight: '700',
-                          marginBottom: 4,
-                          color: colors.textPrimary,
-                        }}
-                      >
-                        {routine.name}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                        {routine.workout_templates?.length ?? 0} workouts
-                      </Text>
+                      {/* Cover image area (h-28 equivalent = 112) */}
+                      <View style={{ width: '100%', height: 112, overflow: 'hidden' }}>
+                        {routine.cover_image ? (
+                          <>
+                            <Image
+                              source={{ uri: routine.cover_image }}
+                              style={{ width: '100%', height: '100%' }}
+                              contentFit="cover"
+                            />
+                            <LinearGradient
+                              colors={['transparent', 'rgba(0,0,0,0.5)']}
+                              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+                            />
+                          </>
+                        ) : (
+                          <LinearGradient
+                            colors={[colors.bgElevated, colors.bgSurface]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Dumbbell size={40} color={colors.textMuted} />
+                          </LinearGradient>
+                        )}
+                      </View>
+                      {/* Info */}
+                      <View style={{ padding: 12 }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '700',
+                            marginBottom: 4,
+                            color: colors.textPrimary,
+                          }}
+                        >
+                          {routine.name}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                          {routine.workout_templates?.length ?? 0}{' '}
+                          {(routine.workout_templates?.length ?? 0) === 1 ? 'workout' : 'workouts'}
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-                <View style={{ marginBottom: 16 }} />
+                <View style={{ marginBottom: 32 }} />
               </>
             )}
 
-            {/* Active plan workouts */}
-            <SectionHeader
-              title={activePlan ? activePlan.name : 'My Custom Plans'}
-              action={
-                activePlan
-                  ? { label: 'See all', onPress: () => navigation.navigate('Tabs') }
-                  : undefined
-              }
-            />
+            {/* Active Plan Workouts Section */}
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 16,
+                paddingHorizontal: 4,
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary }}>
+                {activePlan ? activePlan.name : 'My Custom Plans'}
+              </Text>
+              {activePlan && (
+                <TouchableOpacity onPress={() => navigation.navigate('Tabs')}>
+                  <Text style={{ fontSize: 14, color: colors.textSecondary }}>See all</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             {isPlansLoading ? (
               <SkeletonBox height={100} style={{ marginBottom: 16 }} />
             ) : activePlan && activePlanWorkouts.length > 0 ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
+                contentContainerStyle={{ gap: 16, paddingBottom: 8 }}
               >
-                {activePlanWorkouts.map((workout: WorkoutTemplateResource) => (
+                {activePlanWorkouts.map((workout) => (
                   <View
                     key={workout.id}
                     style={{
-                      width: 176,
+                      width: 180,
                       borderRadius: 16,
-                      padding: 16,
+                      padding: 20,
                       backgroundColor: colors.bgSurface,
-                      borderWidth: 1,
-                      borderColor: colors.borderSubtle,
+                      flexDirection: 'column',
                     }}
                   >
-                    <Text
-                      numberOfLines={1}
+                    {/* Icon circle */}
+                    <View
                       style={{
-                        fontSize: 14,
-                        fontWeight: '700',
-                        marginBottom: 4,
-                        color: colors.textPrimary,
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 16,
+                        backgroundColor: `${colors.primary}1A`,
                       }}
                     >
-                      {workout.name}
-                    </Text>
-                    <Text
-                      style={{ fontSize: 12, marginBottom: 12, color: colors.textSecondary }}
+                      <Dumbbell size={18} color={colors.primary} />
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('EditWorkout', { templateId: workout.id })}
                     >
-                      {workout.exercises?.length ?? 0} exercises
-                    </Text>
+                      <Text
+                        numberOfLines={2}
+                        style={{
+                          fontSize: 18,
+                          fontWeight: '700',
+                          marginBottom: 12,
+                          color: colors.primary,
+                        }}
+                      >
+                        {workout.name}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {/* Stats row */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 12,
+                        marginTop: 'auto' as any,
+                        marginBottom: 12,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Clock size={12} color={colors.textSecondary} />
+                        <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>
+                          {workout.durationLabel}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: 4,
+                          height: 4,
+                          borderRadius: 2,
+                          backgroundColor: colors.borderSubtle,
+                        }}
+                      />
+                      <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>
+                        {workout.exerciseCount} Ex
+                      </Text>
+                    </View>
+
                     <TouchableOpacity
                       onPress={() => handleStartPlanWorkout(workout.id)}
                       disabled={startSession.isPending}
                       style={{
                         paddingVertical: 8,
-                        borderRadius: 10,
+                        borderRadius: 12,
                         alignItems: 'center',
                         backgroundColor: colors.primary,
                       }}
                     >
-                      <Text
-                        style={{ fontSize: 12, fontWeight: '700', color: colors.textButton }}
-                      >
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textButton }}>
                         Start
                       </Text>
                     </TouchableOpacity>
@@ -728,48 +881,74 @@ export function DashboardScreen() {
                 ))}
               </ScrollView>
             ) : (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('CreatePlan')}
-                style={{
-                  width: 160,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 16,
-                  backgroundColor: colors.bgSurface,
-                  borderWidth: 1,
-                  borderStyle: 'dashed',
-                  borderColor: `${colors.primary}66`,
-                }}
-              >
-                <Text style={{ fontSize: 28, marginBottom: 4, color: colors.primary }}>
-                  +
-                </Text>
-                <Text
-                  style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }}
+              <View style={{ paddingHorizontal: 4 }}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('CreatePlan')}
+                  style={{
+                    width: 160,
+                    borderRadius: 16,
+                    padding: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 140,
+                    backgroundColor: colors.bgSurface,
+                    borderWidth: 2,
+                    borderStyle: 'dashed',
+                    borderColor: colors.borderSubtle,
+                  }}
                 >
-                  Create Plan
-                </Text>
-              </TouchableOpacity>
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 12,
+                      backgroundColor: colors.borderSubtle,
+                    }}
+                  >
+                    <Plus size={24} color={colors.textSecondary} />
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textSecondary }}>
+                    Create New
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
-            <View style={{ marginBottom: 16 }} />
 
-            {/* Quick start */}
-            <Card>
-              <Text
+            <View style={{ marginBottom: 32 }} />
+
+            {/* Quick Start Card — matches web QuickStartCard */}
+            <View
+              style={{
+                borderRadius: 16,
+                padding: 24,
+                marginBottom: 16,
+                overflow: 'hidden',
+                backgroundColor: colors.bgSurface,
+                borderWidth: 1,
+                borderColor: colors.borderSubtle,
+              }}
+            >
+              <View
                 style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  marginBottom: 4,
-                  color: colors.primary,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: 8,
                 }}
               >
-                Quick Start
-              </Text>
-              <Text style={{ fontSize: 14, marginBottom: 16, color: colors.textSecondary }}>
-                Start a blank session without a plan
-              </Text>
+                <View>
+                  <Text style={{ fontSize: 20, fontWeight: '700', color: colors.primary }}>
+                    Quick Start
+                  </Text>
+                  <Text style={{ fontSize: 14, marginTop: 4, color: colors.textSecondary }}>
+                    Start a blank session without a plan
+                  </Text>
+                </View>
+              </View>
+
               <TouchableOpacity
                 onPress={handleStartBlankSession}
                 disabled={startSession.isPending}
@@ -782,6 +961,7 @@ export function DashboardScreen() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
+                  marginTop: 24,
                   opacity: startSession.isPending ? 0.7 : 1,
                 }}
               >
@@ -796,13 +976,13 @@ export function DashboardScreen() {
                 ) : (
                   <>
                     <Play size={18} color={colors.textButton} fill={colors.textButton} />
-                    <Text style={{ fontWeight: '700', color: colors.textButton }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textButton }}>
                       Start Blank Session
                     </Text>
                   </>
                 )}
               </TouchableOpacity>
-            </Card>
+            </View>
           </>
         )}
       </ScrollView>

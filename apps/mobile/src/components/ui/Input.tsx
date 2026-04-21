@@ -21,9 +21,9 @@ export function Input({ label, error, leftIcon, rightElement, readOnly, ...props
     : 'transparent'
 
   return (
-    <View className="mb-4">
+    <View className="mb-6">
       {label && (
-        <Text className="text-sm font-semibold mb-2" style={{ color: colors.textSecondary }}>
+        <Text className="text-sm font-semibold mb-3" style={{ color: colors.textSecondary }}>
           {label}
         </Text>
       )}
@@ -32,25 +32,29 @@ export function Input({ label, error, leftIcon, rightElement, readOnly, ...props
           backgroundColor: colors.bgElevated,
           borderWidth: 1,
           borderColor,
-          borderRadius: 12,
+          borderRadius: 16,
           flexDirection: 'row',
           alignItems: 'center',
         }}
       >
         {leftIcon && (
-          <View style={{ paddingLeft: 16 }}>
+          <View style={{ paddingLeft: 20 }}>
             {leftIcon}
           </View>
         )}
         <TextInput
-          style={{
-            flex: 1,
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            fontSize: 16,
-            color: readOnly ? colors.textMuted : colors.textPrimary,
-            opacity: readOnly ? 0.75 : 1,
-          }}
+          {...props}
+          style={[
+            {
+              flex: 1,
+              paddingHorizontal: 20,
+              paddingVertical: 16,
+              fontSize: 16,
+              color: readOnly ? colors.textMuted : colors.textPrimary,
+              opacity: readOnly ? 0.75 : 1,
+            },
+            props.style,
+          ]}
           placeholderTextColor={colors.textMuted}
           editable={!readOnly}
           onFocus={(e) => {
@@ -61,7 +65,6 @@ export function Input({ label, error, leftIcon, rightElement, readOnly, ...props
             setIsFocused(false)
             props.onBlur?.(e)
           }}
-          {...props}
         />
         {rightElement && (
           <View style={{ paddingRight: 16 }}>

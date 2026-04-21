@@ -26,8 +26,10 @@ import {
 } from '@fit-nation/shared'
 import type { WorkoutSessionCalendarResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
-import { Card } from '../../components/ui/Card'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { StrengthScoreModal } from '../../components/progress/StrengthScoreModal'
+import { BalanceModal } from '../../components/progress/BalanceModal'
+import { WeeklyProgressModal } from '../../components/progress/WeeklyProgressModal'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { AppStackParamList } from '../../navigation/types'
 
@@ -63,19 +65,27 @@ function MetricCardItem({ title, value, subtitle, icon: Icon, onPress }: MetricC
   return (
     <TouchableOpacity
       onPress={onPress}
+      activeOpacity={0.85}
       className="rounded-2xl p-5 mb-4"
-      style={{ backgroundColor: colors.bgSurface }}
+      style={{
+        backgroundColor: colors.bgSurface,
+        borderWidth: 1,
+        borderColor: colors.borderSubtle,
+      }}
     >
       <View className="flex-row items-start justify-between mb-4">
         <View
           className="p-2 rounded-xl"
-          style={{ backgroundColor: `${colors.primary}18` }}
+          style={{ backgroundColor: `${colors.primary}1A` }}
         >
           <Icon size={20} color={colors.primary} />
         </View>
         <ChevronRight size={16} color={colors.textMuted} />
       </View>
-      <Text className="text-3xl font-bold tracking-tight mb-1" style={{ color: colors.textPrimary }}>
+      <Text
+        className="text-3xl font-bold tracking-tight mb-1"
+        style={{ color: colors.textPrimary }}
+      >
         {value}
       </Text>
       <Text className="text-sm font-medium" style={{ color: colors.textSecondary }}>
@@ -94,6 +104,9 @@ export function ProgressScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation<Nav>()
   const [progressTab, setProgressTab] = useState<ProgressTab>('calendar')
+  const [isStrengthModalOpen, setStrengthModalOpen] = useState(false)
+  const [isBalanceModalOpen, setBalanceModalOpen] = useState(false)
+  const [isWeeklyModalOpen, setWeeklyModalOpen] = useState(false)
 
   // Calendar state
   const todayAnchor = useMemo(() => new Date(), [])
@@ -411,94 +424,40 @@ export function ProgressScreen() {
                   value={strengthScoreValue}
                   subtitle={strengthScoreSubtitle}
                   icon={Dumbbell}
+                  onPress={() => setStrengthModalOpen(true)}
                 />
                 <MetricCardItem
                   title="Balance"
                   value={balanceValue}
                   subtitle={balanceSubtitle}
                   icon={TrendingUp}
+                  onPress={() => setBalanceModalOpen(true)}
                 />
                 <MetricCardItem
                   title="Weekly Progress"
                   value={weeklyValue}
                   subtitle={weeklySubtitle}
                   icon={TrendingDown}
+                  onPress={() => setWeeklyModalOpen(true)}
                 />
-
-                {/* Muscle Balance bars */}
-                {metrics?.strength_balance?.muscle_groups && (
-                  <Card>
-                    <Text className="text-base font-bold mb-4" style={{ color: colors.textPrimary }}>
-                      Muscle Groups
-                    </Text>
-                    {Object.entries(metrics.strength_balance.muscle_groups)
-                      .filter(([, v]) => (v as number) > 0)
-                      .sort(([, a], [, b]) => (b as number) - (a as number))
-                      .map(([name, percentage]) => (
-                        <View key={name} className="mb-3">
-                          <View className="flex-row justify-between mb-1">
-                            <Text className="text-sm capitalize" style={{ color: colors.textSecondary }}>
-                              {name.replace(/_/g, ' ')}
-                            </Text>
-                            <Text className="text-sm font-medium" style={{ color: colors.textPrimary }}>
-                              {percentage}%
-                            </Text>
-                          </View>
-                          <View
-                            className="h-2 rounded-full"
-                            style={{ backgroundColor: colors.bgElevated }}
-                          >
-                            <View
-                              className="h-2 rounded-full"
-                              style={{
-                                width: `${Math.min(percentage as number, 100)}%`,
-                                backgroundColor: colors.primary,
-                              }}
-                            />
-                          </View>
-                        </View>
-                      ))}
-                  </Card>
-                )}
-
-                {/* Weekly breakdown */}
-                {metrics?.weekly_progress?.daily_breakdown && (
-                  <Card>
-                    <Text className="text-base font-bold mb-4" style={{ color: colors.textPrimary }}>
-                      Weekly Activity
-                    </Text>
-                    <View className="flex-row justify-between items-end" style={{ height: 80 }}>
-                      {metrics.weekly_progress.daily_breakdown.map((day, i) => {
-                        const maxVol = Math.max(
-                          ...metrics.weekly_progress.daily_breakdown!.map((d) => d.volume),
-                          1
-                        )
-                        const heightPercent = Math.max((day.volume / maxVol) * 100, 4)
-                        return (
-                          <View key={i} className="items-center gap-1 flex-1">
-                            <View
-                              className="w-full rounded-t-md"
-                              style={{
-                                height: `${heightPercent}%`,
-                                backgroundColor:
-                                  day.workouts > 0 ? colors.primary : colors.bgElevated,
-                                maxWidth: 32,
-                              }}
-                            />
-                            <Text className="text-xs" style={{ color: colors.textMuted }}>
-                              {WEEKDAY_LABELS[day.day_of_week % 7]?.slice(0, 1)}
-                            </Text>
-                          </View>
-                        )
-                      })}
-                    </View>
-                  </Card>
-                )}
               </>
             )}
           </>
         )}
       </ScrollView>
+
+      <StrengthScoreModal
+        visible={isStrengthModalOpen}
+        onClose={() => setStrengthModalOpen(false)}
+      />
+      <BalanceModal
+        visible={isBalanceModalOpen}
+        onClose={() => setBalanceModalOpen(false)}
+      />
+      <WeeklyProgressModal
+        visible={isWeeklyModalOpen}
+        onClose={() => setWeeklyModalOpen(false)}
+      />
     </SafeAreaView>
   )
 }

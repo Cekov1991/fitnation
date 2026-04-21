@@ -424,6 +424,9 @@ export function useAddTemplateExercise() {
       queryClient.invalidateQueries({
         queryKey: ['plans']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
     }
   });
 }
@@ -446,6 +449,9 @@ export function useUpdateTemplateExercise() {
       queryClient.invalidateQueries({
         queryKey: ['plans']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
     }
   });
 }
@@ -466,6 +472,9 @@ export function useRemoveTemplateExercise() {
       queryClient.invalidateQueries({
         queryKey: ['plans']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
+      });
     }
   });
 }
@@ -482,6 +491,9 @@ export function useReorderTemplateExercises() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['templates', variables.templateId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['programs']
       });
     }
   });
