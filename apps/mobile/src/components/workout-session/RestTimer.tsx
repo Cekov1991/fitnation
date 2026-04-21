@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AppState, AppStateStatus, View, Text, TouchableOpacity } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, X } from 'lucide-react-native'
@@ -28,32 +28,44 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
   const [remaining, setRemaining] = useState(seconds)
   const [total, setTotal] = useState(seconds)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const endTimeRef = useRef<number>(Date.now() + seconds * 1000)
+
+  const applyCurrentRemaining = useCallback(() => {
+    const rem = Math.ceil((endTimeRef.current - Date.now()) / 1000)
+    if (rem <= 0) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      setRemaining(0)
+      onComplete()
+    } else {
+      setRemaining(rem)
+    }
+  }, [onComplete])
 
   useEffect(() => {
+    endTimeRef.current = Date.now() + seconds * 1000
     setRemaining(seconds)
     setTotal(seconds)
-    intervalRef.current = setInterval(() => {
-      setRemaining(r => {
-        if (r <= 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current)
-          onComplete()
-          return 0
-        }
-        return r - 1
-      })
-    }, 1000)
-
+    intervalRef.current = setInterval(applyCurrentRemaining, 500)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seconds])
 
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') applyCurrentRemaining()
+    })
+    return () => sub.remove()
+  }, [applyCurrentRemaining])
+
   const addTime = (extra: number) => {
+    endTimeRef.current += extra * 1000
     setRemaining(r => r + extra)
-    setTotal(t => Math.max(t, remaining + extra))
+    setTotal(t => t + extra)
   }
   const subTime = (extra: number) => {
+    endTimeRef.current -= extra * 1000
     setRemaining(r => Math.max(1, r - extra))
   }
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { Plus } from 'lucide-react-native'
 import {
   useLogSet,
@@ -234,6 +234,10 @@ export function ExercisePage({
   }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgBase }}
       contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
@@ -436,5 +440,6 @@ export function ExercisePage({
         isRemoveLoading={isRemoveExerciseLoading}
       />
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }

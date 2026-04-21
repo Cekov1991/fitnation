@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { View, Text, TouchableOpacity, Pressable } from 'react-native'
+import { useEffect, useRef } from 'react'
+import { AppState, AppStateStatus, View, Text, TouchableOpacity, Pressable } from 'react-native'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useVideoPlayer, VideoView } from 'expo-video'
@@ -21,6 +21,18 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
     p.muted = true
     p.play()
   })
+
+  const appState = useRef(AppState.currentState)
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && nextState === 'active') {
+        player.play()
+      }
+      appState.current = nextState
+    })
+    return () => sub.remove()
+  }, [player])
 
   useEffect(() => {
     const sub = player.addListener('statusChange', ({ status, error }) => {

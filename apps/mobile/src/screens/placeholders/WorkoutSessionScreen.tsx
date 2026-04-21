@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import {
+  AppState,
   View,
   Text,
   TouchableOpacity,
@@ -111,6 +112,15 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     }, 1000)
     return () => clearInterval(interval)
   }, [sessionData?.performed_at])
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
+      }
+    })
+    return () => sub.remove()
+  }, [])
 
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
   const exerciseCount = exercises.length
