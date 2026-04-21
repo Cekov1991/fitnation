@@ -35,32 +35,12 @@ export function AppNavigator() {
     >
       <Stack.Screen name="Tabs" component={TabNavigator} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen
-        name="WorkoutSession"
-        component={WorkoutSessionScreen}
-        options={{ presentation: 'fullScreenModal' }}
-      />
-      <Stack.Screen
-        name="WorkoutSessionExerciseDetail"
-        component={WorkoutSessionExerciseDetailScreen}
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="GenerateWorkout"
-        component={GenerateWorkoutScreen}
-        options={{ presentation: 'fullScreenModal' }}
-      />
+      <Stack.Screen name="WorkoutSession" component={WorkoutSessionScreen} />
+      <Stack.Screen name="WorkoutSessionExerciseDetail" component={WorkoutSessionExerciseDetailScreen} />
+      <Stack.Screen name="GenerateWorkout" component={GenerateWorkoutScreen} />
       <Stack.Screen name="WorkoutPreview" component={WorkoutPreviewScreen} />
-      <Stack.Screen
-        name="WorkoutPreviewExercisePicker"
-        component={WorkoutPreviewExercisePickerScreen}
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="ExercisePicker"
-        component={ExercisePickerScreen}
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name="WorkoutPreviewExercisePicker" component={WorkoutPreviewExercisePickerScreen} />
+      <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} />
       <Stack.Screen name="ExerciseCatalog" component={ExerciseCatalogScreen} />
       <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
       <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />

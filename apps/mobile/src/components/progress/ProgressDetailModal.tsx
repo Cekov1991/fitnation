@@ -1,13 +1,11 @@
-import type { ReactNode } from 'react'
-import { Modal, View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { Modal, View, Text, TouchableOpacity, ScrollView, Dimensions, Animated } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { X } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../ui/GradientText'
 
-const SCREEN_HEIGHT = Dimensions.get('window').height
-const SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.90
-const HEADER_HEIGHT = 76 // paddingTop 20 + content ~40 + paddingBottom 16
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 interface ProgressDetailModalProps {
   visible: boolean
@@ -19,75 +17,85 @@ interface ProgressDetailModalProps {
 export function ProgressDetailModal({ visible, onClose, title, children }: ProgressDetailModalProps) {
   const { colors } = useTheme()
   const insets = useSafeAreaInsets()
+  const [isModalVisible, setIsModalVisible] = useState(visible)
+  const slideAnim = useRef(new Animated.Value(visible ? 0 : SCREEN_WIDTH)).current
+
+  useEffect(() => {
+    if (visible) {
+      setIsModalVisible(true)
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start()
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_WIDTH,
+        duration: 280,
+        useNativeDriver: true,
+      }).start(() => setIsModalVisible(false))
+    }
+  }, [visible, slideAnim])
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      {/* Outer wrapper — fills screen, pushes sheet to bottom */}
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        {/* Sheet — explicit max height so ScrollView can flex inside it */}
+    <Modal visible={isModalVisible} transparent animationType="none" onRequestClose={onClose}>
+      <Animated.View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bgBase,
+          transform: [{ translateX: slideAnim }],
+        }}
+      >
+        {/* Fixed header */}
         <View
           style={{
-            backgroundColor: colors.bgBase,
-            maxHeight: SHEET_MAX_HEIGHT,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            borderTopWidth: 1,
-            borderLeftWidth: 1,
-            borderRightWidth: 1,
+            paddingTop: insets.top + 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 24,
+            paddingBottom: 16,
+            borderBottomWidth: 1,
             borderColor: colors.border,
-            overflow: 'hidden',
           }}
         >
-          {/* Fixed header */}
-          <View
+          <GradientText
+            style={{ fontSize: 20, fontWeight: '700', flex: 1 }}
+            numberOfLines={1}
+          >
+            {title}
+          </GradientText>
+          <TouchableOpacity
+            onPress={onClose}
             style={{
-              flexDirection: 'row',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
               alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 24,
-              paddingTop: 20,
-              paddingBottom: 16,
-              borderBottomWidth: 1,
-              borderColor: colors.border,
+              justifyContent: 'center',
+              marginLeft: 12,
+              backgroundColor: colors.bgElevated,
             }}
+            accessibilityLabel="Close"
           >
-            <GradientText
-              style={{ fontSize: 20, fontWeight: '700', flex: 1 }}
-              numberOfLines={1}
-            >
-              {title}
-            </GradientText>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginLeft: 12,
-                backgroundColor: colors.bgElevated,
-              }}
-              accessibilityLabel="Close"
-            >
-              <X size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Scrollable body — explicit maxHeight so it grows with content but caps */}
-          <ScrollView
-            style={{ maxHeight: SHEET_MAX_HEIGHT - HEADER_HEIGHT }}
-            showsVerticalScrollIndicator={false}
-            bounces
-            contentContainerStyle={{
-              padding: 20,
-              paddingBottom: 20 + insets.bottom,
-            }}
-          >
-            {children}
-          </ScrollView>
+            <X size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
         </View>
-      </View>
+
+        {/* Scrollable body */}
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          bounces
+          contentContainerStyle={{
+            padding: 20,
+            paddingBottom: 20 + insets.bottom,
+          }}
+        >
+          {children}
+        </ScrollView>
+      </Animated.View>
     </Modal>
   )
 }
