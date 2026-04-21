@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   AppState,
   AppStateStatus,
+  Modal,
   View,
   Text,
   ScrollView,
@@ -12,7 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
-import { ArrowLeft } from 'lucide-react-native'
+import { ArrowLeft, Maximize2, X } from 'lucide-react-native'
+import * as ScreenOrientation from 'expo-screen-orientation'
 import { useExercises, useExerciseHistory } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -42,6 +44,7 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
   })
 
   const appState = useRef(AppState.currentState)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
@@ -60,13 +63,70 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
     return () => sub.remove()
   }, [player, uri])
 
+  const openFullscreen = () => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)
+    setIsFullscreen(true)
+  }
+
+  const closeFullscreen = () => {
+    setIsFullscreen(false)
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)
+  }
+
   return (
-    <VideoView
-      player={player}
-      style={{ width: '100%', height: '100%' }}
-      contentFit="cover"
-      nativeControls={false}
-    />
+    <View style={{ width: '100%', height: '100%' }}>
+      <VideoView
+        player={player}
+        style={{ width: '100%', height: '100%' }}
+        contentFit="cover"
+        nativeControls={false}
+      />
+      <TouchableOpacity
+        onPress={openFullscreen}
+        activeOpacity={0.75}
+        style={{
+          position: 'absolute',
+          bottom: 10,
+          right: 10,
+          padding: 8,
+          borderRadius: 8,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+        }}
+      >
+        <Maximize2 size={18} color="#fff" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={isFullscreen}
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeFullscreen}
+        supportedOrientations={['landscape', 'landscape-left', 'landscape-right']}
+      >
+        <View style={{ flex: 1, backgroundColor: '#000' }}>
+          <VideoView
+            player={player}
+            style={{ flex: 1 }}
+            contentFit="contain"
+            nativeControls={false}
+          />
+          <TouchableOpacity
+            onPress={closeFullscreen}
+            activeOpacity={0.75}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              padding: 8,
+              borderRadius: 8,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+            }}
+          >
+            <X size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
   )
 }
 
