@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // import PagerView from 'react-native-pager-view'
 // ───────────────────────────────────────────────────────────────────────────
 import { useKeepAwake } from 'expo-keep-awake'
+import { usePreventRemove } from '@react-navigation/native'
 import { Clock, Check, X } from 'lucide-react-native'
 import {
   useSession,
@@ -67,6 +68,39 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   //                   use pagerRef.current?.setPage(idx) in goToPage().
   const scrollRef = useRef<ScrollView>(null)
 
+  // Tracks intentional exits (Finish / Cancel buttons) so usePreventRemove
+  // can let those navigations through without showing another dialog.
+  const isCleanExitRef = useRef(false)
+
+  // Intercept hardware back + swipe-to-dismiss so the session is never
+  // silently left in_progress. Always either stay or cancel via the API.
+  usePreventRemove(true, ({ data }) => {
+    if (isCleanExitRef.current) {
+      navigation.dispatch(data.action)
+      return
+    }
+    Alert.alert(
+      'Cancel Workout?',
+      'Are you sure you want to cancel this workout? Your progress will be lost.',
+      [
+        { text: 'Keep Going', style: 'cancel' },
+        {
+          text: 'Cancel Workout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelSession.mutateAsync(numericSessionId)
+              isCleanExitRef.current = true
+              navigation.dispatch(data.action)
+            } catch (error) {
+              console.error('Failed to cancel session:', error)
+            }
+          },
+        },
+      ]
+    )
+  })
+
   useEffect(() => {
     if (sessionData?.performed_at) {
       const performedAt = new Date(sessionData.performed_at).getTime()
@@ -111,6 +145,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
         onPress: async () => {
           try {
             await completeSession.mutateAsync({ sessionId: numericSessionId })
+            isCleanExitRef.current = true
             navigation.replace('SessionDetail', { sessionId })
           } catch (error) {
             console.error('Failed to complete session:', error)
@@ -132,6 +167,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           onPress: async () => {
             try {
               await cancelSession.mutateAsync(numericSessionId)
+              isCleanExitRef.current = true
               navigation.goBack()
             } catch (error) {
               console.error('Failed to cancel session:', error)
