@@ -142,7 +142,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
         <View className="flex-row items-center gap-4 px-6 py-4">

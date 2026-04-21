@@ -299,7 +299,7 @@ export function DashboardScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bgBase }}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
         {/* ─── Header ─── */}

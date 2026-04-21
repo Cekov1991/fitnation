@@ -212,7 +212,7 @@ export function ProfileScreen() {
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >

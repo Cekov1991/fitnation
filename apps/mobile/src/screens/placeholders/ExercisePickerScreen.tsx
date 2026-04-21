@@ -124,7 +124,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
         <FlatList
           data={filtered}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 80 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (

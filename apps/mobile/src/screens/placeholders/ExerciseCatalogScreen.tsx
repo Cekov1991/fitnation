@@ -114,7 +114,7 @@ export function ExerciseCatalogScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 120 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (

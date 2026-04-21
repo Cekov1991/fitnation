@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react'
-import { defaultColors, type AppColors } from '../constants/theme'
+import { useColorScheme } from 'react-native'
+import { lightColors, darkColors, type AppColors } from '../constants/theme'
 
 interface ThemeContextValue {
   colors: AppColors
@@ -7,15 +8,18 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  colors: defaultColors,
+  colors: lightColors,
   setColors: () => {},
 })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [colors, setColorsState] = useState<AppColors>(defaultColors)
+  const scheme = useColorScheme()
+  const [overrides, setOverrides] = useState<Partial<AppColors>>({})
+
+  const colors = { ...(scheme === 'dark' ? darkColors : lightColors), ...overrides }
 
   function setColors(partial: Partial<AppColors>) {
-    setColorsState(prev => ({ ...prev, ...partial }))
+    setOverrides(prev => ({ ...prev, ...partial }))
   }
 
   return (

@@ -41,7 +41,7 @@ export function ProgramLibraryScreen({ navigation }: Props) {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 60 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}

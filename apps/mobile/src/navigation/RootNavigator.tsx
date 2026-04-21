@@ -1,11 +1,12 @@
-import { NavigationContainer } from '@react-navigation/native'
-import { View, ActivityIndicator } from 'react-native'
+import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native'
+import { View, ActivityIndicator, useColorScheme } from 'react-native'
 import { useAuth } from '../context/AuthContext'
 import { AuthNavigator } from './AuthNavigator'
 import { AppNavigator } from './AppNavigator'
 
 export function RootNavigator() {
   const { user, isLoading } = useAuth()
+  const scheme = useColorScheme()
 
   if (isLoading) {
     return (
@@ -16,7 +17,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
       {user ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   )

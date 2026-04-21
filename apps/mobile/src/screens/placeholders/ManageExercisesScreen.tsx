@@ -194,7 +194,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
           renderItem={renderItem}
           onDragBegin={() => { isDraggingRef.current = true }}
           onDragEnd={handleDragEnd}
-          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 120 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24 }}
           ListHeaderComponent={
             <Text className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: colors.textSecondary }}>
               Exercises
