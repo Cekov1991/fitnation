@@ -9,6 +9,7 @@ import { WorkoutPreviewScreen } from '../screens/placeholders/WorkoutPreviewScre
 import { ExerciseCatalogScreen } from '../screens/placeholders/ExerciseCatalogScreen'
 import { ExerciseDetailScreen } from '../screens/placeholders/ExerciseDetailScreen'
 import { ExercisePickerScreen } from '../screens/placeholders/ExercisePickerScreen'
+import { WorkoutPreviewExercisePickerScreen } from '../screens/placeholders/WorkoutPreviewExercisePickerScreen'
 import { CreatePlanScreen } from '../screens/placeholders/CreatePlanScreen'
 import { EditPlanScreen } from '../screens/placeholders/EditPlanScreen'
 import { CreateWorkoutScreen } from '../screens/placeholders/CreateWorkoutScreen'
@@ -52,7 +53,7 @@ export function AppNavigator() {
       <Stack.Screen name="WorkoutPreview" component={WorkoutPreviewScreen} />
       <Stack.Screen
         name="WorkoutPreviewExercisePicker"
-        component={ExercisePickerScreen}
+        component={WorkoutPreviewExercisePickerScreen}
         options={{ presentation: 'modal' }}
       />
       <Stack.Screen

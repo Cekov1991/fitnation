@@ -26,7 +26,7 @@ export type AppStackParamList = {
   WorkoutSessionExerciseDetail: { sessionId: string; exerciseName: string }
   GenerateWorkout: undefined
   WorkoutPreview: { sessionId: string }
-  WorkoutPreviewExercisePicker: { sessionId: string }
+  WorkoutPreviewExercisePicker: { sessionId: string; swapExerciseId?: number }
   ExercisePicker: { templateId?: number } | undefined
   ExerciseDetail: { exerciseName: string }
   ExerciseCatalog: undefined
