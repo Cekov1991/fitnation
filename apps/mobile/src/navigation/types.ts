@@ -1,5 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
+import type { NavigatorScreenParams } from '@react-navigation/native'
+import type { NewPrResource } from '@fit-nation/shared'
 
 // Auth stack
 export type AuthStackParamList = {
@@ -20,9 +22,10 @@ export type TabParamList = {
 
 // Main app stack (full-screen screens, no bottom tabs)
 export type AppStackParamList = {
-  Tabs: undefined
+  Tabs: NavigatorScreenParams<TabParamList> | undefined
   Onboarding: undefined
   WorkoutSession: { sessionId: string }
+  WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }
   WorkoutSessionExerciseDetail: { sessionId: string; exerciseName: string }
   GenerateWorkout: undefined
   WorkoutPreview: { sessionId: string }

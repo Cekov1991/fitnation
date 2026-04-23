@@ -38,7 +38,7 @@ import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTab
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import type { AppScreenProps } from '../../navigation/types'
-import type { SessionExerciseDetail } from '@fit-nation/shared'
+import type { CompleteSessionResponse, SessionExerciseDetail } from '@fit-nation/shared'
 
 type Props = AppScreenProps<'WorkoutSession'>
 
@@ -156,10 +156,13 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
         style: 'default',
         onPress: async () => {
           try {
-            await completeSession.mutateAsync({ sessionId: numericSessionId })
+            const result: CompleteSessionResponse = await completeSession.mutateAsync({ sessionId: numericSessionId })
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
             isCleanExitRef.current = true
-            navigation.replace('SessionDetail', { sessionId })
+            navigation.replace('WorkoutSummary', {
+              sessionId,
+              newPrs: result.new_prs ?? [],
+            })
           } catch (error) {
             console.error('Failed to complete session:', error)
           }

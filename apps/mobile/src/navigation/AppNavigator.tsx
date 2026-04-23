@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { TabNavigator } from './TabNavigator'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
 import { WorkoutSessionScreen } from '../screens/placeholders/WorkoutSessionScreen'
+import { WorkoutSummaryScreen } from '../screens/placeholders/WorkoutSummaryScreen'
 import { WorkoutSessionExerciseDetailScreen } from '../screens/placeholders/WorkoutSessionExerciseDetailScreen'
 import { GenerateWorkoutScreen } from '../screens/placeholders/GenerateWorkoutScreen'
 import { WorkoutPreviewScreen } from '../screens/placeholders/WorkoutPreviewScreen'
@@ -43,6 +44,11 @@ export function AppNavigator() {
         name="WorkoutSession"
         component={WorkoutSessionScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="WorkoutSummary"
+        component={WorkoutSummaryScreen}
+        options={{ animation: 'slide_from_right' }}
       />
       <Stack.Screen
         name="WorkoutSessionExerciseDetail"
