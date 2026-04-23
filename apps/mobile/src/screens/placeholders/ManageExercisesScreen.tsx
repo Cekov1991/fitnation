@@ -10,6 +10,7 @@ import {
   useTemplate,
   useRemoveTemplateExercise,
   useReorderTemplateExercises,
+  useStartSession,
   useUpdateTemplateExercise,
   formatRepRange,
 } from '@fit-nation/shared'
@@ -17,7 +18,7 @@ import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { Image } from 'expo-image'
-import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Plus, Trash2 } from 'lucide-react-native'
+import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Play, Plus, Trash2 } from 'lucide-react-native'
 import type { AppScreenProps } from '../../navigation/types'
 
 interface ExerciseItem {
@@ -41,6 +42,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   const removeExercise = useRemoveTemplateExercise()
   const reorderExercises = useReorderTemplateExercises()
   const updateExercise = useUpdateTemplateExercise()
+  const startSession = useStartSession()
   const isDraggingRef = useRef(false)
   const pendingOrderRef = useRef<ExerciseItem[] | null>(null)
   const listHandlerRef = useRef(null)
@@ -156,6 +158,22 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
       setShowEditModal(false)
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to update exercise')
+    }
+  }
+
+  async function handleStartWorkout() {
+    try {
+      const response = await startSession.mutateAsync(templateId)
+      const session = (response as any)?.data?.session || (response as any)?.data
+      if (session?.id) {
+        if (!session.performed_at) {
+          navigation.navigate('WorkoutPreview', { sessionId: String(session.id) })
+        } else {
+          navigation.navigate('WorkoutSession', { sessionId: String(session.id) })
+        }
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to start workout')
     }
   }
 
@@ -315,7 +333,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
             }}
             onDragEnd={handleDragEnd}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24 }}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 180 }}
             ListHeaderComponent={
               <Text className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: colors.textSecondary }}>
                 Exercises
@@ -335,10 +353,11 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
         </NativeViewGestureHandler>
       )}
 
-      {/* Add Exercise FAB */}
+      {/* Bottom CTA buttons */}
       <View
         className="absolute bottom-8 left-6 right-6"
         pointerEvents="box-none"
+        style={{ gap: 12 }}
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('ExercisePicker', { templateId })}
@@ -357,6 +376,25 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
           </View>
           <Text className="text-base font-semibold" style={{ color: colors.primary }}>
             Add Exercise
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleStartWorkout}
+          disabled={startSession.isPending}
+          className="flex-row items-center justify-center gap-3 py-5 rounded-2xl"
+          style={{
+            backgroundColor: colors.primary,
+            opacity: startSession.isPending ? 0.7 : 1,
+          }}
+        >
+          <View
+            className="p-1.5 rounded-lg"
+            style={{ backgroundColor: `${colors.textButton}20` }}
+          >
+            <Play size={18} color={colors.textButton} fill={colors.textButton} />
+          </View>
+          <Text className="text-base font-semibold" style={{ color: colors.textButton }}>
+            {startSession.isPending ? 'Starting...' : 'Start Workout'}
           </Text>
         </TouchableOpacity>
       </View>

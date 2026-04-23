@@ -46,6 +46,8 @@ export function WorkoutTemplateSelector({
         const isNext = nextWorkout != null && template.id === nextWorkout.id
         const isCompleted = template.last_completed_session_id != null
         const isSelected = selectedTemplateId === template.id
+        /** Next is only outlined when not selected — selected always uses gradient */
+        const showNextOutline = isNext && !isSelected
 
         const handlePress = () => {
           if (isCompleted && template.last_completed_session_id && onCompletedDayClick) {
@@ -75,17 +77,17 @@ export function WorkoutTemplateSelector({
               gap: 6,
               backgroundColor: isSelected
                 ? colors.bgSurface
-                : isNext
-                ? `${colors.primary}24`
+                : showNextOutline
+                ? colors.bgSurface
                 : isCompleted
-                ? 'transparent'
-                : colors.borderSubtle,
-              borderWidth: isSelected || isCompleted ? 1 : 0,
-              borderColor: colors.borderSubtle,
+                ? `${colors.success}26`
+                : colors.bgSurface,
+              // borderWidth: showNextOutline ? 2 : 0,
+              // borderColor: showNextOutline ? colors.primary : 'transparent',
               overflow: 'hidden',
             }}
           >
-            {isCompleted && (
+            {isSelected && (
               <LinearGradient
                 colors={[colors.primary, colors.secondary]}
                 start={{ x: 0, y: 0 }}
@@ -93,17 +95,11 @@ export function WorkoutTemplateSelector({
                 style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
               />
             )}
-            {isNext && (
-              <Clock
-                size={14}
-                color={colors.primary}
-                style={{ position: 'relative', zIndex: 1 }}
-              />
-            )}
+            
             {isCompleted && (
               <CheckCircle2
                 size={14}
-                color={colors.textButton}
+                color={colors.success}
                 style={{ position: 'relative', zIndex: 1 }}
               />
             )}
@@ -111,10 +107,12 @@ export function WorkoutTemplateSelector({
               style={{
                 fontSize: 14,
                 fontWeight: '700',
-                color: isCompleted
+                color: isSelected
                   ? colors.textButton
-                  : isSelected || isNext
+                  : showNextOutline
                   ? colors.primary
+                  : isCompleted
+                  ? colors.success
                   : colors.textSecondary,
                 position: 'relative',
                 zIndex: 1,

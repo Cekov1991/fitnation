@@ -234,6 +234,10 @@ export function DashboardScreen() {
     }
   }
 
+  function handleCompletedDayClick(sessionId: number) {
+    navigation.navigate('SessionDetail', { sessionId: String(sessionId) })
+  }
+
   const handleRefreshClick = () => {
     if (isRegenerating || !isProfileComplete) return
     if (!hasCompletedWorkouts) {
@@ -551,6 +555,7 @@ export function DashboardScreen() {
                       selectedTemplateId={effectiveSelectedId}
                       onTemplateSelect={setSelectedTemplateId}
                       nextWorkout={activeProgram.next_workout ?? null}
+                      onCompletedDayClick={handleCompletedDayClick}
                     />
                   </View>
                 )}

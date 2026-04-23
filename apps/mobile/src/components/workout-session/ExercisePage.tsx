@@ -377,40 +377,88 @@ export function ExercisePage({
         )}
 
         {/* Previous session (at bottom for reference) */}
-        {previous_sets.length > 0 && (
-          <View
-            style={{
-              marginTop: 10,
-              padding: 14,
-              borderRadius: 14,
-              backgroundColor: colors.bgSurface,
-              borderWidth: 1,
-              borderColor: colors.borderSubtle,
-            }}
-          >
-            <Text
+        {previous_sets.length > 0 && (() => {
+          const totalVolume = previous_sets.reduce((sum, s) => sum + (s.weight ?? 0) * s.reps, 0)
+          return (
+            <View
               style={{
-                fontSize: 11,
-                fontWeight: '700',
-                letterSpacing: 1,
-                color: colors.textSecondary,
-                marginBottom: 8,
+                marginTop: 10,
+                borderRadius: 14,
+                backgroundColor: colors.bgSurface,
+                borderWidth: 1,
+                borderColor: colors.borderSubtle,
+                overflow: 'hidden',
               }}
             >
-              LAST SESSION
-            </Text>
-            {previous_sets.map((prev, i) => (
               <Text
-                key={i}
-                style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 2 }}
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  letterSpacing: 1,
+                  color: colors.textSecondary,
+                  paddingHorizontal: 14,
+                  paddingTop: 12,
+                  paddingBottom: 10,
+                }}
               >
-                Set {prev.set_number}:{' '}
-                {allowWeightLogging ? `${prev.weight} kg × ` : ''}
-                {prev.reps} reps
+                LAST SESSION
               </Text>
-            ))}
-          </View>
-        )}
+              {previous_sets.map((prev, i) => {
+                const setVolume = (prev.weight ?? 0) * prev.reps
+                return (
+                  <View
+                    key={i}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      borderTopWidth: 1,
+                      borderTopColor: colors.borderSubtle,
+                    }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary, width: 50 }}>
+                      Set {prev.set_number}
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      {allowWeightLogging && (
+                        <>
+                          <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.weight}</Text>
+                          <Text style={{ fontSize: 14, color: colors.textMuted }}>kg</Text>
+                          <Text style={{ fontSize: 14, color: colors.textMuted, marginHorizontal: 2 }}>×</Text>
+                        </>
+                      )}
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.reps}</Text>
+                      <Text style={{ fontSize: 14, color: colors.textMuted }}>reps</Text>
+                    </View>
+                    {allowWeightLogging && (
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted }}>{setVolume} kg</Text>
+                        <Text style={{ fontSize: 10, color: colors.textMuted }}>volume</Text>
+                      </View>
+                    )}
+                  </View>
+                )
+              })}
+              {allowWeightLogging && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.borderSubtle,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary }}>Volume</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primary }}>{totalVolume} kg</Text>
+                </View>
+              )}
+            </View>
+          )
+        })()}
       </View>
 
       <SetOptionsMenu

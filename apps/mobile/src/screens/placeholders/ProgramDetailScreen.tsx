@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useProgram, useStartSession, useTodayWorkout } from '@fit-nation/shared'
+import { useProgram } from '@fit-nation/shared'
 import type { ProgramResource, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
-import { ArrowLeft, ChevronRight, Play } from 'lucide-react-native'
+import { ArrowLeft, ChevronRight } from 'lucide-react-native'
 import { Image } from 'expo-image'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -43,29 +43,19 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
   const { programId } = route.params
   const { colors } = useTheme()
   const { data: program, isLoading, isError, refetch } = useProgram(programId)
-  const startSession = useStartSession()
-  const { data: todayWorkout } = useTodayWorkout()
 
   const programWeeks = useMemo(() => {
     if (!program) return []
     return groupWorkoutsByWeek(program as ProgramResource)
   }, [program])
 
-  async function handleStartWorkout(templateId: number) {
-    const activeSession = todayWorkout?.session
-    if (activeSession && !activeSession.completed_at && activeSession.workout_template_id === templateId) {
-      navigation.navigate('WorkoutSession', { sessionId: String(activeSession.id) })
+  function handleWorkoutPress(workout: WorkoutTemplateResource) {
+    if (workout.last_completed_session_id != null) {
+      navigation.navigate('SessionDetail', { sessionId: String(workout.last_completed_session_id) })
       return
     }
-    try {
-      const response = await startSession.mutateAsync(templateId)
-      const session = (response as any)?.data?.session || (response as any)?.data
-      if (session?.id) {
-        navigation.navigate('WorkoutSession', { sessionId: String(session.id) })
-      }
-    } catch (e: any) {
-      console.error('Failed to start workout:', e)
-    }
+
+    navigation.navigate('ManageExercises', { templateId: workout.id })
   }
 
   const header = (
@@ -244,12 +234,11 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
                     <View style={{ gap: 8 }}>
                       {week.workouts.map((workout) => {
                         const isNext = prog.is_active && prog.next_workout?.id === workout.id
-                        const activeSession = todayWorkout?.session
-                        const hasActive = activeSession && !activeSession.completed_at && activeSession.workout_template_id === workout.id
+                        const isCompleted = workout.last_completed_session_id != null
                         return (
                           <TouchableOpacity
                             key={workout.id}
-                            onPress={() => handleStartWorkout(workout.id)}
+                            onPress={() => handleWorkoutPress(workout)}
                             className="flex-row items-center justify-between px-3 py-3 rounded-xl"
                             style={{
                               backgroundColor: isNext ? `${colors.primary}18` : colors.bgElevated,
@@ -267,14 +256,10 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
                                 </Text>
                               )}
                             </View>
-                            {hasActive ? (
-                              <View className="px-2 py-1 rounded-lg" style={{ backgroundColor: colors.secondary }}>
-                                <Text className="text-xs font-bold text-white">Continue</Text>
-                              </View>
-                            ) : isNext ? (
-                              <View className="p-1.5 rounded-lg" style={{ backgroundColor: colors.primary }}>
-                                <Play size={14} color="#fff" fill="#fff" />
-                              </View>
+                            {isCompleted ? (
+                              <Text className="text-xs font-semibold" style={{ color: colors.success }}>
+                                Completed
+                              </Text>
                             ) : (
                               <ChevronRight size={16} color={colors.textMuted} />
                             )}
