@@ -27,7 +27,17 @@ export type AppStackParamList = {
   GenerateWorkout: undefined
   WorkoutPreview: { sessionId: string }
   WorkoutPreviewExercisePicker: { sessionId: string; swapExerciseId?: number }
-  ExercisePicker: { templateId?: number } | undefined
+  ExercisePicker: {
+    templateId?: number
+    swapPivotId?: number
+    swapOrderIndex?: number
+    pivotData?: {
+      target_sets: number
+      min_target_reps: number
+      max_target_reps: number
+      target_weight: number
+    }
+  } | undefined
   ExerciseDetail: { exerciseName: string }
   ExerciseCatalog: undefined
   CreatePlan: undefined

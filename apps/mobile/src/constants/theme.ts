@@ -31,8 +31,10 @@ export const lightColors = {
 export const darkColors: AppColors = {
   // Backgrounds
   bgBase: '#0A0A0A',
-  bgSurface: 'rgba(31, 41, 55, 0.4)',   // gray-800/40
-  bgElevated: 'rgba(17, 24, 39, 0.5)',  // gray-900/50
+  // bgSurface: 'rgba(31, 41, 55, 0.4)',   // gray-800/40
+  // bgElevated: 'rgba(17, 24, 39, 0.5)',  // gray-900/50
+  bgSurface: 'rgb(20, 27, 36)',   // gray-800/40
+  bgElevated: 'rgb(17, 24, 39)',  // gray-900/50
 
   // Text
   textPrimary: '#FFFFFF',

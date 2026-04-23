@@ -27,6 +27,7 @@ import {
 import type { WorkoutSessionCalendarResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ErrorState } from '../../components/ui/ErrorState'
 import { StrengthScoreModal } from '../../components/progress/StrengthScoreModal'
 import { BalanceModal } from '../../components/progress/BalanceModal'
 import { WeeklyProgressModal } from '../../components/progress/WeeklyProgressModal'
@@ -185,7 +186,7 @@ export function ProgressScreen() {
   )
 
   // Metrics
-  const { data: metrics, isLoading: isMetricsLoading } = useFitnessMetrics()
+  const { data: metrics, isLoading: isMetricsLoading, isError: isMetricsError, refetch: refetchMetrics } = useFitnessMetrics()
 
   const strengthScoreValue = metrics?.strength_score
     ? `${metrics.strength_score.current}`
@@ -216,6 +217,14 @@ export function ProgressScreen() {
   const weeklySubtitle = metrics?.weekly_progress
     ? `${metrics.weekly_progress.current_week_workouts} workouts`
     : undefined
+
+  if (isMetricsError) {
+    return (
+      <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+        <ErrorState message="Failed to load progress data" onRetry={refetchMetrics} />
+      </SafeAreaView>
+    )
+  }
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>

@@ -34,25 +34,49 @@ export function AppNavigator() {
       initialRouteName={needsOnboarding ? 'Onboarding' : 'Tabs'}
     >
       <Stack.Screen name="Tabs" component={TabNavigator} />
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="WorkoutSession" component={WorkoutSessionScreen} />
-      <Stack.Screen name="WorkoutSessionExerciseDetail" component={WorkoutSessionExerciseDetailScreen} />
-      <Stack.Screen name="GenerateWorkout" component={GenerateWorkoutScreen} />
-      <Stack.Screen name="WorkoutPreview" component={WorkoutPreviewScreen} />
-      <Stack.Screen name="WorkoutPreviewExercisePicker" component={WorkoutPreviewExercisePickerScreen} />
-      <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} />
-      <Stack.Screen name="ExerciseCatalog" component={ExerciseCatalogScreen} />
-      <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
-      <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />
-      <Stack.Screen name="EditPlan" component={EditPlanScreen} />
-      <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
-      <Stack.Screen name="EditWorkout" component={EditWorkoutScreen} />
-      <Stack.Screen name="ManageExercises" component={ManageExercisesScreen} />
-      <Stack.Screen name="ProgramLibrary" component={ProgramLibraryScreen} />
-      <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} />
-      <Stack.Screen name="RoutineDetail" component={RoutineDetailScreen} />
-      <Stack.Screen name="RoutineWorkoutDetail" component={RoutineWorkoutDetailScreen} />
-      <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
+      <Stack.Screen
+        name="Onboarding"
+        component={OnboardingScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="WorkoutSession"
+        component={WorkoutSessionScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="WorkoutSessionExerciseDetail"
+        component={WorkoutSessionExerciseDetailScreen}
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="GenerateWorkout"
+        component={GenerateWorkoutScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen name="WorkoutPreview" component={WorkoutPreviewScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen
+        name="WorkoutPreviewExercisePicker"
+        component={WorkoutPreviewExercisePickerScreen}
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="ExercisePicker"
+        component={ExercisePickerScreen}
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen name="ExerciseCatalog" component={ExerciseCatalogScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="CreatePlan" component={CreatePlanScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="EditPlan" component={EditPlanScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="EditWorkout" component={EditWorkoutScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ManageExercises" component={ManageExercisesScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ProgramLibrary" component={ProgramLibraryScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="RoutineDetail" component={RoutineDetailScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="RoutineWorkoutDetail" component={RoutineWorkoutDetailScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
   )
 }

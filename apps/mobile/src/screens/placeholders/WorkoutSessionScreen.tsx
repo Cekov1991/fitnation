@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 // import PagerView from 'react-native-pager-view'
 // ───────────────────────────────────────────────────────────────────────────
 import { useKeepAwake } from 'expo-keep-awake'
+import * as Haptics from 'expo-haptics'
 import { usePreventRemove } from '@react-navigation/native'
 import { Clock, Check, X } from 'lucide-react-native'
 import {
@@ -35,6 +36,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { ExercisePage } from '../../components/workout-session/ExercisePage'
 import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTabs'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ErrorState } from '../../components/ui/ErrorState'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
@@ -56,7 +58,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
 
-  const { data: sessionData, isLoading } = useSession(numericSessionId)
+  const { data: sessionData, isLoading, isError, refetch } = useSession(numericSessionId)
   const completeSession = useCompleteSession()
   const cancelSession = useCancelSession()
   const removeSessionExercise = useRemoveSessionExercise()
@@ -155,6 +157,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
         onPress: async () => {
           try {
             await completeSession.mutateAsync({ sessionId: numericSessionId })
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
             isCleanExitRef.current = true
             navigation.replace('SessionDetail', { sessionId })
           } catch (error) {
@@ -241,6 +244,14 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           <SkeletonBox height={80} style={{ marginBottom: 12 }} />
           <SkeletonBox height={80} />
         </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+        <ErrorState message="Failed to load workout session" onRetry={refetch} />
       </SafeAreaView>
     )
   }

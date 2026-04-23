@@ -1,8 +1,17 @@
 import { useState, useMemo } from 'react'
-import { View, Text, TextInput, FlatList, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, TextInput, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Search, X, Plus, Dumbbell } from 'lucide-react-native'
-import { useExercises, useMuscleGroups, useEquipmentTypes, useAddTemplateExercise } from '@fit-nation/shared'
+import { useQueryClient } from '@tanstack/react-query'
+import { Search, X, Plus, ArrowUpDown, Dumbbell } from 'lucide-react-native'
+import {
+  useExercises,
+  useMuscleGroups,
+  useEquipmentTypes,
+  useAddTemplateExercise,
+  useRemoveTemplateExercise,
+  useReorderTemplateExercises,
+} from '@fit-nation/shared'
+import type { WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
 import { FilterChips } from '../../components/exercises/FilterChips'
@@ -14,16 +23,60 @@ type Props = AppScreenProps<'ExercisePicker'>
 
 export function ExercisePickerScreen({ route, navigation }: Props) {
   const templateId = route.params?.templateId
+  const swapPivotId = route.params?.swapPivotId
+  const swapOrderIndex = route.params?.swapOrderIndex
+  const pivotData = route.params?.pivotData
+  const isSwap = swapPivotId != null
+
   const { colors } = useTheme()
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
-  const [addingId, setAddingId] = useState<number | null>(null)
+  const [actionId, setActionId] = useState<number | null>(null)
 
   const { data: exercises = [], isLoading, isError, refetch } = useExercises()
   const { data: muscleGroups = [] } = useMuscleGroups()
   const { data: equipmentTypes = [] } = useEquipmentTypes()
   const addTemplateExercise = useAddTemplateExercise()
+  const removeTemplateExercise = useRemoveTemplateExercise()
+  const reorderExercises = useReorderTemplateExercises()
+
+  async function handleSwap(exercise: ExerciseResource) {
+    if (!templateId || swapPivotId == null) return
+    setActionId(exercise.id)
+    try {
+      await removeTemplateExercise.mutateAsync({ templateId, pivotId: swapPivotId })
+      await addTemplateExercise.mutateAsync({
+        templateId,
+        data: {
+          exercise_id: exercise.id,
+          target_sets: pivotData?.target_sets ?? 3,
+          min_target_reps: pivotData?.min_target_reps ?? 8,
+          max_target_reps: pivotData?.max_target_reps ?? 12,
+          target_weight: pivotData?.target_weight ?? 0,
+        },
+      })
+      await queryClient.refetchQueries({ queryKey: ['templates', templateId] })
+      const template = queryClient.getQueryData<WorkoutTemplateResource>(['templates', templateId])
+      const newEntry = (template?.exercises as any[])?.find((ex: any) => ex.id === exercise.id)
+      const newPivotId = newEntry?.pivot?.id
+      if (newPivotId != null && template?.exercises) {
+        const currentOrder = (template.exercises as any[]).map((ex: any) => ex.pivot.id)
+        const idx = currentOrder.indexOf(newPivotId)
+        if (idx !== -1 && idx !== swapOrderIndex) {
+          const newOrder = [...currentOrder]
+          newOrder.splice(idx, 1)
+          newOrder.splice(swapOrderIndex!, 0, newPivotId)
+          await reorderExercises.mutateAsync({ templateId, order: newOrder })
+        }
+      }
+      navigation.goBack()
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to swap exercise')
+      setActionId(null)
+    }
+  }
 
   const filtered = useMemo(() => {
     return (exercises as ExerciseResource[]).filter(ex => {
@@ -41,7 +94,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
       {/* Header */}
       <View className="flex-row items-center gap-4 px-4 pt-4 pb-3">
         <Text className="flex-1 text-xl font-bold" style={{ color: colors.textPrimary }}>
-          Add Exercise
+          {isSwap ? 'Swap Exercise' : 'Add Exercise'}
         </Text>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -135,32 +188,50 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
               }}
               rightAction={
                 templateId ? (
-                  <TouchableOpacity
-                    onPress={async () => {
-                      if (addingId === item.id) return
-                      setAddingId(item.id)
-                      try {
-                        await addTemplateExercise.mutateAsync({
-                          templateId,
-                          data: {
-                            exercise_id: item.id,
-                            target_sets: 3,
-                            min_target_reps: 8,
-                            max_target_reps: 12,
-                          },
-                        })
-                        navigation.goBack()
-                      } catch (e: any) {
-                        Alert.alert('Error', e?.message || 'Failed to add exercise')
-                        setAddingId(null)
+                  isSwap ? (
+                    <TouchableOpacity
+                      onPress={() => handleSwap(item)}
+                      disabled={actionId === item.id}
+                      className="ml-2 p-2 rounded-full"
+                      style={{ backgroundColor: `${colors.secondary}20`, opacity: actionId === item.id ? 0.5 : 1 }}
+                      activeOpacity={0.7}
+                    >
+                      {actionId === item.id
+                        ? <ActivityIndicator size="small" color={colors.secondary} />
+                        : <ArrowUpDown size={18} color={colors.secondary} />
                       }
-                    }}
-                    className="ml-2 p-2 rounded-full"
-                    style={{ backgroundColor: `${colors.primary}20`, opacity: addingId === item.id ? 0.5 : 1 }}
-                    activeOpacity={0.7}
-                  >
-                    <Plus size={18} color={colors.primary} />
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        if (actionId === item.id) return
+                        setActionId(item.id)
+                        try {
+                          await addTemplateExercise.mutateAsync({
+                            templateId,
+                            data: {
+                              exercise_id: item.id,
+                              target_sets: 3,
+                              min_target_reps: 8,
+                              max_target_reps: 12,
+                            },
+                          })
+                          navigation.goBack()
+                        } catch (e: any) {
+                          Alert.alert('Error', e?.message || 'Failed to add exercise')
+                          setActionId(null)
+                        }
+                      }}
+                      className="ml-2 p-2 rounded-full"
+                      style={{ backgroundColor: `${colors.primary}20`, opacity: actionId === item.id ? 0.5 : 1 }}
+                      activeOpacity={0.7}
+                    >
+                      {actionId === item.id
+                        ? <ActivityIndicator size="small" color={colors.primary} />
+                        : <Plus size={18} color={colors.primary} />
+                      }
+                    </TouchableOpacity>
+                  )
                 ) : (
                   <TouchableOpacity
                     onPress={() => navigation.goBack()}

@@ -33,6 +33,7 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ErrorState } from '../../components/ui/ErrorState'
 
 const DURATION_OPTIONS = [
   { label: '20-30 min', value: 30 },
@@ -110,7 +111,7 @@ function FieldInput({
 export function ProfileScreen() {
   const { colors } = useTheme()
   const { logout } = useAuth()
-  const { data: profile, isLoading } = useProfile()
+  const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
 
   const {
@@ -200,6 +201,14 @@ export function ProfileScreen() {
           <SkeletonBox height={52} className="mb-4" />
           <SkeletonBox height={200} className="mb-4" />
         </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+        <ErrorState message="Failed to load profile" onRetry={refetch} />
       </SafeAreaView>
     )
   }

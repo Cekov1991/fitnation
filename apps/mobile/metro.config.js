@@ -8,7 +8,7 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 const config = getDefaultConfig(projectRoot);
 
 // Watch the whole monorepo so Metro picks up changes in packages/shared.
-config.watchFolders = [workspaceRoot];
+config.watchFolders = [...(config.watchFolders || []), workspaceRoot];
 
 // Let Metro find modules in the app's node_modules first, then fall back to
 // the workspace root. Hierarchical lookup stays ENABLED because pnpm relies on
