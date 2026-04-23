@@ -1,8 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import * as Haptics from 'expo-haptics'
-import Swipeable from 'react-native-gesture-handler/Swipeable'
-import { Plus, Trash2 } from 'lucide-react-native'
+import { Plus } from 'lucide-react-native'
 import {
   useLogSet,
   useUpdateSet,
@@ -236,24 +235,6 @@ export function ExercisePage({
     }
   }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
 
-  const handleSwipeDeleteSet = useCallback(async (logId: number) => {
-    if (targetSets <= 1) {
-      Alert.alert('Cannot remove', 'Remove the exercise instead of the last set.')
-      return
-    }
-    try {
-      await deleteSet.mutateAsync({ sessionId, setLogId: logId })
-      await updateSessionExercise.mutateAsync({
-        sessionId,
-        exerciseId: session_exercise.id,
-        data: { target_sets: targetSets - 1 },
-      })
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-    } catch (err) {
-      console.error('Swipe delete set failed:', err)
-    }
-  }, [deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -319,33 +300,14 @@ export function ExercisePage({
               )
             }
             return (
-              <Swipeable
+              <CompletedSetRow
                 key={`done-${slot.setNumber}`}
-                renderRightActions={() => (
-                  <TouchableOpacity
-                    onPress={() => handleSwipeDeleteSet(slot.logId)}
-                    style={{
-                      width: 72,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 14,
-                      backgroundColor: '#EF4444',
-                      marginLeft: 8,
-                    }}
-                  >
-                    <Trash2 size={20} color="#fff" />
-                  </TouchableOpacity>
-                )}
-                overshootRight={false}
-              >
-                <CompletedSetRow
-                  setNumber={slot.setNumber}
-                  weight={allowWeightLogging ? slot.weight : null}
-                  reps={slot.reps}
-                  allowWeightLogging={allowWeightLogging}
-                  onOpenMenu={() => handleOpenSetMenu(slot.setNumber)}
-                />
-              </Swipeable>
+                setNumber={slot.setNumber}
+                weight={allowWeightLogging ? slot.weight : null}
+                reps={slot.reps}
+                allowWeightLogging={allowWeightLogging}
+                onOpenMenu={() => handleOpenSetMenu(slot.setNumber)}
+              />
             )
           }
 
