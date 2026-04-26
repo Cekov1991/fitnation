@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { useState, useEffect, useRef } from 'react'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,6 +25,9 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
   const [invitationError, setInvitationError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const scrollRef = useRef<ScrollView>(null)
+  const passwordRef = useRef<TextInput>(null)
+  const confirmPasswordRef = useRef<TextInput>(null)
 
   const { control, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -71,7 +74,6 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
     }
   }
 
-  // Loading state while validating
   if (validating) {
     return (
       <SafeAreaView edges={['top']} className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
@@ -83,7 +85,6 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
     )
   }
 
-  // Invalid token state
   if (invitationError || !invitation) {
     return (
       <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
@@ -123,12 +124,15 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <ScrollView
+          ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ padding: 24, flexGrow: 1 }}
+          contentContainerStyle={{ padding: 24, flexGrow: 1, paddingBottom: 48 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <AuthLogoHeader
             title="Create Your Account"
@@ -165,9 +169,13 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
                   value={value}
                   onChangeText={onChange}
                   autoComplete="name"
+                  autoCorrect={false}
                   placeholder="John Doe"
                   error={errors.name?.message}
-                  leftIcon={<User color={colors.textMuted} size={20} />}
+                  leftIcon={<User color={colors.textMuted} size={18} />}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
                 />
               )}
             />
@@ -182,7 +190,7 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
                   keyboardType="email-address"
                   autoCapitalize="none"
                   error={errors.email?.message}
-                  leftIcon={<Mail color={colors.textMuted} size={20} />}
+                  leftIcon={<Mail color={colors.textMuted} size={18} />}
                   readOnly
                 />
               )}
@@ -202,12 +210,19 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
                   secureTextEntry={!showPassword}
                   placeholder="At least 8 characters"
                   error={errors.password?.message}
-                  leftIcon={<Lock color={colors.textMuted} size={20} />}
+                  leftIcon={<Lock color={colors.textMuted} size={18} />}
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                  blurOnSubmit={false}
+                  inputRef={passwordRef}
+                  onFocusScroll={() => {
+                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120)
+                  }}
                   rightElement={
-                    <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
+                    <TouchableOpacity onPress={() => setShowPassword(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       {showPassword
-                        ? <EyeOff color={colors.textMuted} size={20} />
-                        : <Eye color={colors.textMuted} size={20} />
+                        ? <EyeOff color={colors.textMuted} size={18} />
+                        : <Eye color={colors.textMuted} size={18} />
                       }
                     </TouchableOpacity>
                   }
@@ -226,12 +241,18 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
                   secureTextEntry={!showConfirmPassword}
                   placeholder="Re-enter your password"
                   error={errors.password_confirmation?.message}
-                  leftIcon={<Lock color={colors.textMuted} size={20} />}
+                  leftIcon={<Lock color={colors.textMuted} size={18} />}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubmit(onSubmit)}
+                  inputRef={confirmPasswordRef}
+                  onFocusScroll={() => {
+                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120)
+                  }}
                   rightElement={
-                    <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)}>
+                    <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       {showConfirmPassword
-                        ? <EyeOff color={colors.textMuted} size={20} />
-                        : <Eye color={colors.textMuted} size={20} />
+                        ? <EyeOff color={colors.textMuted} size={18} />
+                        : <Eye color={colors.textMuted} size={18} />
                       }
                     </TouchableOpacity>
                   }

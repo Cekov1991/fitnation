@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
+import { useState, useRef } from 'react'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,6 +17,9 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
   const { colors } = useTheme()
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const scrollRef = useRef<ScrollView>(null)
+  const passwordRef = useRef<TextInput>(null)
+  const passwordContainerRef = useRef<import('react-native').View>(null)
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -37,12 +40,15 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <ScrollView
+          ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ padding: 24, justifyContent: 'center', flexGrow: 1 }}
+          contentContainerStyle={{ padding: 24, justifyContent: 'center', flexGrow: 1, paddingBottom: 80 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <AuthLogoHeader
             title="Welcome Back"
@@ -79,38 +85,58 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
                   onChangeText={onChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  autoCorrect={false}
                   autoComplete="email"
                   placeholder="you@example.com"
                   error={errors.email?.message}
-                  leftIcon={<Mail color={colors.textMuted} size={20} />}
+                  leftIcon={<Mail color={colors.textMuted} size={18} />}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
                 />
               )}
             />
 
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Password"
-                  value={value}
-                  onChangeText={onChange}
-                  secureTextEntry={!showPassword}
-                  autoComplete="password"
-                  placeholder="Enter your password"
-                  error={errors.password?.message}
-                  leftIcon={<Lock color={colors.textMuted} size={20} />}
-                  rightElement={
-                    <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
-                      {showPassword
-                        ? <EyeOff color={colors.textMuted} size={20} />
-                        : <Eye color={colors.textMuted} size={20} />
-                      }
-                    </TouchableOpacity>
-                  }
-                />
-              )}
-            />
+            <View ref={passwordContainerRef}>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    label="Password"
+                    value={value}
+                    onChangeText={onChange}
+                    secureTextEntry={!showPassword}
+                    autoComplete="password"
+                    placeholder="Enter your password"
+                    error={errors.password?.message}
+                    leftIcon={<Lock color={colors.textMuted} size={18} />}
+                    returnKeyType="done"
+                    onSubmitEditing={handleSubmit(onSubmit)}
+                    inputRef={passwordRef}
+                    onFocusScroll={() => {
+                      setTimeout(() => {
+                        passwordContainerRef.current?.measureLayout(
+                          scrollRef.current as any,
+                          (_x, y) => {
+                            scrollRef.current?.scrollTo({ y: y - 16, animated: true })
+                          },
+                          () => scrollRef.current?.scrollToEnd({ animated: true }),
+                        )
+                      }, 150)
+                    }}
+                    rightElement={
+                      <TouchableOpacity onPress={() => setShowPassword(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                        {showPassword
+                          ? <EyeOff color={colors.textMuted} size={18} />
+                          : <Eye color={colors.textMuted} size={18} />
+                        }
+                      </TouchableOpacity>
+                    }
+                  />
+                )}
+              />
+            </View>
 
             <View className="flex-row justify-end mb-6">
               <Text
