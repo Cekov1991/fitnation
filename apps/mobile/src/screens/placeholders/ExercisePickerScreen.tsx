@@ -78,6 +78,22 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
     }
   }
 
+  const availableMuscleIds = useMemo(() => {
+    const ids = new Set<string>()
+    ;(exercises as ExerciseResource[]).forEach(ex =>
+      ex.muscle_groups?.forEach(m => { if (m.is_primary) ids.add(m.id.toString()) })
+    )
+    return ids
+  }, [exercises])
+
+  const availableEquipmentCodes = useMemo(() => {
+    const codes = new Set<string>()
+    ;(exercises as ExerciseResource[]).forEach(ex => {
+      if (ex.equipment_type?.code) codes.add(ex.equipment_type.code)
+    })
+    return codes
+  }, [exercises])
+
   const filtered = useMemo(() => {
     return (exercises as ExerciseResource[]).filter(ex => {
       const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase())
@@ -136,18 +152,22 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
       </View>
 
       {/* Muscle Group Filter Chips */}
-      {muscleGroups.length > 0 && (
+      {availableMuscleIds.size > 0 && (
         <FilterChips
-          options={muscleGroups.map(mg => ({ value: mg.id.toString(), label: mg.name }))}
+          options={muscleGroups
+            .filter(mg => availableMuscleIds.has(mg.id.toString()))
+            .map(mg => ({ value: mg.id.toString(), label: mg.name }))}
           selected={selectedMuscle}
           onSelect={setSelectedMuscle}
         />
       )}
 
       {/* Equipment Filter Chips */}
-      {equipmentTypes.length > 0 && (
+      {availableEquipmentCodes.size > 0 && (
         <FilterChips
-          options={equipmentTypes.map(eq => ({ value: eq.code, label: eq.name }))}
+          options={equipmentTypes
+            .filter(eq => availableEquipmentCodes.has(eq.code))
+            .map(eq => ({ value: eq.code, label: eq.name }))}
           selected={selectedEquipment}
           onSelect={setSelectedEquipment}
         />
