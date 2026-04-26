@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useDebounce } from '../../hooks/useDebounce'
 import { View, Text, TextInput, FlatList, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Search, Dumbbell } from 'lucide-react-native'
@@ -21,7 +22,8 @@ export function ExerciseCatalogScreen() {
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
 
-  const { data: exercises = [], isLoading, isError, refetch } = useExercises()
+  const debouncedSearch = useDebounce(search, 300)
+  const { data: exercises = [], isLoading, isError, refetch } = useExercises(debouncedSearch || undefined)
   const { data: muscleGroups = [] } = useMuscleGroups()
   const { data: equipmentTypes = [] } = useEquipmentTypes()
 
@@ -43,15 +45,14 @@ export function ExerciseCatalogScreen() {
 
   const filtered = useMemo(() => {
     return (exercises as ExerciseResource[]).filter(ex => {
-      const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase())
       const matchesMuscle =
         !selectedMuscle ||
         ex.muscle_groups?.some(m => m.is_primary && m.id.toString() === selectedMuscle)
       const matchesEquipment =
         !selectedEquipment || ex.equipment_type?.code === selectedEquipment
-      return matchesSearch && matchesMuscle && matchesEquipment
+      return matchesMuscle && matchesEquipment
     })
-  }, [exercises, search, selectedMuscle, selectedEquipment])
+  }, [exercises, selectedMuscle, selectedEquipment])
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useDebounce } from '../../hooks/useDebounce'
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
@@ -27,7 +28,8 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
   const [addingId, setAddingId] = useState<number | null>(null)
 
-  const { data: exercises = [], isLoading } = useExercises()
+  const debouncedSearch = useDebounce(search, 300)
+  const { data: exercises = [], isLoading } = useExercises(debouncedSearch || undefined)
   const { data: muscleGroups = [] } = useMuscleGroups()
   const addExercise = useAddSessionExercise()
   const removeExercise = useRemoveSessionExercise()
@@ -42,12 +44,11 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
 
   const filtered = useMemo(() => {
     return (exercises as ExerciseResource[]).filter(ex => {
-      const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase())
       const matchesMuscle =
         !selectedMuscle || ex.muscle_groups?.some(m => m.is_primary && m.id.toString() === selectedMuscle)
-      return matchesSearch && matchesMuscle
+      return matchesMuscle
     })
-  }, [exercises, search, selectedMuscle])
+  }, [exercises, selectedMuscle])
 
   const handleSelectExercise = async (exercise: ExerciseResource) => {
     if (addingId) return
