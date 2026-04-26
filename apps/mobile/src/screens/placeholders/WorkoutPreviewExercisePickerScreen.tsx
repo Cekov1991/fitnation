@@ -36,7 +36,7 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
     return (exercises as ExerciseResource[]).filter(ex => {
       const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase())
       const matchesMuscle =
-        !selectedMuscle || ex.muscle_groups?.some(m => m.id.toString() === selectedMuscle)
+        !selectedMuscle || ex.muscle_groups?.some(m => m.is_primary && m.id.toString() === selectedMuscle)
       return matchesSearch && matchesMuscle
     })
   }, [exercises, search, selectedMuscle])
