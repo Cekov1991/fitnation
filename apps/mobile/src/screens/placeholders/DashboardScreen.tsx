@@ -783,7 +783,7 @@ export function DashboardScreen() {
                 {activePlan ? activePlan.name : 'My Custom Plans'}
               </Text>
               {activePlan && (
-                <TouchableOpacity onPress={() => navigation.navigate('Tabs')}>
+                <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'Plans' })}>
                   <Text style={{ fontSize: 14, color: colors.textSecondary }}>See all</Text>
                 </TouchableOpacity>
               )}
