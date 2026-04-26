@@ -14,8 +14,8 @@ export function FilterChips({ options, selected, onSelect }: FilterChipsProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ flexShrink: 0 }}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6, gap: 8 }}
+      style={{ flexShrink: 0, flexGrow: 0 }}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6, gap: 8, alignItems: 'center' }}
     >
       <TouchableOpacity
         onPress={() => onSelect(null)}
