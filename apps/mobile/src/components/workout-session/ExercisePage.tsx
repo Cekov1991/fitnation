@@ -237,11 +237,9 @@ function ExercisePageComponent({
     }
   }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
 
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+  // On Android the OS handles keyboard insets via adjustResize; KAV adds a
+  // redundant layout pass that causes double-jank on keyboard open/close.
+  const content = (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgBase }}
       contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
@@ -493,8 +491,13 @@ function ExercisePageComponent({
         isRemoveLoading={isRemoveExerciseLoading}
       />
     </ScrollView>
-    </KeyboardAvoidingView>
   )
+
+  return Platform.OS === 'ios' ? (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      {content}
+    </KeyboardAvoidingView>
+  ) : content
 }
 
 export const ExercisePage = memo(ExercisePageComponent)

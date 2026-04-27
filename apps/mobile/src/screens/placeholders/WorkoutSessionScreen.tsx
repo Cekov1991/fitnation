@@ -20,6 +20,7 @@ import {
   useCancelSession,
   useRemoveSessionExercise,
 } from '@fit-nation/shared'
+import { Image } from 'expo-image'
 import { useTheme } from '../../context/ThemeContext'
 import { ExercisePage } from '../../components/workout-session/ExercisePage'
 import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTabs'
@@ -320,20 +321,61 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             offscreenPageLimit={1}
             onPageSelected={e => setCurrentIndex(e.nativeEvent.position)}
           >
-            {exercises.map((exerciseDetail, index) => (
-              <View key={exerciseDetail.session_exercise.id} style={{ flex: 1 }}>
-                <ExercisePage
-                  exerciseDetail={exerciseDetail}
-                  sessionId={numericSessionId}
-                  exerciseCount={exerciseCount}
-                  isActive={index === currentIndex}
-                  onView={handleViewCurrent}
-                  onSwap={handleSwapCurrent}
-                  onRemoveExercise={handleRemoveCurrent}
-                  isRemoveExerciseLoading={removeSessionExercise.isPending}
-                />
-              </View>
-            ))}
+            {exercises.map((exerciseDetail, index) => {
+              const isActive = index === currentIndex
+              // Only mount full content for current page and its immediate neighbours.
+              // Far pages render a cheap poster so we never have N full pages in memory.
+              const isNeighbor = Math.abs(index - currentIndex) <= 1
+              const exercise = exerciseDetail.session_exercise.exercise
+              return (
+                <View key={exerciseDetail.session_exercise.id} style={{ flex: 1 }}>
+                  {isNeighbor ? (
+                    <ExercisePage
+                      exerciseDetail={exerciseDetail}
+                      sessionId={numericSessionId}
+                      exerciseCount={exerciseCount}
+                      isActive={isActive}
+                      onView={handleViewCurrent}
+                      onSwap={handleSwapCurrent}
+                      onRemoveExercise={handleRemoveCurrent}
+                      isRemoveExerciseLoading={removeSessionExercise.isPending}
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: colors.bgBase,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {exercise?.image ? (
+                        <Image
+                          source={{ uri: exercise.image }}
+                          style={{ width: '100%', aspectRatio: 4 / 3 }}
+                          contentFit="cover"
+                          cachePolicy="memory-disk"
+                          transition={0}
+                        />
+                      ) : null}
+                      <Text
+                        style={{
+                          color: colors.textSecondary,
+                          fontSize: 16,
+                          fontWeight: '600',
+                          marginTop: 16,
+                          paddingHorizontal: 24,
+                          textAlign: 'center',
+                        }}
+                        numberOfLines={2}
+                      >
+                        {exercise?.name ?? `Exercise ${index + 1}`}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )
+            })}
           </PagerView>
         ) : (
           <View className="flex-1 items-center justify-center px-6">

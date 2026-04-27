@@ -1,7 +1,6 @@
 import { memo, useCallback, useRef } from 'react'
 import { FlatList, View, Text, TouchableOpacity } from 'react-native'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Check, Plus } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
@@ -109,6 +108,8 @@ function ExerciseNavTabsComponent({
                 source={{ uri: imageUri }}
                 style={{ width: '100%', height: '100%' }}
                 contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={0}
               />
             ) : null}
           </View>
@@ -152,14 +153,9 @@ function ExerciseNavTabsComponent({
           style={{ borderRadius: 12, overflow: 'hidden' }}
         >
           {isActive ? (
-            <LinearGradient
-              colors={[colors.primary, colors.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ borderRadius: 12 }}
-            >
+            <View style={{ borderRadius: 12, backgroundColor: colors.primary }}>
               {cardContent}
-            </LinearGradient>
+            </View>
           ) : (
             <View
               style={{
