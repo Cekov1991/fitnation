@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import * as Application from 'expo-application'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -638,6 +639,11 @@ export function ProfileScreen() {
               LOG OUT
             </Text>
           </TouchableOpacity>
+
+          {/* App version */}
+          <Text className="text-xs text-center mb-8" style={{ color: colors.textMuted }}>
+            v{Application.nativeApplicationVersion} ({Application.nativeBuildVersion})
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

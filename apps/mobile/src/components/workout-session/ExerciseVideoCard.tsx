@@ -11,6 +11,7 @@ interface ExerciseVideoCardProps {
   muscleGroup?: string | null
   imageUrl?: string | null
   videoUrl?: string | null
+  isActive: boolean
   onOpenMenu: () => void
   onView: () => void
 }
@@ -49,6 +50,7 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
       style={{ width: '100%', height: '100%' }}
       contentFit="cover"
       nativeControls={false}
+      fullscreenOptions={{ enable: false }}
     />
   )
 }
@@ -58,6 +60,7 @@ export function ExerciseVideoCard({
   muscleGroup,
   imageUrl,
   videoUrl,
+  isActive,
   onOpenMenu,
   onView,
 }: ExerciseVideoCardProps) {
@@ -78,13 +81,15 @@ export function ExerciseVideoCard({
     >
       {/* Media (4:3 aspect) */}
       <View style={{ width: '100%', aspectRatio: 4 / 3 }}>
-        {hasVideo ? (
+        {hasVideo && isActive ? (
           <ExerciseVideoPlayer uri={videoUrl!} />
         ) : imageUrl ? (
           <Image
             source={{ uri: imageUrl }}
             style={{ width: '100%', height: '100%' }}
             contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={0}
           />
         ) : (
           <View style={{ width: '100%', height: '100%', backgroundColor: colors.bgElevated }} />

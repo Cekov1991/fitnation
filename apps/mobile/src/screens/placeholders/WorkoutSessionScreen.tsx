@@ -6,22 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   StatusBar,
-  ScrollView,
-  Dimensions,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-// ─── Expo Go pager fallback ─────────────────────────────────────────────────
-// We use a horizontal ScrollView with pagingEnabled instead of PagerView so
-// the app runs in Expo Go (which cannot load native modules). To switch to
-// the native PagerView (requires a custom dev build — see plans/stage-10),
-// follow the TODO: PAGER_VIEW markers in this file.
-//
-// TODO: PAGER_VIEW — uncomment the import below and remove the ScrollView
-//                   fallback implementation further down.
-// import PagerView from 'react-native-pager-view'
-// ───────────────────────────────────────────────────────────────────────────
+import PagerView from 'react-native-pager-view'
+import { useSharedValue, useFrameCallback } from 'react-native-reanimated'
 import { useKeepAwake } from 'expo-keep-awake'
 import * as Haptics from 'expo-haptics'
 import { usePreventRemove } from '@react-navigation/native'
@@ -32,25 +20,17 @@ import {
   useCancelSession,
   useRemoveSessionExercise,
 } from '@fit-nation/shared'
+import { Image } from 'expo-image'
 import { useTheme } from '../../context/ThemeContext'
 import { ExercisePage } from '../../components/workout-session/ExercisePage'
 import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTabs'
+import { SessionClock } from '../../components/workout-session/SessionClock'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import type { AppScreenProps } from '../../navigation/types'
 import type { CompleteSessionResponse, SessionExerciseDetail } from '@fit-nation/shared'
 
 type Props = AppScreenProps<'WorkoutSession'>
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
-
-function formatElapsed(seconds: number): string {
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = seconds % 60
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
 
 export function WorkoutSessionScreen({ route, navigation }: Props) {
   useKeepAwake()
@@ -64,19 +44,20 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const removeSessionExercise = useRemoveSessionExercise()
 
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const startTimeRef = useRef<number>(Date.now())
 
-  // TODO: PAGER_VIEW — replace scrollRef type with `PagerView | null` and
-  //                   use pagerRef.current?.setPage(idx) in goToPage().
-  const scrollRef = useRef<ScrollView>(null)
+  // Clock driven on the UI thread — no setState every second.
+  // SharedValue so both the JS thread and the UI-thread worklet can write to it safely.
+  const startTimeSV = useSharedValue(Date.now())
+  const elapsedSV = useSharedValue(0)
+  useFrameCallback(() => {
+    elapsedSV.value = Math.floor((Date.now() - startTimeSV.value) / 1000)
+  })
 
-  // Tracks intentional exits (Finish / Cancel buttons) so usePreventRemove
-  // can let those navigations through without showing another dialog.
+  const pagerRef = useRef<PagerView>(null)
+
+  // Tracks intentional exits so usePreventRemove lets them through
   const isCleanExitRef = useRef(false)
 
-  // Intercept hardware back + swipe-to-dismiss so the session is never
-  // silently left in_progress. Always either stay or cancel via the API.
   usePreventRemove(true, ({ data }) => {
     if (isCleanExitRef.current) {
       navigation.dispatch(data.action)
@@ -104,25 +85,21 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     )
   })
 
+  // Sync start time from server and correct clock on app foreground
   useEffect(() => {
     if (sessionData?.performed_at) {
-      const performedAt = new Date(sessionData.performed_at).getTime()
-      startTimeRef.current = performedAt
+      startTimeSV.value = new Date(sessionData.performed_at).getTime()
     }
-    const interval = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
-    }, 1000)
-    return () => clearInterval(interval)
   }, [sessionData?.performed_at])
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
-        setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
+        elapsedSV.value = Math.floor((Date.now() - startTimeSV.value) / 1000)
       }
     })
     return () => sub.remove()
-  }, [])
+  }, [elapsedSV])
 
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
   const exerciseCount = exercises.length
@@ -136,17 +113,67 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
 
   const goToPage = useCallback((idx: number) => {
     setCurrentIndex(idx)
-    // TODO: PAGER_VIEW — replace with pagerRef.current?.setPage(idx)
-    scrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: true })
+    pagerRef.current?.setPage(idx)
   }, [])
 
-  const handleMomentumScrollEnd = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const nextIdx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH)
-      if (nextIdx !== currentIndex) setCurrentIndex(nextIdx)
-    },
-    [currentIndex]
-  )
+  // ─── Stable callbacks using refs so memoized ExercisePage never re-renders
+  //     just because currentIndex or exercises changed ────────────────────────
+  const currentExerciseRef = useRef<SessionExerciseDetail | null>(null)
+  const exerciseCountRef = useRef(exerciseCount)
+  useEffect(() => {
+    currentExerciseRef.current = exercises[currentIndex] ?? null
+    exerciseCountRef.current = exerciseCount
+  }, [exercises, currentIndex, exerciseCount])
+
+  const removeSessionExerciseRef = useRef(removeSessionExercise)
+  useEffect(() => { removeSessionExerciseRef.current = removeSessionExercise }, [removeSessionExercise])
+
+  const handleViewCurrent = useCallback(() => {
+    const name = currentExerciseRef.current?.session_exercise.exercise?.name
+    if (name) {
+      navigation.navigate('WorkoutSessionExerciseDetail', { sessionId, exerciseName: name })
+    }
+  }, [navigation, sessionId])
+
+  const handleSwapCurrent = useCallback(() => {
+    const current = currentExerciseRef.current
+    if (!current) return
+    navigation.navigate('WorkoutPreviewExercisePicker', {
+      sessionId,
+      swapExerciseId: current.session_exercise.id,
+    })
+  }, [navigation, sessionId])
+
+  const handleRemoveCurrent = useCallback(() => {
+    const current = currentExerciseRef.current
+    if (!current) return
+    if (exerciseCountRef.current <= 1) {
+      Alert.alert('Cannot remove', 'The workout needs at least one exercise.')
+      return
+    }
+    Alert.alert(
+      'Remove Exercise?',
+      `Remove "${current.session_exercise.exercise?.name ?? 'this exercise'}" from the workout?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeSessionExerciseRef.current.mutateAsync({
+                sessionId: numericSessionId,
+                exerciseId: current.session_exercise.id,
+              })
+            } catch (error) {
+              console.error('Failed to remove exercise:', error)
+            }
+          },
+        },
+      ]
+    )
+  }, [numericSessionId])
+  // ──────────────────────────────────────────────────────────────────────────
 
   const handleFinish = useCallback(() => {
     Alert.alert('Finish Workout?', 'Are you sure you want to end this session?', [
@@ -197,45 +224,6 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const handleAddExercise = useCallback(() => {
     navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })
   }, [navigation, sessionId])
-
-  const handleSwapCurrent = useCallback(() => {
-    const current = exercises[currentIndex]
-    if (!current) return
-    navigation.navigate('WorkoutPreviewExercisePicker', {
-      sessionId,
-      swapExerciseId: current.session_exercise.id,
-    })
-  }, [navigation, sessionId, exercises, currentIndex])
-
-  const handleRemoveCurrent = useCallback(() => {
-    const current = exercises[currentIndex]
-    if (!current) return
-    if (exerciseCount <= 1) {
-      Alert.alert('Cannot remove', 'The workout needs at least one exercise.')
-      return
-    }
-    Alert.alert(
-      'Remove Exercise?',
-      `Remove "${current.session_exercise.exercise?.name ?? 'this exercise'}" from the workout?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeSessionExercise.mutateAsync({
-                sessionId: numericSessionId,
-                exerciseId: current.session_exercise.id,
-              })
-            } catch (error) {
-              console.error('Failed to remove exercise:', error)
-            }
-          },
-        },
-      ]
-    )
-  }, [exercises, currentIndex, exerciseCount, removeSessionExercise, numericSessionId])
 
   if (isLoading) {
     return (
@@ -290,9 +278,12 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           <View className="items-center gap-0.5">
             <View className="flex-row items-center gap-1.5">
               <Clock size={14} color={colors.textMuted} />
-              <Text style={{ color: colors.textPrimary, fontWeight: '500', fontSize: 14 }}>
-                {formatElapsed(elapsedSeconds)}
-              </Text>
+              <SessionClock
+                elapsedSV={elapsedSV}
+                color={colors.textPrimary}
+                fontSize={14}
+                fontWeight="500"
+              />
             </View>
             {exerciseCount > 0 && (
               <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
@@ -323,61 +314,69 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
 
         {/* Pages */}
         {exerciseCount > 0 ? (
-          // TODO: PAGER_VIEW — replace this ScrollView block with:
-          //
-          //   <PagerView
-          //     ref={pagerRef}
-          //     style={{ flex: 1 }}
-          //     initialPage={0}
-          //     onPageSelected={e => setCurrentIndex(e.nativeEvent.position)}
-          //   >
-          //     {exercises.map(exerciseDetail => (
-          //       <View key={exerciseDetail.session_exercise.id} style={{ flex: 1 }}>
-          //         <ExercisePage … />
-          //       </View>
-          //     ))}
-          //   </PagerView>
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleMomentumScrollEnd}
-            keyboardShouldPersistTaps="handled"
+          <PagerView
+            ref={pagerRef}
             style={{ flex: 1 }}
+            initialPage={0}
+            offscreenPageLimit={1}
+            onPageSelected={e => setCurrentIndex(e.nativeEvent.position)}
           >
-            {exercises.map(exerciseDetail => {
-              const isCurrent =
-                exercises[currentIndex]?.session_exercise.id ===
-                exerciseDetail.session_exercise.id
+            {exercises.map((exerciseDetail, index) => {
+              const isActive = index === currentIndex
+              // Only mount full content for current page and its immediate neighbours.
+              // Far pages render a cheap poster so we never have N full pages in memory.
+              const isNeighbor = Math.abs(index - currentIndex) <= 1
+              const exercise = exerciseDetail.session_exercise.exercise
               return (
-                <View
-                  key={exerciseDetail.session_exercise.id}
-                  style={{ width: SCREEN_WIDTH, flex: 1 }}
-                >
-                  <ExercisePage
-                    exerciseDetail={exerciseDetail}
-                    sessionId={numericSessionId}
-                    exerciseCount={exerciseCount}
-                    onView={() => {
-                      const name = exerciseDetail.session_exercise.exercise?.name
-                      if (name) {
-                        navigation.navigate('WorkoutSessionExerciseDetail', {
-                          sessionId,
-                          exerciseName: name,
-                        })
-                      }
-                    }}
-                    onSwap={handleSwapCurrent}
-                    onRemoveExercise={handleRemoveCurrent}
-                    isRemoveExerciseLoading={
-                      isCurrent && removeSessionExercise.isPending
-                    }
-                  />
+                <View key={exerciseDetail.session_exercise.id} style={{ flex: 1 }}>
+                  {isNeighbor ? (
+                    <ExercisePage
+                      exerciseDetail={exerciseDetail}
+                      sessionId={numericSessionId}
+                      exerciseCount={exerciseCount}
+                      isActive={isActive}
+                      onView={handleViewCurrent}
+                      onSwap={handleSwapCurrent}
+                      onRemoveExercise={handleRemoveCurrent}
+                      isRemoveExerciseLoading={removeSessionExercise.isPending}
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: colors.bgBase,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {exercise?.image ? (
+                        <Image
+                          source={{ uri: exercise.image }}
+                          style={{ width: '100%', aspectRatio: 4 / 3 }}
+                          contentFit="cover"
+                          cachePolicy="memory-disk"
+                          transition={0}
+                        />
+                      ) : null}
+                      <Text
+                        style={{
+                          color: colors.textSecondary,
+                          fontSize: 16,
+                          fontWeight: '600',
+                          marginTop: 16,
+                          paddingHorizontal: 24,
+                          textAlign: 'center',
+                        }}
+                        numberOfLines={2}
+                      >
+                        {exercise?.name ?? `Exercise ${index + 1}`}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )
             })}
-          </ScrollView>
+          </PagerView>
         ) : (
           <View className="flex-1 items-center justify-center px-6">
             <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
@@ -399,7 +398,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           </View>
         )}
 
-        {/* Finish footer when complete */}
+        {/* Finish footer when all sets are done */}
         {allDone && (
           <SafeAreaView edges={['bottom']}>
             <TouchableOpacity

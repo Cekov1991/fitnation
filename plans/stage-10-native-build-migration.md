@@ -1,28 +1,23 @@
-# Stage 10 — Native Build Migration (Expo Go → Dev Build)
+# Stage 10 — Native Build Migration (Dev Build / EAS)
 
 ## Overview
-During Stage 8 we decided to stay on **Expo Go** so the app can be iterated on
-quickly without a native toolchain in the loop. Expo Go only ships the native
-modules that are bundled into its binary, so any third-party library with
-native code is off-limits. The most visible casualty is
-`react-native-pager-view` — we currently emulate it with a horizontal
-`ScrollView + pagingEnabled` fallback inside `WorkoutSessionScreen`.
 
-This stage documents the migration to a **custom Expo development build**
-(`expo run:ios` / `expo run:android`), which removes that restriction and lets
-us restore the native pager (plus any other native module the app may need
-later: `react-native-pager-view`, `react-native-mmkv`,
-`@shopify/flash-list`'s optional native bits, custom haptics, etc.).
+The mobile app ships on **custom Expo development builds** (`expo run:ios` /
+`expo run:android`) and EAS, not Expo Go. Expo Go only bundles a fixed set of
+native modules; dev builds remove that ceiling so we can add any native
+dependency (`react-native-pager-view`, `react-native-mmkv`, push
+notifications, etc.).
 
-You can defer this stage indefinitely — the ScrollView fallback is fully
-functional. Tackle it when:
-- You hit another native-only module you want to use, **or**
-- You're ready to polish for production (Stage 9 will eventually require a
-  dev build anyway for EAS).
+**This stage is only the toolchain milestone:** local native builds, native
+project layout, `.gitignore` / commit policy, and EAS alignment. Workout UI
+that depends on native modules (for example replacing the horizontal
+`ScrollView` pager with `react-native-pager-view`) lives in
+[`stage-11-workout-session-perf.md`](./stage-11-workout-session-perf.md).
 
 ---
 
 ## Prerequisites
+
 - macOS with **Xcode 15+** installed (for iOS)
 - **CocoaPods** (`sudo gem install cocoapods` or `brew install cocoapods`)
 - **Android Studio** + JDK 17 (for Android)
@@ -35,6 +30,7 @@ functional. Tackle it when:
 ## Part A — Generate Native Projects
 
 ### Step A1 — Pre-flight
+
 Confirm `apps/mobile/app.json` has a valid `ios.bundleIdentifier` and
 `android.package`. Expo will generate the native projects from this config.
 
@@ -48,6 +44,7 @@ Confirm `apps/mobile/app.json` has a valid `ios.bundleIdentifier` and
 ```
 
 ### Step A2 — Run Prebuild (or skip to run:ios)
+
 ```bash
 cd apps/mobile
 npx expo prebuild    # Generates apps/mobile/ios and apps/mobile/android
@@ -66,6 +63,7 @@ npx expo run:android
 The first build takes 5–15 min. Subsequent builds are incremental.
 
 ### Step A3 — Update `.gitignore`
+
 Add the generated native folders. Track only what Expo asks you to.
 
 ```gitignore
@@ -82,152 +80,56 @@ apps/mobile/android/
 
 ---
 
-## Part B — Restore `react-native-pager-view`
+## Part B — EAS & Metro
 
-### Step B1 — Reinstall the package
-```bash
-cd apps/mobile
-pnpm add react-native-pager-view
-cd ios && pod install && cd ..
-```
-
-### Step B2 — Swap the ScrollView fallback in `WorkoutSessionScreen.tsx`
-
-The file has clear `TODO: PAGER_VIEW` markers showing the exact spots to edit.
-Concretely:
-
-1. **Un-comment the import** near the top:
-
-   ```tsx
-   import PagerView from 'react-native-pager-view'
-   ```
-
-2. **Remove the ScrollView-specific imports**:
-
-   ```tsx
-   // Remove these — they're no longer needed
-   ScrollView,
-   Dimensions,
-   type NativeScrollEvent,
-   type NativeSyntheticEvent,
-   ```
-
-   …and delete `const { width: SCREEN_WIDTH } = Dimensions.get('window')`.
-
-3. **Swap the ref type**:
-
-   ```tsx
-   const pagerRef = useRef<PagerView>(null)
-   ```
-
-4. **Update `goToPage`**:
-
-   ```tsx
-   const goToPage = useCallback((idx: number) => {
-     setCurrentIndex(idx)
-     pagerRef.current?.setPage(idx)
-   }, [])
-   ```
-
-5. **Delete `handleMomentumScrollEnd`** — not needed.
-
-6. **Replace the `ScrollView` block** with `PagerView`:
-
-   ```tsx
-   <PagerView
-     ref={pagerRef}
-     style={{ flex: 1 }}
-     initialPage={0}
-     onPageSelected={e => setCurrentIndex(e.nativeEvent.position)}
-   >
-     {exercises.map(exerciseDetail => (
-       <View key={exerciseDetail.session_exercise.id} style={{ flex: 1 }}>
-         <ExercisePage
-           exerciseDetail={exerciseDetail}
-           sessionId={numericSessionId}
-           onViewDetail={() => {
-             const exerciseName = exerciseDetail.session_exercise.exercise?.name
-             if (exerciseName) {
-               navigation.navigate('WorkoutSessionExerciseDetail', {
-                 sessionId,
-                 exerciseName,
-               })
-             }
-           }}
-         />
-       </View>
-     ))}
-   </PagerView>
-   ```
-
-7. **Rebuild** the native app — JS hot-reload is not enough for new native
-   modules:
-
-   ```bash
-   npx expo run:ios
-   ```
-
-### Step B3 — Smoke Test
-- Swipe between exercises — gesture should feel snappier than ScrollView.
-- Tap the exercise tabs — pager should animate to the selected page.
-- Rotate the device / change orientation — pager should handle width
-  changes automatically (ScrollView fallback did not).
+- Document how to run dev builds locally (`apps/mobile/DEV_SETUP.md`).
+- Ensure `eas.json` profiles match how you ship (preview / production).
+- After adding any new native dependency elsewhere in the roadmap, run
+  `pod install` (iOS) and rebuild — JS hot reload is not enough for native
+  changes.
 
 ---
 
-## Part C — Rolling Back to Expo Go (if needed)
+## Part C — Future Native Modules
 
-If you ever need to demo on a friend's device or work without Xcode for a
-while, going back to Expo Go is symmetric:
+Once dev builds are the default, adopting native modules is routine: add to
+`package.json`, `pod install` on iOS, rebuild.
 
-1. Remove `react-native-pager-view` from `apps/mobile/package.json`.
-2. Comment out the `PagerView` import in `WorkoutSessionScreen.tsx`.
-3. Re-apply the ScrollView fallback (the `TODO: PAGER_VIEW` comments still
-   show the pattern).
-4. `pnpm install` and `npx expo start` — Expo Go will work again.
+| Module | What it unlocks |
+| ------ | ---------------- |
+| `react-native-pager-view` | Native workout pager — **Stage 11** |
+| `react-native-mmkv` | Faster local storage than AsyncStorage |
+| `expo-notifications` | Push notifications (Stage 9 — rest timer pings) |
+| Native in-app purchase | `react-native-iap` for subscriptions |
 
-Keep this stage doc around as the source of truth for the toggle.
-
----
-
-## Part D — Future Native Modules
-
-Once we're on a dev build, the following upgrades become trivial (add to
-`package.json`, run `pod install`, rebuild):
-
-| Module                       | What it unlocks                                  |
-| ---------------------------- | ------------------------------------------------ |
-| `react-native-pager-view`    | Restored native workout-session pager (Stage 8)  |
-| `react-native-mmkv`          | Faster local storage than AsyncStorage           |
-| `react-native-reanimated` v4 | Full native reanimated features                  |
-| `expo-notifications`         | Push notifications (Stage 9 — rest timer pings)  |
-| `expo-haptics`               | Already works in Expo Go, but richer in dev build|
-| Native in-app purchase       | `react-native-iap` for subscriptions             |
-
-Capture each new native module adoption as its own sub-task and re-run
-`npx expo run:ios` after each.
+The app already ships **Reanimated v4**, **Gesture Handler**, and **Worklets**
+in dev builds; use them for UI-thread animation (see Stage 11).
 
 ---
 
 ## Acceptance Criteria
+
 - [ ] `npx expo run:ios` produces a working simulator build.
 - [ ] `npx expo run:android` produces a working emulator build.
-- [ ] `WorkoutSessionScreen` uses `PagerView` and all
-      `TODO: PAGER_VIEW` markers are removed.
-- [ ] `apps/mobile/package.json` lists `react-native-pager-view`.
-- [ ] Swipe + tab navigation inside a live workout session both work.
-- [ ] Decision on committing vs. ignoring `apps/mobile/ios`
-      and `apps/mobile/android` is documented in `.gitignore`.
+- [ ] Decision on committing vs. ignoring `apps/mobile/ios` and
+      `apps/mobile/android` is documented in `apps/mobile/.gitignore` (or
+      repo docs).
+- [ ] `apps/mobile/DEV_SETUP.md` (or equivalent) describes Metro + dev build
+      workflow for contributors.
+
+PagerView, workout-session smoothness, and removal of `TODO: PAGER_VIEW` are
+**not** part of Stage 10 — see Stage 11.
 
 ---
 
 ## References
+
 - [Expo Development Builds](https://docs.expo.dev/develop/development-builds/introduction/)
-- [react-native-pager-view](https://github.com/callstack/react-native-pager-view)
 - [Continuous Native Generation](https://docs.expo.dev/workflow/continuous-native-generation/)
-- Related files in repo:
-  - `apps/mobile/src/screens/placeholders/WorkoutSessionScreen.tsx`
-    — contains `TODO: PAGER_VIEW` markers for the swap
-  - `plans/stage-8-workout-session.md` — where the fallback was introduced
-  - `plans/stage-9-polish-production.md` — polish work that will eventually
-    need a dev build for EAS
+- [Stage 11 — Workout session performance](./stage-11-workout-session-perf.md)
+- Related context:
+  - `plans/stage-8-workout-session.md` — workout session feature + ScrollView
+    pager fallback
+  - `plans/stage-9-polish-production.md` — polish / EAS
+  - `apps/mobile/src/screens/placeholders/WorkoutSessionScreen.tsx` — pager
+    swap and perf work land here (Stage 11)
