@@ -19,9 +19,18 @@ export function TabNavigator() {
         tabBarStyle: {
           backgroundColor: colors.bgSurface,
           borderTopColor: colors.bgElevated,
+          // iOS shadow
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.10,
+          shadowRadius: 8,
+          // Android shadow
+          elevation: 12,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
+
+        
       }}
     >
       <Tab.Screen

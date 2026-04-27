@@ -43,7 +43,11 @@ export function AppNavigator() {
       <Stack.Screen
         name="WorkoutSession"
         component={WorkoutSessionScreen}
-        options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+        options={{
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+          freezeOnBlur: true,
+        }}
       />
       <Stack.Screen
         name="WorkoutSummary"
@@ -53,7 +57,7 @@ export function AppNavigator() {
       <Stack.Screen
         name="WorkoutSessionExerciseDetail"
         component={WorkoutSessionExerciseDetailScreen}
-        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        options={{ presentation: 'modal', animation: 'slide_from_bottom', freezeOnBlur: true }}
       />
       <Stack.Screen
         name="GenerateWorkout"

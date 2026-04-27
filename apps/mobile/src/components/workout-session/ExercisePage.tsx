@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { memo, useState, useCallback, useMemo } from 'react'
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Plus } from 'lucide-react-native'
@@ -25,6 +25,7 @@ interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
   sessionId: number
   exerciseCount: number
+  isActive: boolean
   onView: () => void
   onSwap: () => void
   onRemoveExercise: () => void
@@ -35,10 +36,11 @@ type SetSlot =
   | { kind: 'completed'; setNumber: number; logId: number; weight: number; reps: number }
   | { kind: 'pending'; setNumber: number }
 
-export function ExercisePage({
+function ExercisePageComponent({
   exerciseDetail,
   sessionId,
   exerciseCount,
+  isActive,
   onView,
   onSwap,
   onRemoveExercise,
@@ -235,11 +237,9 @@ export function ExercisePage({
     }
   }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
 
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+  // On Android the OS handles keyboard insets via adjustResize; KAV adds a
+  // redundant layout pass that causes double-jank on keyboard open/close.
+  const content = (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgBase }}
       contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
@@ -252,6 +252,7 @@ export function ExercisePage({
         muscleGroup={primaryMuscle}
         imageUrl={exercise?.image}
         videoUrl={exercise?.video}
+        isActive={isActive}
         onOpenMenu={() => setShowExerciseMenu(true)}
         onView={onView}
       />
@@ -490,6 +491,13 @@ export function ExercisePage({
         isRemoveLoading={isRemoveExerciseLoading}
       />
     </ScrollView>
-    </KeyboardAvoidingView>
   )
+
+  return Platform.OS === 'ios' ? (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      {content}
+    </KeyboardAvoidingView>
+  ) : content
 }
+
+export const ExercisePage = memo(ExercisePageComponent)
