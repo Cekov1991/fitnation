@@ -770,66 +770,10 @@ export function useLogSet() {
       sessionId: number;
       data: LogSetInput;
     }) => sessionsApi.logSet(sessionId, data),
-    onMutate: async (variables) => {
-      // Cancel ongoing queries to prevent race conditions
-      await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
-      });
-
-      // Snapshot previous data for rollback
-      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
-
-      // Optimistically update cache
-      // Note: useSession returns response.data directly, so cache stores data without wrapper
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
-        if (!old?.exercises) return old;
-
-        // Find the exercise matching the exercise_id
-        const updatedExercises = old.exercises.map((exDetail: any) => {
-          if (exDetail.session_exercise.exercise_id === variables.data.exercise_id) {
-            // Create optimistic SetLogResource
-            const optimisticSetLog = {
-              id: -Date.now(), // Temporary negative ID (will be replaced by server)
-              workout_session_id: variables.sessionId,
-              exercise_id: variables.data.exercise_id,
-              set_number: variables.data.set_number,
-              weight: variables.data.weight,
-              reps: variables.data.reps,
-              rest_seconds: variables.data.rest_seconds || null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            };
-
-            // Add to logged_sets array
-            return {
-              ...exDetail,
-              logged_sets: [...(exDetail.logged_sets || []), optimisticSetLog]
-            };
-          }
-          return exDetail;
-        });
-
-        return {
-          ...old,
-          exercises: updatedExercises
-        };
-      });
-
-      return { previousData };
-    },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousData) {
-        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
-      }
-      console.error('Failed to log set:', error);
-    },
     onSuccess: (_, variables) => {
-      // Refetch to sync with server (ensures accuracy)
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
-      // Invalidate exercise history for the logged exercise
       queryClient.invalidateQueries({
         queryKey: ['exercises', variables.data.exercise_id, 'history']
       });

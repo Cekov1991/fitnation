@@ -129,9 +129,9 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   useEffect(() => { removeSessionExerciseRef.current = removeSessionExercise }, [removeSessionExercise])
 
   const handleViewCurrent = useCallback(() => {
-    const name = currentExerciseRef.current?.session_exercise.exercise?.name
-    if (name) {
-      navigation.navigate('WorkoutSessionExerciseDetail', { sessionId, exerciseName: name })
+    const exerciseId = currentExerciseRef.current?.session_exercise.exercise_id
+    if (exerciseId != null) {
+      navigation.navigate('WorkoutSessionExerciseDetail', { sessionId, exerciseId })
     }
   }, [navigation, sessionId])
 

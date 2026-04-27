@@ -99,6 +99,7 @@ export function WorkoutSessionPage({
           onViewExerciseDetail={onViewExerciseDetail}
           onOpenExerciseMenu={() => state.setShowExerciseMenu(true)}
           isAddSetLoading={false}
+          isLogSetLoading={state.isLoggingSet}
         />
       </main>
 

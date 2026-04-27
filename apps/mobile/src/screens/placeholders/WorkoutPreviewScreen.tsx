@@ -22,12 +22,12 @@ import {
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import type { AppScreenProps } from '../../navigation/types'
-import type { SessionExerciseDetail } from '@fit-nation/shared'
+import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
 type Props = AppScreenProps<'WorkoutPreview'>
 
 export function WorkoutPreviewScreen({ route, navigation }: Props) {
-  const { sessionId } = route.params
+  const { sessionId, generationParams } = route.params
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
 
@@ -83,11 +83,14 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
     try {
       const response = await regenerateDraft.mutateAsync({
         sessionId: numericSessionId,
-        data: {},
+        data: (generationParams as RegenerateWorkoutInput | undefined) ?? {},
       })
       const newSessionId = response.data?.id
       if (newSessionId) {
-        navigation.replace('WorkoutPreview', { sessionId: newSessionId.toString() })
+        navigation.replace('WorkoutPreview', {
+          sessionId: newSessionId.toString(),
+          generationParams,
+        })
       }
     } catch (error) {
       console.error('Failed to regenerate:', error)

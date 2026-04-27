@@ -133,14 +133,14 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
 type Props = AppScreenProps<'WorkoutSessionExerciseDetail'>
 
 export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props) {
-  const { exerciseName } = route.params
+  const { exerciseId } = route.params
   const { colors } = useTheme()
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance')
 
   const { data: exercises = [] } = useExercises()
   const exercise = useMemo(
-    () => (exercises as any[]).find((e: any) => e.name.toLowerCase() === exerciseName.toLowerCase()),
-    [exercises, exerciseName]
+    () => (exercises as any[]).find((e: any) => e.id === exerciseId) ?? null,
+    [exercises, exerciseId]
   )
 
   const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT'
@@ -235,7 +235,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
             style={{ fontSize: 22, fontWeight: '700', flex: 1 }}
             numberOfLines={1}
           >
-            {exercise?.name || exerciseName}
+            {exercise?.name ?? ''}
           </GradientText>
         </View>
 

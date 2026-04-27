@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 import type { NavigatorScreenParams } from '@react-navigation/native'
-import type { NewPrResource } from '@fit-nation/shared'
+import type { NewPrResource, RegenerateWorkoutInput } from '@fit-nation/shared'
 
 // Auth stack
 export type AuthStackParamList = {
@@ -26,9 +26,9 @@ export type AppStackParamList = {
   Onboarding: undefined
   WorkoutSession: { sessionId: string }
   WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }
-  WorkoutSessionExerciseDetail: { sessionId: string; exerciseName: string }
+  WorkoutSessionExerciseDetail: { sessionId: string; exerciseId: number }
   GenerateWorkout: undefined
-  WorkoutPreview: { sessionId: string }
+  WorkoutPreview: { sessionId: string; generationParams?: RegenerateWorkoutInput }
   WorkoutPreviewExercisePicker: { sessionId: string; swapExerciseId?: number }
   ExercisePicker: {
     templateId?: number

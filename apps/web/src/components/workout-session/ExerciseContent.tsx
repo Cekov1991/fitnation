@@ -33,6 +33,7 @@ interface ExerciseContentProps {
   ) => void;
   onOpenExerciseMenu: () => void;
   isAddSetLoading: boolean;
+  isLogSetLoading?: boolean;
 }
 
 export function ExerciseContent({
@@ -57,6 +58,7 @@ export function ExerciseContent({
   onViewExerciseDetail,
   onOpenExerciseMenu,
   isAddSetLoading,
+  isLogSetLoading = false,
 }: ExerciseContentProps) {
   const shouldReduceMotion = useReducedMotion();
   const simpleTransition = useSimpleTransition();
@@ -173,6 +175,7 @@ export function ExerciseContent({
               totalRepsPrevious={currentExercise.totalRepsPrevious}
               totalRepsTarget={currentExercise.totalRepsTarget}
               isAddSetLoading={isAddSetLoading}
+              isLogSetLoading={isLogSetLoading}
             />
           </motion.div>
         </AnimatePresence>

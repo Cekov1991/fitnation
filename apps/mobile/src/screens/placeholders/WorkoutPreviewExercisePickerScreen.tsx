@@ -52,21 +52,21 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
 
   const handleSelectExercise = async (exercise: ExerciseResource) => {
     if (addingId) return
+    setAddingId(exercise.id)
     try {
-      setAddingId(exercise.id)
-      if (isSwap && swapExerciseId) {
-        await removeExercise.mutateAsync({
-          sessionId: numericSessionId,
-          exerciseId: swapExerciseId,
-        })
-      }
       await addExercise.mutateAsync({
         sessionId: numericSessionId,
         data: { exercise_id: exercise.id },
       })
       navigation.goBack()
-    } catch (error) {
-      console.error('Failed to add/swap exercise:', error)
+      if (isSwap && swapExerciseId) {
+        // Fire-and-forget — errors surface via global toast.
+        removeExercise.mutate({
+          sessionId: numericSessionId,
+          exerciseId: swapExerciseId,
+        })
+      }
+    } catch {
       setAddingId(null)
     }
   }

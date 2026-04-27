@@ -37,6 +37,7 @@ interface UseWorkoutSessionStateReturn {
   setEditingReps: (r: number | null) => void;
   handleDidIt: () => Promise<void>;
   handleStartTimer: () => void;
+  isLoggingSet: boolean;
 
   // Set editing
   editingSetId: string | null;
@@ -534,6 +535,7 @@ export function useWorkoutSessionState({
     setEditingReps,
     handleDidIt,
     handleStartTimer,
+    isLoggingSet: logSet.isPending,
 
     // Set editing
     editingSetId,

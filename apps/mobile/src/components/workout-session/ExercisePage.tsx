@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo } from 'react'
+import { memo, useState, useCallback, useMemo, useEffect } from 'react'
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Plus } from 'lucide-react-native'
@@ -20,6 +20,14 @@ import { ExerciseOptionsMenu } from './ExerciseOptionsMenu'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
 const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT']
+
+// Tracks which session_exercise ids have had a background default-patch attempted
+// this app session, so PagerView remounts don't re-fire it.
+const autoFixedSessionExerciseIds = new Set<number>()
+
+const DEFAULT_SETS = 3
+const DEFAULT_MIN_REPS = 8
+const DEFAULT_MAX_REPS = 12
 
 interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
@@ -67,9 +75,11 @@ function ExercisePageComponent({
 
   const { session_exercise, logged_sets, previous_sets } = exerciseDetail
   const exercise = session_exercise.exercise
-  const targetSets = session_exercise.target_sets ?? 0
-  const minReps = session_exercise.min_target_reps ?? 0
-  const maxReps = session_exercise.max_target_reps ?? 0
+  // Fall back to sane defaults so the UI is always usable even when the server
+  // row has null targets. A background patch (see effect below) persists these.
+  const targetSets = session_exercise.target_sets || DEFAULT_SETS
+  const minReps = session_exercise.min_target_reps || DEFAULT_MIN_REPS
+  const maxReps = session_exercise.max_target_reps || DEFAULT_MAX_REPS
   const progressionMode = session_exercise.progression_mode
   const progressionStatus = session_exercise.progression_status ?? 'no_history'
   const allowWeightLogging = !BODYWEIGHT_EQUIPMENT.includes(
@@ -110,6 +120,28 @@ function ExercisePageComponent({
     updateSet.isPending ||
     deleteSet.isPending ||
     updateSessionExercise.isPending
+
+  // Silently patch missing targets on the server the first time we see them.
+  // The UI always uses the defaults above so this never blocks interaction.
+  const hasMissingTargets =
+    !session_exercise.target_sets ||
+    (!session_exercise.min_target_reps && !session_exercise.max_target_reps)
+
+  useEffect(() => {
+    if (!hasMissingTargets) return
+    if (autoFixedSessionExerciseIds.has(session_exercise.id)) return
+    autoFixedSessionExerciseIds.add(session_exercise.id)
+    updateSessionExercise.mutate({
+      sessionId,
+      exerciseId: session_exercise.id,
+      data: {
+        target_sets: session_exercise.target_sets || DEFAULT_SETS,
+        min_target_reps: session_exercise.min_target_reps || DEFAULT_MIN_REPS,
+        max_target_reps: session_exercise.max_target_reps || DEFAULT_MAX_REPS,
+      },
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMissingTargets, session_exercise.id])
 
   const handleLog = useCallback(async () => {
     if (firstPendingSetNumber == null) return
@@ -333,6 +365,7 @@ function ExercisePageComponent({
                 totalRepsPrevious={session_exercise.total_reps_previous}
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!showRestTimer && !!session_exercise.rest_seconds}
+                isPending={logSet.isPending}
               />
             )
           }

@@ -28,6 +28,7 @@ interface SetsListProps {
   totalRepsPrevious: number | null;
   totalRepsTarget: number | null;
   isAddSetLoading?: boolean;
+  isLogSetLoading?: boolean;
 }
 
 export function SetsList({
@@ -53,6 +54,7 @@ export function SetsList({
   totalRepsPrevious,
   totalRepsTarget,
   isAddSetLoading = false,
+  isLogSetLoading = false,
 }: SetsListProps) {
   return (
     <div className="space-y-2">
@@ -81,6 +83,7 @@ export function SetsList({
               goalWeight={goalWeight}
               totalRepsPrevious={totalRepsPrevious}
               totalRepsTarget={totalRepsTarget}
+              isLoading={isLogSetLoading}
             />
           );
         }

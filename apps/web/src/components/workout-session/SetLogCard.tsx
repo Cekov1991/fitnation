@@ -21,6 +21,7 @@ interface SetLogCardProps {
   goalWeight?: number | null;
   totalRepsPrevious?: number | null;
   totalRepsTarget?: number | null;
+  isLoading?: boolean;
 }
 
 export function SetLogCard({
@@ -40,6 +41,7 @@ export function SetLogCard({
   goalWeight,
   totalRepsPrevious,
   totalRepsTarget,
+  isLoading = false,
 }: SetLogCardProps) {
   const showGoalWeightBadge = goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight;
   const showTotalRepsHint = totalRepsTarget != null;
@@ -142,10 +144,15 @@ export function SetLogCard({
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onLogSet}
-          className="flex-1 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg active:opacity-90"
+          disabled={isLoading}
+          className="flex-1 px-6 py-4 bg-white rounded-2xl font-bold text-lg shadow-lg active:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
           style={{ color: 'var(--color-primary)', WebkitTapHighlightColor: 'transparent' }}
         >
-          Log Set
+          {isLoading ? (
+            <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" />
+          ) : (
+            'Log Set'
+          )}
         </motion.button>
         
         {showTimerButton && onStartTimer && (

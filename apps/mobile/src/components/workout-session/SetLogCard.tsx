@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -20,6 +20,7 @@ interface SetLogCardProps {
   totalRepsPrevious?: number | null
   totalRepsTarget?: number | null
   showTimerButton?: boolean
+  isPending?: boolean
 }
 
 function formatWeight(w: number) {
@@ -43,6 +44,7 @@ export function SetLogCard({
   totalRepsPrevious,
   totalRepsTarget,
   showTimerButton = false,
+  isPending = false,
 }: SetLogCardProps) {
   const { colors } = useTheme()
 
@@ -217,6 +219,7 @@ export function SetLogCard({
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
         <TouchableOpacity
           onPress={onLog}
+          disabled={isPending}
           activeOpacity={0.85}
           style={{
             flex: 1,
@@ -224,11 +227,16 @@ export function SetLogCard({
             borderRadius: 18,
             alignItems: 'center',
             backgroundColor: '#fff',
+            opacity: isPending ? 0.7 : 1,
           }}
         >
-          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
-            Log Set
-          </Text>
+          {isPending ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
+              Log Set
+            </Text>
+          )}
         </TouchableOpacity>
         {showTimerButton && onStartTimer && (
           <TouchableOpacity

@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Alert } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as Updates from 'expo-updates'
 import { initApi } from '@fit-nation/shared'
 import { ThemeProvider } from './src/context/ThemeContext'
@@ -11,13 +11,22 @@ import { AuthProvider } from './src/context/AuthContext'
 import { RootNavigator } from './src/navigation/RootNavigator'
 import { OfflineBanner } from './src/components/ui/OfflineBanner'
 import { ErrorBoundary } from './src/components/ui/error-boundary'
+import { ToastHost } from './src/components/ui/ToastHost'
+import { showToast } from './src/lib/toast'
 
 // Initialise API
 initApi({
   baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api',
 })
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      const msg = error instanceof Error ? error.message : 'Something went wrong'
+      showToast(msg, 'error')
+    },
+  }),
+})
 
 function useOTAUpdates() {
   useEffect(() => {
@@ -55,6 +64,7 @@ export default function App() {
               <AuthProvider>
                 <OfflineBanner />
                 <RootNavigator />
+                <ToastHost />
               </AuthProvider>
             </ThemeProvider>
           </QueryClientProvider>

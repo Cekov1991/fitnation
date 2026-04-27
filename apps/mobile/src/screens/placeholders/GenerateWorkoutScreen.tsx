@@ -55,7 +55,14 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
         difficulty: profile?.profile?.training_experience ?? undefined,
       })
       const sessionId = response.data.id
-      navigation.navigate('WorkoutPreview', { sessionId: sessionId.toString() })
+      navigation.navigate('WorkoutPreview', {
+        sessionId: sessionId.toString(),
+        generationParams: {
+          target_regions: preset && preset.targetRegions.length > 0 ? preset.targetRegions : undefined,
+          duration_minutes: selectedDuration ?? undefined,
+          difficulty: profile?.profile?.training_experience ?? undefined,
+        },
+      })
     } catch (error) {
       console.error('Failed to generate workout:', error)
     }
