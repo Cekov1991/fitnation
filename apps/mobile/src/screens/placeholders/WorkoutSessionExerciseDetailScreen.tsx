@@ -135,7 +135,8 @@ type Props = AppScreenProps<'WorkoutSessionExerciseDetail'>
 export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props) {
   const { exerciseId } = route.params
   const { colors } = useTheme()
-  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance')
+  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('performance')
+  const [chartMode, setChartMode] = useState<'volume' | 'weight'>('weight')
 
   const { data: exercises = [] } = useExercises()
   const exercise = useMemo(
@@ -151,40 +152,44 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
     { enabled: activeTab === 'performance' && !!exercise?.id }
   )
 
-  // Chart data: use volume for weighted exercises, best_set_reps for bodyweight
   const chartData = useMemo(() => {
     if (!historyData?.performance_data) return []
     return historyData.performance_data.map((p: any) => ({
-      value: allowWeightLogging ? p.volume : p.best_set_reps,
+      value: allowWeightLogging
+        ? (chartMode === 'weight' ? p.weight : p.volume)
+        : p.best_set_reps,
       label: formatDateForDisplay(p.date),
     }))
-  }, [historyData, allowWeightLogging])
+  }, [historyData, allowWeightLogging, chartMode])
 
-  // Stats matching web: current / best / progress
   const currentValue = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0
-    const latest = historyData.performance_data[historyData.performance_data.length - 1]
-    return allowWeightLogging ? latest.volume : latest.best_set_reps
-  }, [historyData, allowWeightLogging])
+    if (!historyData?.performance_data?.length) return '—'
+    if (!allowWeightLogging) return `${historyData.stats?.current_best_set_reps ?? 0} reps`
+    return chartMode === 'weight'
+      ? `${historyData.stats.current_weight} kg`
+      : `${historyData.performance_data[historyData.performance_data.length - 1].volume} kg`
+  }, [historyData, allowWeightLogging, chartMode])
 
   const bestValue = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0
-    if (allowWeightLogging) {
-      return Math.max(...historyData.performance_data.map((p: any) => p.volume))
-    }
-    return historyData.stats?.best_set_reps ?? 0
-  }, [historyData, allowWeightLogging])
+    if (!historyData?.performance_data?.length) return '—'
+    if (!allowWeightLogging) return `${historyData.stats?.best_set_reps ?? 0} reps`
+    return chartMode === 'weight'
+      ? `${historyData.stats.best_weight} kg`
+      : `${Math.max(...historyData.performance_data.map((p: any) => p.volume))} kg`
+  }, [historyData, allowWeightLogging, chartMode])
 
   const progressPercentage = useMemo(() => {
     if (!historyData?.performance_data?.length) return 0
     const data = historyData.performance_data
-    const first = allowWeightLogging ? data[0].volume : data[0].best_set_reps
-    const last = allowWeightLogging
-      ? data[data.length - 1].volume
-      : data[data.length - 1].best_set_reps
+    const getValue = (p: any) =>
+      allowWeightLogging
+        ? (chartMode === 'weight' ? p.weight : p.volume)
+        : p.best_set_reps
+    const first = getValue(data[0])
+    const last = getValue(data[data.length - 1])
     if (first === 0) return 0
     return ((last - first) / first) * 100
-  }, [historyData, allowWeightLogging])
+  }, [historyData, allowWeightLogging, chartMode])
 
   // Recent sessions: last 3, most recent first
   const recentSessions = useMemo(() => {
@@ -501,6 +506,44 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                 </Text>
               ) : (
                 <>
+                  {/* Volume / Weight toggle — only for weighted exercises */}
+                  {allowWeightLogging && (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignSelf: 'flex-start',
+                        borderRadius: 999,
+                        padding: 4,
+                        backgroundColor: colors.bgElevated,
+                        marginBottom: 20,
+                      }}
+                    >
+                      {(['weight', 'volume'] as const).map(mode => (
+                        <TouchableOpacity
+                          key={mode}
+                          onPress={() => setChartMode(mode)}
+                          style={{
+                            paddingHorizontal: 16,
+                            paddingVertical: 6,
+                            borderRadius: 999,
+                            backgroundColor: chartMode === mode ? colors.primary : 'transparent',
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: '600',
+                              color: chartMode === mode ? '#fff' : colors.textSecondary,
+                            }}
+                          >
+                            {mode === 'weight' ? 'Weight (kg)' : 'Volume'}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+
                   {/* Stats — 3 col grid matching web */}
                   <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
                     <View
@@ -516,9 +559,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                         Current
                       </Text>
                       <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>
-                        {allowWeightLogging
-                          ? `${currentValue}`
-                          : `${historyData.stats?.current_best_set_reps ?? currentValue} reps`}
+                        {currentValue}
                       </Text>
                     </View>
                     <View
@@ -534,9 +575,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                         Best
                       </Text>
                       <Text style={{ fontSize: 18, fontWeight: '700', color: colors.success }}>
-                        {allowWeightLogging
-                          ? `${bestValue}`
-                          : `${historyData.stats?.best_set_reps ?? bestValue} reps`}
+                        {bestValue}
                       </Text>
                     </View>
                     <View
@@ -616,16 +655,22 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                               </Text>
                               <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
                                 {allowWeightLogging
-                                  ? `${session.volume} kg volume · ${session.sets} sets`
+                                  ? chartMode === 'weight'
+                                    ? `${session.weight} kg best · ${session.sets} sets`
+                                    : `${session.volume} kg volume · ${session.sets} sets`
                                   : `${session.best_set_reps} reps (best set) · ${session.sets} sets`}
                               </Text>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
                               <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>
-                                {allowWeightLogging ? session.volume : session.reps}
+                                {allowWeightLogging
+                                  ? chartMode === 'weight' ? `${session.weight}` : `${session.volume}`
+                                  : session.reps}
                               </Text>
                               <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                                {allowWeightLogging ? 'volume' : 'total reps'}
+                                {allowWeightLogging
+                                  ? chartMode === 'weight' ? 'kg' : 'vol'
+                                  : 'total reps'}
                               </Text>
                             </View>
                           </View>

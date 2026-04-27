@@ -324,6 +324,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                           navigation.navigate('WorkoutPreviewExercisePicker', {
                             sessionId,
                             swapExerciseId: se.id,
+                            swapMuscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString(),
                           })
                         }
                         style={{

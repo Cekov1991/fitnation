@@ -26,13 +26,14 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
   const templateId = route.params?.templateId
   const swapPivotId = route.params?.swapPivotId
   const swapOrderIndex = route.params?.swapOrderIndex
+  const swapMuscleGroupId = route.params?.swapMuscleGroupId
   const pivotData = route.params?.pivotData
   const isSwap = swapPivotId != null
 
   const { colors } = useTheme()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(swapMuscleGroupId ?? null)
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
   const [actionId, setActionId] = useState<number | null>(null)
 

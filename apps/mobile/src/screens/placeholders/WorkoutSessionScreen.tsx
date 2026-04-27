@@ -141,6 +141,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     navigation.navigate('WorkoutPreviewExercisePicker', {
       sessionId,
       swapExerciseId: current.session_exercise.id,
+      swapMuscleGroupId: current.session_exercise.exercise?.muscle_groups?.find(m => m.is_primary)?.id.toString(),
     })
   }, [navigation, sessionId])
 

@@ -29,11 +29,12 @@ export type AppStackParamList = {
   WorkoutSessionExerciseDetail: { sessionId: string; exerciseId: number }
   GenerateWorkout: undefined
   WorkoutPreview: { sessionId: string; generationParams?: RegenerateWorkoutInput }
-  WorkoutPreviewExercisePicker: { sessionId: string; swapExerciseId?: number }
+  WorkoutPreviewExercisePicker: { sessionId: string; swapExerciseId?: number; swapMuscleGroupId?: string }
   ExercisePicker: {
     templateId?: number
     swapPivotId?: number
     swapOrderIndex?: number
+    swapMuscleGroupId?: string
     pivotData?: {
       target_sets: number
       min_target_reps: number
@@ -41,7 +42,7 @@ export type AppStackParamList = {
       target_weight: number
     }
   } | undefined
-  ExerciseDetail: { exerciseName: string }
+  ExerciseDetail: { exerciseName: string; initialTab?: 'guidance' | 'performance' }
   ExerciseCatalog: undefined
   CreatePlan: undefined
   EditPlan: { planId: number }

@@ -141,7 +141,7 @@ export function ExerciseCatalogScreen() {
           renderItem={({ item }) => (
             <ExerciseCard
               exercise={item}
-              onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
+              onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name, initialTab: 'guidance' })}
             />
           )}
           ListEmptyComponent={

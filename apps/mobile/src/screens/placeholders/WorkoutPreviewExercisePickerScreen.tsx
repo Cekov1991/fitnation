@@ -19,13 +19,13 @@ import type { ExerciseResource } from '@fit-nation/shared'
 type Props = AppScreenProps<'WorkoutPreviewExercisePicker'>
 
 export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props) {
-  const { sessionId, swapExerciseId } = route.params
+  const { sessionId, swapExerciseId, swapMuscleGroupId } = route.params
   const numericSessionId = Number(sessionId)
   const { colors } = useTheme()
   const isSwap = !!swapExerciseId
 
   const [search, setSearch] = useState('')
-  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(swapMuscleGroupId ?? null)
   const [addingId, setAddingId] = useState<number | null>(null)
 
   const debouncedSearch = useDebounce(search, 300)

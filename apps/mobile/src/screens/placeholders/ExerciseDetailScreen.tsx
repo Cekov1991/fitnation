@@ -130,9 +130,10 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
 }
 
 export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'ExerciseDetail'>) {
-  const { exerciseName } = route.params
+  const { exerciseName, initialTab = 'performance' } = route.params
   const { colors } = useTheme()
-  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>('guidance')
+  const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>(initialTab)
+  const [chartMode, setChartMode] = useState<'volume' | 'weight'>('weight')
 
   const { data: exercises = [] } = useExercises()
   const exercise = useMemo(
@@ -161,21 +162,25 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
   const chartData = useMemo(() => {
     if (!historyData?.performance_data) return []
     return historyData.performance_data.map(point => ({
-      value: allowWeightLogging ? point.volume : point.best_set_reps,
+      value: allowWeightLogging
+        ? (chartMode === 'weight' ? point.weight : point.volume)
+        : point.best_set_reps,
       label: point.date.slice(5), // MM-DD
     }))
-  }, [historyData, allowWeightLogging])
+  }, [historyData, allowWeightLogging, chartMode])
 
   const progressPercentage = useMemo(() => {
     if (!historyData?.performance_data?.length) return 0
     const data = historyData.performance_data
-    const first = allowWeightLogging ? data[0].volume : data[0].best_set_reps
-    const last = allowWeightLogging
-      ? data[data.length - 1].volume
-      : data[data.length - 1].best_set_reps
+    const getValue = (p: typeof data[0]) =>
+      allowWeightLogging
+        ? (chartMode === 'weight' ? p.weight : p.volume)
+        : p.best_set_reps
+    const first = getValue(data[0])
+    const last = getValue(data[data.length - 1])
     if (first === 0) return 0
     return ((last - first) / first) * 100
-  }, [historyData, allowWeightLogging])
+  }, [historyData, allowWeightLogging, chartMode])
 
   const recentSessions = useMemo(() => {
     if (!historyData?.performance_data) return []
@@ -185,17 +190,19 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
   const currentStat = useMemo(() => {
     if (!historyData?.performance_data?.length) return '—'
     const latest = historyData.performance_data[historyData.performance_data.length - 1]
-    return allowWeightLogging
-      ? `${latest.volume}`
-      : `${historyData.stats.current_best_set_reps} reps`
-  }, [historyData, allowWeightLogging])
+    if (!allowWeightLogging) return `${historyData.stats.current_best_set_reps} reps`
+    return chartMode === 'weight'
+      ? `${historyData.stats.current_weight} kg`
+      : `${latest.volume} kg`
+  }, [historyData, allowWeightLogging, chartMode])
 
   const bestStat = useMemo(() => {
     if (!historyData?.performance_data?.length) return '—'
-    return allowWeightLogging
-      ? `${Math.max(...historyData.performance_data.map(p => p.volume))}`
-      : `${historyData.stats.best_set_reps} reps`
-  }, [historyData, allowWeightLogging])
+    if (!allowWeightLogging) return `${historyData.stats.best_set_reps} reps`
+    return chartMode === 'weight'
+      ? `${historyData.stats.best_weight} kg`
+      : `${Math.max(...historyData.performance_data.map(p => p.volume))} kg`
+  }, [historyData, allowWeightLogging, chartMode])
 
   const progressSign = progressPercentage >= 0 ? '+' : ''
   const progressStat = `${progressSign}${progressPercentage.toFixed(0)}%`
@@ -416,6 +423,33 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                 </Text>
               ) : (
                 <>
+                  {/* Volume / Weight toggle — only for weighted exercises */}
+                  {allowWeightLogging && (
+                    <View
+                      className="flex-row p-1 rounded-full self-start mb-5"
+                      style={{ backgroundColor: colors.bgElevated }}
+                    >
+                      {(['weight', 'volume'] as const).map(mode => (
+                        <TouchableOpacity
+                          key={mode}
+                          onPress={() => setChartMode(mode)}
+                          className="px-4 py-1.5 rounded-full"
+                          style={{
+                            backgroundColor: chartMode === mode ? colors.primary : 'transparent',
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text
+                            className="text-xs font-semibold capitalize"
+                            style={{ color: chartMode === mode ? '#fff' : colors.textSecondary }}
+                          >
+                            {mode === 'weight' ? 'Weight (kg)' : 'Volume'}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+
                   {/* Stats grid */}
                   <View className="flex-row gap-3 mb-6">
                     {[
@@ -488,7 +522,9 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                             </Text>
                             <Text className="text-xs" style={{ color: colors.textSecondary }}>
                               {allowWeightLogging
-                                ? `${session.volume} kg volume · ${session.sets} sets`
+                                ? chartMode === 'weight'
+                                  ? `${session.weight} kg best · ${session.sets} sets`
+                                  : `${session.volume} kg volume · ${session.sets} sets`
                                 : `${session.best_set_reps} reps (best set) · ${session.sets} sets`}
                             </Text>
                           </View>
@@ -497,10 +533,14 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                               className="text-sm font-bold"
                               style={{ color: colors.primary }}
                             >
-                              {allowWeightLogging ? session.volume : session.reps}
+                              {allowWeightLogging
+                                ? chartMode === 'weight' ? `${session.weight}` : `${session.volume}`
+                                : session.reps}
                             </Text>
                             <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                              {allowWeightLogging ? 'volume' : 'total reps'}
+                              {allowWeightLogging
+                                ? chartMode === 'weight' ? 'kg' : 'vol'
+                                : 'total reps'}
                             </Text>
                           </View>
                         </View>

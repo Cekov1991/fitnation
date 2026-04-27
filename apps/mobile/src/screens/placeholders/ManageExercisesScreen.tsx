@@ -31,6 +31,7 @@ interface ExerciseItem {
   maxReps: number
   weight: string
   imageUrl: string | null
+  muscleGroupId: string | null
 }
 
 type Props = AppScreenProps<'ManageExercises'>
@@ -66,6 +67,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
       maxReps: ex.pivot.max_target_reps ?? 0,
       weight: ex.pivot.target_weight != null ? String(ex.pivot.target_weight) : '0',
       imageUrl: ex.image,
+      muscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString() ?? null,
     }))
   }, [template])
 
@@ -83,6 +85,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
       templateId,
       swapPivotId: item.pivotId,
       swapOrderIndex: orderIndex >= 0 ? orderIndex : 0,
+      swapMuscleGroupId: item.muscleGroupId ?? undefined,
       pivotData: {
         target_sets: item.sets,
         min_target_reps: item.minReps,
