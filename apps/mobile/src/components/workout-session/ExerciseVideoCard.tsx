@@ -11,6 +11,7 @@ interface ExerciseVideoCardProps {
   muscleGroup?: string | null
   imageUrl?: string | null
   videoUrl?: string | null
+  isActive: boolean
   onOpenMenu: () => void
   onView: () => void
 }
@@ -58,6 +59,7 @@ export function ExerciseVideoCard({
   muscleGroup,
   imageUrl,
   videoUrl,
+  isActive,
   onOpenMenu,
   onView,
 }: ExerciseVideoCardProps) {
@@ -78,7 +80,7 @@ export function ExerciseVideoCard({
     >
       {/* Media (4:3 aspect) */}
       <View style={{ width: '100%', aspectRatio: 4 / 3 }}>
-        {hasVideo ? (
+        {hasVideo && isActive ? (
           <ExerciseVideoPlayer uri={videoUrl!} />
         ) : imageUrl ? (
           <Image

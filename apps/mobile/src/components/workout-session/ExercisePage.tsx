@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { memo, useState, useCallback, useMemo } from 'react'
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Plus } from 'lucide-react-native'
@@ -25,6 +25,7 @@ interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
   sessionId: number
   exerciseCount: number
+  isActive: boolean
   onView: () => void
   onSwap: () => void
   onRemoveExercise: () => void
@@ -35,10 +36,11 @@ type SetSlot =
   | { kind: 'completed'; setNumber: number; logId: number; weight: number; reps: number }
   | { kind: 'pending'; setNumber: number }
 
-export function ExercisePage({
+function ExercisePageComponent({
   exerciseDetail,
   sessionId,
   exerciseCount,
+  isActive,
   onView,
   onSwap,
   onRemoveExercise,
@@ -252,6 +254,7 @@ export function ExercisePage({
         muscleGroup={primaryMuscle}
         imageUrl={exercise?.image}
         videoUrl={exercise?.video}
+        isActive={isActive}
         onOpenMenu={() => setShowExerciseMenu(true)}
         onView={onView}
       />
@@ -493,3 +496,5 @@ export function ExercisePage({
     </KeyboardAvoidingView>
   )
 }
+
+export const ExercisePage = memo(ExercisePageComponent)
