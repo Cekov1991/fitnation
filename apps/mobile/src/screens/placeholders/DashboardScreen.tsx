@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -31,6 +31,7 @@ import {
   useProfile,
   useRegeneratePlan,
   useStartSession,
+  useTodayWorkout,
   useUpdateProfile,
 } from '@fit-nation/shared'
 import type {
@@ -88,6 +89,25 @@ export function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
+
+  const { data: todayWorkout } = useTodayWorkout()
+  const hasNavigated = useRef(false)
+
+  // Redirect to an active workout session on first load. This fires once
+  // when the dashboard mounts (app open / sign-in) so we don't fight the
+  // user when they intentionally navigate back to the dashboard.
+  useEffect(() => {
+    if (hasNavigated.current) return
+    const session = todayWorkout?.session
+    if (
+      session?.id != null &&
+      session.performed_at != null &&
+      session.completed_at == null
+    ) {
+      hasNavigated.current = true
+      navigation.navigate('WorkoutSession', { sessionId: String(session.id) })
+    }
+  }, [todayWorkout, navigation])
 
   const { data: programs = [], isLoading: isProgramsLoading } = usePrograms()
   const { data: plans = [], isLoading: isPlansLoading } = usePlans()
