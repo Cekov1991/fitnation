@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useDebounce } from '../../hooks/useDebounce'
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
@@ -27,19 +28,27 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
   const [addingId, setAddingId] = useState<number | null>(null)
 
-  const { data: exercises = [], isLoading } = useExercises()
+  const debouncedSearch = useDebounce(search, 300)
+  const { data: exercises = [], isLoading } = useExercises(debouncedSearch || undefined)
   const { data: muscleGroups = [] } = useMuscleGroups()
   const addExercise = useAddSessionExercise()
   const removeExercise = useRemoveSessionExercise()
 
+  const availableMuscleIds = useMemo(() => {
+    const ids = new Set<string>()
+    ;(exercises as ExerciseResource[]).forEach(ex =>
+      ex.muscle_groups?.forEach(m => { if (m.is_primary) ids.add(m.id.toString()) })
+    )
+    return ids
+  }, [exercises])
+
   const filtered = useMemo(() => {
     return (exercises as ExerciseResource[]).filter(ex => {
-      const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase())
       const matchesMuscle =
-        !selectedMuscle || ex.muscle_groups?.some(m => m.id.toString() === selectedMuscle)
-      return matchesSearch && matchesMuscle
+        !selectedMuscle || ex.muscle_groups?.some(m => m.is_primary && m.id.toString() === selectedMuscle)
+      return matchesMuscle
     })
-  }, [exercises, search, selectedMuscle])
+  }, [exercises, selectedMuscle])
 
   const handleSelectExercise = async (exercise: ExerciseResource) => {
     if (addingId) return
@@ -62,10 +71,6 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
     }
   }
 
-  const muscleOptions = (muscleGroups as any[]).map((m: any) => ({
-    value: m.id.toString(),
-    label: m.name,
-  }))
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
@@ -109,11 +114,15 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
       </View>
 
       {/* Muscle Group Filter */}
-      <FilterChips
-        options={muscleOptions}
-        selected={selectedMuscle}
-        onSelect={id => setSelectedMuscle(prev => (prev === id ? null : id))}
-      />
+      {availableMuscleIds.size > 0 && (
+        <FilterChips
+          options={(muscleGroups as any[])
+            .filter((m: any) => availableMuscleIds.has(m.id.toString()))
+            .map((m: any) => ({ value: m.id.toString(), label: m.name }))}
+          selected={selectedMuscle}
+          onSelect={id => setSelectedMuscle(prev => (prev === id ? null : id))}
+        />
+      )}
 
       {isLoading ? (
         <View className="px-4 gap-3">

@@ -503,11 +503,11 @@ export function useReorderTemplateExercises() {
 // EXERCISES HOOKS
 // ============================================================================
 
-export function useExercises() {
+export function useExercises(search?: string) {
   return useQuery({
-    queryKey: ['exercises'],
+    queryKey: ['exercises', search ?? ''],
     queryFn: async () => {
-      const response = await exercisesApi.getExercises();
+      const response = await exercisesApi.getExercises(search ? { search } : undefined);
       return response.data;
     },
     enabled: isAuthenticated()

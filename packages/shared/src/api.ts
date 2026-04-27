@@ -197,8 +197,9 @@ export const onboardingApi = {
 // ============================================================================
 
 export const exercisesApi = {
-  getExercises: async () => {
-    return fetchWithAuth('/exercises');
+  getExercises: async (params?: { search?: string }) => {
+    const qs = params?.search ? `?search=${encodeURIComponent(params.search)}` : ''
+    return fetchWithAuth(`/exercises${qs}`);
   },
   getExercise: async (exerciseId: number) => {
     return fetchWithAuth(`/exercises/${exerciseId}`);

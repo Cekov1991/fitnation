@@ -37,7 +37,7 @@ export function CreatePlanScreen({ navigation }: Props) {
         description: data.description,
         is_active: data.is_active,
       })
-      navigation.goBack()
+      navigation.navigate('Tabs', { screen: 'Plans' })
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to create plan')
     }

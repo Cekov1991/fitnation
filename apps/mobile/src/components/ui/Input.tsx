@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, useRef, type ReactNode } from 'react'
 import { TextInput, View, Text, type TextInputProps } from 'react-native'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -8,57 +8,66 @@ interface InputProps extends TextInputProps {
   leftIcon?: ReactNode
   rightElement?: ReactNode
   readOnly?: boolean
+  inputRef?: React.RefObject<TextInput>
+  onFocusScroll?: () => void
 }
 
-export function Input({ label, error, leftIcon, rightElement, readOnly, ...props }: InputProps) {
+export function Input({ label, error, leftIcon, rightElement, readOnly, inputRef, onFocusScroll, ...props }: InputProps) {
   const { colors } = useTheme()
   const [isFocused, setIsFocused] = useState(false)
+  const internalRef = useRef<TextInput>(null)
+  const ref = inputRef ?? internalRef
 
   const borderColor = error
     ? colors.error
     : isFocused
     ? colors.primary
-    : 'transparent'
+    : `${colors.textMuted}40`
 
   return (
-    <View className="mb-6">
+    <View className="mb-5">
       {label && (
-        <Text className="text-sm font-semibold mb-3" style={{ color: colors.textSecondary }}>
+        <Text className="text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
           {label}
         </Text>
       )}
       <View
         style={{
           backgroundColor: colors.bgElevated,
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderColor,
-          borderRadius: 16,
+          borderRadius: 14,
           flexDirection: 'row',
           alignItems: 'center',
         }}
       >
         {leftIcon && (
-          <View style={{ paddingLeft: 20 }}>
+          <View style={{ paddingLeft: 16 }}>
             {leftIcon}
           </View>
         )}
         <TextInput
+          ref={ref}
           {...props}
           style={[
             {
               flex: 1,
-              paddingHorizontal: 20,
-              paddingVertical: 16,
+              paddingHorizontal: 14,
+              paddingVertical: 15,
               fontSize: 16,
               color: readOnly ? colors.textMuted : colors.textPrimary,
               opacity: readOnly ? 0.75 : 1,
             },
             props.style,
           ]}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={`${colors.textMuted}99`}
+          underlineColorAndroid="transparent"
           editable={!readOnly}
           onFocus={(e) => {
-            if (!readOnly) setIsFocused(true)
+            if (!readOnly) {
+              setIsFocused(true)
+              onFocusScroll?.()
+            }
             props.onFocus?.(e)
           }}
           onBlur={(e) => {
@@ -67,7 +76,7 @@ export function Input({ label, error, leftIcon, rightElement, readOnly, ...props
           }}
         />
         {rightElement && (
-          <View style={{ paddingRight: 16 }}>
+          <View style={{ paddingRight: 14 }}>
             {rightElement}
           </View>
         )}
