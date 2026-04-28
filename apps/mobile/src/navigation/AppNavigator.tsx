@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
 import { TabNavigator } from './TabNavigator'
+import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
 import { WorkoutSessionScreen } from '../screens/placeholders/WorkoutSessionScreen'
 import { WorkoutSummaryScreen } from '../screens/placeholders/WorkoutSummaryScreen'
@@ -27,14 +28,24 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 
 export function AppNavigator() {
   const { user } = useAuth()
+  const needsVerification = !user?.email_verified_at
   const needsOnboarding = !user?.onboarding_completed_at
+
+  const initialRouteName = needsVerification
+    ? 'EmailVerification'
+    : needsOnboarding ? 'Onboarding' : 'Tabs'
 
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName={needsOnboarding ? 'Onboarding' : 'Tabs'}
+      initialRouteName={initialRouteName}
     >
       <Stack.Screen name="Tabs" component={TabNavigator} />
+      <Stack.Screen
+        name="EmailVerification"
+        component={EmailVerificationScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen
         name="Onboarding"
         component={OnboardingScreen}

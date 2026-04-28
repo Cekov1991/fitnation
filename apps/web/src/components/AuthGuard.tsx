@@ -30,6 +30,18 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return <Redirect to={{ pathname: '/login', state: { from: location } }} />;
   }
 
+  // Gate on email verification before anything else
+  if (user.email_verified_at === null && location.pathname !== '/verify-email') {
+    return <Redirect to="/verify-email" />;
+  }
+  if (user.email_verified_at !== null && location.pathname === '/verify-email') {
+    return <Redirect to={user.onboarding_completed_at === null ? '/onboarding' : '/'} />;
+  }
+  // Unverified user is on /verify-email — render it and skip all further checks
+  if (user.email_verified_at === null) {
+    return <>{children}</>;
+  }
+
   // Check if onboarding is completed
   // If onboarding_completed_at is null, redirect to onboarding (unless already on onboarding page)
   if (user.onboarding_completed_at === null && location.pathname !== '/onboarding') {

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { AppState, type AppStateStatus } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
 import { initAuth, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
 import type { UserResource } from '@fit-nation/shared'
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { setColors } = useTheme()
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState)
 
   function applyPartnerColors(currentUser: UserResource) {
     const identity = currentUser.partner?.visual_identity
@@ -64,6 +66,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     loadUser()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Refresh user when app returns to foreground (so email_verified_at updates automatically)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
+      const prev = appStateRef.current
+      appStateRef.current = nextState
+      if (nextState === 'active' && prev !== 'active') {
+        const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
+        if (!token) return
+        try {
+          const { user: currentUser } = await authApi.getCurrentUser()
+          applyPartnerColors(currentUser)
+          setUser(currentUser)
+        } catch {
+          // silent — token may have been revoked; auth guard will handle the next protected request
+        }
+      }
+    })
+    return () => subscription.remove()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Modal,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Image } from 'expo-image'
 import { useMutation } from '@tanstack/react-query'
 import { profileApi, onboardingApi, plansApi } from '@fit-nation/shared'
 import type { UpdateProfileInput } from '@fit-nation/shared'
@@ -17,6 +18,8 @@ import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/ui/Input'
 import { onboardingReducer } from '../Onboarding/onboardingReducer'
 import type { AppScreenProps } from '../../navigation/types'
+
+const localLogo = require('../../../assets/logo.png')
 
 // Steps 1-3 are data-collection steps (shown in progress bar)
 const TOTAL_DATA_STEPS = 3
@@ -60,6 +63,9 @@ type Phase = 'saving-profile' | 'generating-plan' | 'plan-success' | 'error'
 export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const { colors } = useTheme()
   const { user, refreshUser } = useAuth()
+
+  const partnerName = user?.partner?.name ?? 'Fit Nation'
+  const partnerLogoUrl = user?.partner?.visual_identity?.logo ?? null
 
   // Pre-fill from existing profile so re-entrant users see their saved data
   const [state, dispatch] = useReducer(onboardingReducer, {
@@ -216,12 +222,11 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
         {(phase === 'generating-plan' || phase === 'plan-success') && (
           <View className="items-center gap-4">
-            <View
-              className="w-20 h-20 rounded-3xl items-center justify-center"
-              style={{ backgroundColor: `${colors.primary}1A` }}
-            >
-              <Dumbbell size={40} color={colors.primary} />
-            </View>
+            <Image
+              source={partnerLogoUrl ?? localLogo}
+              style={{ width: 100, height: 100, borderRadius: 16 }}
+              contentFit="contain"
+            />
             <Text className="text-xl font-bold text-center" style={{ color: colors.textPrimary }}>
               Building your plan...
             </Text>
@@ -298,17 +303,16 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
           {/* ── Step 0: Welcome ──────────────────────────────────────────── */}
           {step === 0 && (
             <View className="items-center pt-16 pb-8">
-              <View
-                className="w-24 h-24 rounded-3xl items-center justify-center mb-8"
-                style={{ backgroundColor: colors.primary }}
-              >
-                <Dumbbell size={48} color="#fff" />
-              </View>
+              <Image
+                source={partnerLogoUrl ?? localLogo}
+                style={{ width: 120, height: 120, borderRadius: 16, marginBottom: 32 }}
+                contentFit="contain"
+              />
               <Text
                 className="text-3xl font-bold mb-3 text-center"
                 style={{ color: colors.textPrimary }}
               >
-                Welcome to Fit Nation
+                Welcome to {partnerName}
               </Text>
               <Text
                 className="text-lg text-center leading-relaxed mb-12"

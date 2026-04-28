@@ -6,7 +6,7 @@ import type { NewPrResource, RegenerateWorkoutInput } from '@fit-nation/shared'
 // Auth stack
 export type AuthStackParamList = {
   Login: undefined
-  Register: { invitationToken?: string }
+  Register: undefined
   ForgotPassword: undefined
   ResetPassword: { token?: string; email?: string }
 }
@@ -23,6 +23,7 @@ export type TabParamList = {
 // Main app stack (full-screen screens, no bottom tabs)
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList> | undefined
+  EmailVerification: undefined
   Onboarding: undefined
   WorkoutSession: { sessionId: string }
   WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }

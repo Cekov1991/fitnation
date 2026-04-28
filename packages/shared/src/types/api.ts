@@ -72,6 +72,17 @@ export interface ValidateInvitationResponse {
 // PARTNER RESOURCES
 // ============================================
 
+export interface PartnerListResource {
+  id: number;
+  name: string;
+  slug: string;
+  visual_identity: PartnerVisualIdentityResource | null;
+}
+
+export interface ActivePartnersResponse {
+  data: PartnerListResource[];
+}
+
 export interface PartnerVisualIdentityResource {
   primary_color: string | null;
   secondary_color: string | null;

@@ -1,71 +1,68 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, TextInput, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as SecureStore from 'expo-secure-store'
-import { User, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
-import { registerSchema, type RegisterFormData, authApi, AUTH_TOKEN_KEY } from '@fit-nation/shared'
-import type { InvitationResource } from '@fit-nation/shared'
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown } from 'lucide-react-native'
+import { registerSchema, type RegisterFormData, authApi, partnersApi, AUTH_TOKEN_KEY } from '@fit-nation/shared'
+import type { PartnerListResource } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
+import { ActionSheet } from '../../components/ui/ActionSheet'
 import type { AuthScreenProps } from '../../navigation/types'
 
-export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'>) {
+export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
   const { setUser } = useAuth()
   const { colors } = useTheme()
-  const invitationToken = route.params?.invitationToken
 
   const [error, setError] = useState<string | null>(null)
-  const [invitation, setInvitation] = useState<InvitationResource | null>(null)
-  const [validating, setValidating] = useState(true)
-  const [invitationError, setInvitationError] = useState<string | null>(null)
+  const [partners, setPartners] = useState<PartnerListResource[]>([])
+  const [loadingPartners, setLoadingPartners] = useState(true)
+  const [partnersError, setPartnersError] = useState<string | null>(null)
+  const [selectedPartner, setSelectedPartner] = useState<PartnerListResource | null>(null)
+  const [partnerSheetVisible, setPartnerSheetVisible] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const scrollRef = useRef<ScrollView>(null)
+  const emailRef = useRef<TextInput>(null)
   const passwordRef = useRef<TextInput>(null)
   const confirmPasswordRef = useRef<TextInput>(null)
 
   const { control, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: '', email: '', password: '', password_confirmation: '' },
+    defaultValues: { name: '', email: '', password: '', password_confirmation: '', partner_id: 0 },
   })
 
-  useEffect(() => {
-    async function validateToken() {
-      if (!invitationToken) {
-        setInvitationError('No invitation token provided. Please use the invitation link from your email.')
-        setValidating(false)
-        return
-      }
-      try {
-        const response = await authApi.validateInvitation(invitationToken)
-        setInvitation(response.data)
-        setValue('email', response.data.email)
-        setValidating(false)
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : 'Invalid or expired invitation token'
-        setInvitationError(msg)
-        setValidating(false)
-      }
+  async function loadPartners() {
+    setLoadingPartners(true)
+    setPartnersError(null)
+    try {
+      const response = await partnersApi.getActivePartners()
+      setPartners(response.data)
+    } catch {
+      setPartnersError('Could not load partners. Please try again.')
+    } finally {
+      setLoadingPartners(false)
     }
-    validateToken()
-  }, [invitationToken, setValue])
+  }
+
+  useEffect(() => {
+    loadPartners()
+  }, [])
+
+  function selectPartner(partner: PartnerListResource) {
+    setSelectedPartner(partner)
+    setValue('partner_id', partner.id, { shouldValidate: true })
+  }
 
   async function onSubmit(data: RegisterFormData) {
-    if (!invitationToken) {
-      setError('No invitation token found')
-      return
-    }
     try {
       setError(null)
-      const response = await authApi.register({
-        ...data,
-        invitation_token: invitationToken,
-      })
+      const response = await authApi.register(data)
       await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
       setUser(response.user)
     } catch (e: unknown) {
@@ -74,18 +71,18 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
     }
   }
 
-  if (validating) {
+  if (loadingPartners) {
     return (
       <SafeAreaView edges={['top']} className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text className="text-sm mt-4" style={{ color: colors.textSecondary }}>
-          Validating invitation...
+          Loading partners...
         </Text>
       </SafeAreaView>
     )
   }
 
-  if (invitationError || !invitation) {
+  if (partnersError) {
     return (
       <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
         <View
@@ -105,20 +102,23 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
             <AlertCircle color={colors.error} size={22} />
             <View className="flex-1">
               <Text className="text-sm font-semibold mb-1" style={{ color: colors.error }}>
-                Invalid Invitation
+                Could not load partners
               </Text>
               <Text className="text-xs" style={{ color: colors.error }}>
-                {invitationError}
+                {partnersError}
               </Text>
             </View>
           </View>
-          <Button label="Go to Login" onPress={() => navigation.navigate('Login')} />
+          <Button
+            label="Try Again"
+            onPress={loadPartners}
+          />
         </View>
       </SafeAreaView>
     )
   }
 
-  const logoUrl = invitation.partner?.visual_identity?.logo || null
+  const logoUrl = selectedPartner?.visual_identity?.logo || null
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
@@ -136,11 +136,10 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
         >
           <AuthLogoHeader
             title="Create Your Account"
-            subtitle={`Join ${invitation.partner?.name || 'Fit Nation'} and start your fitness journey`}
+            subtitle={selectedPartner ? `Join ${selectedPartner.name} and start your fitness journey` : 'Select your gym to get started'}
             logoUrl={logoUrl}
           />
 
-          {/* Form card */}
           <View
             style={{
               backgroundColor: colors.bgSurface,
@@ -160,6 +159,39 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
               </View>
             )}
 
+            {/* Partner picker */}
+            <View className="mb-4">
+              <Text className="text-sm font-semibold mb-2" style={{ color: colors.textSecondary }}>
+                Your Gym / Partner
+              </Text>
+              <Pressable
+                onPress={() => setPartnerSheetVisible(true)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: errors.partner_id ? colors.error : colors.bgElevated,
+                  backgroundColor: colors.bgElevated,
+                }}
+              >
+                <Text
+                  className="flex-1 text-base"
+                  style={{ color: selectedPartner ? colors.textPrimary : colors.textMuted }}
+                >
+                  {selectedPartner ? selectedPartner.name : 'Select a partner...'}
+                </Text>
+                <ChevronDown color={colors.textMuted} size={18} />
+              </Pressable>
+              {errors.partner_id && (
+                <Text className="text-xs mt-1" style={{ color: colors.error }}>
+                  {errors.partner_id.message}
+                </Text>
+              )}
+            </View>
+
             <Controller
               control={control}
               name="name"
@@ -174,7 +206,7 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
                   error={errors.name?.message}
                   leftIcon={<User color={colors.textMuted} size={18} />}
                   returnKeyType="next"
-                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  onSubmitEditing={() => emailRef.current?.focus()}
                   blurOnSubmit={false}
                 />
               )}
@@ -183,21 +215,24 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
             <Controller
               control={control}
               name="email"
-              render={({ field: { value } }) => (
+              render={({ field: { onChange, value } }) => (
                 <Input
                   label="Email Address"
                   value={value}
+                  onChangeText={onChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  autoComplete="email"
+                  placeholder="you@example.com"
                   error={errors.email?.message}
                   leftIcon={<Mail color={colors.textMuted} size={18} />}
-                  readOnly
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
+                  inputRef={emailRef}
                 />
               )}
             />
-            <Text className="text-xs -mt-3 mb-4" style={{ color: colors.textMuted }}>
-              This email is from your invitation
-            </Text>
 
             <Controller
               control={control}
@@ -282,6 +317,16 @@ export function RegisterScreen({ navigation, route }: AuthScreenProps<'Register'
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ActionSheet
+        visible={partnerSheetVisible}
+        onClose={() => setPartnerSheetVisible(false)}
+        title="Select Your Partner"
+        actions={partners.map(p => ({
+          label: p.name,
+          onPress: () => selectPartner(p),
+        }))}
+      />
     </SafeAreaView>
   )
 }

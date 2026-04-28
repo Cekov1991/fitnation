@@ -21,6 +21,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
   const { logo, partnerName, hasBranding } = useBranding();
   const history = useHistory();
   const location = useLocation<LocationState>();
+  const navigateToRegister = onNavigateToRegister ?? (() => history.push('/register'));
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -223,20 +224,18 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
               </form>
 
               {/* Register Link */}
-              {onNavigateToRegister && (
-                <div className="mt-6 text-center">
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Don't have an account?{' '}
-                    <button
-                      onClick={onNavigateToRegister}
-                      className="font-semibold transition-colors"
-                      style={{ color: 'var(--color-primary)' }}
-                    >
-                      Sign up
-                    </button>
-                  </p>
-                </div>
-              )}
+              <div className="mt-6 text-center">
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  Don't have an account?{' '}
+                  <button
+                    onClick={navigateToRegister}
+                    className="font-semibold transition-colors"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    Sign up
+                  </button>
+                </p>
+              </div>
             </div>
 
             {/* Footer */}

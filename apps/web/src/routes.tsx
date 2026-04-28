@@ -4,6 +4,7 @@ import { LoginPage } from './components/LoginPage';
 import { RegisterPage } from './components/RegisterPage';
 import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
+import { EmailVerificationPage } from './components/EmailVerificationPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
@@ -71,6 +72,12 @@ export function AppRoutes() {
           </Route>
           <Route exact path="/reset-password/:token">
             <ResetPasswordPage />
+          </Route>
+
+          <Route exact path="/verify-email">
+            <AuthGuard>
+              <EmailVerificationPage />
+            </AuthGuard>
           </Route>
 
           <Route exact path="/onboarding">

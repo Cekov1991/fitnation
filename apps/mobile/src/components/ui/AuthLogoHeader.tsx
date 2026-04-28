@@ -1,8 +1,8 @@
 import { View, Text } from 'react-native'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Dumbbell } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+
+const localLogo = require('../../../assets/logo.png')
 
 interface AuthLogoHeaderProps {
   title: string
@@ -15,29 +15,11 @@ export function AuthLogoHeader({ title, subtitle, logoUrl }: AuthLogoHeaderProps
 
   return (
     <View className="items-center mb-8">
-      {logoUrl ? (
-        <Image
-          source={logoUrl}
-          style={{ width: 80, height: 80, borderRadius: 16, marginBottom: 24 }}
-          contentFit="contain"
-        />
-      ) : (
-        <LinearGradient
-          colors={[colors.primary, colors.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: 24,
-            marginBottom: 24,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Dumbbell color="#fff" size={40} />
-        </LinearGradient>
-      )}
+      <Image
+        source={logoUrl ?? localLogo}
+        style={{ width: 120, height: 120, borderRadius: 16, marginBottom: 24 }}
+        contentFit="contain"
+      />
 
       <Text
         className="text-3xl font-bold mb-2 text-center"

@@ -1,28 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useLocation, useHistory } from 'react-router-dom';
-import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle, User, Loader2 } from 'lucide-react';
+import { useHistory } from 'react-router-dom';
+import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle, User, Loader2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { registerSchema, RegisterFormData } from '@fit-nation/shared';
+import { registerSchema, type RegisterFormData } from '@fit-nation/shared';
+import { partnersApi } from '@fit-nation/shared';
+import type { PartnerListResource } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
-import { authApi } from '@fit-nation/shared';
-import type { InvitationResource } from '@fit-nation/shared';
 
 export function RegisterPage() {
   const { register: registerUser } = useAuth();
   const history = useHistory();
-  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [invitation, setInvitation] = useState<InvitationResource | null>(null);
-  const [validatingInvitation, setValidatingInvitation] = useState(true);
-  const [invitationError, setInvitationError] = useState<string | null>(null);
-
-  // Extract invitation token from URL
-  const searchParams = new URLSearchParams(location.search);
-  const invitationToken = searchParams.get('invitation');
+  const [partners, setPartners] = useState<PartnerListResource[]>([]);
+  const [loadingPartners, setLoadingPartners] = useState(true);
+  const [partnersError, setPartnersError] = useState<string | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<PartnerListResource | null>(null);
 
   const {
     register,
@@ -36,58 +32,45 @@ export function RegisterPage() {
       email: '',
       password: '',
       password_confirmation: '',
+      partner_id: 0,
     },
   });
 
-  // Validate invitation token on mount
+  async function loadPartners() {
+    setLoadingPartners(true);
+    setPartnersError(null);
+    try {
+      const response = await partnersApi.getActivePartners();
+      setPartners(response.data);
+    } catch {
+      setPartnersError('Could not load partners. Please try again.');
+    } finally {
+      setLoadingPartners(false);
+    }
+  }
+
   useEffect(() => {
-    const validateToken = async () => {
-      if (!invitationToken) {
-        setInvitationError('No invitation token provided. Please use the invitation link from your email.');
-        setValidatingInvitation(false);
-        return;
-      }
+    loadPartners();
+  }, []);
 
-      try {
-        const response = await authApi.validateInvitation(invitationToken);
-        setInvitation(response.data);
-        // Pre-fill email from invitation
-        setValue('email', response.data.email);
-        setValidatingInvitation(false);
-      } catch (err: any) {
-        const errorMessage = err.message || 'Invalid or expired invitation token';
-        setInvitationError(errorMessage);
-        setValidatingInvitation(false);
-      }
-    };
-
-    validateToken();
-  }, [invitationToken, setValue]);
+  function handlePartnerChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const id = parseInt(e.target.value, 10);
+    const partner = partners.find(p => p.id === id) ?? null;
+    setSelectedPartner(partner);
+    setValue('partner_id', id, { shouldValidate: true });
+  }
 
   const onSubmit = async (data: RegisterFormData) => {
-    if (!invitationToken) {
-      setError('No invitation token found');
-      return;
-    }
-
     setError(null);
     try {
-      await registerUser({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        password_confirmation: data.password_confirmation,
-        invitation_token: invitationToken,
-      });
-      // Redirect to onboarding after successful registration
-      history.replace('/onboarding');
+      await registerUser(data);
+      history.replace('/verify-email');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     }
   };
 
-  // Show loading state while validating invitation
-  if (validatingInvitation) {
+  if (loadingPartners) {
     return (
       <div
         className="min-h-screen w-full flex items-center justify-center px-6"
@@ -95,45 +78,44 @@ export function RegisterPage() {
       >
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-primary)' }} />
-          <p style={{ color: 'var(--color-text-secondary)' }}>Validating invitation...</p>
+          <p style={{ color: 'var(--color-text-secondary)' }}>Loading partners...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state if invitation is invalid
-  if (invitationError || !invitation) {
+  if (partnersError) {
     return (
       <div
         className="min-h-screen w-full flex items-center justify-center px-6"
         style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
       >
         <div className="w-full max-w-md">
-          <div className="border rounded-3xl p-8 shadow-2xl"
-            style={{
-              backgroundColor: 'var(--color-bg-surface)',
-              borderColor: 'var(--color-border)'
-            }}
+          <div
+            className="border rounded-3xl p-8 shadow-2xl"
+            style={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}
           >
             <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl mb-6">
               <AlertCircle className="text-red-400 w-6 h-6 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-red-400 mb-1">Invalid Invitation</p>
-                <p className="text-xs text-red-400">{invitationError}</p>
+                <p className="text-sm font-semibold text-red-400 mb-1">Could not load partners</p>
+                <p className="text-xs text-red-400">{partnersError}</p>
               </div>
             </div>
             <button
-              onClick={() => history.push('/login')}
+              onClick={loadPartners}
               className="w-full py-3 rounded-xl font-semibold transition-all hover:shadow-lg"
               style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))', color: 'var(--color-text-button)' }}
             >
-              Go to Login
+              Try Again
             </button>
           </div>
         </div>
       </div>
     );
   }
+
+  const logoUrl = selectedPartner?.visual_identity?.logo ?? null;
 
   return (
     <div>
@@ -156,11 +138,10 @@ export function RegisterPage() {
         <div className="relative z-10 w-full max-w-md">
           {/* Logo and Header */}
           <div className="flex flex-col items-center mb-8">
-            {/* Partner Logo if available */}
-            {invitation.partner.visual_identity?.logo ? (
+            {logoUrl ? (
               <img
-                src={invitation.partner.visual_identity.logo}
-                alt={invitation.partner.name}
+                src={logoUrl}
+                alt={selectedPartner!.name}
                 className="w-20 h-20 object-contain mb-6 rounded-2xl"
               />
             ) : (
@@ -175,17 +156,16 @@ export function RegisterPage() {
               Create Your Account
             </h1>
             <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
-              Join {invitation.partner.name} and start your fitness journey
+              {selectedPartner
+                ? `Join ${selectedPartner.name} and start your fitness journey`
+                : 'Select your gym to get started'}
             </p>
           </div>
 
           {/* Registration Form */}
           <div
             className="border rounded-3xl p-8 shadow-2xl"
-            style={{
-              backgroundColor: 'var(--color-bg-surface)',
-              borderColor: 'var(--color-border)'
-            }}
+            style={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}
           >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Error Message */}
@@ -195,6 +175,44 @@ export function RegisterPage() {
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
               )}
+
+              {/* Partner selector */}
+              <div>
+                <label
+                  htmlFor="partner_id"
+                  className="text-sm font-semibold mb-2 block"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  Your Gym / Partner
+                </label>
+                <div className="relative">
+                  <select
+                    id="partner_id"
+                    onChange={handlePartnerChange}
+                    defaultValue=""
+                    className="w-full pl-4 pr-10 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all appearance-none"
+                    style={{
+                      backgroundColor: 'var(--color-bg-elevated)',
+                      borderColor: errors.partner_id ? '#f87171' : 'var(--color-border)',
+                      color: selectedPartner ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    <option value="" disabled>Select a partner...</option>
+                    {partners.map(p => (
+                      <option key={p.id} value={p.id} style={{ color: 'var(--color-text-primary)' }}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  />
+                </div>
+                {errors.partner_id && (
+                  <p className="text-xs text-red-400 mt-1">{errors.partner_id.message}</p>
+                )}
+              </div>
 
               {/* Name Field */}
               <div>
@@ -218,22 +236,14 @@ export function RegisterPage() {
                       borderColor: errors.name ? '#f87171' : 'var(--color-border)',
                       color: 'var(--color-text-primary)'
                     }}
-                    onFocus={(e) => {
-                      if (!errors.name) {
-                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (!errors.name) {
-                        e.currentTarget.style.borderColor = 'var(--color-border)';
-                      }
-                    }}
+                    onFocus={(e) => { if (!errors.name) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)'; }}
+                    onBlur={(e) => { if (!errors.name) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
                   />
                 </div>
                 {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
               </div>
 
-              {/* Email Field (readonly) */}
+              {/* Email Field */}
               <div>
                 <label
                   htmlFor="email"
@@ -248,18 +258,19 @@ export function RegisterPage() {
                     id="email"
                     type="email"
                     {...register('email')}
-                    readOnly
-                    className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none transition-all cursor-not-allowed opacity-75"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
                     style={{
                       backgroundColor: 'var(--color-bg-elevated)',
-                      borderColor: 'var(--color-border)',
+                      borderColor: errors.email ? '#f87171' : 'var(--color-border)',
                       color: 'var(--color-text-primary)'
                     }}
+                    onFocus={(e) => { if (!errors.email) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)'; }}
+                    onBlur={(e) => { if (!errors.email) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
                   />
                 </div>
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                  This email is from your invitation
-                </p>
+                {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
               </div>
 
               {/* Password Field */}
@@ -284,16 +295,8 @@ export function RegisterPage() {
                       borderColor: errors.password ? '#f87171' : 'var(--color-border)',
                       color: 'var(--color-text-primary)'
                     }}
-                    onFocus={(e) => {
-                      if (!errors.password) {
-                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (!errors.password) {
-                        e.currentTarget.style.borderColor = 'var(--color-border)';
-                      }
-                    }}
+                    onFocus={(e) => { if (!errors.password) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)'; }}
+                    onBlur={(e) => { if (!errors.password) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
                   />
                   <button
                     type="button"
@@ -301,11 +304,7 @@ export function RegisterPage() {
                     className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
                 {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
@@ -333,16 +332,8 @@ export function RegisterPage() {
                       borderColor: errors.password_confirmation ? '#f87171' : 'var(--color-border)',
                       color: 'var(--color-text-primary)'
                     }}
-                    onFocus={(e) => {
-                      if (!errors.password_confirmation) {
-                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (!errors.password_confirmation) {
-                        e.currentTarget.style.borderColor = 'var(--color-border)';
-                      }
-                    }}
+                    onFocus={(e) => { if (!errors.password_confirmation) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)'; }}
+                    onBlur={(e) => { if (!errors.password_confirmation) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
                   />
                   <button
                     type="button"
@@ -350,11 +341,7 @@ export function RegisterPage() {
                     className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
                 {errors.password_confirmation && <p className="text-xs text-red-400 mt-1">{errors.password_confirmation.message}</p>}

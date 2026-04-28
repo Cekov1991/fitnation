@@ -21,6 +21,7 @@ import type {
   MessageResponse,
   UserResource,
   ValidateInvitationResponse,
+  ActivePartnersResponse,
 } from './types/api';
 
 const getBaseUrl = () => getConfig().baseUrl
@@ -71,10 +72,11 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     }
   });
   if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: 'An error occurred'
-    }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    const data = await response.json().catch(() => ({ message: 'An error occurred' }));
+    const err: any = new Error(data.message || `HTTP error! status: ${response.status}`);
+    err.status = response.status;
+    err.errors = data.errors;
+    throw err;
   }
   return response.json();
 }
@@ -92,11 +94,16 @@ export const authApi = {
     email: string;
     password: string;
     password_confirmation: string;
-    invitation_token: string;
+    partner_id: number;
   }): Promise<AuthResponse> => {
     return fetchWithAuth('/register', {
       method: 'POST',
       body: JSON.stringify(data)
+    });
+  },
+  resendVerificationEmail: async (): Promise<MessageResponse> => {
+    return fetchWithAuth('/email/verification-notification', {
+      method: 'POST',
     });
   },
   login: async (email: string, password: string): Promise<AuthResponse> => {
@@ -140,6 +147,9 @@ export const authApi = {
 // ============================================================================
 
 export const partnersApi = {
+  getActivePartners: async (): Promise<ActivePartnersResponse> => {
+    return fetchPublic('/partners');
+  },
   getBrandingBySlug: async (slug: string) => {
     return fetchPublic(`/partners/${slug}/branding`);
   },

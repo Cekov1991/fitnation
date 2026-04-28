@@ -13,8 +13,9 @@ interface AuthContextType {
     email: string;
     password: string;
     password_confirmation: string;
-    invitation_token: string;
+    partner_id: number;
   }) => Promise<void>;
+  resendVerification: () => Promise<void>;
   refetchUser: () => Promise<void>;
 }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,7 +84,7 @@ export function AuthProvider({
     email: string;
     password: string;
     password_confirmation: string;
-    invitation_token: string;
+    partner_id: number;
   }) => {
     const storage = getAuthStorage()
     const response = await authApi.register(data);
@@ -96,6 +97,33 @@ export function AuthProvider({
       await storage.removeItem('partner-slug');
     }
   };
+
+  const resendVerification = async () => {
+    await authApi.resendVerificationEmail();
+  };
+  // Refresh user when tab becomes visible (so email_verified_at updates automatically)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const storage = getAuthStorage();
+      const token = await storage.getItem(AUTH_TOKEN_KEY);
+      if (!token) return;
+      try {
+        const response = await authApi.getCurrentUser();
+        setUser(response.user);
+        if (response.user.partner?.slug) {
+          await storage.setItem('partner-slug', response.user.partner.slug);
+        } else {
+          await storage.removeItem('partner-slug');
+        }
+      } catch {
+        // silent — protected route guards will handle expiry
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const refetchUser = async () => {
     const storage = getAuthStorage()
     const token = await storage.getItem(AUTH_TOKEN_KEY);
@@ -125,6 +153,7 @@ export function AuthProvider({
     login,
     logout,
     register,
+    resendVerification,
     refetchUser
   }}>
     {children}

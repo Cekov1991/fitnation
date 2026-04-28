@@ -1,11 +1,16 @@
 import './global.css'
 import { useEffect } from 'react'
-import { Alert } from 'react-native'
+import { Alert, AppState } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query'
 import * as Updates from 'expo-updates'
 import { initApi } from '@fit-nation/shared'
+
+// Wire React Query's focusManager to AppState so all queries refetch on foreground
+AppState.addEventListener('change', (state) => {
+  focusManager.setFocused(state === 'active')
+})
 import { ThemeProvider } from './src/context/ThemeContext'
 import { AuthProvider } from './src/context/AuthContext'
 import { RootNavigator } from './src/navigation/RootNavigator'
