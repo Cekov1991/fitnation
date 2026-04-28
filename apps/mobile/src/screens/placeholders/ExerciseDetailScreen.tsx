@@ -19,6 +19,7 @@ import { useExercises, useExerciseHistory } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { SpeechButton } from '../../components/ui/SpeechButton'
 import type { AppScreenProps } from '../../navigation/types'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -388,9 +389,12 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                 backgroundColor: colors.bgSurface,
               }}
             >
-              <Text className="text-lg font-bold mb-4" style={{ color: colors.textPrimary }}>
-                Instructions
-              </Text>
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
+                  Instructions
+                </Text>
+                <SpeechButton text={exercise?.description} />
+              </View>
               <Text
                 className="text-sm leading-6"
                 style={{ color: colors.textSecondary }}
