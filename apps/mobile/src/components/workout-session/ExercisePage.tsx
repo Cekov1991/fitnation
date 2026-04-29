@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useMemo, useEffect } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Plus } from 'lucide-react-native'
 import {
@@ -17,6 +17,7 @@ import { SetEditCard } from './SetEditCard'
 import { RestTimer } from './RestTimer'
 import { SetOptionsMenu } from './SetOptionsMenu'
 import { ExerciseOptionsMenu } from './ExerciseOptionsMenu'
+import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
 const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT']
@@ -251,7 +252,7 @@ function ExercisePageComponent({
   const handleRemoveFromMenu = useCallback(async () => {
     if (!activeSlot) return
     if (targetSets <= 1) {
-      Alert.alert('Cannot remove', 'Remove the exercise instead of the last set.')
+      showToast('Remove the exercise instead of the last set.', 'error')
       return
     }
     try {

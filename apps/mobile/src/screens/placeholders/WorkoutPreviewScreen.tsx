@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, TouchableOpacity, Alert, Modal, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { View, Text, TouchableOpacity, Modal, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -21,6 +21,7 @@ import {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
@@ -69,6 +70,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const [editMinReps, setEditMinReps] = useState('8')
   const [editMaxReps, setEditMaxReps] = useState('12')
   const [editWeight, setEditWeight] = useState('0')
+  const [cancelVisible, setCancelVisible] = useState(false)
 
   const handleConfirm = async () => {
     try {
@@ -97,22 +99,17 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
     }
   }
 
-  const handleCancel = async () => {
-    Alert.alert('Cancel Workout', 'Are you sure you want to cancel this workout?', [
-      { text: 'Keep it', style: 'cancel' },
-      {
-        text: 'Cancel Workout',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await cancelSession.mutateAsync(numericSessionId)
-            navigation.goBack()
-          } catch (error) {
-            console.error('Failed to cancel session:', error)
-          }
-        },
-      },
-    ])
+  const handleCancel = () => {
+    setCancelVisible(true)
+  }
+
+  const performCancel = async () => {
+    try {
+      await cancelSession.mutateAsync(numericSessionId)
+      navigation.goBack()
+    } catch (error) {
+      console.error('Failed to cancel session:', error)
+    }
   }
 
   const openEditModal = (exerciseDetail: SessionExerciseDetail) => {
@@ -515,6 +512,17 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      <ConfirmDialog
+        visible={cancelVisible}
+        onClose={() => setCancelVisible(false)}
+        title="Cancel Workout"
+        message="Are you sure you want to cancel this workout?"
+        confirmLabel="Cancel Workout"
+        cancelLabel="Keep it"
+        destructive
+        onConfirm={performCancel}
+      />
     </SafeAreaView>
   )
 }

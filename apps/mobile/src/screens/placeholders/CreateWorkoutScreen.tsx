@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,6 +10,7 @@ import { Button } from '../../components/ui/Button'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ArrowLeft, ChevronDown } from 'lucide-react-native'
 import { useState } from 'react'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 import type { PlanResource } from '@fit-nation/shared'
 
@@ -44,7 +45,7 @@ export function CreateWorkoutScreen({ navigation }: Props) {
 
   async function onSubmit(data: WorkoutFormData) {
     if (!planId) {
-      Alert.alert('Select a Plan', 'Please select a plan first.')
+      showToast('Please select a plan first.', 'error')
       return
     }
     try {
@@ -60,7 +61,7 @@ export function CreateWorkoutScreen({ navigation }: Props) {
         navigation.goBack()
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create workout')
+      showToast(e?.message || 'Failed to create workout', 'error')
     }
   }
 

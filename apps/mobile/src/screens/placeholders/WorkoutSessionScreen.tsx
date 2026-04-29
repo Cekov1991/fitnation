@@ -4,9 +4,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   StatusBar,
 } from 'react-native'
+import type { NavigationAction } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PagerView from 'react-native-pager-view'
 import { useSharedValue, useFrameCallback } from 'react-native-reanimated'
@@ -27,6 +27,8 @@ import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTab
 import { SessionClock } from '../../components/workout-session/SessionClock'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 import type { CompleteSessionResponse, SessionExerciseDetail } from '@fit-nation/shared'
 
@@ -44,6 +46,14 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const removeSessionExercise = useRemoveSessionExercise()
 
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  // Confirmation dialog state
+  const [backInterceptAction, setBackInterceptAction] = useState<NavigationAction | null>(null)
+  const [cancelVisible, setCancelVisible] = useState(false)
+  const [finishVisible, setFinishVisible] = useState(false)
+  const [removeExerciseVisible, setRemoveExerciseVisible] = useState(false)
+  const [removeExerciseName, setRemoveExerciseName] = useState<string>('')
+  const removeExerciseRefId = useRef<number | null>(null)
 
   // Clock driven on the UI thread — no setState every second.
   // SharedValue so both the JS thread and the UI-thread worklet can write to it safely.
@@ -63,27 +73,20 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       navigation.dispatch(data.action)
       return
     }
-    Alert.alert(
-      'Cancel Workout?',
-      'Are you sure you want to cancel this workout? Your progress will be lost.',
-      [
-        { text: 'Keep Going', style: 'cancel' },
-        {
-          text: 'Cancel Workout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelSession.mutateAsync(numericSessionId)
-              isCleanExitRef.current = true
-              navigation.dispatch(data.action)
-            } catch (error) {
-              console.error('Failed to cancel session:', error)
-            }
-          },
-        },
-      ]
-    )
+    setBackInterceptAction(data.action)
   })
+
+  const performCancelFromBackIntercept = async () => {
+    const action = backInterceptAction
+    if (!action) return
+    try {
+      await cancelSession.mutateAsync(numericSessionId)
+      isCleanExitRef.current = true
+      navigation.dispatch(action)
+    } catch (error) {
+      console.error('Failed to cancel session:', error)
+    }
+  }
 
   // Sync start time from server and correct clock on app foreground
   useEffect(() => {
@@ -149,78 +152,59 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     const current = currentExerciseRef.current
     if (!current) return
     if (exerciseCountRef.current <= 1) {
-      Alert.alert('Cannot remove', 'The workout needs at least one exercise.')
+      showToast('The workout needs at least one exercise.', 'error')
       return
     }
-    Alert.alert(
-      'Remove Exercise?',
-      `Remove "${current.session_exercise.exercise?.name ?? 'this exercise'}" from the workout?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeSessionExerciseRef.current.mutateAsync({
-                sessionId: numericSessionId,
-                exerciseId: current.session_exercise.id,
-              })
-            } catch (error) {
-              console.error('Failed to remove exercise:', error)
-            }
-          },
-        },
-      ]
-    )
-  }, [numericSessionId])
+    removeExerciseRefId.current = current.session_exercise.id
+    setRemoveExerciseName(current.session_exercise.exercise?.name ?? 'this exercise')
+    setRemoveExerciseVisible(true)
+  }, [])
+
+  const performRemoveExercise = async () => {
+    const exerciseId = removeExerciseRefId.current
+    if (exerciseId == null) return
+    try {
+      await removeSessionExerciseRef.current.mutateAsync({
+        sessionId: numericSessionId,
+        exerciseId,
+      })
+    } catch (error) {
+      console.error('Failed to remove exercise:', error)
+    }
+  }
   // ──────────────────────────────────────────────────────────────────────────
 
   const handleFinish = useCallback(() => {
-    Alert.alert('Finish Workout?', 'Are you sure you want to end this session?', [
-      { text: 'Keep Going', style: 'cancel' },
-      {
-        text: 'Finish',
-        style: 'default',
-        onPress: async () => {
-          try {
-            const result: CompleteSessionResponse = await completeSession.mutateAsync({ sessionId: numericSessionId })
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-            isCleanExitRef.current = true
-            navigation.replace('WorkoutSummary', {
-              sessionId,
-              newPrs: result.new_prs ?? [],
-            })
-          } catch (error) {
-            console.error('Failed to complete session:', error)
-          }
-        },
-      },
-    ])
-  }, [completeSession, numericSessionId, navigation, sessionId])
+    setFinishVisible(true)
+  }, [])
+
+  const performFinish = async () => {
+    try {
+      const result: CompleteSessionResponse = await completeSession.mutateAsync({ sessionId: numericSessionId })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      isCleanExitRef.current = true
+      navigation.replace('WorkoutSummary', {
+        sessionId,
+        newPrs: result.new_prs ?? [],
+      })
+    } catch (error) {
+      console.error('Failed to complete session:', error)
+    }
+  }
 
   const handleCancel = useCallback(() => {
-    Alert.alert(
-      'Cancel Workout?',
-      'Are you sure you want to cancel this workout? Your progress will be lost.',
-      [
-        { text: 'Keep Going', style: 'cancel' },
-        {
-          text: 'Cancel Workout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelSession.mutateAsync(numericSessionId)
-              isCleanExitRef.current = true
-              navigation.goBack()
-            } catch (error) {
-              console.error('Failed to cancel session:', error)
-            }
-          },
-        },
-      ]
-    )
-  }, [cancelSession, numericSessionId, navigation])
+    setCancelVisible(true)
+  }, [])
+
+  const performCancel = async () => {
+    try {
+      await cancelSession.mutateAsync(numericSessionId)
+      isCleanExitRef.current = true
+      navigation.goBack()
+    } catch (error) {
+      console.error('Failed to cancel session:', error)
+    }
+  }
 
   const handleAddExercise = useCallback(() => {
     navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })
@@ -422,6 +406,48 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           </SafeAreaView>
         )}
       </SafeAreaView>
+
+      <ConfirmDialog
+        visible={!!backInterceptAction}
+        onClose={() => setBackInterceptAction(null)}
+        title="Cancel Workout?"
+        message="Are you sure you want to cancel this workout? Your progress will be lost."
+        confirmLabel="Cancel Workout"
+        cancelLabel="Keep Going"
+        destructive
+        onConfirm={performCancelFromBackIntercept}
+      />
+
+      <ConfirmDialog
+        visible={cancelVisible}
+        onClose={() => setCancelVisible(false)}
+        title="Cancel Workout?"
+        message="Are you sure you want to cancel this workout? Your progress will be lost."
+        confirmLabel="Cancel Workout"
+        cancelLabel="Keep Going"
+        destructive
+        onConfirm={performCancel}
+      />
+
+      <ConfirmDialog
+        visible={finishVisible}
+        onClose={() => setFinishVisible(false)}
+        title="Finish Workout?"
+        message="Are you sure you want to end this session?"
+        confirmLabel="Finish"
+        cancelLabel="Keep Going"
+        onConfirm={performFinish}
+      />
+
+      <ConfirmDialog
+        visible={removeExerciseVisible}
+        onClose={() => setRemoveExerciseVisible(false)}
+        title="Remove Exercise?"
+        message={`Remove "${removeExerciseName}" from the workout?`}
+        confirmLabel="Remove"
+        destructive
+        onConfirm={performRemoveExercise}
+      />
     </View>
   )
 }

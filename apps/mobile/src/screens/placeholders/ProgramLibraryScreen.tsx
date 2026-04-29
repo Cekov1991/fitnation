@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Pressable } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Modal, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '@fit-nation/shared'
 import type { LibraryProgramResource } from '@fit-nation/shared'
@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ArrowLeft, Calendar, Info, Dumbbell } from 'lucide-react-native'
 import { Image } from 'expo-image'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 type Props = AppScreenProps<'ProgramLibrary'>
@@ -31,7 +32,7 @@ export function ProgramLibraryScreen({ navigation }: Props) {
         navigation.goBack()
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to start program')
+      showToast(e?.message || 'Failed to start program', 'error')
     } finally {
       setIsCloning(false)
     }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useBrowsableRoutine, useStartSession, useTodayWorkout, formatRepRange } from '@fit-nation/shared'
 import type { TemplateExercise, WorkoutTemplateResource } from '@fit-nation/shared'
@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ArrowLeft, ChevronRight } from 'lucide-react-native'
 import { Image } from 'expo-image'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 type Props = AppScreenProps<'RoutineWorkoutDetail'>
@@ -36,7 +37,7 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
         navigation.navigate('WorkoutSession', { sessionId: String(session.id) })
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to start workout')
+      showToast(e?.message || 'Failed to start workout', 'error')
     }
   }
 

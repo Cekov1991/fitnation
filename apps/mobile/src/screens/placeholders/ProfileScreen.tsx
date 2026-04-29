@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ScrollView,
   View,
@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
@@ -35,6 +34,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { showToast } from '../../lib/toast'
 
 const DURATION_OPTIONS = [
   { label: '20-30 min', value: 30 },
@@ -114,6 +115,7 @@ export function ProfileScreen() {
   const { logout } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
+  const [logoutVisible, setLogoutVisible] = useState(false)
 
   const {
     control,
@@ -168,27 +170,22 @@ export function ProfileScreen() {
         training_days_per_week: data.training_days_per_week ?? undefined,
         workout_duration_minutes: data.workout_duration_minutes ?? undefined,
       })
-      Alert.alert('Saved', 'Your profile has been updated.')
+      showToast('Your profile has been updated.', 'success')
     } catch (e) {
-      Alert.alert('Error', 'Failed to save profile. Please try again.')
+      showToast('Failed to save profile. Please try again.', 'error')
     }
   }
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await logout()
-          } catch (e) {
-            console.error('Logout error', e)
-          }
-        },
-      },
-    ])
+    setLogoutVisible(true)
+  }
+
+  const performLogout = async () => {
+    try {
+      await logout()
+    } catch (e) {
+      console.error('Logout error', e)
+    }
   }
 
   if (isLoading) {
@@ -646,6 +643,16 @@ export function ProfileScreen() {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ConfirmDialog
+        visible={logoutVisible}
+        onClose={() => setLogoutVisible(false)}
+        title="Log Out"
+        message="Are you sure you want to log out?"
+        confirmLabel="Log Out"
+        destructive
+        onConfirm={performLogout}
+      />
     </SafeAreaView>
   )
 }

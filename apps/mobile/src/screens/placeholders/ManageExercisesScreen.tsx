@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { View, Text, TouchableOpacity, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { View, Text, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist'
 import type { RenderItemParams } from 'react-native-draggable-flatlist'
@@ -17,8 +17,10 @@ import {
 import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { Image } from 'expo-image'
 import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Play, Plus, Trash2 } from 'lucide-react-native'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 interface ExerciseItem {
@@ -54,6 +56,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   const [editMinReps, setEditMinReps] = useState('8')
   const [editMaxReps, setEditMaxReps] = useState('12')
   const [editWeight, setEditWeight] = useState('0')
+  const [removeItem, setRemoveItem] = useState<ExerciseItem | null>(null)
 
   const exercisesFromTemplate = useMemo<ExerciseItem[]>(() => {
     if (!template?.exercises) return []
@@ -107,24 +110,16 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   }
 
   function confirmRemove(item: ExerciseItem) {
-    Alert.alert(
-      'Remove Exercise',
-      `Remove "${item.name}" from this workout?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeExercise.mutateAsync({ templateId, pivotId: item.pivotId })
-            } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Failed to remove exercise')
-            }
-          },
-        },
-      ]
-    )
+    setRemoveItem(item)
+  }
+
+  async function performRemove() {
+    if (!removeItem) return
+    try {
+      await removeExercise.mutateAsync({ templateId, pivotId: removeItem.pivotId })
+    } catch (e: any) {
+      showToast(e?.message || 'Failed to remove exercise', 'error')
+    }
   }
 
   async function swipeRemove(item: ExerciseItem) {
@@ -132,7 +127,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
       await removeExercise.mutateAsync({ templateId, pivotId: item.pivotId })
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to remove exercise')
+      showToast(e?.message || 'Failed to remove exercise', 'error')
     }
   }
 
@@ -160,7 +155,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
       })
       setShowEditModal(false)
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to update exercise')
+      showToast(e?.message || 'Failed to update exercise', 'error')
     }
   }
 
@@ -176,7 +171,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
         }
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to start workout')
+      showToast(e?.message || 'Failed to start workout', 'error')
     }
   }
 
@@ -487,6 +482,20 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      <ConfirmDialog
+        visible={!!removeItem}
+        onClose={() => setRemoveItem(null)}
+        title="Remove Exercise"
+        message={
+          removeItem
+            ? `Remove "${removeItem.name}" from this workout?`
+            : ''
+        }
+        confirmLabel="Remove"
+        destructive
+        onConfirm={performRemove}
+      />
     </SafeAreaView>
   )
 }

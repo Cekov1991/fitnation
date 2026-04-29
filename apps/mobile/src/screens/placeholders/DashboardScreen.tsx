@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -51,6 +50,7 @@ import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwi
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { WorkoutCard } from '../../components/ui/WorkoutCard'
 import { WorkoutTemplateSelector } from '../../components/ui/WorkoutTemplateSelector'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 
 import type { AppStackParamList } from '../../navigation/types'
 
@@ -89,6 +89,7 @@ export function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [refreshDialogVisible, setRefreshDialogVisible] = useState(false)
 
   const { data: todayWorkout } = useTodayWorkout()
   const hasNavigated = useRef(false)
@@ -264,14 +265,7 @@ export function DashboardScreen() {
       executeRegenerate()
       return
     }
-    Alert.alert(
-      'Refresh personalized plan?',
-      'Your current plan has completed workouts. Refreshing will create a new plan and you will start from scratch.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Refresh Plan', style: 'destructive', onPress: executeRegenerate },
-      ],
-    )
+    setRefreshDialogVisible(true)
   }
 
   const handleStartSelectedWorkout = async () => {
@@ -1011,6 +1005,16 @@ export function DashboardScreen() {
           </>
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={refreshDialogVisible}
+        onClose={() => setRefreshDialogVisible(false)}
+        title="Refresh personalized plan?"
+        message="Your current plan has completed workouts. Refreshing will create a new plan and you will start from scratch."
+        confirmLabel="Refresh Plan"
+        destructive
+        onConfirm={executeRegenerate}
+      />
     </SafeAreaView>
   )
 }

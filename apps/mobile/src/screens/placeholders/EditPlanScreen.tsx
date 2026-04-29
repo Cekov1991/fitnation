@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,7 +9,9 @@ import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ArrowLeft, Trash2 } from 'lucide-react-native'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 type Props = AppScreenProps<'EditPlan'>
@@ -20,6 +22,7 @@ export function EditPlanScreen({ route, navigation }: Props) {
   const { data: plan, isLoading } = usePlan(planId)
   const updatePlan = useUpdatePlan()
   const deletePlan = useDeletePlan()
+  const [deleteVisible, setDeleteVisible] = useState(false)
 
   const {
     control,
@@ -53,30 +56,17 @@ export function EditPlanScreen({ route, navigation }: Props) {
       })
       navigation.goBack()
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to save plan')
+      showToast(e?.message || 'Failed to save plan', 'error')
     }
   }
 
-  function confirmDelete() {
-    Alert.alert(
-      'Delete Plan',
-      `Are you sure you want to delete "${plan?.name}"? This will also delete all workouts in this plan.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePlan.mutateAsync(planId)
-              navigation.goBack()
-            } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Failed to delete plan')
-            }
-          },
-        },
-      ]
-    )
+  async function performDelete() {
+    try {
+      await deletePlan.mutateAsync(planId)
+      navigation.goBack()
+    } catch (e: any) {
+      showToast(e?.message || 'Failed to delete plan', 'error')
+    }
   }
 
   return (
@@ -166,7 +156,7 @@ export function EditPlanScreen({ route, navigation }: Props) {
 
             {/* Delete Plan */}
             <TouchableOpacity
-              onPress={confirmDelete}
+              onPress={() => setDeleteVisible(true)}
               className="flex-row items-center justify-center gap-2 mt-4 py-4 rounded-2xl"
               style={{ backgroundColor: `${colors.error}15` }}
             >
@@ -178,6 +168,16 @@ export function EditPlanScreen({ route, navigation }: Props) {
           </>
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={deleteVisible}
+        onClose={() => setDeleteVisible(false)}
+        title="Delete Plan"
+        message={`Are you sure you want to delete "${plan?.name}"? This will also delete all workouts in this plan.`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={performDelete}
+      />
     </SafeAreaView>
   )
 }

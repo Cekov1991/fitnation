@@ -4,9 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
-  ActionSheetIOS,
-  Platform,
   StyleSheet,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -36,6 +33,8 @@ import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { GradientText } from '../../components/ui/GradientText'
 import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwitcher'
+import { ActionSheet } from '../../components/ui/ActionSheet'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { AppStackParamList } from '../../navigation/types'
 
@@ -45,6 +44,12 @@ export function PlansScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation<Nav>()
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
+  const [planSheet, setPlanSheet] = useState<PlanResource | null>(null)
+  const [workoutSheet, setWorkoutSheet] = useState<WorkoutTemplateResource | null>(null)
+  const [programSheet, setProgramSheet] = useState<ProgramResource | null>(null)
+  const [planToDelete, setPlanToDelete] = useState<PlanResource | null>(null)
+  const [workoutToDelete, setWorkoutToDelete] = useState<WorkoutTemplateResource | null>(null)
+  const [programToDelete, setProgramToDelete] = useState<ProgramResource | null>(null)
 
   // ── Data ──
   const { data: plans = [], isLoading: isPlansLoading } = usePlans()
@@ -125,46 +130,20 @@ export function PlansScreen() {
     }
   }
 
-  const confirmDeletePlan = (plan: PlanResource) => {
-    Alert.alert(
-      'Delete Plan',
-      `Are you sure you want to delete "${plan.name}"? This will also delete all workouts in this plan. This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePlan.mutateAsync(plan.id)
-            } catch (e) {
-              console.error('Delete plan failed', e)
-            }
-          },
-        },
-      ],
-    )
+  const handleDeletePlan = async (plan: PlanResource) => {
+    try {
+      await deletePlan.mutateAsync(plan.id)
+    } catch (e) {
+      console.error('Delete plan failed', e)
+    }
   }
 
-  const confirmDeleteWorkout = (template: WorkoutTemplateResource) => {
-    Alert.alert(
-      'Delete Workout',
-      `Are you sure you want to delete "${template.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteTemplate.mutateAsync(template.id)
-            } catch (e) {
-              console.error('Delete workout failed', e)
-            }
-          },
-        },
-      ],
-    )
+  const handleDeleteWorkout = async (template: WorkoutTemplateResource) => {
+    try {
+      await deleteTemplate.mutateAsync(template.id)
+    } catch (e) {
+      console.error('Delete workout failed', e)
+    }
   }
 
   const handleToggleProgramActive = async (program: ProgramResource) => {
@@ -178,121 +157,79 @@ export function PlansScreen() {
     }
   }
 
-  const confirmDeleteProgram = (program: ProgramResource) => {
-    Alert.alert(
-      'Delete Program',
-      `Are you sure you want to delete "${program.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteProgram.mutateAsync(program.id)
-            } catch (e) {
-              console.error('Delete program failed', e)
-            }
-          },
-        },
-      ],
-    )
+  const handleDeleteProgram = async (program: ProgramResource) => {
+    try {
+      await deleteProgram.mutateAsync(program.id)
+    } catch (e) {
+      console.error('Delete program failed', e)
+    }
   }
 
-  const showPlanActionSheet = (plan: PlanResource) => {
-    const options = [
-      plan.is_active ? 'Deactivate' : 'Set as Active',
-      'Edit Plan',
-      'Add Workout',
-      'Delete Plan',
-      'Cancel',
+  const planSheetActions = useMemo(() => {
+    if (!planSheet) return []
+    return [
+      {
+        label: planSheet.is_active ? 'Deactivate' : 'Set as Active',
+        onPress: () => handleTogglePlanActive(planSheet),
+      },
+      {
+        label: 'Edit Plan',
+        onPress: () => navigation.navigate('EditPlan', { planId: planSheet.id }),
+      },
+      {
+        label: 'Add Workout',
+        onPress: () => navigation.navigate('CreateWorkout'),
+      },
+      {
+        label: 'Delete Plan',
+        destructive: true,
+        onPress: () => setPlanToDelete(planSheet),
+      },
     ]
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, destructiveButtonIndex: 3, cancelButtonIndex: 4, title: plan.name },
-        (idx) => {
-          if (idx === 0) handleTogglePlanActive(plan)
-          else if (idx === 1) navigation.navigate('EditPlan', { planId: plan.id })
-          else if (idx === 2) navigation.navigate('CreateWorkout')
-          else if (idx === 3) confirmDeletePlan(plan)
-        },
-      )
-    } else {
-      Alert.alert(plan.name, 'Choose an action', [
-        {
-          text: plan.is_active ? 'Deactivate' : 'Set as Active',
-          onPress: () => handleTogglePlanActive(plan),
-        },
-        { text: 'Edit Plan', onPress: () => navigation.navigate('EditPlan', { planId: plan.id }) },
-        { text: 'Add Workout', onPress: () => navigation.navigate('CreateWorkout') },
-        { text: 'Delete Plan', style: 'destructive', onPress: () => confirmDeletePlan(plan) },
-        { text: 'Cancel', style: 'cancel' },
-      ])
-    }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planSheet])
 
-  const showWorkoutActionSheet = (template: WorkoutTemplateResource) => {
-    const options = ['Start Workout', 'Manage Exercises', 'Edit Workout', 'Delete Workout', 'Cancel']
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, destructiveButtonIndex: 3, cancelButtonIndex: 4, title: template.name },
-        (idx) => {
-          if (idx === 0) handleStartWorkout(template.id)
-          else if (idx === 1) navigation.navigate('ManageExercises', { templateId: template.id })
-          else if (idx === 2) navigation.navigate('EditWorkout', { templateId: template.id })
-          else if (idx === 3) confirmDeleteWorkout(template)
-        },
-      )
-    } else {
-      Alert.alert(template.name, 'Choose an action', [
-        { text: 'Start Workout', onPress: () => handleStartWorkout(template.id) },
-        {
-          text: 'Manage Exercises',
-          onPress: () => navigation.navigate('ManageExercises', { templateId: template.id }),
-        },
-        {
-          text: 'Edit Workout',
-          onPress: () => navigation.navigate('EditWorkout', { templateId: template.id }),
-        },
-        {
-          text: 'Delete Workout',
-          style: 'destructive',
-          onPress: () => confirmDeleteWorkout(template),
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ])
-    }
-  }
-
-  const showProgramActionSheet = (program: ProgramResource) => {
-    const options = [
-      program.is_active ? 'Deactivate' : 'Set as Active',
-      'Delete Program',
-      'Cancel',
+  const workoutSheetActions = useMemo(() => {
+    if (!workoutSheet) return []
+    return [
+      {
+        label: 'Start Workout',
+        onPress: () => handleStartWorkout(workoutSheet.id),
+      },
+      {
+        label: 'Manage Exercises',
+        onPress: () =>
+          navigation.navigate('ManageExercises', { templateId: workoutSheet.id }),
+      },
+      {
+        label: 'Edit Workout',
+        onPress: () =>
+          navigation.navigate('EditWorkout', { templateId: workoutSheet.id }),
+      },
+      {
+        label: 'Delete Workout',
+        destructive: true,
+        onPress: () => setWorkoutToDelete(workoutSheet),
+      },
     ]
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, destructiveButtonIndex: 1, cancelButtonIndex: 2, title: program.name },
-        (idx) => {
-          if (idx === 0) handleToggleProgramActive(program)
-          else if (idx === 1) confirmDeleteProgram(program)
-        },
-      )
-    } else {
-      Alert.alert(program.name, 'Choose an action', [
-        {
-          text: program.is_active ? 'Deactivate' : 'Set as Active',
-          onPress: () => handleToggleProgramActive(program),
-        },
-        {
-          text: 'Delete Program',
-          style: 'destructive',
-          onPress: () => confirmDeleteProgram(program),
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ])
-    }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutSheet])
+
+  const programSheetActions = useMemo(() => {
+    if (!programSheet) return []
+    return [
+      {
+        label: programSheet.is_active ? 'Deactivate' : 'Set as Active',
+        onPress: () => handleToggleProgramActive(programSheet),
+      },
+      {
+        label: 'Delete Program',
+        destructive: true,
+        onPress: () => setProgramToDelete(programSheet),
+      },
+    ]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programSheet])
 
   // ── Render: workout row ──
   const renderWorkoutRow = (template: WorkoutTemplateResource) => (
@@ -313,7 +250,7 @@ export function PlansScreen() {
         </Text>
       </View>
       <TouchableOpacity
-        onPress={() => showWorkoutActionSheet(template)}
+        onPress={() => setWorkoutSheet(template)}
         style={[styles.moreBtn, { backgroundColor: colors.bgSurface }]}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
@@ -358,7 +295,7 @@ export function PlansScreen() {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => showProgramActionSheet(program)}
+              onPress={() => setProgramSheet(program)}
               style={[styles.moreBtn, { backgroundColor: colors.bgBase }]}
             >
               <MoreVertical size={18} color={colors.textSecondary} />
@@ -465,7 +402,7 @@ export function PlansScreen() {
                           ) : null}
                         </View>
                         <TouchableOpacity
-                          onPress={() => showPlanActionSheet(activePlan)}
+                          onPress={() => setPlanSheet(activePlan)}
                           style={[styles.moreBtn, { backgroundColor: colors.bgBase }]}
                         >
                           <MoreVertical size={18} color={colors.textSecondary} />
@@ -532,7 +469,7 @@ export function PlansScreen() {
                             {plan.name}
                           </Text>
                           <TouchableOpacity
-                            onPress={() => showPlanActionSheet(plan)}
+                            onPress={() => setPlanSheet(plan)}
                             style={[styles.moreBtn, { backgroundColor: colors.bgElevated }]}
                           >
                             <MoreVertical size={18} color={colors.textSecondary} />
@@ -621,6 +558,78 @@ export function PlansScreen() {
             )}
           </>
         )}
+
+        {/* Plan action sheet */}
+        <ActionSheet
+          visible={!!planSheet}
+          onClose={() => setPlanSheet(null)}
+          title={planSheet?.name}
+          message="Choose an action"
+          actions={planSheetActions}
+        />
+
+        {/* Workout action sheet */}
+        <ActionSheet
+          visible={!!workoutSheet}
+          onClose={() => setWorkoutSheet(null)}
+          title={workoutSheet?.name}
+          message="Choose an action"
+          actions={workoutSheetActions}
+        />
+
+        {/* Program action sheet */}
+        <ActionSheet
+          visible={!!programSheet}
+          onClose={() => setProgramSheet(null)}
+          title={programSheet?.name}
+          message="Choose an action"
+          actions={programSheetActions}
+        />
+
+        {/* Delete plan confirmation */}
+        <ConfirmDialog
+          visible={!!planToDelete}
+          onClose={() => setPlanToDelete(null)}
+          title="Delete Plan"
+          message={
+            planToDelete
+              ? `Are you sure you want to delete "${planToDelete.name}"? This will also delete all workouts in this plan. This action cannot be undone.`
+              : ''
+          }
+          confirmLabel="Delete"
+          destructive
+          onConfirm={() => planToDelete && handleDeletePlan(planToDelete)}
+        />
+
+        {/* Delete workout confirmation */}
+        <ConfirmDialog
+          visible={!!workoutToDelete}
+          onClose={() => setWorkoutToDelete(null)}
+          title="Delete Workout"
+          message={
+            workoutToDelete
+              ? `Are you sure you want to delete "${workoutToDelete.name}"? This action cannot be undone.`
+              : ''
+          }
+          confirmLabel="Delete"
+          destructive
+          onConfirm={() => workoutToDelete && handleDeleteWorkout(workoutToDelete)}
+        />
+
+        {/* Delete program confirmation */}
+        <ConfirmDialog
+          visible={!!programToDelete}
+          onClose={() => setProgramToDelete(null)}
+          title="Delete Program"
+          message={
+            programToDelete
+              ? `Are you sure you want to delete "${programToDelete.name}"? This action cannot be undone.`
+              : ''
+          }
+          confirmLabel="Delete"
+          destructive
+          onConfirm={() => programToDelete && handleDeleteProgram(programToDelete)}
+        />
 
         {/* ── Programs Tab ── */}
         {effectiveTab === 'programs' && (

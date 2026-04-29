@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useDebounce } from '../../hooks/useDebounce'
-import { View, Text, TextInput, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
 import { Search, X, Plus, ArrowUpDown, Dumbbell } from 'lucide-react-native'
@@ -17,6 +17,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
 import { FilterChips } from '../../components/exercises/FilterChips'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 import type { ExerciseResource } from '@fit-nation/shared'
 
@@ -76,7 +77,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
       }
       navigation.goBack()
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to swap exercise')
+      showToast(e?.message || 'Failed to swap exercise', 'error')
       setActionId(null)
     }
   }
@@ -240,7 +241,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
                           })
                           navigation.goBack()
                         } catch (e: any) {
-                          Alert.alert('Error', e?.message || 'Failed to add exercise')
+                          showToast(e?.message || 'Failed to add exercise', 'error')
                           setActionId(null)
                         }
                       }}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,7 +9,9 @@ import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ArrowLeft, Trash2, Settings2 } from 'lucide-react-native'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 const workoutFormSchema = z.object({
@@ -26,6 +28,7 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
   const { data: template, isLoading } = useTemplate(templateId)
   const updateTemplate = useUpdateTemplate()
   const deleteTemplate = useDeleteTemplate()
+  const [deleteVisible, setDeleteVisible] = useState(false)
 
   const {
     control,
@@ -54,30 +57,17 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
       })
       navigation.goBack()
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to save workout')
+      showToast(e?.message || 'Failed to save workout', 'error')
     }
   }
 
-  function confirmDelete() {
-    Alert.alert(
-      'Delete Workout',
-      `Are you sure you want to delete "${template?.name}"? This cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteTemplate.mutateAsync(templateId)
-              navigation.goBack()
-            } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Failed to delete workout')
-            }
-          },
-        },
-      ]
-    )
+  async function performDelete() {
+    try {
+      await deleteTemplate.mutateAsync(templateId)
+      navigation.goBack()
+    } catch (e: any) {
+      showToast(e?.message || 'Failed to delete workout', 'error')
+    }
   }
 
   return (
@@ -145,7 +135,7 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
 
             {/* Delete Workout */}
             <TouchableOpacity
-              onPress={confirmDelete}
+              onPress={() => setDeleteVisible(true)}
               className="flex-row items-center justify-center gap-2 mt-3 py-4 rounded-2xl"
               style={{ backgroundColor: `${colors.error}15` }}
             >
@@ -157,6 +147,16 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
           </>
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={deleteVisible}
+        onClose={() => setDeleteVisible(false)}
+        title="Delete Workout"
+        message={`Are you sure you want to delete "${template?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={performDelete}
+      />
     </SafeAreaView>
   )
 }

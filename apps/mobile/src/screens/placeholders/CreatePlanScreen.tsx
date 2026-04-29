@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,6 +9,7 @@ import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
 import { ArrowLeft } from 'lucide-react-native'
 import { GradientText } from '../../components/ui/GradientText'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 type Props = AppScreenProps<'CreatePlan'>
@@ -39,7 +40,7 @@ export function CreatePlanScreen({ navigation }: Props) {
       })
       navigation.navigate('Tabs', { screen: 'Plans' })
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create plan')
+      showToast(e?.message || 'Failed to create plan', 'error')
     }
   }
 
