@@ -117,7 +117,7 @@ interface ActionSheetProps {
 export function ActionSheet({ visible, onClose, title, actions }: ActionSheetProps) {
   const { colors } = useTheme()
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose}>
         <View className="rounded-t-3xl p-6" style={{ backgroundColor: colors.bgSurface }}>
           {title && (
