@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 20,
-    paddingTop: 4,
+    paddingTop: 8,
     paddingBottom: 4,
   },
 
@@ -160,7 +160,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 18,
