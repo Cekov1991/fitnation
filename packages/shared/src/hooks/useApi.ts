@@ -9,10 +9,12 @@ import type {
   UpdateTemplateInput,
   AddTemplateExerciseInput,
   UpdateTemplateExerciseInput,
+  SwapTemplateExerciseInput,
   LogSetInput,
   UpdateSetInput,
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
+  SwapSessionExerciseInput,
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
@@ -452,6 +454,25 @@ export function useUpdateTemplateExercise() {
       queryClient.invalidateQueries({
         queryKey: ['programs']
       });
+    }
+  });
+}
+export function useSwapTemplateExercise() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      templateId,
+      pivotId,
+      data
+    }: {
+      templateId: number;
+      pivotId: number;
+      data: SwapTemplateExerciseInput;
+    }) => templatesApi.swapExercise(templateId, pivotId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templates', variables.templateId] });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
+      queryClient.invalidateQueries({ queryKey: ['programs'] });
     }
   });
 }
@@ -1037,6 +1058,23 @@ export function useUpdateSessionExercise() {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]
       });
+    }
+  });
+}
+export function useSwapSessionExercise() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      exerciseId,
+      data
+    }: {
+      sessionId: number;
+      exerciseId: number;
+      data: SwapSessionExerciseInput;
+    }) => sessionsApi.swapSessionExercise(sessionId, exerciseId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['sessions', variables.sessionId] });
     }
   });
 }

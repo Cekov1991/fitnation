@@ -10,10 +10,12 @@ import type {
   UpdateTemplateInput,
   AddTemplateExerciseInput,
   UpdateTemplateExerciseInput,
+  SwapTemplateExerciseInput,
   LogSetInput,
   UpdateSetInput,
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
+  SwapSessionExerciseInput,
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
@@ -459,6 +461,12 @@ export const templatesApi = {
       body: JSON.stringify(data)
     });
   },
+  swapExercise: async (templateId: number, pivotId: number, data: SwapTemplateExerciseInput) => {
+    return fetchWithAuth(`/workout-templates/${templateId}/exercises/${pivotId}/swap`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    });
+  },
   removeExercise: async (templateId: number, pivotId: number) => {
     return fetchWithAuth(`/workout-templates/${templateId}/exercises/${pivotId}`, {
       method: 'DELETE'
@@ -581,6 +589,12 @@ export const sessionsApi = {
   updateSessionExercise: async (sessionId: number, exerciseId: number, data: UpdateSessionExerciseInput) => {
     return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/${exerciseId}`, {
       method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  swapSessionExercise: async (sessionId: number, exerciseId: number, data: SwapSessionExerciseInput) => {
+    return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/${exerciseId}/swap`, {
+      method: 'PATCH',
       body: JSON.stringify(data)
     });
   },

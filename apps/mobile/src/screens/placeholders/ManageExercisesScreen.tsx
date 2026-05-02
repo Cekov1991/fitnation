@@ -83,18 +83,10 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   }, [exercisesFromTemplate])
 
   function handleSwapExercise(item: ExerciseItem) {
-    const orderIndex = exercises.findIndex(ex => ex.pivotId === item.pivotId)
     navigation.navigate('ExercisePicker', {
       templateId,
       swapPivotId: item.pivotId,
-      swapOrderIndex: orderIndex >= 0 ? orderIndex : 0,
       swapMuscleGroupId: item.muscleGroupId ?? undefined,
-      pivotData: {
-        target_sets: item.sets,
-        min_target_reps: item.minReps,
-        max_target_reps: item.maxReps,
-        target_weight: parseFloat(item.weight) || 0,
-      },
     })
   }
 
