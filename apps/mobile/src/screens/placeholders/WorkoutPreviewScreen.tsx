@@ -415,6 +415,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                         drag()
                       }}
+                      delayLongPress={200}
                       className="p-2"
                     >
                       <GripVertical size={20} color={colors.textMuted} />
