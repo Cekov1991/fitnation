@@ -1,9 +1,13 @@
 import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { X, type LucideIcon } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 
-interface Action {
+export interface Action {
   label: string
+  description?: string
+  icon?: LucideIcon
+  iconColor?: string
   onPress: () => void
   destructive?: boolean
 }
@@ -12,7 +16,6 @@ interface ActionSheetProps {
   visible: boolean
   onClose: () => void
   title?: string
-  message?: string
   actions: Action[]
 }
 
@@ -20,114 +23,114 @@ export function ActionSheet({
   visible,
   onClose,
   title,
-  message,
   actions,
 }: ActionSheetProps) {
   const { colors } = useTheme()
-
-  const hasHeader = !!title || !!message
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <SafeAreaView edges={['bottom']}>
           <Pressable onPress={() => {}} style={styles.container}>
-            {/* Main card */}
-            <View style={[styles.card, { backgroundColor: colors.bgSurface }]}>
-              {/* Drag handle */}
-              <View
-                style={[styles.handle, { backgroundColor: colors.textMuted }]}
-              />
-
-              {/* Header (title + message) */}
-              {hasHeader && (
-                <>
-                  <View style={styles.headerSection}>
-                    {!!title && (
-                      <Text
-                        style={[styles.title, { color: colors.textPrimary }]}
-                      >
-                        {title}
-                      </Text>
-                    )}
-                    {!!message && (
-                      <Text
-                        style={[
-                          styles.message,
-                          { color: colors.textSecondary },
-                        ]}
-                      >
-                        {message}
-                      </Text>
-                    )}
-                  </View>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: colors.bgElevated },
-                    ]}
-                  />
-                </>
+            <View style={[styles.card, { backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border }]}>
+              {/* Header row — title left, X button right */}
+              {!!title && (
+                <View style={styles.headerRow}>
+                  <Text
+                    style={[styles.title, { color: colors.textPrimary }]}
+                    numberOfLines={1}
+                  >
+                    {title}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={onClose}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={[styles.closeBtn, { backgroundColor: colors.bgElevated }]}
+                  >
+                    <X size={16} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
               )}
 
-              {/* Actions */}
-              {actions.map((action, i) => {
-                const isLast = i === actions.length - 1
-                return (
-                  <View key={i}>
+              {/* Action rows */}
+              <View style={styles.actionsContainer}>
+                {actions.map((action, i) => {
+                  const Icon = action.icon
+                  const iconBg = action.iconColor
+                    ? `${action.iconColor}22`
+                    : action.destructive
+                      ? `${colors.error}22`
+                      : `${colors.primary}22`
+                  const iconColor = action.iconColor
+                    ? action.iconColor
+                    : action.destructive
+                      ? colors.error
+                      : colors.primary
+
+                  return (
                     <TouchableOpacity
+                      key={i}
                       onPress={() => {
                         action.onPress()
                         onClose()
                       }}
-                      activeOpacity={0.6}
-                      style={styles.actionRow}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.actionRow,
+                        {
+                          backgroundColor: colors.bgElevated,
+                          borderWidth: 1,
+                          borderColor: colors.border,
+                        },
+                      ]}
                     >
-                      <Text
-                        style={[
-                          styles.actionLabel,
-                          {
-                            color: action.destructive
-                              ? colors.error
-                              : colors.textPrimary,
-                            fontWeight: action.destructive ? '600' : '500',
-                          },
-                        ]}
-                      >
-                        {action.label}
-                      </Text>
+                      {Icon && (
+                        <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
+                          <Icon size={20} color={iconColor} />
+                        </View>
+                      )}
+                      <View style={styles.actionText}>
+                        <Text
+                          style={[
+                            styles.actionLabel,
+                            {
+                              color: action.destructive ? colors.error : colors.textPrimary,
+                            },
+                          ]}
+                        >
+                          {action.label}
+                        </Text>
+                        {!!action.description && (
+                          <Text
+                            style={[styles.actionDesc, { color: colors.textSecondary }]}
+                          >
+                            {action.description}
+                          </Text>
+                        )}
+                      </View>
                     </TouchableOpacity>
-                    {!isLast && (
-                      <View
-                        style={[
-                          styles.divider,
-                          { backgroundColor: colors.bgElevated },
-                        ]}
-                      />
-                    )}
-                  </View>
-                )
-              })}
-            </View>
+                  )
+                })}
+              </View>
 
-            {/* Cancel card (separate) */}
-            <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.6}
-              style={[styles.cancelCard, { backgroundColor: colors.bgSurface }]}
-            >
-              <Text
-                style={[styles.cancelLabel, { color: colors.textPrimary }]}
+              {/* Cancel row inside the card */}
+              <TouchableOpacity
+                onPress={onClose}
+                activeOpacity={0.6}
+                style={styles.cancelRow}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+                <Text style={[styles.cancelLabel, { color: colors.textSecondary }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </SafeAreaView>
       </Pressable>
@@ -138,7 +141,7 @@ export function ActionSheet({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
   },
   container: {
@@ -146,56 +149,71 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   card: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    paddingTop: 8,
+    borderRadius: 20,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    opacity: 0.4,
-    marginBottom: 4,
-  },
-  headerSection: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 14,
+
+  // Header
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 12,
   },
-  message: {
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 4,
+  closeBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  divider: {
-    height: StyleSheet.hairlineWidth,
+
+  // Actions
+  actionsContainer: {
+    paddingHorizontal: 12,
+    gap: 8,
   },
   actionRow: {
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 14,
+    borderRadius: 14,
+  },
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  actionText: {
+    flex: 1,
   },
   actionLabel: {
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '600',
   },
-  cancelCard: {
-    marginTop: 8,
-    borderRadius: 16,
-    paddingVertical: 18,
+  actionDesc: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  // Cancel
+  cancelRow: {
+    paddingVertical: 16,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   cancelLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
   },
 })
