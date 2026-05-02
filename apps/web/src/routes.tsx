@@ -2,6 +2,8 @@ import React, { Suspense } from 'react';
 import { Route, Switch, BrowserRouter } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { RegisterPage } from './components/RegisterPage';
+import { TermsOfServicePage } from './components/TermsOfServicePage';
+import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { EmailVerificationPage } from './components/EmailVerificationPage';
@@ -54,6 +56,14 @@ export function AppRoutes() {
       <Suspense fallback={null}>
         <Switch>
           {/* ── Public routes (not lazy, no Suspense needed) ── */}
+
+          <Route exact path="/terms">
+            <TermsOfServicePage />
+          </Route>
+
+          <Route exact path="/privacy">
+            <PrivacyPolicyPage />
+          </Route>
 
           <Route exact path="/login">
             <LoginPage />

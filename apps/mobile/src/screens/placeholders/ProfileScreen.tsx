@@ -23,10 +23,12 @@ import {
   Dumbbell,
   LogOut,
   ChevronDown,
+  Trash2,
 } from 'lucide-react-native'
 import {
   useProfile,
   useUpdateProfile,
+  useDeleteAccount,
   profileSchema,
   type ProfileFormData,
 } from '@fit-nation/shared'
@@ -35,6 +37,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
 import { showToast } from '../../lib/toast'
 
 const DURATION_OPTIONS = [
@@ -115,7 +118,9 @@ export function ProfileScreen() {
   const { logout } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
+  const deleteAccount = useDeleteAccount()
   const [logoutVisible, setLogoutVisible] = useState(false)
+  const [deleteVisible, setDeleteVisible] = useState(false)
 
   const {
     control,
@@ -624,7 +629,7 @@ export function ProfileScreen() {
           {/* Log Out */}
           <TouchableOpacity
             onPress={handleLogout}
-            className="flex-row items-center justify-center gap-2 py-4 rounded-2xl mb-8"
+            className="flex-row items-center justify-center gap-2 py-4 rounded-2xl mb-4"
             style={{
               backgroundColor: 'transparent',
               borderWidth: 2,
@@ -634,6 +639,22 @@ export function ProfileScreen() {
             <LogOut size={20} color={colors.error} />
             <Text className="font-bold text-lg" style={{ color: colors.error }}>
               LOG OUT
+            </Text>
+          </TouchableOpacity>
+
+          {/* Delete Account */}
+          <TouchableOpacity
+            onPress={() => setDeleteVisible(true)}
+            className="flex-row items-center justify-center gap-2 py-3 rounded-2xl mb-8"
+            style={{
+              backgroundColor: 'transparent',
+              borderWidth: 1,
+              borderColor: `${colors.error}28`,
+            }}
+          >
+            <Trash2 size={16} color={`${colors.error}99`} />
+            <Text className="font-semibold text-sm" style={{ color: `${colors.error}99` }}>
+              DELETE ACCOUNT
             </Text>
           </TouchableOpacity>
 
@@ -652,6 +673,15 @@ export function ProfileScreen() {
         confirmLabel="Log Out"
         destructive
         onConfirm={performLogout}
+      />
+
+      <DeleteAccountDialog
+        visible={deleteVisible}
+        onClose={() => setDeleteVisible(false)}
+        onConfirm={async (password) => {
+          await deleteAccount.mutateAsync(password)
+          await logout()
+        }}
       />
     </SafeAreaView>
   )

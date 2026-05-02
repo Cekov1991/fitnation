@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { profileApi, onboardingApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../api';
+import { authApi, profileApi, onboardingApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../api';
 import { getAuthStorage, AUTH_TOKEN_KEY } from '../auth';
 import type {
   CreatePlanInput,
@@ -71,6 +71,17 @@ export function useDeleteProfilePhoto() {
     onSuccess: response => {
       queryClient.setQueryData(['profile'], response.user);
     }
+  });
+}
+
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (password: string) => authApi.deleteAccount(password),
+    onSuccess: async () => {
+      await getAuthStorage().removeItem(AUTH_TOKEN_KEY);
+      queryClient.clear();
+    },
   });
 }
 

@@ -240,7 +240,10 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
 
             {/* Footer */}
             <p className="text-center text-sm mt-8" style={{ color: 'var(--color-text-muted)' }}>
-              By signing in, you agree to our Terms of Service and Privacy Policy
+              By signing in, you agree to our{' '}
+              <a href="/terms" className="underline transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" className="underline transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>Privacy Policy</a>
             </p>
           </div>
         </div>

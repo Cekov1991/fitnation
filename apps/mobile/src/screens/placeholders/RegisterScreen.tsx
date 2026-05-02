@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, TextInput, Pressable } from 'react-native'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, TextInput, Pressable, Linking } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -313,7 +313,20 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
           </View>
 
           <Text className="text-xs text-center mt-4" style={{ color: colors.textMuted }}>
-            By creating an account, you agree to our Terms of Service and Privacy Policy
+            By creating an account, you agree to our{' '}
+            <Text
+              onPress={() => Linking.openURL('https://admin.fitnation.mk/terms')}
+              style={{ color: colors.primary, textDecorationLine: 'underline' }}
+            >
+              Terms of Service
+            </Text>
+            {' '}and{' '}
+            <Text
+              onPress={() => Linking.openURL('https://admin.fitnation.mk/privacy')}
+              style={{ color: colors.primary, textDecorationLine: 'underline' }}
+            >
+              Privacy Policy
+            </Text>
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

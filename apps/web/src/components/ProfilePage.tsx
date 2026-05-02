@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download } from 'lucide-react';
-import { useProfile, useUpdateProfile } from '@fit-nation/shared';
+import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download, Trash2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { useProfile, useUpdateProfile, useDeleteAccount } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { profileSchema, ProfileFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
@@ -24,7 +24,13 @@ interface ProfilePageProps {
 export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const deleteAccount = useDeleteAccount();
   const { isIOSSafari, setShowIOSOverlay } = useInstallPrompt();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deletePasswordVisible, setDeletePasswordVisible] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deletePasswordRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -93,6 +99,32 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       </div>
     );
   }
+
+  const openDeleteModal = () => {
+    setDeletePassword('');
+    setDeletePasswordVisible(false);
+    setDeleteError(null);
+    setDeleteModalOpen(true);
+    setTimeout(() => deletePasswordRef.current?.focus(), 50);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      setDeleteError('Please enter your password.');
+      return;
+    }
+    setDeleteError(null);
+    try {
+      await deleteAccount.mutateAsync(deletePassword);
+      onLogout();
+    } catch (err: any) {
+      const msg =
+        err?.errors?.password?.[0] ||
+        err?.message ||
+        'Incorrect password. Please try again.';
+      setDeleteError(msg);
+    }
+  };
 
   const onSubmit = async (data: ProfileFormData) => {
     await updateProfile.mutateAsync({
@@ -542,14 +574,98 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
             {/* Log Out Button */}
             <button 
               onClick={onLogout} 
-              className="w-full py-4 bg-transparent border-2 border-red-500/30 rounded-2xl font-bold text-lg text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-all mb-8 flex items-center justify-center gap-2"
+              className="w-full py-4 bg-transparent border-2 border-red-500/30 rounded-2xl font-bold text-lg text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-all mb-4 flex items-center justify-center gap-2"
             >
               <LogOut className="w-5 h-5" />
               LOG OUT
             </button>
+
+            {/* Delete Account Button */}
+            <button
+              onClick={openDeleteModal}
+              className="w-full py-3 bg-transparent border border-red-500/20 rounded-2xl font-semibold text-sm text-red-500/70 hover:bg-red-500/5 hover:border-red-500/40 hover:text-red-400 transition-all mb-8 flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              DELETE ACCOUNT
+            </button>
           </main>
         </div>
       </div>
+
+      {/* Delete Account Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <div
+            className="w-full max-w-md rounded-3xl p-8 border shadow-2xl"
+            style={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}
+          >
+            {/* Icon + heading */}
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}>
+                <AlertTriangle className="w-7 h-7 text-red-400" />
+              </div>
+              <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
+                Delete Account
+              </h2>
+              <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
+                This will permanently delete your account and all training data. This action <strong style={{ color: 'var(--color-text-primary)' }}>cannot be undone</strong>.
+              </p>
+            </div>
+
+            {/* Password input */}
+            <div className="mb-4">
+              <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                Confirm your password
+              </label>
+              <div className="relative">
+                <input
+                  ref={deletePasswordRef}
+                  type={deletePasswordVisible ? 'text' : 'password'}
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleDeleteAccount()}
+                  placeholder="Enter your password"
+                  className="w-full pl-4 pr-12 py-4 border rounded-xl focus:outline-none transition-all"
+                  style={{
+                    backgroundColor: 'var(--color-bg-elevated)',
+                    borderColor: deleteError ? '#f87171' : 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setDeletePasswordVisible(v => !v)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  {deletePasswordVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {deleteError && (
+                <p className="text-xs text-red-400 mt-1">{deleteError}</p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleteAccount.isPending}
+              className="w-full py-4 rounded-xl font-bold text-white mb-3 transition-opacity disabled:opacity-60"
+              style={{ backgroundColor: '#ef4444' }}
+            >
+              {deleteAccount.isPending ? 'Deleting...' : 'Delete My Account'}
+            </button>
+            <button
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={deleteAccount.isPending}
+              className="w-full py-3 text-sm font-medium transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

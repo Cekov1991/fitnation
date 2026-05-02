@@ -16,16 +16,9 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.fitnation.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "Used for profile photo",
-        "NSPhotoLibraryUsageDescription": "Used for profile photo",
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true,
-          "NSAllowsLocalNetworking": true
-        },
+        "ITSAppUsesNonExemptEncryption": false,
         "UISupportedInterfaceOrientations": [
-          "UIInterfaceOrientationPortrait",
-          "UIInterfaceOrientationLandscapeLeft",
-          "UIInterfaceOrientationLandscapeRight"
+          "UIInterfaceOrientationPortrait"
         ]
       }
     },
@@ -51,7 +44,8 @@
       "expo-secure-store",
       "expo-video",
       "expo-screen-orientation",
-      "expo-updates"
+      "expo-updates",
+      "expo-image"
     ],
     "extra": {
       "apiUrl": "$EXPO_PUBLIC_API_URL",

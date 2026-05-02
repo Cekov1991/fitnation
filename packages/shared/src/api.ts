@@ -80,6 +80,9 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     err.errors = data.errors;
     throw err;
   }
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined;
+  }
   return response.json();
 }
 
@@ -120,6 +123,12 @@ export const authApi = {
   logout: async (): Promise<MessageResponse> => {
     return fetchWithAuth('/logout', {
       method: 'POST'
+    });
+  },
+  deleteAccount: async (password: string): Promise<void> => {
+    await fetchWithAuth('/user', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
     });
   },
   getCurrentUser: async (): Promise<{ user: UserResource }> => {

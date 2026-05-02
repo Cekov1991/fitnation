@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, TextInput, Linking } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -166,7 +166,20 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
           </View>
 
           <Text className="text-xs text-center mt-8" style={{ color: colors.textMuted }}>
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            By signing in, you agree to our{' '}
+            <Text
+              onPress={() => Linking.openURL('https://admin.fitnation.mk/terms')}
+              style={{ color: colors.primary, textDecorationLine: 'underline' }}
+            >
+              Terms of Service
+            </Text>
+            {' '}and{' '}
+            <Text
+              onPress={() => Linking.openURL('https://admin.fitnation.mk/privacy')}
+              style={{ color: colors.primary, textDecorationLine: 'underline' }}
+            >
+              Privacy Policy
+            </Text>
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
