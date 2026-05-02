@@ -423,13 +423,13 @@ export function WeeklyProgressModal({
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>This Week</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Last Week</span>
                       <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                         {formatVolumeFull(currentWeekVolume)} kg
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Last Week</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>The Week Before</span>
                       <span className="text-sm font-bold" style={{ color: 'var(--color-text-muted)' }}>
                         {formatVolumeFull(previousWeekVolume)} kg
                       </span>

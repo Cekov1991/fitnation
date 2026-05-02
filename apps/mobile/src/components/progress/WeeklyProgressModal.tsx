@@ -279,7 +279,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
         <View className="gap-3">
           <View className="flex-row items-center justify-between">
             <Text className="text-sm" style={{ color: colors.textSecondary }}>
-              This Week
+              Last Week
             </Text>
             <Text className="text-sm font-bold" style={{ color: colors.textPrimary }}>
               {formatVolumeFull(currentWeekVolume)} kg
@@ -287,7 +287,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
           </View>
           <View className="flex-row items-center justify-between">
             <Text className="text-sm" style={{ color: colors.textSecondary }}>
-              Last Week
+              The Week Before
             </Text>
             <Text className="text-sm font-bold" style={{ color: colors.textMuted }}>
               {formatVolumeFull(previousWeekVolume)} kg
