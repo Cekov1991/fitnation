@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
+import { AlertTriangle, Info } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 
 interface ConfirmDialogProps {
@@ -29,6 +30,10 @@ export function ConfirmDialog({
     onClose()
   }
 
+  const iconColor = destructive ? colors.error : colors.primary
+  const iconBg = destructive ? `${colors.error}18` : `${colors.primary}18`
+  const Icon = destructive ? AlertTriangle : Info
+
   return (
     <Modal
       visible={visible}
@@ -40,66 +45,52 @@ export function ConfirmDialog({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable
           onPress={() => {}}
-          style={[styles.card, { backgroundColor: colors.bgSurface }]}
+          style={[
+            styles.card,
+            { backgroundColor: colors.bgSurface, borderColor: colors.border },
+          ]}
         >
-          {/* Header */}
+          {/* Icon + Header */}
           <View style={styles.headerSection}>
+            <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
+              <Icon size={22} color={iconColor} />
+            </View>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
               {title}
             </Text>
             {!!message && (
-              <Text
-                style={[styles.message, { color: colors.textSecondary }]}
-              >
+              <Text style={[styles.message, { color: colors.textSecondary }]}>
                 {message}
               </Text>
             )}
           </View>
 
-          {/* Divider */}
-          <View
-            style={[styles.divider, { backgroundColor: colors.bgElevated }]}
-          />
-
-          {/* Actions side-by-side */}
-          <View style={styles.actionsRow}>
+          {/* Buttons stacked vertically */}
+          <View style={styles.buttonsContainer}>
+            {/* Confirm button */}
             <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.6}
-              style={styles.actionButton}
+              onPress={handleConfirm}
+              activeOpacity={0.75}
+              style={[
+                styles.confirmButton,
+                {
+                  backgroundColor: destructive ? colors.error : colors.primary,
+                },
+              ]}
             >
-              <Text
-                style={[
-                  styles.actionLabel,
-                  { color: colors.textPrimary },
-                ]}
-              >
-                {cancelLabel}
+              <Text style={[styles.confirmLabel, { color: '#FFFFFF' }]}>
+                {confirmLabel}
               </Text>
             </TouchableOpacity>
 
-            <View
-              style={[
-                styles.verticalDivider,
-                { backgroundColor: colors.bgElevated },
-              ]}
-            />
-
+            {/* Cancel — subtle, no fill */}
             <TouchableOpacity
-              onPress={handleConfirm}
+              onPress={onClose}
               activeOpacity={0.6}
-              style={styles.actionButton}
+              style={styles.cancelButton}
             >
-              <Text
-                style={[
-                  styles.actionLabel,
-                  {
-                    color: destructive ? colors.error : colors.primary,
-                    fontWeight: '600',
-                  },
-                ]}
-              >
-                {confirmLabel}
+              <Text style={[styles.cancelLabel, { color: colors.textSecondary }]}>
+                {cancelLabel}
               </Text>
             </TouchableOpacity>
           </View>
@@ -120,14 +111,27 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 320,
-    borderRadius: 16,
+    borderRadius: 20,
+    borderWidth: 1,
     overflow: 'hidden',
+    paddingBottom: 16,
   },
+
+  // Header
   headerSection: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 18,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 20,
     alignItems: 'center',
+    gap: 10,
+  },
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   title: {
     fontSize: 17,
@@ -136,27 +140,32 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 19,
     textAlign: 'center',
-    marginTop: 6,
   },
-  divider: {
-    height: StyleSheet.hairlineWidth,
+
+  // Buttons
+  buttonsContainer: {
+    paddingHorizontal: 16,
+    gap: 8,
   },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  actionButton: {
-    flex: 1,
+  confirmButton: {
+    borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLabel: {
-    fontSize: 16,
+  confirmLabel: {
+    fontSize: 15,
+    fontWeight: '700',
   },
-  verticalDivider: {
-    width: StyleSheet.hairlineWidth,
+  cancelButton: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelLabel: {
+    fontSize: 15,
+    fontWeight: '500',
   },
 })

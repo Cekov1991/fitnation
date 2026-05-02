@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
-import { Plus, Dumbbell, MoreVertical, ChevronRight, Calendar } from 'lucide-react-native'
+import { Plus, Dumbbell, MoreVertical, ChevronRight, Calendar, CheckCircle, Edit, PlusCircle, Trash2, Play, Settings, XCircle } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image } from 'expo-image'
 import {
@@ -170,18 +170,27 @@ export function PlansScreen() {
     return [
       {
         label: planSheet.is_active ? 'Deactivate' : 'Set as Active',
+        description: planSheet.is_active ? 'Remove from active rotation' : 'Make this your current plan',
+        icon: planSheet.is_active ? XCircle : CheckCircle,
+        iconColor: planSheet.is_active ? colors.warning : colors.success,
         onPress: () => handleTogglePlanActive(planSheet),
       },
       {
         label: 'Edit Plan',
+        description: 'Rename or update plan details',
+        icon: Edit,
         onPress: () => navigation.navigate('EditPlan', { planId: planSheet.id }),
       },
       {
         label: 'Add Workout',
+        description: 'Create a new workout in this plan',
+        icon: PlusCircle,
         onPress: () => navigation.navigate('CreateWorkout'),
       },
       {
         label: 'Delete Plan',
+        description: 'Permanently remove this plan',
+        icon: Trash2,
         destructive: true,
         onPress: () => setPlanToDelete(planSheet),
       },
@@ -194,20 +203,29 @@ export function PlansScreen() {
     return [
       {
         label: 'Start Workout',
+        description: 'Begin a live session now',
+        icon: Play,
+        iconColor: colors.success,
         onPress: () => handleStartWorkout(workoutSheet.id),
       },
       {
         label: 'Manage Exercises',
+        description: 'Add, remove or reorder exercises',
+        icon: Settings,
         onPress: () =>
           navigation.navigate('ManageExercises', { templateId: workoutSheet.id }),
       },
       {
         label: 'Edit Workout',
+        description: 'Rename or update workout details',
+        icon: Edit,
         onPress: () =>
           navigation.navigate('EditWorkout', { templateId: workoutSheet.id }),
       },
       {
         label: 'Delete Workout',
+        description: 'Permanently remove this workout',
+        icon: Trash2,
         destructive: true,
         onPress: () => setWorkoutToDelete(workoutSheet),
       },
@@ -220,10 +238,15 @@ export function PlansScreen() {
     return [
       {
         label: programSheet.is_active ? 'Deactivate' : 'Set as Active',
+        description: programSheet.is_active ? 'Remove from active rotation' : 'Make this your current program',
+        icon: programSheet.is_active ? XCircle : CheckCircle,
+        iconColor: programSheet.is_active ? colors.warning : colors.success,
         onPress: () => handleToggleProgramActive(programSheet),
       },
       {
         label: 'Delete Program',
+        description: 'Permanently remove this program',
+        icon: Trash2,
         destructive: true,
         onPress: () => setProgramToDelete(programSheet),
       },
@@ -564,7 +587,6 @@ export function PlansScreen() {
           visible={!!planSheet}
           onClose={() => setPlanSheet(null)}
           title={planSheet?.name}
-          message="Choose an action"
           actions={planSheetActions}
         />
 
@@ -573,7 +595,6 @@ export function PlansScreen() {
           visible={!!workoutSheet}
           onClose={() => setWorkoutSheet(null)}
           title={workoutSheet?.name}
-          message="Choose an action"
           actions={workoutSheetActions}
         />
 
@@ -582,7 +603,6 @@ export function PlansScreen() {
           visible={!!programSheet}
           onClose={() => setProgramSheet(null)}
           title={programSheet?.name}
-          message="Choose an action"
           actions={programSheetActions}
         />
 

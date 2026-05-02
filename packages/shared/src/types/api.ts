@@ -532,6 +532,10 @@ export interface UpdateTemplateExerciseInput {
   rest_seconds?: number;
 }
 
+export interface SwapTemplateExerciseInput {
+  exercise_id: number;
+}
+
 // Session mutations
 export interface LogSetInput {
   exercise_id: number;
@@ -564,6 +568,10 @@ export interface UpdateSessionExerciseInput {
   max_target_reps?: number;
   target_weight?: number;
   rest_seconds?: number;
+}
+
+export interface SwapSessionExerciseInput {
+  exercise_id: number;
 }
 
 // Profile mutations

@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Modal, Pressable } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '@fit-nation/shared'
 import type { LibraryProgramResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ArrowLeft, Calendar, Info, Dumbbell } from 'lucide-react-native'
 import { Image } from 'expo-image'
 import { showToast } from '../../lib/toast'
@@ -191,53 +192,14 @@ export function ProgramLibraryScreen({ navigation }: Props) {
         )}
       </ScrollView>
 
-      {/* Start Program Confirmation Modal */}
-      <Modal
+      <ConfirmDialog
         visible={!!confirmProgram}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setConfirmProgram(null)}
-      >
-        <Pressable
-          className="flex-1 justify-center items-center px-6"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-          onPress={() => !isCloning && setConfirmProgram(null)}
-        >
-          <Pressable
-            className="w-full rounded-2xl p-6"
-            style={{ backgroundColor: colors.bgSurface }}
-            onPress={() => {}}
-          >
-            <Text className="text-lg font-bold mb-3" style={{ color: colors.textPrimary }}>
-              Start Program
-            </Text>
-            <Text className="text-sm mb-6 leading-relaxed" style={{ color: colors.textSecondary }}>
-              Start "{confirmProgram?.name}"? This will add the program to your collection and set it
-              as your active program.
-            </Text>
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={() => setConfirmProgram(null)}
-                disabled={isCloning}
-                className="flex-1 py-3 rounded-xl items-center"
-                style={{ backgroundColor: colors.bgElevated }}
-              >
-                <Text className="font-semibold" style={{ color: colors.textSecondary }}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleStartProgram}
-                disabled={isCloning}
-                className="flex-1 py-3 rounded-xl items-center"
-                style={{ backgroundColor: colors.success, opacity: isCloning ? 0.6 : 1 }}
-              >
-                <Text className="font-bold text-white">{isCloning ? 'Starting...' : 'Start'}</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => !isCloning && setConfirmProgram(null)}
+        title="Start Program"
+        message={`Start "${confirmProgram?.name}"? This will add the program to your collection and set it as your active program.`}
+        confirmLabel={isCloning ? 'Starting...' : 'Start'}
+        onConfirm={handleStartProgram}
+      />
     </SafeAreaView>
   )
 }

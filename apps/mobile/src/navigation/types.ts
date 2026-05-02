@@ -34,14 +34,7 @@ export type AppStackParamList = {
   ExercisePicker: {
     templateId?: number
     swapPivotId?: number
-    swapOrderIndex?: number
     swapMuscleGroupId?: string
-    pivotData?: {
-      target_sets: number
-      min_target_reps: number
-      max_target_reps: number
-      target_weight: number
-    }
   } | undefined
   ExerciseDetail: { exerciseName: string; initialTab?: 'guidance' | 'performance' }
   ExerciseCatalog: undefined

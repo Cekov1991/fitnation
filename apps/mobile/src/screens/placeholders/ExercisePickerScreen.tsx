@@ -2,17 +2,14 @@ import { useState, useMemo } from 'react'
 import { useDebounce } from '../../hooks/useDebounce'
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useQueryClient } from '@tanstack/react-query'
 import { Search, X, Plus, ArrowUpDown, Dumbbell } from 'lucide-react-native'
 import {
   useExercises,
   useMuscleGroups,
   useEquipmentTypes,
   useAddTemplateExercise,
-  useRemoveTemplateExercise,
-  useReorderTemplateExercises,
+  useSwapTemplateExercise,
 } from '@fit-nation/shared'
-import type { WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
 import { FilterChips } from '../../components/exercises/FilterChips'
@@ -26,13 +23,10 @@ type Props = AppScreenProps<'ExercisePicker'>
 export function ExercisePickerScreen({ route, navigation }: Props) {
   const templateId = route.params?.templateId
   const swapPivotId = route.params?.swapPivotId
-  const swapOrderIndex = route.params?.swapOrderIndex
   const swapMuscleGroupId = route.params?.swapMuscleGroupId
-  const pivotData = route.params?.pivotData
   const isSwap = swapPivotId != null
 
   const { colors } = useTheme()
-  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(swapMuscleGroupId ?? null)
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
@@ -43,38 +37,17 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
   const { data: muscleGroups = [] } = useMuscleGroups()
   const { data: equipmentTypes = [] } = useEquipmentTypes()
   const addTemplateExercise = useAddTemplateExercise()
-  const removeTemplateExercise = useRemoveTemplateExercise()
-  const reorderExercises = useReorderTemplateExercises()
+  const swapTemplateExercise = useSwapTemplateExercise()
 
   async function handleSwap(exercise: ExerciseResource) {
     if (!templateId || swapPivotId == null) return
     setActionId(exercise.id)
     try {
-      await removeTemplateExercise.mutateAsync({ templateId, pivotId: swapPivotId })
-      await addTemplateExercise.mutateAsync({
+      await swapTemplateExercise.mutateAsync({
         templateId,
-        data: {
-          exercise_id: exercise.id,
-          target_sets: pivotData?.target_sets ?? 3,
-          min_target_reps: pivotData?.min_target_reps ?? 8,
-          max_target_reps: pivotData?.max_target_reps ?? 12,
-          target_weight: pivotData?.target_weight ?? 0,
-        },
+        pivotId: swapPivotId,
+        data: { exercise_id: exercise.id },
       })
-      await queryClient.refetchQueries({ queryKey: ['templates', templateId] })
-      const template = queryClient.getQueryData<WorkoutTemplateResource>(['templates', templateId])
-      const newEntry = (template?.exercises as any[])?.find((ex: any) => ex.id === exercise.id)
-      const newPivotId = newEntry?.pivot?.id
-      if (newPivotId != null && template?.exercises) {
-        const currentOrder = (template.exercises as any[]).map((ex: any) => ex.pivot.id)
-        const idx = currentOrder.indexOf(newPivotId)
-        if (idx !== -1 && idx !== swapOrderIndex) {
-          const newOrder = [...currentOrder]
-          newOrder.splice(idx, 1)
-          newOrder.splice(swapOrderIndex!, 0, newPivotId)
-          await reorderExercises.mutateAsync({ templateId, order: newOrder })
-        }
-      }
       navigation.goBack()
     } catch (e: any) {
       showToast(e?.message || 'Failed to swap exercise', 'error')

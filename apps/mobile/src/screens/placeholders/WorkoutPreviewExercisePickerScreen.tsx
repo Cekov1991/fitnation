@@ -8,7 +8,7 @@ import {
   useExercises,
   useMuscleGroups,
   useAddSessionExercise,
-  useRemoveSessionExercise,
+  useSwapSessionExercise,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FilterChips } from '../../components/exercises/FilterChips'
@@ -32,7 +32,7 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
   const { data: exercises = [], isLoading } = useExercises(debouncedSearch || undefined)
   const { data: muscleGroups = [] } = useMuscleGroups()
   const addExercise = useAddSessionExercise()
-  const removeExercise = useRemoveSessionExercise()
+  const swapExercise = useSwapSessionExercise()
 
   const availableMuscleIds = useMemo(() => {
     const ids = new Set<string>()
@@ -54,18 +54,19 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
     if (addingId) return
     setAddingId(exercise.id)
     try {
-      await addExercise.mutateAsync({
-        sessionId: numericSessionId,
-        data: { exercise_id: exercise.id },
-      })
-      navigation.goBack()
       if (isSwap && swapExerciseId) {
-        // Fire-and-forget — errors surface via global toast.
-        removeExercise.mutate({
+        await swapExercise.mutateAsync({
           sessionId: numericSessionId,
           exerciseId: swapExerciseId,
+          data: { exercise_id: exercise.id },
+        })
+      } else {
+        await addExercise.mutateAsync({
+          sessionId: numericSessionId,
+          data: { exercise_id: exercise.id },
         })
       }
+      navigation.goBack()
     } catch {
       setAddingId(null)
     }
