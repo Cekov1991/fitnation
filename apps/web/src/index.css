@@ -12,8 +12,8 @@
 
 :root {
   /* Default branding colors (used when no partner branding is set) */
-  --color-primary: #2563eb;      /* Blue-600 */
-  --color-secondary: #9333ea;    /* Purple-600 */
+  --color-primary: #00B4C5;      /* Fit Nation teal */
+  --color-secondary: #F97316;    /* Fit Nation orange */
   
   /* Theme Colors - Dark (default) */
   --color-bg-base: #0a0a0a;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory } from 'react-router-dom';
-import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle, User, Loader2, ChevronDown } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, User, Loader2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { registerSchema, type RegisterFormData } from '@fit-nation/shared';
 import { partnersApi } from '@fit-nation/shared';
@@ -138,17 +138,11 @@ export function RegisterPage() {
         <div className="relative z-10 w-full max-w-md">
           {/* Logo and Header */}
           <div className="flex flex-col items-center mb-8">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={selectedPartner!.name}
-                className="w-20 h-20 object-contain mb-6 rounded-2xl"
-              />
-            ) : (
-              <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-3xl shadow-2xl shadow-blue-500/30 mb-6 flex items-center justify-center">
-                <Dumbbell className="text-white w-10 h-10" />
-              </div>
-            )}
+            <img
+              src={logoUrl || '/logo.png'}
+              alt={selectedPartner?.name || 'Fit Nation'}
+              className="w-20 h-20 object-contain mb-6 rounded-2xl"
+            />
             <h1
               className="text-3xl font-bold mb-2 bg-clip-text text-transparent"
               style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}

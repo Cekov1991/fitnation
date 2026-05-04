@@ -15,8 +15,8 @@ export const lightColors = {
   borderSubtle: 'rgba(0, 0, 0, 0.05)',
 
   // Brand (overridden per partner)
-  primary: '#2563EB',   // blue-600
-  secondary: '#9333EA', // purple-600
+  primary: '#00B4C5',   // Fit Nation teal
+  secondary: '#F97316', // Fit Nation orange
 
   // Segment control
   segmentTrack: '#E5E7EB',
@@ -47,8 +47,8 @@ export const darkColors: AppColors = {
   borderSubtle: 'rgba(255, 255, 255, 0.05)',
 
   // Brand (overridden per partner)
-  primary: '#2563EB',
-  secondary: '#9333EA',
+  primary: '#00B4C5',   // Fit Nation teal
+  secondary: '#F97316', // Fit Nation orange
 
   // Segment control
   segmentTrack: 'rgba(17, 24, 39, 0.5)',

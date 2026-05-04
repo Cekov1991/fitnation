@@ -44,8 +44,7 @@
       "expo-secure-store",
       "expo-video",
       "expo-screen-orientation",
-      "expo-updates",
-      "expo-image"
+      "expo-updates"
     ],
     "extra": {
       "apiUrl": "$EXPO_PUBLIC_API_URL",

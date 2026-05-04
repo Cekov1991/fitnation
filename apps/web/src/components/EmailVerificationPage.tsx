@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Mail, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { LoadingButton } from './ui';
 
@@ -98,19 +98,11 @@ export function EmailVerificationPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo / Icon */}
         <div className="flex flex-col items-center mb-8">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt={user?.partner?.name}
-              className="w-20 h-20 object-contain mb-6 rounded-2xl"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-3xl mb-6 flex items-center justify-center"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)' }}
-            >
-              <Mail className="w-10 h-10" style={{ color: 'var(--color-primary)' }} />
-            </div>
-          )}
+          <img
+            src={logoUrl || '/logo.png'}
+            alt={user?.partner?.name || 'Fit Nation'}
+            className="w-20 h-20 object-contain mb-6 rounded-2xl"
+          />
 
           <h1
             className="text-3xl font-bold mb-2 text-center"
