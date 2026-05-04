@@ -21,8 +21,8 @@ interface BrandingContextType {
 const BrandingContext = createContext<BrandingContextType | undefined>(undefined);
 
 // Default colors (must match index.css)
-const DEFAULT_PRIMARY = '#2563eb';
-const DEFAULT_SECONDARY = '#9333ea';
+const DEFAULT_PRIMARY = '#00B4C5';   // Fit Nation teal
+const DEFAULT_SECONDARY = '#F97316'; // Fit Nation orange
 
 // Theme storage key
 const THEME_STORAGE_KEY = 'fit-nation-theme';
