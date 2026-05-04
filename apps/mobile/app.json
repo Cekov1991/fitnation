@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Fit Nation",
+    "slug": "fit-nation",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F0F0F"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fitnation.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F0F0F"
+      },
+      "package": "com.fitnation.app",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3c138cd9-ef1e-4895-b3c8-44fbedca3d7e"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-video",
+      "expo-screen-orientation",
+      "expo-updates",
+      "expo-image"
+    ],
+    "extra": {
+      "apiUrl": "$EXPO_PUBLIC_API_URL",
+      "eas": {
+        "projectId": "3c138cd9-ef1e-4895-b3c8-44fbedca3d7e"
+      }
+    },
+    "owner": "fitnation"
+  }
+}

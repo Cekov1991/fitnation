@@ -1,0 +1,61 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
+import type { NavigatorScreenParams } from '@react-navigation/native'
+import type { NewPrResource, RegenerateWorkoutInput } from '@fit-nation/shared'
+
+// Auth stack
+export type AuthStackParamList = {
+  Login: undefined
+  Register: undefined
+  ForgotPassword: undefined
+  ResetPassword: { token?: string; email?: string }
+}
+
+// Bottom tabs
+export type TabParamList = {
+  Dashboard: undefined
+  Plans: undefined
+  Progress: undefined
+  Exercises: undefined
+  Profile: undefined
+}
+
+// Main app stack (full-screen screens, no bottom tabs)
+export type AppStackParamList = {
+  Tabs: NavigatorScreenParams<TabParamList> | undefined
+  EmailVerification: undefined
+  Onboarding: undefined
+  WorkoutSession: { sessionId: string }
+  WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }
+  WorkoutSessionExerciseDetail: { sessionId: string; exerciseId: number }
+  GenerateWorkout: undefined
+  WorkoutPreview: { sessionId: string; generationParams?: RegenerateWorkoutInput }
+  WorkoutPreviewExercisePicker: { sessionId: string; swapExerciseId?: number; swapMuscleGroupId?: string }
+  ExercisePicker: {
+    templateId?: number
+    swapPivotId?: number
+    swapMuscleGroupId?: string
+  } | undefined
+  ExerciseDetail: { exerciseName: string; initialTab?: 'guidance' | 'performance' }
+  ExerciseCatalog: undefined
+  CreatePlan: undefined
+  EditPlan: { planId: number }
+  CreateWorkout: undefined
+  EditWorkout: { templateId: number }
+  ManageExercises: { templateId: number }
+  ProgramLibrary: undefined
+  ProgramDetail: { programId: number }
+  RoutineDetail: { routineId: number }
+  RoutineWorkoutDetail: { routineId: number; workoutId: number }
+  SessionDetail: { sessionId: string }
+}
+
+// Screen prop helpers
+export type AuthScreenProps<T extends keyof AuthStackParamList> =
+  NativeStackScreenProps<AuthStackParamList, T>
+
+export type AppScreenProps<T extends keyof AppStackParamList> =
+  NativeStackScreenProps<AppStackParamList, T>
+
+export type TabScreenProps<T extends keyof TabParamList> =
+  BottomTabScreenProps<TabParamList, T>
