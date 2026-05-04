@@ -384,6 +384,8 @@ export function RegisterPage() {
             <a href="/terms" className="underline transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>Terms of Service</a>
             {' '}and{' '}
             <a href="/privacy" className="underline transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>Privacy Policy</a>
+            {' · '}
+            <a href="/support" className="underline transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>Support</a>
           </p>
         </div>
       </div>

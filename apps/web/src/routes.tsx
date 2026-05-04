@@ -4,6 +4,7 @@ import { LoginPage } from './components/LoginPage';
 import { RegisterPage } from './components/RegisterPage';
 import { TermsOfServicePage } from './components/TermsOfServicePage';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
+import { SupportPage } from './components/SupportPage';
 import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { EmailVerificationPage } from './components/EmailVerificationPage';
@@ -63,6 +64,10 @@ export function AppRoutes() {
 
           <Route exact path="/privacy">
             <PrivacyPolicyPage />
+          </Route>
+
+          <Route exact path="/support">
+            <SupportPage />
           </Route>
 
           <Route exact path="/login">

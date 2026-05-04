@@ -312,6 +312,7 @@ export function PrivacyPolicyPage() {
             <p className="mt-2">© {new Date().getFullYear()} Mayst Impact DOOEL. All rights reserved.</p>
             <div className="mt-4 flex gap-4">
               <Link to="/terms" style={{ color: 'var(--color-primary)' }}>Terms of Service</Link>
+              <Link to="/support" style={{ color: 'var(--color-primary)' }}>Support</Link>
               <Link to="/login" style={{ color: 'var(--color-text-secondary)' }}>Back to sign in</Link>
             </div>
           </div>
