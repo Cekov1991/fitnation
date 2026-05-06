@@ -1,6 +1,6 @@
 ================================================================================
 FIT NATION — APP STORE & GOOGLE PLAY COPY
-Last updated: May 5, 2026
+Last updated: May 6, 2026
 ================================================================================
 
 
@@ -22,16 +22,15 @@ Train. Belong. Rise.
 PROMOTIONAL TEXT — App Store only  (170 char max, editable without re-review)
 ────────────────────────────────────────────────────────────────────────────────
 
-This isn't a fitness app. It's a movement. Personalized programs, smart
-progression, and a Nation of lifters pulling in the same direction. Train with
-us. Rise with us.
+Your gym's equipment. Your trainer's programs. Smart progression that earns
+every weight jump. The official app of premium gyms across North Macedonia.
 
 
 ────────────────────────────────────────────────────────────────────────────────
 SHORT DESCRIPTION — Google Play only  (80 char max)
 ────────────────────────────────────────────────────────────────────────────────
 
-Train with the Nation. Personalized programs, smart progression, real strength.
+Your gym's equipment, your trainer's programs, your progression. Premium gyms, MK.
 
 
 ────────────────────────────────────────────────────────────────────────────────
@@ -45,18 +44,31 @@ gym,strength,lifting,exercise,training,tracker,log,routine,planner,hypertrophy,m
 DESCRIPTION — App Store & Google Play  (4000 char max)
 ────────────────────────────────────────────────────────────────────────────────
 
-THIS ISN'T A FITNESS APP. IT'S A MOVEMENT.
+YOUR GYM. YOUR EQUIPMENT. YOUR TRAINER'S PROGRAM.
 
-Welcome to Fit Nation — the official training platform for gyms and fitness
-clubs across North Macedonia. Personalized programs, smart progression, and a
-tribe of lifters pulling in the same direction. Pick up the bar. We move
-together.
+Fit Nation is the official training platform of premium gyms across North
+Macedonia — built so every workout you do fits the gym you're actually in.
+
+BUILT AROUND YOUR GYM'S EQUIPMENT
+Most fitness apps give you generic workouts built for an imaginary gym with
+every machine ever made. Fit Nation knows exactly what equipment your gym has.
+Every exercise it suggests, every program it generates, every session it builds
+— uses only the machines, barbells, cables, and rigs that exist on your gym
+floor. You will never be told to do an exercise on equipment your gym doesn't
+have.
+
+YOUR TRAINER'S PROGRAMS, IN YOUR POCKET
+Your gym's trainers and PTs publish structured programs and routines directly
+to you through the app. Browse and clone official programs from your gym's
+library — periodized, professional, and built for your specific equipment.
+Track your trainer's programming rep by rep, automatically progressed over
+time.
 
 A PROGRAM BUILT AROUND YOU
 Tell us your goal, your experience, your schedule, and how long you've got.
-Fit Nation builds you a 5-week personalized program — the right split, the
-right exercises, the right rep ranges. Want a fresh approach? Regenerate it in
-one tap.
+Fit Nation builds you a personalized 5-week program — the right split, the
+right exercises for your gym, the right rep ranges. Want a fresh approach?
+Regenerate it in one tap.
 
 LOG LIKE THE NATION DOES
 • Live sessions with set-by-set logging (weight, reps, rest)
@@ -68,52 +80,44 @@ LOG LIKE THE NATION DOES
 PROGRESSION THAT ACTUALLY PROGRESSES
 Double progression for weighted lifts. Total-reps progression for bodyweight,
 TRX, and band work. Fit Nation tells you when you've earned a weight increase —
-no more random number-picking, no more stalled programs. The Nation moves
-forward.
+no more random number-picking, no more stalled programs.
 
 INSTANT WORKOUT GENERATOR
-Don't feel like following the plan today? Open the generator, choose your split
-(Push, Pull, Legs, Upper, Lower, or Full Body), filter by available equipment
-(barbell, dumbbell, cable, machine, bodyweight, TRX, bands), set your duration,
-and Fit Nation builds the session in seconds. Don't like it? Regenerate. Tweak.
-Then train.
+Don't feel like following the plan today? Open the generator, choose your focus
+(Push, Pull, Legs, Upper, Lower, or Full Body), set your duration, and Fit
+Nation builds a session in seconds — using only the equipment your gym has.
+Don't like it? Regenerate. Tweak. Then train.
 
 BUILD YOUR OWN
 • Create unlimited custom routines and programs
 • Build plans, workouts, and templates from scratch
 • Reorder exercises, set targets, swap moves on the fly
 
-YOUR GYM, YOUR NATION
-Fit Nation is built for gyms. Every partner gym gets its own branded experience
-— logo, colors, and exclusive content — all inside the same app. If your gym is
-a Fit Nation partner, browse and clone official programs and routines straight
-from your trainer's library. Their programming, your phone, the Nation's
-progression engine — fully integrated, fully tracked. Not sure if your gym is
-on Fit Nation? You'll see them in the gym selector during sign-up.
-
 TRACK WHAT MATTERS
-• Strength score with percentile ranking against lifters at your gym
-• Strength balance across 17 muscle groups — the Nation doesn't skip leg day
+• Strength score with percentile ranking against members at your gym
+• Strength balance across 17 muscle groups
 • Weekly volume, time-under-the-bar, and workout count trends
 • Per-exercise charts: max weight, best set reps, total volume — all over time
 • Calendar view of every session you've ever logged
 
 THE EXERCISE LIBRARY
-Hundreds of exercises with HD videos, muscle-group diagrams, and clear
-descriptions. Filter by equipment or muscle group to find exactly what fits your gym today.
+Every exercise is tagged to the equipment it requires and filtered to what your
+gym has on the floor. HD videos, muscle-group diagrams, and clear descriptions
+— no phantom machines, no wasted browsing.
 
 WHO TRAINS WITH THE NATION
-• Beginners who want a plan that adapts as they grow
-• Intermediate lifters tired of guessing weights, rest, and rep targets
-• Advanced athletes who want clean data and real progression
-• Anyone who's ever tracked workouts in Notes, Excel, or a notebook and knows
-  there's a better way
+• Members of premium gyms in North Macedonia who want a real structured plan
+• Anyone tired of apps that recommend equipment their gym doesn't have
+• Lifters who want their trainer's programming tracked and progressed
+  automatically
+• Beginners who want a plan that starts with what's available to them today
+• Advanced athletes who want clean data and real, earned progression
 
 Your goal — fat loss, muscle gain, raw strength, or general fitness — it doesn't
-matter. Fit Nation builds the program around you, tracks every rep, and pulls
-you forward with the rest of us.
+matter. Fit Nation builds the program around you and your gym, tracks every rep,
+and pulls you forward with the rest of us.
 
-Download Fit Nation. Train with intent. Move with the Nation.
+Download Fit Nation. Train in your gym. Move with the Nation.
 
 
 ────────────────────────────────────────────────────────────────────────────────
@@ -122,23 +126,23 @@ WHAT'S NEW / RELEASE NOTES — v1.0  (4000 char max)
 
 Welcome to the Nation.
 
+• Equipment-aware workout generation — only exercises your gym actually has
+• Trainer and PT programs from your gym, cloneable in one tap
 • Personalized 5-week programs built from your goal, schedule, and experience
-• Instant workout generator — pick your split, equipment, and duration in
-  seconds
+• Instant workout generator — choose your split, set your duration, train
 • Live sessions with set-by-set logging, rest timer, and PR alerts
 • Smart progression engine that earns every weight jump
 • Strength score, strength balance, and weekly volume dashboards
-• Exercise library with HD videos and muscle-group diagrams
-• Partner program library — train with your gym, in the Nation
+• Exercise library with HD videos, filtered to your gym's equipment
 
-This isn't a fitness app. It's a movement. We're glad you're here.
+Your gym. Your trainer. Your program. We're glad you're here.
 
 
 ────────────────────────────────────────────────────────────────────────────────
 SCREENSHOT CAPTIONS  (5 screens — for design reference)
 ────────────────────────────────────────────────────────────────────────────────
 
-1. A program built around you.
+1. Your gym's equipment. Your trainer's program.
 2. Smart sets. Smart rest. Smarter progress.
 3. Generate a workout in 10 seconds.
 4. See every PR. Watch every line go up.
