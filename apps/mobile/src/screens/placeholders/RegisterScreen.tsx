@@ -315,14 +315,14 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
           <Text className="text-xs text-center mt-4" style={{ color: colors.textMuted }}>
             By creating an account, you agree to our{' '}
             <Text
-              onPress={() => Linking.openURL('https://admin.fitnation.mk/terms')}
+              onPress={() => Linking.openURL('https://fitnation.mk/terms')}
               style={{ color: colors.primary, textDecorationLine: 'underline' }}
             >
               Terms of Service
             </Text>
             {' '}and{' '}
             <Text
-              onPress={() => Linking.openURL('https://admin.fitnation.mk/privacy')}
+              onPress={() => Linking.openURL('https://fitnation.mk/privacy')}
               style={{ color: colors.primary, textDecorationLine: 'underline' }}
             >
               Privacy Policy

@@ -168,14 +168,14 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
           <Text className="text-xs text-center mt-8" style={{ color: colors.textMuted }}>
             By signing in, you agree to our{' '}
             <Text
-              onPress={() => Linking.openURL('https://admin.fitnation.mk/terms')}
+              onPress={() => Linking.openURL('https://fitnation.mk/terms')}
               style={{ color: colors.primary, textDecorationLine: 'underline' }}
             >
               Terms of Service
             </Text>
             {' '}and{' '}
             <Text
-              onPress={() => Linking.openURL('https://admin.fitnation.mk/privacy')}
+              onPress={() => Linking.openURL('https://fitnation.mk/privacy')}
               style={{ color: colors.primary, textDecorationLine: 'underline' }}
             >
               Privacy Policy
