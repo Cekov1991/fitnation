@@ -1,6 +1,7 @@
 {
   "name": "fit-nation",
   "private": true,
+  "packageManager": "pnpm@9.15.1",
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:mobile": "pnpm --filter mobile start",
