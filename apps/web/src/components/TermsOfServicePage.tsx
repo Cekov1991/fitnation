@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Dumbbell } from 'lucide-react';
 
-const LAST_UPDATED = 'May 2, 2026';
+const LAST_UPDATED = 'May 6, 2026';
 
 const sections = [
   { id: 'about', title: 'About Fit Nation' },
@@ -116,7 +116,7 @@ export function TermsOfServicePage() {
           <div className="space-y-10">
 
             <Section id="about" number={1} title="About Fit Nation">
-              <p>Fit Nation is a fitness training platform operated by <strong>Mayst Impact DOOEL</strong>, Skopje, North Macedonia. The Platform provides:</p>
+              <p>Fit Nation is a fitness training platform operated by <strong>Stefan Cekov</strong>, an individual based in Skopje, North Macedonia. The Platform provides:</p>
               <ul>
                 <li>Training programs and workout plans</li>
                 <li>An algorithmic workout generator tailored to your fitness profile</li>
@@ -197,19 +197,22 @@ export function TermsOfServicePage() {
             </Section>
 
             <Section id="payments" number={9} title="Subscriptions & Payments">
-              <p>Fit Nation currently does not offer paid subscription tiers. All Platform features are accessible without payment at this time.</p>
-              <p>If subscription-based features are introduced in the future, we will update these Terms and present the updated terms to you before any purchase is required. Continued use after a paid feature becomes available and applicable billing terms are accepted constitutes agreement to those terms.</p>
+              <p>We do not currently charge end-users for the Platform. All user-facing features are accessible without payment at this time.</p>
+              <p>Subscription, in-app purchase, or one-time-purchase features may be introduced in the future. If they are, we will update these Terms and present the updated terms to you before any purchase is required. Continued use after a paid feature becomes available and applicable billing terms are accepted constitutes agreement to those terms.</p>
             </Section>
 
             <Section id="third-party" number={10} title="Third-Party Services">
               <p>Fit Nation relies on the following third-party services to operate the Platform:</p>
               <ul>
-                <li><strong>Amazon Web Services (AWS Frankfurt)</strong> — cloud hosting and infrastructure</li>
+                <li><strong>Amazon Web Services (AWS Frankfurt)</strong> — cloud hosting, database, and media file storage</li>
+                <li><strong>Cloudflare</strong> — content delivery network and DDoS protection</li>
+                <li><strong>Sentry</strong> — crash reporting and error diagnostics</li>
+                <li><strong>Brevo</strong> — transactional email delivery</li>
+                <li><strong>Expo (expo.dev)</strong> — over-the-air app updates</li>
                 <li><strong>Apple App Store</strong> — iOS app distribution</li>
                 <li><strong>Google Play</strong> — Android app distribution</li>
-                <li><strong>Expo (expo.dev)</strong> — over-the-air app updates</li>
               </ul>
-              <p>We are not responsible for the availability, performance, accuracy, or policies of these third-party services. Your use of such services is subject to their respective terms and policies.</p>
+              <p>We are not responsible for the availability, performance, accuracy, or policies of these third-party services. Your use of such services is subject to their respective terms and policies. For details on what data these processors handle, please refer to our <Link to="/privacy">Privacy Policy</Link>.</p>
             </Section>
 
             <Section id="acceptable-use" number={11} title="Acceptable Use">
@@ -227,7 +230,7 @@ export function TermsOfServicePage() {
             </Section>
 
             <Section id="ip" number={12} title="Intellectual Property">
-              <p>All content and technology within Fit Nation — including software, design, text, media, branding, and the workout generation algorithm — are the exclusive property of <strong>Mayst Impact DOOEL</strong> or its licensors.</p>
+              <p>All content and technology within Fit Nation — including software, design, text, media, branding, and the workout generation algorithm — are the exclusive property of <strong>Stefan Cekov</strong> or his licensors.</p>
               <p>You may not copy, reproduce, distribute, modify, or reverse-engineer any part of the Platform without prior written consent.</p>
               <p>The name "Fit Nation" and all associated branding may not be used without permission.</p>
             </Section>
@@ -260,7 +263,7 @@ export function TermsOfServicePage() {
             </Section>
 
             <Section id="liability" number={17} title="Limitation of Liability">
-              <p>To the maximum extent permitted by applicable law, Mayst Impact DOOEL shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+              <p>To the maximum extent permitted by applicable law, Stefan Cekov shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
               <ul>
                 <li>Any injuries or health-related issues arising from use of the Platform.</li>
                 <li>Any losses or damages arising from the use or misuse of the Platform or its generated workout plans.</li>
@@ -276,7 +279,7 @@ export function TermsOfServicePage() {
             </Section>
 
             <Section id="indemnification" number={19} title="Indemnification">
-              <p>You agree to indemnify and hold harmless Mayst Impact DOOEL, its founders, employees, and partners from any claims, damages, liabilities, or expenses arising from:</p>
+              <p>You agree to indemnify and hold harmless Stefan Cekov and any service providers acting on his behalf from any claims, damages, liabilities, or expenses arising from:</p>
               <ul>
                 <li>Your use of the Platform.</li>
                 <li>Your violation of these Terms.</li>
@@ -317,7 +320,7 @@ export function TermsOfServicePage() {
                 support@fitnation.mk
               </a>
             </p>
-            <p className="mt-2">© {new Date().getFullYear()} Mayst Impact DOOEL. All rights reserved.</p>
+            <p className="mt-2">© {new Date().getFullYear()} Stefan Cekov. All rights reserved.</p>
             <div className="mt-4 flex gap-4">
               <Link to="/privacy" style={{ color: 'var(--color-primary)' }}>Privacy Policy</Link>
               <Link to="/support" style={{ color: 'var(--color-primary)' }}>Support</Link>

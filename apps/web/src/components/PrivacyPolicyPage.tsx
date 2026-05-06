@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Dumbbell } from 'lucide-react';
 
-const LAST_UPDATED = 'May 2, 2026';
+const LAST_UPDATED = 'May 6, 2026';
 
 const sections = [
   { id: 'information-we-collect', title: 'Information We Collect' },
@@ -99,7 +99,7 @@ export function PrivacyPolicyPage() {
             </p>
             <h1 className="text-4xl font-extrabold mb-3">Privacy Policy</h1>
             <p style={{ color: 'var(--color-text-secondary)' }}>
-              Mayst Impact DOOEL ("we," "our," or "us") is committed to protecting your privacy and personal data. This Privacy Policy explains how we collect, use, store, share, and protect your information when you use the Fit Nation website, mobile application, and related services ("Platform"). By using Fit Nation, you agree to the practices described in this Privacy Policy.
+              Stefan Cekov, an individual operator of the Fit Nation Platform ("Fit Nation," "we," "us," or "our") is committed to protecting your privacy and personal data. This Privacy Policy explains how we collect, use, store, share, and protect your information when you use the Fit Nation website, mobile application, and related services ("Platform"). By using Fit Nation, you agree to the practices described in this Privacy Policy.
             </p>
             <p className="text-sm mt-4" style={{ color: 'var(--color-text-muted)' }}>
               Last updated: {LAST_UPDATED}
@@ -189,12 +189,20 @@ export function PrivacyPolicyPage() {
             <Section id="data-sharing" number={5} title="Data Sharing & Third Parties">
               <p>We share only the minimum necessary data with the following trusted service providers who act as data processors on our behalf:</p>
               <ul>
-                <li><strong>Amazon Web Services (AWS)</strong> — cloud hosting and database infrastructure located in Frankfurt, Germany</li>
+                <li><strong>Amazon Web Services (AWS)</strong> — cloud hosting, database, and media file storage located in Frankfurt, Germany</li>
+                <li><strong>Cloudflare</strong> — content delivery network and DDoS protection sitting in front of our website and API; processes IP addresses and request metadata for routing and security purposes</li>
+                <li><strong>Sentry</strong> — crash reporting and error diagnostics for the mobile app and backend; receives limited diagnostic data such as IP address, authenticated user ID, and request metadata when an error occurs. Sensitive fields (passwords, tokens) are scrubbed automatically</li>
+                <li><strong>Brevo</strong> — transactional email delivery for verification, password reset, and security notifications; processes email addresses and message content for these purposes only</li>
                 <li><strong>Expo (expo.dev)</strong> — over-the-air JavaScript bundle updates for the mobile app</li>
                 <li><strong>Apple App Store / Google Play</strong> — app distribution; crash reports and device diagnostics are collected by these platforms under their own privacy policies, not by us</li>
               </ul>
               <p>All service providers are required to process data securely and in accordance with applicable data protection laws.</p>
-              <p><strong>We do not use third-party analytics, advertising, or tracking services.</strong> We do not sell personal data.</p>
+
+              <SubHeading>Data Sharing With Partner Gyms</SubHeading>
+              <p>When you select a partner gym during sign-up, that gym's administrators can see <strong>only your name, your email address, and the fact that you are a registered member of their gym</strong>. They cannot see your fitness profile, workout history, set logs, performance metrics, personal records, or any other training data.</p>
+              <p>Aggregate analytics — such as the gym-wide member count and percentile rankings displayed within the Platform — are computed server-side without exposing any individual user's data to gym administrators.</p>
+
+              <p><strong>We do not use advertising, marketing analytics, or behavioural tracking services.</strong> We do not sell personal data.</p>
             </Section>
 
             <Section id="international-transfers" number={6} title="International Data Transfers">
@@ -219,6 +227,7 @@ export function PrivacyPolicyPage() {
                 <li>Access controls limiting who can access production data</li>
                 <li>Secure infrastructure managed by AWS</li>
               </ul>
+              <p>Crash reports collected by Sentry may include limited diagnostic metadata — such as IP address, authenticated user ID, and request paths — used solely for debugging and stability improvements. Sensitive fields including passwords, authentication tokens, and authorisation headers are scrubbed automatically and never reach Sentry.</p>
               <p>While we take reasonable steps to protect your data, no system can guarantee absolute security. You are responsible for maintaining the confidentiality of your account credentials.</p>
             </Section>
 
@@ -247,10 +256,11 @@ export function PrivacyPolicyPage() {
             </Section>
 
             <Section id="account-deletion" number={11} title="Account Deletion">
-              <p>You can delete your account at any time from your <strong>Profile settings</strong> within the app. Upon deletion:</p>
+              <p>You can delete your account at any time from your <strong>Profile</strong> screen — scroll to the bottom and tap <strong>Delete account</strong>. You will be asked to confirm your password. Upon deletion:</p>
               <ul>
-                <li>Your personal data (name, email, fitness profile) will be permanently removed or anonymised.</li>
-                <li>Your training history and exercise logs will be permanently erased.</li>
+                <li>Your name and email address are permanently anonymised so they can no longer be associated with you.</li>
+                <li>Your account record is soft-deleted and cannot be reactivated.</li>
+                <li>Your training data (workout sessions, set logs, exercise history) may be retained in <strong>anonymised, non-identifiable form</strong> to power aggregate Platform analytics such as gym-wide member counts and percentile rankings.</li>
                 <li>Certain records may be retained for a limited period where required by law.</li>
                 <li>Account deletion is irreversible.</li>
               </ul>
@@ -281,9 +291,9 @@ export function PrivacyPolicyPage() {
             </Section>
 
             <Section id="controller" number={16} title="Data Controller & Contact">
-              <p>Fit Nation is operated by:</p>
+              <p>The Fit Nation Platform is operated by, and the data controller for personal data processed through it is:</p>
               <ul>
-                <li><strong>Mayst Impact DOOEL</strong></li>
+                <li><strong>Stefan Cekov</strong></li>
                 <li>Skopje, North Macedonia</li>
               </ul>
               <p>For any privacy-related questions, requests, or concerns:</p>
@@ -309,7 +319,7 @@ export function PrivacyPolicyPage() {
                 support@fitnation.mk
               </a>
             </p>
-            <p className="mt-2">© {new Date().getFullYear()} Mayst Impact DOOEL. All rights reserved.</p>
+            <p className="mt-2">© {new Date().getFullYear()} Stefan Cekov. All rights reserved.</p>
             <div className="mt-4 flex gap-4">
               <Link to="/terms" style={{ color: 'var(--color-primary)' }}>Terms of Service</Link>
               <Link to="/support" style={{ color: 'var(--color-primary)' }}>Support</Link>

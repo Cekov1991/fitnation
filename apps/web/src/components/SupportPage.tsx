@@ -416,7 +416,7 @@ export function SupportPage() {
 
               <SubHeading>Legal entity</SubHeading>
               <p>
-                Fit Nation is operated by <strong>Mayst Impact DOOEL</strong>, Skopje, North Macedonia.
+                Fit Nation is operated by <strong>Stefan Cekov</strong>, an individual based in Skopje, North Macedonia.
                 For privacy-related requests and GDPR inquiries, please refer to our{' '}
                 <Link to="/privacy" style={{ color: 'var(--color-primary)' }}>
                   Privacy Policy
@@ -438,7 +438,7 @@ export function SupportPage() {
                 support@fitnation.mk
               </a>
             </p>
-            <p className="mt-2">© {new Date().getFullYear()} Mayst Impact DOOEL. All rights reserved.</p>
+            <p className="mt-2">© {new Date().getFullYear()} Stefan Cekov. All rights reserved.</p>
             <div className="mt-4 flex gap-4">
               <Link to="/privacy" style={{ color: 'var(--color-primary)' }}>Privacy Policy</Link>
               <Link to="/terms" style={{ color: 'var(--color-primary)' }}>Terms of Service</Link>
