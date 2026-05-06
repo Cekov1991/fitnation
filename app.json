@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "3c138cd9-ef1e-4895-b3c8-44fbedca3d7e"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.fitnation.fitnation",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
