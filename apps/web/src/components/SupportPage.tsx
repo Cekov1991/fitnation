@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Dumbbell } from 'lucide-react';
 
 const sections = [
   { id: 'getting-started', title: 'Getting started' },
@@ -28,9 +27,11 @@ export function SupportPage() {
         }}
       >
         <Link to="/login" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-tr from-blue-500 to-purple-600">
-            <Dumbbell className="w-4 h-4 text-white" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Fit Nation"
+            className="w-8 h-8 object-contain rounded-xl"
+          />
           <span
             className="font-bold text-lg bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
