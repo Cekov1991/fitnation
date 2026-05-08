@@ -175,13 +175,15 @@ export function SupportPage() {
 
               <SubHeading>How do I delete my account?</SubHeading>
               <p>
-                Go to <strong>Profile → Settings → Delete account</strong>. You'll be asked to confirm
-                your password. Deletion is permanent and irreversible — your name, email, fitness
-                profile, and all training history will be erased. See{' '}
+                Go to your <strong>Profile</strong> screen, scroll to the bottom, and tap{' '}
+                <strong>Delete account</strong>. You'll be asked to confirm your password. Deletion is
+                permanent and irreversible for your account — your name and email are anonymised, your
+                account is soft-deleted, and training data may be retained only in anonymised form for
+                aggregate analytics. See{' '}
                 <Link to="/privacy#account-deletion" style={{ color: 'var(--color-primary)' }}>
                   our Privacy Policy
                 </Link>{' '}
-                for full details on what gets deleted.
+                for full details.
               </p>
             </Section>
 
@@ -225,25 +227,29 @@ export function SupportPage() {
             <Section id="plans-programs" number={4} title="Plans & programs">
               <SubHeading>How is my personalized plan generated?</SubHeading>
               <p>
-                After onboarding, Fit Nation builds a 12-week plan using your fitness goal, training
-                experience, days per week, and preferred session length. The split (Full Body, Push/Pull,
-                PPL, etc.) is determined automatically from your training days, and exercises are selected
-                to fit within your available session time, with a 10% buffer for warm-up and transitions.
+                After onboarding, Fit Nation builds a <strong>5-week</strong> personalized plan using
+                your fitness goal, training experience, days per week, and preferred session length. The
+                split (Full Body, Push/Pull, PPL, etc.) is determined automatically from your training
+                days, and exercises are selected to fit within your available session time, with a 10%
+                buffer for warm-up and transitions. Every exercise in your plan is filtered to the
+                equipment your gym actually has — you won't be assigned a machine that doesn't exist on
+                your gym floor.
               </p>
 
               <SubHeading>Can I regenerate my plan?</SubHeading>
               <p>
                 Yes. Go to <strong>Plans</strong> and tap <strong>Regenerate plan</strong>. This creates
-                a new 12-week personalized plan from your current profile. Your previous auto-generated
-                plan is deactivated, but its history remains in your session log.
+                a new <strong>5-week</strong> personalized plan from your current profile. Your previous
+                auto-generated plan is deactivated, but its history remains in your session log.
               </p>
 
               <SubHeading>What's the difference between a routine and a program?</SubHeading>
               <p>
                 A <strong>routine</strong> is a flexible, repeatable collection of workouts with no
                 fixed duration. You can run any workout from it as many times as you like. A{' '}
-                <strong>program</strong> is a structured, time-bound plan (e.g., 12 weeks) that tracks
-                progress and suggests your next workout in sequence.
+                <strong>program</strong> is a structured, time-bound plan with a set duration (your
+                personalized program is 5 weeks; programs you clone from your gym's library may have a
+                different length) that tracks progress and suggests your next workout in sequence.
               </p>
 
               <SubHeading>Can I build a plan from scratch?</SubHeading>
@@ -258,9 +264,10 @@ export function SupportPage() {
               <SubHeading>How do I generate a workout?</SubHeading>
               <p>
                 Tap the <strong>Generate workout</strong> button (on the Dashboard or via the
-                navigation). Choose your focus (Push, Pull, Legs, Upper, Lower, or Full Body), filter
-                by the equipment available to you, set a duration, and tap Generate. Fit Nation builds
-                a session in seconds tailored to your goal and experience level.
+                navigation). Choose your focus (Push, Pull, Legs, Upper, Lower, or Full Body), set your
+                duration, and tap Generate. Fit Nation builds a session in seconds using only the
+                equipment your gym has — you can optionally narrow further by equipment type if you want.
+                The workout is tailored to your goal and experience level.
               </p>
 
               <SubHeading>Can I change exercises before starting?</SubHeading>
@@ -294,6 +301,20 @@ export function SupportPage() {
                 active and track progress through it independently.
               </p>
 
+              <SubHeading>Can my gym see my workouts?</SubHeading>
+              <p>
+                <strong>No.</strong> Your gym's administrators can see only your <strong>name</strong>,{' '}
+                <strong>email address</strong>, and the fact that you are a registered member of their
+                gym. They cannot see your fitness profile, workout history, set logs, personal records,
+                or any other training data. Aggregate stats (like member counts and your percentile
+                ranking) are calculated on the server without exposing your individual workouts to the
+                gym. See our{' '}
+                <Link to="/privacy#data-sharing" style={{ color: 'var(--color-primary)' }}>
+                  Privacy Policy
+                </Link>{' '}
+                for full details.
+              </p>
+
               <SubHeading>Can I switch gyms?</SubHeading>
               <p>
                 Partner assignment is set during registration and is currently linked to your account.
@@ -310,8 +331,9 @@ export function SupportPage() {
               <p>
                 We collect the information you give us directly: name, email, fitness profile (goal,
                 age, gender, height, weight, experience, schedule), and your workout logs (exercises,
-                sets, reps, weight). We don't use advertising or analytics trackers. Full details are
-                in our{' '}
+                sets, reps, weight). We do not use advertising, marketing analytics, or behavioural
+                tracking services. We use <strong>Sentry</strong> only for crash reporting and error
+                diagnostics. Full details are in our{' '}
                 <Link to="/privacy" style={{ color: 'var(--color-primary)' }}>
                   Privacy Policy
                 </Link>
@@ -329,9 +351,10 @@ export function SupportPage() {
 
               <SubHeading>How do I delete my account and all my data?</SubHeading>
               <p>
-                You can delete your account in-app via <strong>Profile → Settings → Delete account</strong>.
-                This permanently removes your personal data, fitness profile, and training history.
-                You can also request deletion by emailing us at{' '}
+                You can delete your account in-app from your <strong>Profile</strong> screen — scroll to
+                the bottom and tap <strong>Delete account</strong>. Your name and email are anonymised,
+                your account is soft-deleted, and training data may be retained in anonymised form for
+                aggregate analytics only. You can also request deletion by emailing us at{' '}
                 <a href="mailto:support@fitnation.mk" style={{ color: 'var(--color-primary)' }}>
                   support@fitnation.mk
                 </a>
@@ -378,7 +401,7 @@ export function SupportPage() {
               <ul>
                 <li>Your device model (e.g., iPhone 15 Pro, Samsung Galaxy S24)</li>
                 <li>Operating system version (e.g., iOS 18.3, Android 15)</li>
-                <li>App version (visible in Profile → Settings)</li>
+                <li>App version (shown at the bottom of the Profile tab in the mobile app)</li>
                 <li>What you were doing when it crashed</li>
                 <li>Whether it happens consistently or only sometimes</li>
               </ul>
