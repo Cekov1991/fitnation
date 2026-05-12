@@ -12,7 +12,7 @@ export function InstallAppBanner() {
 
   const handleInstall = () => {
     if (isIOS) {
-      setShowIOSOverlay(true);
+      window.open('https://apps.apple.com/app/fit-nation-the-movement/id6766201705', '_blank');
     } else {
       void promptInstall();
     }
