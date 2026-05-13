@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import {
+  ActivityIndicator,
   AppState,
   AppStateStatus,
   Modal,
@@ -13,13 +14,21 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
-import { ArrowLeft, Maximize2, X } from 'lucide-react-native'
+import { ArrowLeft, ArrowUpDown, Maximize2, Plus, X } from 'lucide-react-native'
 import * as ScreenOrientation from 'expo-screen-orientation'
-import { useExercises, useExerciseHistory } from '@fit-nation/shared'
+import {
+  useAddSessionExercise,
+  useAddTemplateExercise,
+  useExerciseHistory,
+  useExercises,
+  useSwapSessionExercise,
+  useSwapTemplateExercise,
+} from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { SpeechButton } from '../../components/ui/SpeechButton'
+import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -131,7 +140,7 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
 }
 
 export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'ExerciseDetail'>) {
-  const { exerciseName, initialTab = 'performance' } = route.params
+  const { exerciseName, initialTab = 'performance', action } = route.params
   const { colors } = useTheme()
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>(initialTab)
   const [chartMode, setChartMode] = useState<'volume' | 'weight'>('weight')
@@ -141,6 +150,60 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     () => exercises.find(e => e.name.toLowerCase() === exerciseName.toLowerCase()),
     [exercises, exerciseName]
   )
+
+  const addTemplateExercise = useAddTemplateExercise()
+  const swapTemplateExercise = useSwapTemplateExercise()
+  const addSessionExercise = useAddSessionExercise()
+  const swapSessionExercise = useSwapSessionExercise()
+
+  const isSwapAction = action?.kind === 'swap-in-template' || action?.kind === 'swap-in-session'
+  const actionPending =
+    addTemplateExercise.isPending ||
+    swapTemplateExercise.isPending ||
+    addSessionExercise.isPending ||
+    swapSessionExercise.isPending
+
+  async function handleAction() {
+    if (!action || !exercise || actionPending) return
+    try {
+      switch (action.kind) {
+        case 'add-to-template':
+          await addTemplateExercise.mutateAsync({
+            templateId: action.templateId,
+            data: {
+              exercise_id: exercise.id,
+              target_sets: 3,
+              min_target_reps: 8,
+              max_target_reps: 12,
+            },
+          })
+          break
+        case 'swap-in-template':
+          await swapTemplateExercise.mutateAsync({
+            templateId: action.templateId,
+            pivotId: action.pivotId,
+            data: { exercise_id: exercise.id },
+          })
+          break
+        case 'add-to-session':
+          await addSessionExercise.mutateAsync({
+            sessionId: action.sessionId,
+            data: { exercise_id: exercise.id },
+          })
+          break
+        case 'swap-in-session':
+          await swapSessionExercise.mutateAsync({
+            sessionId: action.sessionId,
+            exerciseId: action.swapExerciseId,
+            data: { exercise_id: exercise.id },
+          })
+          break
+      }
+      navigation.pop(2)
+    } catch (e: any) {
+      showToast(e?.message || (isSwapAction ? 'Failed to swap exercise' : 'Failed to add exercise'), 'error')
+    }
+  }
 
   const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT'
 
@@ -222,13 +285,40 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
           >
             <ArrowLeft size={22} color={colors.textSecondary} />
           </TouchableOpacity>
-          <GradientText
-            className="flex-1 text-2xl font-bold"
-            style={{ fontSize: 22, fontWeight: 'bold' }}
-            numberOfLines={1}
-          >
-            {exercise?.name || exerciseName}
-          </GradientText>
+          <View className="flex-1 min-w-0">
+            <GradientText
+              className="text-2xl font-bold"
+              style={{ fontSize: 22, fontWeight: 'bold' }}
+              numberOfLines={1}
+            >
+              {exercise?.name || exerciseName}
+            </GradientText>
+          </View>
+          {action && (
+            <TouchableOpacity
+              onPress={handleAction}
+              disabled={!exercise || actionPending}
+              className="p-2 rounded-full flex-shrink-0"
+              style={{
+                backgroundColor: isSwapAction
+                  ? `${colors.primary}20`
+                  : `${colors.primary}20`,
+                opacity: !exercise || actionPending ? 0.5 : 1,
+              }}
+              activeOpacity={0.7}
+            >
+              {actionPending ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isSwapAction ? colors.primary : colors.primary}
+                />
+              ) : isSwapAction ? (
+                <ArrowUpDown size={20} color={colors.primary} />
+              ) : (
+                <Plus size={20} color={colors.primary} />
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Tab Pill Switcher — comes before video, matching web layout */}

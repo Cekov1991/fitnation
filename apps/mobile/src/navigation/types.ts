@@ -36,7 +36,15 @@ export type AppStackParamList = {
     swapPivotId?: number
     swapMuscleGroupId?: string
   } | undefined
-  ExerciseDetail: { exerciseName: string; initialTab?: 'guidance' | 'performance' }
+  ExerciseDetail: {
+    exerciseName: string
+    initialTab?: 'guidance' | 'performance'
+    action?:
+      | { kind: 'add-to-template'; templateId: number }
+      | { kind: 'swap-in-template'; templateId: number; pivotId: number }
+      | { kind: 'add-to-session'; sessionId: number }
+      | { kind: 'swap-in-session'; sessionId: number; swapExerciseId: number }
+  }
   ExerciseCatalog: undefined
   CreatePlan: undefined
   EditPlan: { planId: number }
