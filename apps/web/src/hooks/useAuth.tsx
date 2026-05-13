@@ -1,6 +1,6 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi, getAuthStorage, AUTH_TOKEN_KEY } from '@fit-nation/shared';
+import { authApi, getAuthStorage, setOnUnauthorized, AUTH_TOKEN_KEY } from '@fit-nation/shared';
 import type { UserResource } from '@fit-nation/shared';
 
 interface AuthContextType {
@@ -27,6 +27,19 @@ export function AuthProvider({
   const queryClient = useQueryClient();
   const [user, setUser] = useState<UserResource | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Server rejected the token (deleted user, revoked session, expired token).
+  // Clear cached state and drop back to the login screen.
+  useEffect(() => {
+    const storage = getAuthStorage();
+    setOnUnauthorized(async () => {
+      await storage.removeItem('partner-slug');
+      queryClient.clear();
+      setUser(null);
+    });
+    return () => setOnUnauthorized(null);
+  }, [queryClient]);
+
   useEffect(() => {
     // Check if user is already logged in
     const initAuthCheck = async () => {
