@@ -2,6 +2,7 @@ import './global.css'
 import { useEffect } from 'react'
 import { Alert, AppState } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { KeyboardProvider } from 'react-native-keyboard-controller'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { MutationCache, QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query'
 import * as Updates from 'expo-updates'
@@ -63,17 +64,19 @@ export default function App() {
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider>
-              <AuthProvider>
-                <OfflineBanner />
-                <RootNavigator />
-                <ToastHost />
-              </AuthProvider>
-            </ThemeProvider>
-          </QueryClientProvider>
-        </SafeAreaProvider>
+        <KeyboardProvider>
+          <SafeAreaProvider>
+            <QueryClientProvider client={queryClient}>
+              <ThemeProvider>
+                <AuthProvider>
+                  <OfflineBanner />
+                  <RootNavigator />
+                  <ToastHost />
+                </AuthProvider>
+              </ThemeProvider>
+            </QueryClientProvider>
+          </SafeAreaProvider>
+        </KeyboardProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>
   )

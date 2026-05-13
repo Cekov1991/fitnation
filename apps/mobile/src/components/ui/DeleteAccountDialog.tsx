@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -64,6 +65,7 @@ export function DeleteAccountDialog({
       onRequestClose={handleClose}
       statusBarTranslucent
     >
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <Pressable style={styles.backdrop} onPress={handleClose}>
         <Pressable
           onPress={() => {}}
@@ -166,6 +168,7 @@ export function DeleteAccountDialog({
           </View>
         </Pressable>
       </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }

@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { View, Text, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { View, Text, TouchableOpacity, Modal, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist'
 import type { RenderItemParams } from 'react-native-draggable-flatlist'
-import Swipeable from 'react-native-gesture-handler/Swipeable'
-import { NativeViewGestureHandler } from 'react-native-gesture-handler'
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import * as Haptics from 'expo-haptics'
 import {
   useTemplate,
@@ -48,8 +48,8 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   const startSession = useStartSession()
   const isDraggingRef = useRef(false)
   const pendingOrderRef = useRef<ExerciseItem[] | null>(null)
-  const listHandlerRef = useRef(null)
 
+  const insets = useSafeAreaInsets()
   const [editingItem, setEditingItem] = useState<ExerciseItem | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSets, setEditSets] = useState('3')
@@ -170,8 +170,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   function renderItem({ item, drag, isActive }: RenderItemParams<ExerciseItem>) {
     return (
       <ScaleDecorator activeScale={1.02}>
-        <Swipeable
-          simultaneousHandlers={listHandlerRef}
+        <ReanimatedSwipeable
           renderRightActions={() => (
             <View style={{ flexDirection: 'row', marginLeft: 8, marginBottom: 12 }}>
               {/* Swap */}
@@ -273,7 +272,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
               <GripVertical size={20} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
-        </Swipeable>
+        </ReanimatedSwipeable>
       </ScaleDecorator>
     )
   }
@@ -314,8 +313,9 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
           </TouchableOpacity>
         </View>
       ) : (
-        <NativeViewGestureHandler ref={listHandlerRef}>
+        <View className="flex-1">
           <DraggableFlatList
+            containerStyle={{ flex: 1 }}
             data={exercises}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
@@ -324,7 +324,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
             }}
             onDragEnd={handleDragEnd}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 180 }}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 }}
             ListHeaderComponent={
               <Text className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: colors.textSecondary }}>
                 Exercises
@@ -341,14 +341,13 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
               </View>
             }
           />
-        </NativeViewGestureHandler>
+        </View>
       )}
 
-      {/* Bottom CTA buttons */}
+      {/* Bottom CTA buttons — part of the layout flow, not absolutely positioned */}
       <View
-        className="absolute bottom-8 left-6 right-6"
-        pointerEvents="box-none"
-        style={{ gap: 12 }}
+        className="px-6 pt-3"
+        style={{ gap: 12, paddingBottom: insets.bottom + 16 }}
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('ExercisePicker', { templateId })}
@@ -396,12 +395,13 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
         transparent
         animationType="fade"
         onRequestClose={() => setShowEditModal(false)}
+        statusBarTranslucent
       >
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-              <TouchableWithoutFeedback onPress={() => {}}>
-                <View style={{ backgroundColor: colors.bgSurface, borderRadius: 24, width: '90%', margin: 'auto'}}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={{ backgroundColor: colors.bgSurface, borderRadius: 24, width: '90%', alignSelf: 'center'}}>
                   <SafeAreaView edges={['bottom']} style={{ padding: 24 }}>
                     <Text className="text-lg font-bold mb-1" style={{ color: colors.textPrimary }}>
                       Edit Exercise
@@ -470,10 +470,10 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                     </View>
                   </SafeAreaView>
                 </View>
-              </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
+            </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
 
       <ConfirmDialog

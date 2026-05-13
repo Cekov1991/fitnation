@@ -1,5 +1,6 @@
 import { memo, useState, useCallback, useMemo, useEffect } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
 import { Plus } from 'lucide-react-native'
 import {
@@ -527,11 +528,11 @@ function ExercisePageComponent({
     </ScrollView>
   )
 
-  return Platform.OS === 'ios' ? (
+  return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       {content}
     </KeyboardAvoidingView>
-  ) : content
+  )
 }
 
 export const ExercisePage = memo(ExercisePageComponent)
