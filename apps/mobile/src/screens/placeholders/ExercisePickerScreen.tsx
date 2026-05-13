@@ -179,9 +179,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
           renderItem={({ item }) => (
             <ExerciseCard
               exercise={item}
-              onPress={() => {
-                if (!templateId) navigation.goBack()
-              }}
+              onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
               rightAction={
                 templateId ? (
                   isSwap ? (

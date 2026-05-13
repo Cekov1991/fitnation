@@ -140,7 +140,7 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
             const isAdding = addingId === item.id
             return (
               <TouchableOpacity
-                onPress={() => handleSelectExercise(item)}
+                onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
                 disabled={!!addingId}
                 className="flex-row items-center gap-3 p-3 rounded-xl mb-2"
                 style={{
@@ -173,16 +173,19 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
                     </Text>
                   )}
                 </View>
-                {isAdding ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <View
-                    className="w-9 h-9 rounded-full items-center justify-center"
-                    style={{ backgroundColor: `${colors.primary}20` }}
-                  >
+                <TouchableOpacity
+                  onPress={() => handleSelectExercise(item)}
+                  disabled={!!addingId}
+                  className="w-9 h-9 rounded-full items-center justify-center"
+                  style={{ backgroundColor: `${colors.primary}20` }}
+                  activeOpacity={0.7}
+                >
+                  {isAdding ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
                     <Plus size={18} color={colors.primary} />
-                  </View>
-                )}
+                  )}
+                </TouchableOpacity>
               </TouchableOpacity>
             )
           }}

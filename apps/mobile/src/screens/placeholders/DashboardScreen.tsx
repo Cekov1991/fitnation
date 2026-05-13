@@ -51,6 +51,7 @@ import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { WorkoutCard } from '../../components/ui/WorkoutCard'
 import { WorkoutTemplateSelector } from '../../components/ui/WorkoutTemplateSelector'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { PlanGeneratingOverlay } from '../../components/ui/PlanGeneratingOverlay'
 
 import type { AppStackParamList } from '../../navigation/types'
 
@@ -1014,6 +1015,11 @@ export function DashboardScreen() {
         confirmLabel="Refresh Plan"
         destructive
         onConfirm={executeRegenerate}
+      />
+
+      <PlanGeneratingOverlay
+        visible={isRegenerating || regeneratePlan.isPending}
+        partnerLogoUrl={user?.partner?.visual_identity?.logo}
       />
     </SafeAreaView>
   )
