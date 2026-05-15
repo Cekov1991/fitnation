@@ -1044,7 +1044,7 @@ POST /api/plans/regenerate
 ```
 *Requires authentication*
 
-Creates a new 12-week personalized program from the user's profile (same algorithm as onboarding). Any **active** plan with `is_auto_generated: true` for this user is deactivated (`is_active` set to `false`); templates and workout history on older plans remain in the database for calendars and history. The new plan is set active with `is_auto_generated: true`.
+Creates a new 5-week personalized program from the user's profile (same algorithm as onboarding). Any **active** plan with `is_auto_generated: true` for this user is deactivated (`is_active` set to `false`); templates and workout history on older plans remain in the database for calendars and history. The new plan is set active with `is_auto_generated: true`.
 
 Requires onboarding to be complete and the same profile fields as plan generation (fitness goal, training experience, training days per week, workout duration).
 

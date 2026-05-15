@@ -20,6 +20,7 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
   const player = useVideoPlayer(uri, p => {
     p.loop = true
     p.muted = true
+    p.audioMixingMode = 'mixWithOthers'
     p.play()
   })
 
