@@ -17,6 +17,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/ui/Input'
 import { onboardingReducer } from '../Onboarding/onboardingReducer'
+import { PlanGeneratingContent } from '../../components/ui/PlanGeneratingOverlay'
 import type { AppScreenProps } from '../../navigation/types'
 
 const localLogo = require('../../../assets/logo.png')
@@ -221,20 +222,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
         )}
 
         {(phase === 'generating-plan' || phase === 'plan-success') && (
-          <View className="items-center gap-4">
-            <Image
-              source={partnerLogoUrl ?? localLogo}
-              style={{ width: 100, height: 100, borderRadius: 16 }}
-              contentFit="contain"
-            />
-            <Text className="text-xl font-bold text-center" style={{ color: colors.textPrimary }}>
-              Building your plan...
-            </Text>
-            <Text className="text-center" style={{ color: colors.textSecondary }}>
-              This takes a few seconds
-            </Text>
-            <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} />
-          </View>
+          <PlanGeneratingContent partnerLogoUrl={partnerLogoUrl} />
         )}
 
         {phase === 'error' && (

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, TextInput, Pressable, Linking } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Pressable, Linking } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -125,7 +126,6 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
       <KeyboardAvoidingView
         className="flex-1"
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <ScrollView
           ref={scrollRef}

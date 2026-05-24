@@ -1,7 +1,7 @@
 // Fit Nation API Service Layer
 
 import { getConfig } from './config'
-import { getAuthStorage, AUTH_TOKEN_KEY } from './auth'
+import { getAuthStorage, AUTH_TOKEN_KEY, notifyUnauthorized } from './auth'
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -78,6 +78,13 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     const err: any = new Error(data.message || `HTTP error! status: ${response.status}`);
     err.status = response.status;
     err.errors = data.errors;
+    // Token was present but the server rejected it (user deleted, token revoked,
+    // session expired). Clear local credentials and notify the app so it can
+    // bounce the user back to the login screen.
+    if (response.status === 401 && token) {
+      try { await storage.removeItem(AUTH_TOKEN_KEY); } catch {}
+      await notifyUnauthorized();
+    }
     throw err;
   }
   if (response.status === 204 || response.headers.get('content-length') === '0') {

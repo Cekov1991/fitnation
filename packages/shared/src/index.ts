@@ -1,6 +1,6 @@
 // Config
 export { initApi, getConfig } from './config'
-export { initAuth, getAuthStorage, AUTH_TOKEN_KEY, PARTNER_SLUG_KEY } from './auth'
+export { initAuth, getAuthStorage, setOnUnauthorized, AUTH_TOKEN_KEY, PARTNER_SLUG_KEY } from './auth'
 export type { AuthStorage } from './auth'
 
 // API

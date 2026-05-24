@@ -6,9 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Application from 'expo-application'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
@@ -220,7 +219,7 @@ export function ProfileScreen() {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"

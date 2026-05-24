@@ -3,7 +3,7 @@ import { useDebounce } from '../../hooks/useDebounce'
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
-import { Search, X, Plus } from 'lucide-react-native'
+import { ArrowUpDown, Plus, Search, X } from 'lucide-react-native'
 import {
   useExercises,
   useMuscleGroups,
@@ -140,7 +140,15 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
             const isAdding = addingId === item.id
             return (
               <TouchableOpacity
-                onPress={() => handleSelectExercise(item)}
+                onPress={() =>
+                  navigation.navigate('ExerciseDetail', {
+                    exerciseName: item.name,
+                    action:
+                      isSwap && swapExerciseId
+                        ? { kind: 'swap-in-session', sessionId: numericSessionId, swapExerciseId }
+                        : { kind: 'add-to-session', sessionId: numericSessionId },
+                  })
+                }
                 disabled={!!addingId}
                 className="flex-row items-center gap-3 p-3 rounded-xl mb-2"
                 style={{
@@ -173,16 +181,28 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
                     </Text>
                   )}
                 </View>
-                {isAdding ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <View
-                    className="w-9 h-9 rounded-full items-center justify-center"
-                    style={{ backgroundColor: `${colors.primary}20` }}
-                  >
+                <TouchableOpacity
+                  onPress={() => handleSelectExercise(item)}
+                  disabled={!!addingId}
+                  className="w-9 h-9 rounded-full items-center justify-center"
+                  style={{
+                    backgroundColor: isSwap
+                      ? `${colors.primary}20`
+                      : `${colors.primary}20`,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  {isAdding ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={isSwap ? colors.primary : colors.primary}
+                    />
+                  ) : isSwap ? (
+                    <ArrowUpDown size={18} color={colors.primary} />
+                  ) : (
                     <Plus size={18} color={colors.primary} />
-                  </View>
-                )}
+                  )}
+                </TouchableOpacity>
               </TouchableOpacity>
             )
           }}

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
-import { initAuth, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
+import { useQueryClient } from '@tanstack/react-query'
+import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
 
@@ -36,7 +37,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { setColors } = useTheme()
+  const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
+
+  // Server rejected the token (deleted user, revoked session, expired token).
+  // Clear cached state and drop back to the auth navigator.
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      setUser(null)
+      queryClient.clear()
+    })
+    return () => setOnUnauthorized(null)
+  }, [queryClient])
 
   function applyPartnerColors(currentUser: UserResource) {
     const identity = currentUser.partner?.visual_identity
@@ -101,8 +113,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
-    await authApi.logout()
+    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
+    if (token) {
+      try {
+        await authApi.logout()
+      } catch {
+        // Continue with local logout even if the server call fails (token
+        // already revoked, account deleted, network down, etc).
+      }
+    }
     await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
+    queryClient.clear()
     setUser(null)
   }
 

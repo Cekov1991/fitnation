@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { View, Text, TouchableOpacity, Modal, ActivityIndicator, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -434,12 +435,13 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
         transparent
         animationType="fade"
         onRequestClose={() => setShowEditModal(false)}
+        statusBarTranslucent
       >
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-              <TouchableWithoutFeedback onPress={() => {}}>
-                <View style={{ backgroundColor: colors.bgSurface, borderRadius: 24, width: '90%', margin: 'auto'}}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={{ backgroundColor: colors.bgSurface, borderRadius: 24, width: '90%', alignSelf: 'center'}}>
                   <SafeAreaView edges={['bottom']} style={{ padding: 24 }}>
                     <Text className="text-lg font-bold mb-1" style={{ color: colors.textPrimary }}>
                       Edit Exercise
@@ -508,10 +510,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                     </View>
                   </SafeAreaView>
                 </View>
-              </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
+            </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
 
       <ConfirmDialog
