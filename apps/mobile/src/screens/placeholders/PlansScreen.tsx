@@ -185,7 +185,7 @@ export function PlansScreen() {
         label: 'Add Workout',
         description: 'Create a new workout in this plan',
         icon: PlusCircle,
-        onPress: () => navigation.navigate('CreateWorkout'),
+        onPress: () => navigation.navigate('CreateWorkout', { planId: planSheet.id, planName: planSheet.name }),
       },
       {
         label: 'Delete Plan',

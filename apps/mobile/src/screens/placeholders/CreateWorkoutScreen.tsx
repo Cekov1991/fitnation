@@ -22,13 +22,15 @@ type WorkoutFormData = z.infer<typeof workoutFormSchema>
 
 type Props = AppScreenProps<'CreateWorkout'>
 
-export function CreateWorkoutScreen({ navigation }: Props) {
+export function CreateWorkoutScreen({ navigation, route }: Props) {
   const { colors } = useTheme()
   const { data: plans = [], isLoading: isPlansLoading } = usePlans()
   const createTemplate = useCreateTemplate()
   const [planDropdownOpen, setPlanDropdownOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null)
   const [selectedPlanName, setSelectedPlanName] = useState<string>('')
+
+  const preselectedPlanId = route.params?.planId ?? null
 
   const activePlan = (plans as PlanResource[]).find((p) => p.is_active)
 
@@ -41,7 +43,7 @@ export function CreateWorkoutScreen({ navigation }: Props) {
     defaultValues: { name: '', description: '' },
   })
 
-  const planId = selectedPlanId ?? activePlan?.id ?? null
+  const planId = preselectedPlanId ?? selectedPlanId ?? activePlan?.id ?? null
 
   async function onSubmit(data: WorkoutFormData) {
     if (!planId) {
@@ -86,74 +88,76 @@ export function CreateWorkoutScreen({ navigation }: Props) {
           </Text>
         </View>
 
-        {/* Plan Selector */}
-        <View className="mb-4">
-          <Text className="text-sm font-semibold mb-2" style={{ color: colors.textSecondary }}>
-            Plan *
-          </Text>
-          {isPlansLoading ? (
-            <SkeletonBox height={52} />
-          ) : (
-            <>
-              <TouchableOpacity
-                onPress={() => setPlanDropdownOpen(!planDropdownOpen)}
-                className="flex-row items-center justify-between px-4 py-4 rounded-xl"
-                style={{ backgroundColor: colors.bgElevated }}
-              >
-                <Text
-                  style={{
-                    color: planId ? colors.textPrimary : colors.textMuted,
-                    fontSize: 16,
-                  }}
+        {/* Plan Selector — hidden when navigating from a specific plan */}
+        {!preselectedPlanId && (
+          <View className="mb-4">
+            <Text className="text-sm font-semibold mb-2" style={{ color: colors.textSecondary }}>
+              Plan *
+            </Text>
+            {isPlansLoading ? (
+              <SkeletonBox height={52} />
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => setPlanDropdownOpen(!planDropdownOpen)}
+                  className="flex-row items-center justify-between px-4 py-4 rounded-xl"
+                  style={{ backgroundColor: colors.bgElevated }}
                 >
-                  {selectedPlanName || activePlan?.name || 'Select a plan'}
-                </Text>
-                <ChevronDown
-                  size={20}
-                  color={colors.textSecondary}
-                  style={{ transform: [{ rotate: planDropdownOpen ? '180deg' : '0deg' }] }}
-                />
-              </TouchableOpacity>
+                  <Text
+                    style={{
+                      color: planId ? colors.textPrimary : colors.textMuted,
+                      fontSize: 16,
+                    }}
+                  >
+                    {selectedPlanName || activePlan?.name || 'Select a plan'}
+                  </Text>
+                  <ChevronDown
+                    size={20}
+                    color={colors.textSecondary}
+                    style={{ transform: [{ rotate: planDropdownOpen ? '180deg' : '0deg' }] }}
+                  />
+                </TouchableOpacity>
 
-              {planDropdownOpen && (plans as PlanResource[]).length > 0 && (
-                <View
-                  className="mt-1 rounded-2xl overflow-hidden"
-                  style={{ backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.bgSurface }}
-                >
-                  {(plans as PlanResource[]).map((p) => (
-                    <TouchableOpacity
-                      key={p.id}
-                      onPress={() => {
-                        setSelectedPlanId(p.id)
-                        setSelectedPlanName(p.name)
-                        setPlanDropdownOpen(false)
-                      }}
-                      className="px-5 py-3"
-                      style={{
-                        backgroundColor:
-                          (selectedPlanId ?? activePlan?.id) === p.id
-                            ? `${colors.primary}18`
-                            : 'transparent',
-                      }}
-                    >
-                      <Text
+                {planDropdownOpen && (plans as PlanResource[]).length > 0 && (
+                  <View
+                    className="mt-1 rounded-2xl overflow-hidden"
+                    style={{ backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.bgSurface }}
+                  >
+                    {(plans as PlanResource[]).map((p) => (
+                      <TouchableOpacity
+                        key={p.id}
+                        onPress={() => {
+                          setSelectedPlanId(p.id)
+                          setSelectedPlanName(p.name)
+                          setPlanDropdownOpen(false)
+                        }}
+                        className="px-5 py-3"
                         style={{
-                          color:
+                          backgroundColor:
                             (selectedPlanId ?? activePlan?.id) === p.id
-                              ? colors.primary
-                              : colors.textPrimary,
-                          fontSize: 15,
+                              ? `${colors.primary}18`
+                              : 'transparent',
                         }}
                       >
-                        {p.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </>
-          )}
-        </View>
+                        <Text
+                          style={{
+                            color:
+                              (selectedPlanId ?? activePlan?.id) === p.id
+                                ? colors.primary
+                                : colors.textPrimary,
+                            fontSize: 15,
+                          }}
+                        >
+                          {p.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+        )}
 
         <FormField
           control={control}
