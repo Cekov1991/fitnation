@@ -327,13 +327,14 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                     <View style={{ flexDirection: 'row', marginLeft: 8, marginBottom: 12 }}>
                       {/* Swap */}
                       <TouchableOpacity
-                        onPress={() =>
+                        onPress={() => {
+                          swipeableRefs.current.get(String(se.id))?.close()
                           navigation.navigate('WorkoutPreviewExercisePicker', {
                             sessionId,
                             swapExerciseId: se.id,
                             swapMuscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString(),
                           })
-                        }
+                        }}
                         style={{
                           width: 64,
                           alignItems: 'center',
@@ -347,7 +348,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </TouchableOpacity>
                       {/* Edit */}
                       <TouchableOpacity
-                        onPress={() => openEditModal(exerciseDetail)}
+                        onPress={() => {
+                          swipeableRefs.current.get(String(se.id))?.close()
+                          openEditModal(exerciseDetail)
+                        }}
                         style={{
                           width: 64,
                           alignItems: 'center',
@@ -361,7 +365,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </TouchableOpacity>
                       {/* Delete */}
                       <TouchableOpacity
-                        onPress={() => handleSwipeRemove(exerciseDetail)}
+                        onPress={() => {
+                          swipeableRefs.current.get(String(se.id))?.close()
+                          handleSwipeRemove(exerciseDetail)
+                        }}
                         style={{
                           width: 64,
                           alignItems: 'center',
