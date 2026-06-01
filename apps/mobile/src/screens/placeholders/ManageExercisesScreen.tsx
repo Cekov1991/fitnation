@@ -48,6 +48,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   const startSession = useStartSession()
   const isDraggingRef = useRef(false)
   const pendingOrderRef = useRef<ExerciseItem[] | null>(null)
+  const swipeableRefs = useRef<Map<string, { close: () => void }>>(new Map())
 
   const insets = useSafeAreaInsets()
   const [editingItem, setEditingItem] = useState<ExerciseItem | null>(null)
@@ -171,11 +172,23 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
     return (
       <ScaleDecorator activeScale={1.02}>
         <ReanimatedSwipeable
+          ref={(ref) => {
+            if (ref) swipeableRefs.current.set(item.id, ref)
+            else swipeableRefs.current.delete(item.id)
+          }}
+          onSwipeableOpen={() => {
+            swipeableRefs.current.forEach((ref, k) => {
+              if (k !== item.id) ref.close()
+            })
+          }}
           renderRightActions={() => (
             <View style={{ flexDirection: 'row', marginLeft: 8, marginBottom: 12 }}>
               {/* Swap */}
               <TouchableOpacity
-                onPress={() => handleSwapExercise(item)}
+                onPress={() => {
+                  swipeableRefs.current.get(item.id)?.close()
+                  handleSwapExercise(item)
+                }}
                 style={{
                   width: 64,
                   alignItems: 'center',
@@ -189,7 +202,10 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
               </TouchableOpacity>
               {/* Edit */}
               <TouchableOpacity
-                onPress={() => openEditModal(item)}
+                onPress={() => {
+                  swipeableRefs.current.get(item.id)?.close()
+                  openEditModal(item)
+                }}
                 style={{
                   width: 64,
                   alignItems: 'center',
@@ -203,7 +219,10 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
               </TouchableOpacity>
               {/* Delete */}
               <TouchableOpacity
-                onPress={() => swipeRemove(item)}
+                onPress={() => {
+                  swipeableRefs.current.get(item.id)?.close()
+                  swipeRemove(item)
+                }}
                 style={{
                   width: 64,
                   alignItems: 'center',
@@ -321,6 +340,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
             renderItem={renderItem}
             onDragBegin={() => {
               isDraggingRef.current = true
+              swipeableRefs.current.forEach(ref => ref.close())
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
             }}
             onDragEnd={handleDragEnd}

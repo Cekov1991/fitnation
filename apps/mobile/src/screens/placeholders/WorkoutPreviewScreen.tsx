@@ -6,8 +6,7 @@ import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist'
 import type { RenderItemParams } from 'react-native-draggable-flatlist'
-import Swipeable from 'react-native-gesture-handler/Swipeable'
-import { NativeViewGestureHandler } from 'react-native-gesture-handler'
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import * as Haptics from 'expo-haptics'
 import { Check, RefreshCw, X, Edit2, ArrowUpDown, GripVertical, Plus, Trash2 } from 'lucide-react-native'
 import {
@@ -42,7 +41,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const reorderExercises = useReorderSessionExercises()
 
   const isDraggingRef = useRef(false)
-  const scrollHandlerRef = useRef(null)
+  const swipeableRefs = useRef<Map<string, { close: () => void }>>(new Map())
   const [orderedExercises, setOrderedExercises] = useState<SessionExerciseDetail[]>([])
 
   const exercisesFromSession: SessionExerciseDetail[] = (draftSession as any)?.exercises ?? []
@@ -293,7 +292,6 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-      <NativeViewGestureHandler ref={scrollHandlerRef}>
         <DraggableFlatList
           data={orderedExercises}
           keyExtractor={(item) => String(item.session_exercise.id)}
@@ -301,6 +299,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
           showsVerticalScrollIndicator={false}
           onDragBegin={() => {
             isDraggingRef.current = true
+            swipeableRefs.current.forEach(ref => ref.close())
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
           }}
           onDragEnd={handleDragEnd}
@@ -312,19 +311,30 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
             if (!ex) return null
             return (
               <ScaleDecorator activeScale={1.02}>
-                <Swipeable
-                  simultaneousHandlers={scrollHandlerRef}
+                <ReanimatedSwipeable
+                  ref={(ref) => {
+                    const key = String(se.id)
+                    if (ref) swipeableRefs.current.set(key, ref)
+                    else swipeableRefs.current.delete(key)
+                  }}
+                  onSwipeableOpen={() => {
+                    const key = String(se.id)
+                    swipeableRefs.current.forEach((ref, k) => {
+                      if (k !== key) ref.close()
+                    })
+                  }}
                   renderRightActions={() => (
                     <View style={{ flexDirection: 'row', marginLeft: 8, marginBottom: 12 }}>
                       {/* Swap */}
                       <TouchableOpacity
-                        onPress={() =>
+                        onPress={() => {
+                          swipeableRefs.current.get(String(se.id))?.close()
                           navigation.navigate('WorkoutPreviewExercisePicker', {
                             sessionId,
                             swapExerciseId: se.id,
                             swapMuscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString(),
                           })
-                        }
+                        }}
                         style={{
                           width: 64,
                           alignItems: 'center',
@@ -338,7 +348,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </TouchableOpacity>
                       {/* Edit */}
                       <TouchableOpacity
-                        onPress={() => openEditModal(exerciseDetail)}
+                        onPress={() => {
+                          swipeableRefs.current.get(String(se.id))?.close()
+                          openEditModal(exerciseDetail)
+                        }}
                         style={{
                           width: 64,
                           alignItems: 'center',
@@ -352,7 +365,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </TouchableOpacity>
                       {/* Delete */}
                       <TouchableOpacity
-                        onPress={() => handleSwipeRemove(exerciseDetail)}
+                        onPress={() => {
+                          swipeableRefs.current.get(String(se.id))?.close()
+                          handleSwipeRemove(exerciseDetail)
+                        }}
                         style={{
                           width: 64,
                           alignItems: 'center',
@@ -422,12 +438,11 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       <GripVertical size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
-                </Swipeable>
+                </ReanimatedSwipeable>
               </ScaleDecorator>
             )
           }}
         />
-      </NativeViewGestureHandler>
 
       {/* Edit Sets/Reps Modal */}
       <Modal

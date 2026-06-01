@@ -48,7 +48,7 @@ export type AppStackParamList = {
   ExerciseCatalog: undefined
   CreatePlan: undefined
   EditPlan: { planId: number }
-  CreateWorkout: undefined
+  CreateWorkout: { planId?: number; planName?: string } | undefined
   EditWorkout: { templateId: number }
   ManageExercises: { templateId: number }
   ProgramLibrary: undefined
