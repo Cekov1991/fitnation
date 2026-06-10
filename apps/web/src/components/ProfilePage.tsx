@@ -25,7 +25,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
   const deleteAccount = useDeleteAccount();
-  const { isIOSSafari, setShowIOSOverlay } = useInstallPrompt();
+  const { isIOS } = useInstallPrompt();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deletePasswordVisible, setDeletePasswordVisible] = useState(false);
@@ -548,10 +548,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               </LoadingButton>
             </form>
 
-            {isIOSSafari && (
+            {isIOS && (
               <button
                 type="button"
-                onClick={() => setShowIOSOverlay(true)}
+                onClick={() => window.open('https://apps.apple.com/app/fit-nation-the-movement/id6766201705', '_blank')}
                 className="w-full py-4 mb-4 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2"
                 style={{
                   borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',

@@ -7,14 +7,15 @@ import { useInstallPrompt } from '../hooks/useInstallPrompt';
  * Shown on all authenticated pages until the app is installed (standalone).
  */
 export function InstallAppBanner() {
-  const { canInstall, isIOS, promptInstall, setShowIOSOverlay, dismissInstall } = useInstallPrompt();
-  const showBanner = canInstall || isIOS;
+  const { canInstall, isIOS, dismissInstall } = useInstallPrompt();
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+  const showBanner = isMobile && (canInstall || isIOS);
 
   const handleInstall = () => {
     if (isIOS) {
       window.open('https://apps.apple.com/app/fit-nation-the-movement/id6766201705', '_blank');
     } else {
-      void promptInstall();
+      window.open('https://play.google.com/store/apps/details?id=com.fitnation.app&hl=en', '_blank');
     }
   };
 
