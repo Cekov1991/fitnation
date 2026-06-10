@@ -16,6 +16,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  RegeneratePlanInput,
 } from '@fit-nation/shared';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -340,10 +341,10 @@ export const plansApi = {
       method: 'DELETE'
     });
   },
-  regeneratePlan: async () => {
+  regeneratePlan: async (data?: RegeneratePlanInput) => {
     return fetchWithAuth('/plans/regenerate', {
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify(data ?? {})
     });
   }
 };

@@ -18,6 +18,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  RegeneratePlanInput,
   CompleteSessionResponse,
 } from '../types/api';
 
@@ -200,17 +201,11 @@ export function useDeletePlan() {
 export function useRegeneratePlan() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => plansApi.regeneratePlan(),
+    mutationFn: (data?: RegeneratePlanInput) => plansApi.regeneratePlan(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['programs']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['profile']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['user']
-      });
+      queryClient.invalidateQueries({ queryKey: ['programs'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     }
   });
 }

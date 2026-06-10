@@ -36,6 +36,7 @@ import {
 import type {
   FitnessGoal,
   ProgramResource,
+  RegeneratePlanInput,
   TrainingExperience,
   WorkoutTemplateResource,
 } from '@fit-nation/shared'
@@ -50,7 +51,7 @@ import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwi
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { WorkoutCard } from '../../components/ui/WorkoutCard'
 import { WorkoutTemplateSelector } from '../../components/ui/WorkoutTemplateSelector'
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { RegeneratePlanModal } from '../../components/ui/RegeneratePlanModal'
 import { PlanGeneratingOverlay } from '../../components/ui/PlanGeneratingOverlay'
 
 import type { AppStackParamList } from '../../navigation/types'
@@ -90,7 +91,7 @@ export function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
-  const [refreshDialogVisible, setRefreshDialogVisible] = useState(false)
+  const [regenerateModalVisible, setRegenerateModalVisible] = useState(false)
 
   const { data: todayWorkout } = useTodayWorkout()
   const hasNavigated = useRef(false)
@@ -245,15 +246,21 @@ export function DashboardScreen() {
     }
   }
 
-  async function executeRegenerate() {
+  async function executeRegenerate(params: RegeneratePlanInput) {
     setIsRegenerating(true)
     try {
-      await regeneratePlan.mutateAsync()
+      await regeneratePlan.mutateAsync(params)
     } catch (e) {
       console.error('Failed to regenerate plan', e)
     } finally {
       setIsRegenerating(false)
+      setRegenerateModalVisible(false)
     }
+  }
+
+  function openRegenerateModal() {
+    if (isRegenerating || regeneratePlan.isPending) return
+    setRegenerateModalVisible(true)
   }
 
   function handleCompletedDayClick(sessionId: number) {
@@ -262,11 +269,7 @@ export function DashboardScreen() {
 
   const handleRefreshClick = () => {
     if (isRegenerating || !isProfileComplete) return
-    if (!hasCompletedWorkouts) {
-      executeRegenerate()
-      return
-    }
-    setRefreshDialogVisible(true)
+    openRegenerateModal()
   }
 
   const handleStartSelectedWorkout = async () => {
@@ -469,7 +472,7 @@ export function DashboardScreen() {
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
-                  onPress={executeRegenerate}
+                  onPress={openRegenerateModal}
                   disabled={isRegenerating || regeneratePlan.isPending}
                   style={{
                     flexDirection: 'row',
@@ -536,7 +539,7 @@ export function DashboardScreen() {
                 </Text>
                 {activeProgram.is_auto_generated && (
                   <TouchableOpacity
-                    onPress={executeRegenerate}
+                    onPress={openRegenerateModal}
                     disabled={isRegenerating}
                     style={{
                       flexDirection: 'row',
@@ -1007,14 +1010,12 @@ export function DashboardScreen() {
         )}
       </ScrollView>
 
-      <ConfirmDialog
-        visible={refreshDialogVisible}
-        onClose={() => setRefreshDialogVisible(false)}
-        title="Refresh personalized plan?"
-        message="Your current plan has completed workouts. Refreshing will create a new plan and you will start from scratch."
-        confirmLabel="Refresh Plan"
-        destructive
+      <RegeneratePlanModal
+        visible={regenerateModalVisible}
+        onClose={() => setRegenerateModalVisible(false)}
         onConfirm={executeRegenerate}
+        showWarning={hasCompletedWorkouts}
+        isLoading={isRegenerating || regeneratePlan.isPending}
       />
 
       <PlanGeneratingOverlay

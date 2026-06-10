@@ -19,6 +19,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  RegeneratePlanInput,
   AuthResponse,
   MessageResponse,
   UserResource,
@@ -377,10 +378,10 @@ export const plansApi = {
       method: 'DELETE'
     });
   },
-  regeneratePlan: async () => {
+  regeneratePlan: async (data?: RegeneratePlanInput) => {
     return fetchWithAuth('/plans/regenerate', {
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify(data ?? {})
     });
   }
 };

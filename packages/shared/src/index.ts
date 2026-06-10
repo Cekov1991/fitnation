@@ -22,6 +22,9 @@ export * from './schemas/setsReps'
 // Hooks
 export * from './hooks/useApi'
 
+// Constants
+export * from './constants/trainingStyles'
+
 // Utils
 export * from './utils/workoutHelpers'
 export * from './utils/repRange'

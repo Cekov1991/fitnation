@@ -3,7 +3,14 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ArrowLeft, Sparkles } from 'lucide-react-native'
-import { useGenerateDraftSession, useProfile } from '@fit-nation/shared'
+import {
+  DEFAULT_TRAINING_STYLES,
+  TRAINING_STYLE_OPTIONS,
+  useEquipmentTypes,
+  useGenerateDraftSession,
+  useProfile,
+} from '@fit-nation/shared'
+import type { EquipmentTypeResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -30,9 +37,12 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
   const { colors } = useTheme()
   const { data: profile } = useProfile()
   const generateDraft = useGenerateDraftSession()
+  const { data: equipmentTypes = [] } = useEquipmentTypes()
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null)
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([])
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([...DEFAULT_TRAINING_STYLES])
 
   useEffect(() => {
     if (profile?.profile?.workout_duration_minutes) {
@@ -46,22 +56,33 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
     }
   }, [profile?.profile?.workout_duration_minutes])
 
+  const toggleEquipment = (code: string) => {
+    setSelectedEquipment(prev =>
+      prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+    )
+  }
+
+  const toggleStyle = (code: string) => {
+    setSelectedStyles(prev =>
+      prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+    )
+  }
+
   const handleGenerate = async () => {
     try {
       const preset = selectedPreset ? PRESETS.find(p => p.key === selectedPreset) : null
-      const response = await generateDraft.mutateAsync({
+      const generationParams = {
         target_regions: preset && preset.targetRegions.length > 0 ? preset.targetRegions : undefined,
         duration_minutes: selectedDuration ?? undefined,
         difficulty: profile?.profile?.training_experience ?? undefined,
-      })
+        equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
+        training_styles: selectedStyles.length > 0 ? selectedStyles : [...DEFAULT_TRAINING_STYLES],
+      }
+      const response = await generateDraft.mutateAsync(generationParams)
       const sessionId = response.data.id
       navigation.navigate('WorkoutPreview', {
         sessionId: sessionId.toString(),
-        generationParams: {
-          target_regions: preset && preset.targetRegions.length > 0 ? preset.targetRegions : undefined,
-          duration_minutes: selectedDuration ?? undefined,
-          difficulty: profile?.profile?.training_experience ?? undefined,
-        },
+        generationParams,
       })
     } catch (error) {
       console.error('Failed to generate workout:', error)
@@ -138,7 +159,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
         </View>
 
         {/* Duration */}
-        <View className="mb-10">
+        <View className="mb-8">
           <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
             Duration
           </Text>
@@ -161,6 +182,70 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                     style={{ color: isSelected ? '#fff' : colors.textPrimary }}
                   >
                     {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+        </View>
+
+        {/* Equipment */}
+        {equipmentTypes.length > 0 && (
+          <View className="mb-8">
+            <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
+              Equipment
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {equipmentTypes.map((eq: EquipmentTypeResource) => {
+                const isSelected = selectedEquipment.includes(eq.code)
+                return (
+                  <TouchableOpacity
+                    key={eq.code}
+                    onPress={() => toggleEquipment(eq.code)}
+                    className="px-3 py-2 rounded-xl border"
+                    style={{
+                      backgroundColor: isSelected ? colors.primary : colors.bgSurface,
+                      borderColor: isSelected ? colors.primary : `${colors.textMuted}40`,
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      className="text-xs font-medium"
+                      style={{ color: isSelected ? '#fff' : colors.textPrimary }}
+                    >
+                      {eq.name}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Training Style */}
+        <View className="mb-10">
+          <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
+            Training Style
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {TRAINING_STYLE_OPTIONS.map(style => {
+              const isSelected = selectedStyles.includes(style.code)
+              return (
+                <TouchableOpacity
+                  key={style.code}
+                  onPress={() => toggleStyle(style.code)}
+                  className="px-3 py-2 rounded-xl border"
+                  style={{
+                    backgroundColor: isSelected ? colors.primary : colors.bgSurface,
+                    borderColor: isSelected ? colors.primary : `${colors.textMuted}40`,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    className="text-xs font-medium"
+                    style={{ color: isSelected ? '#fff' : colors.textPrimary }}
+                  >
+                    {style.label}
                   </Text>
                 </TouchableOpacity>
               )
