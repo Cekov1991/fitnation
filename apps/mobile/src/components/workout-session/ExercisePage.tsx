@@ -21,7 +21,7 @@ import { ExerciseOptionsMenu } from './ExerciseOptionsMenu'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
-const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT']
+const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT', 'TRX']
 
 // Tracks which session_exercise ids have had a background default-patch attempted
 // this app session, so PagerView remounts don't re-fire it.

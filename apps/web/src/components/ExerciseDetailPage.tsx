@@ -56,7 +56,7 @@ export function ExerciseDetailPage({
   }, [exerciseName, exercises]);
 
   // Check if exercise allows weight logging (non-bodyweight exercises)
-  const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT';
+  const allowWeightLogging = !['BODYWEIGHT', 'TRX'].includes(exercise?.equipment_type?.code ?? '');
 
   // Fetch exercise history when performance tab is active and exercise exists
   const {
