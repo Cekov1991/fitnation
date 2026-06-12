@@ -939,9 +939,20 @@ export function useDeleteSet() {
           );
 
           if (hasSetLog) {
-            const updatedLoggedSets = exDetail.logged_sets.filter(
-              (setLog: any) => setLog.id !== variables.setLogId
-            );
+            // set_number of the row being deleted, so we can re-sequence the rest
+            const deletedSetNumber = exDetail.logged_sets.find(
+              (setLog: any) => setLog.id === variables.setLogId
+            )?.set_number;
+
+            // Drop the deleted row and shift every later set's number down by one
+            // to match the server's re-sequencing (keeps numbering contiguous).
+            const updatedLoggedSets = exDetail.logged_sets
+              .filter((setLog: any) => setLog.id !== variables.setLogId)
+              .map((setLog: any) =>
+                deletedSetNumber != null && setLog.set_number > deletedSetNumber
+                  ? { ...setLog, set_number: setLog.set_number - 1 }
+                  : setLog
+              );
 
             // Also decrease target_sets so the set is fully removed
             return {

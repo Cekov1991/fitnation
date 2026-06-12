@@ -1,6 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Timer } from 'lucide-react-native'
+import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 
 interface SetLogCardProps {
@@ -11,6 +11,8 @@ interface SetLogCardProps {
   onRepsChange: (v: string) => void
   onLog: () => void
   onStartTimer?: () => void
+  /** When provided, shows a ⋯ menu on the active set (used to remove the last set). */
+  onOpenMenu?: () => void
   defaultWeight: number
   defaultReps: number
   allowWeightLogging: boolean
@@ -35,6 +37,7 @@ export function SetLogCard({
   onRepsChange,
   onLog,
   onStartTimer,
+  onOpenMenu,
   defaultWeight,
   defaultReps,
   allowWeightLogging,
@@ -67,16 +70,41 @@ export function SetLogCard({
         elevation: 8,
       }}
     >
-      <Text
+      <View
         style={{
-          fontSize: 13,
-          fontWeight: '700',
-          color: 'rgba(255,255,255,0.9)',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           marginBottom: 16,
         }}
       >
-        Set {setNumber}
-      </Text>
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: '700',
+            color: 'rgba(255,255,255,0.9)',
+          }}
+        >
+          Set {setNumber}
+        </Text>
+        {onOpenMenu && (
+          <TouchableOpacity
+            onPress={onOpenMenu}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 14,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255,255,255,0.18)',
+            }}
+          >
+            <MoreVertical size={16} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       <View style={{ flexDirection: 'row', gap: 14 }}>
         {allowWeightLogging && (
