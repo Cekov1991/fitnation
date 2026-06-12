@@ -169,11 +169,10 @@ export function PlansScreen() {
     if (!planSheet) return []
     return [
       {
-        label: planSheet.is_active ? 'Deactivate' : 'Set as Active',
-        description: planSheet.is_active ? 'Remove from active rotation' : 'Make this your current plan',
-        icon: planSheet.is_active ? XCircle : CheckCircle,
-        iconColor: planSheet.is_active ? colors.warning : colors.success,
-        onPress: () => handleTogglePlanActive(planSheet),
+        label: 'Add Workout',
+        description: 'Create a new workout in this plan',
+        icon: PlusCircle,
+        onPress: () => navigation.navigate('CreateWorkout', { planId: planSheet.id, planName: planSheet.name }),
       },
       {
         label: 'Edit Plan',
@@ -182,10 +181,11 @@ export function PlansScreen() {
         onPress: () => navigation.navigate('EditPlan', { planId: planSheet.id }),
       },
       {
-        label: 'Add Workout',
-        description: 'Create a new workout in this plan',
-        icon: PlusCircle,
-        onPress: () => navigation.navigate('CreateWorkout', { planId: planSheet.id, planName: planSheet.name }),
+        label: planSheet.is_active ? 'Deactivate' : 'Set as Active',
+        description: planSheet.is_active ? 'Remove from active rotation' : 'Make this your current plan',
+        icon: planSheet.is_active ? XCircle : CheckCircle,
+        iconColor: planSheet.is_active ? colors.warning : colors.success,
+        onPress: () => handleTogglePlanActive(planSheet),
       },
       {
         label: 'Delete Plan',
