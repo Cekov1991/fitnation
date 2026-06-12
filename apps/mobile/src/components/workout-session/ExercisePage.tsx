@@ -213,9 +213,9 @@ function ExercisePageComponent({
   const activeSlot =
     setMenuSetNumber != null ? slots.find(s => s.setNumber === setMenuSetNumber) : null
   const canEditSet = activeSlot?.kind === 'completed'
-  const isLastSet =
-    setMenuSetNumber != null && setMenuSetNumber === slots[slots.length - 1]?.setNumber
-  const canRemoveSet = isLastSet && targetSets > 1
+  // Any set can be removed as long as at least one set remains. The server
+  // re-sequences the remaining sets' set_number after a delete.
+  const canRemoveSet = setMenuSetNumber != null && targetSets > 1
 
   const handleEditFromMenu = () => {
     if (activeSlot?.kind === 'completed') {
@@ -368,6 +368,9 @@ function ExercisePageComponent({
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!showRestTimer && !!session_exercise.rest_seconds}
                 isPending={logSet.isPending}
+                onOpenMenu={
+                  targetSets > 1 ? () => handleOpenSetMenu(slot.setNumber) : undefined
+                }
               />
             )
           }
