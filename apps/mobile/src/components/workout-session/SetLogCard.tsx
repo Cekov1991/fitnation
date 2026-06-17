@@ -227,8 +227,8 @@ export function SetLogCard({
               }}
             >
               {totalRepsPrevious != null
-                ? `Last: ${totalRepsPrevious} / Goal: ${totalRepsTarget}`
-                : `Goal: ${totalRepsTarget} total reps`}
+                ? `Last: ${totalRepsPrevious} reps`
+                : `Target: ${goalMinReps}-${goalMaxReps} reps`}
             </Text>
           ) : (
             <Text

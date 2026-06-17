@@ -113,9 +113,9 @@ function ExercisePageComponent({
 
   const firstPendingSetNumber = slots.find(s => s.kind === 'pending')?.setNumber ?? null
 
-  const prevSet1 = previous_sets.find(s => s.set_number === 1)
-  const defaultWeight = session_exercise.target_weight ?? prevSet1?.weight ?? 0
-  const defaultReps = prevSet1?.reps ?? (minReps > 0 ? minReps : 0)
+  const prevActiveSet = previous_sets.find(s => s.set_number === (firstPendingSetNumber ?? 1))
+  const defaultWeight = session_exercise.target_weight ?? prevActiveSet?.weight ?? 0
+  const defaultReps = prevActiveSet?.reps ?? (minReps > 0 ? minReps : 0)
 
   const anyLoading =
     logSet.isPending ||
@@ -364,7 +364,7 @@ function ExercisePageComponent({
                 goalMinReps={minReps}
                 goalMaxReps={maxReps}
                 goalWeight={session_exercise.target_weight}
-                totalRepsPrevious={session_exercise.total_reps_previous}
+                totalRepsPrevious={previous_sets.find(s => s.set_number === slot.setNumber)?.reps ?? null}
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!showRestTimer && !!session_exercise.rest_seconds}
                 isPending={logSet.isPending}
