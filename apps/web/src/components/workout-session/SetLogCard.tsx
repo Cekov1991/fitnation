@@ -126,8 +126,8 @@ export function SetLogCard({
           {showTotalRepsHint ? (
             <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
               {totalRepsPrevious != null
-                ? `Last: ${totalRepsPrevious} / Goal: ${totalRepsTarget} total reps`
-                : `Goal: ${totalRepsTarget} total reps`}
+                ? `Last: ${totalRepsPrevious} reps`
+                : `Target: ${goalMinReps}-${goalMaxReps} reps`}
             </p>
           ) : (
             goalMinReps !== undefined && goalMaxReps !== undefined && (

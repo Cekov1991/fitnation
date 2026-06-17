@@ -46,7 +46,8 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
           id: `set-${exDetail.session_exercise.id}-${i}`,
           reps: previousSet?.reps ?? (progressionMode === 'total_reps' ? 0 : minTargetReps),
           weight: previousSet?.weight ?? targetWeight,
-          completed: false
+          completed: false,
+          previousReps: previousSet?.reps ?? null,
         });
       }
     }

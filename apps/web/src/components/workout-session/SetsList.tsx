@@ -51,7 +51,6 @@ export function SetsList({
   goalMinReps,
   goalMaxReps,
   goalWeight,
-  totalRepsPrevious,
   totalRepsTarget,
   isAddSetLoading = false,
   isLogSetLoading = false,
@@ -81,7 +80,7 @@ export function SetsList({
               goalMinReps={goalMinReps}
               goalMaxReps={goalMaxReps}
               goalWeight={goalWeight}
-              totalRepsPrevious={totalRepsPrevious}
+              totalRepsPrevious={set.previousReps ?? null}
               totalRepsTarget={totalRepsTarget}
               isLoading={isLogSetLoading}
             />
