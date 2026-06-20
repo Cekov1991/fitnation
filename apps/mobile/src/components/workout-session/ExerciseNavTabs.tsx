@@ -26,6 +26,20 @@ interface AddItem {
 
 type ListItem = TabItem | AddItem
 
+// Count only the slots (1..target) that have a matching log — mirrors the
+// slot computation in ExercisePage so the nav tab and the set list agree.
+function countCompletedSlots(
+  loggedSets: SessionExerciseDetail['logged_sets'] | undefined,
+  target: number,
+): number {
+  if (target === 0) return 0
+  let count = 0
+  for (let n = 1; n <= target; n++) {
+    if (loggedSets?.some(l => l.set_number === n)) count++
+  }
+  return count
+}
+
 function ExerciseNavTabsComponent({
   exercises,
   currentIndex,
@@ -37,8 +51,8 @@ function ExerciseNavTabsComponent({
 
   const data: ListItem[] = [
     ...exercises.map((detail, index): TabItem => {
-      const logged = detail.logged_sets?.length ?? 0
       const target = detail.session_exercise.target_sets ?? 0
+      const logged = countCompletedSlots(detail.logged_sets, target)
       return {
         type: 'exercise',
         detail,
@@ -87,8 +101,8 @@ function ExerciseNavTabsComponent({
 
       const { detail, index, isActive, isComplete } = item
       const sessionEx = detail.session_exercise
-      const logged = detail.logged_sets?.length ?? 0
       const target = sessionEx.target_sets ?? 0
+      const logged = countCompletedSlots(detail.logged_sets, target)
       const exerciseName = sessionEx.exercise?.name ?? `Exercise ${index + 1}`
       const imageUri = sessionEx.exercise?.image ?? undefined
 
