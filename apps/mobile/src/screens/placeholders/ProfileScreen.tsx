@@ -11,6 +11,8 @@ import {
 } from 'react-native'
 import * as Application from 'expo-application'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -38,7 +40,9 @@ import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
+import { SubscriptionSection } from '../../components/SubscriptionSection'
 import { showToast } from '../../lib/toast'
+import type { AppStackParamList } from '../../navigation/types'
 
 const DURATION_OPTIONS = [
   { label: '20-30 min', value: 30 },
@@ -116,6 +120,7 @@ function FieldInput({
 export function ProfileScreen() {
   const { colors } = useTheme()
   const { logout } = useAuth()
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
   const deleteAccount = useDeleteAccount()
@@ -603,6 +608,8 @@ export function ProfileScreen() {
               )}
             </View>
           </View>
+
+          <SubscriptionSection onUpgrade={() => navigation.navigate('Paywall')} />
 
           {/* Save Changes */}
           <TouchableOpacity

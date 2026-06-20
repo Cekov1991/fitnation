@@ -5,7 +5,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { MutationCache, QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query'
 import * as Updates from 'expo-updates'
+import Purchases from 'react-native-purchases'
 import { initApi } from '@fit-nation/shared'
+import { configureRevenueCat } from './src/lib/revenuecat'
 
 // Wire React Query's focusManager to AppState so all queries refetch on foreground
 AppState.addEventListener('change', (state) => {
@@ -19,10 +21,11 @@ import { ErrorBoundary } from './src/components/ui/error-boundary'
 import { ToastHost } from './src/components/ui/ToastHost'
 import { showToast } from './src/lib/toast'
 
-// Initialise API
+// Initialise API + RevenueCat
 initApi({
   baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api',
 })
+configureRevenueCat()
 
 const queryClient = new QueryClient({
   mutationCache: new MutationCache({
@@ -31,6 +34,14 @@ const queryClient = new QueryClient({
       showToast(msg, 'error')
     },
   }),
+})
+
+// Listen for RevenueCat customer-info changes (renewals, refunds, cross-device
+// purchases, sandbox expirations) and invalidate cached user data so the
+// EntitlementWatcher can reroute when access is gained or lost.
+Purchases.addCustomerInfoUpdateListener(() => {
+  queryClient.invalidateQueries({ queryKey: ['user'] })
+  queryClient.invalidateQueries({ queryKey: ['rc-customer-info'] })
 })
 
 function useOTAUpdates() {

@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
+import { useQueryClient } from '@tanstack/react-query'
 import * as SecureStore from 'expo-secure-store'
 import { initAuth, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
+import { identifyRevenueCatUser, logOutRevenueCat } from '../lib/revenuecat'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -33,10 +35,23 @@ const AuthContext = createContext<AuthContextValue>({
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserResource | null>(null)
+  const [user, setUserState] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { setColors } = useTheme()
+  const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
+
+  // Keep AuthContext and the TanStack ['user'] cache in lockstep so that
+  // useEntitlements (which reads from the query cache) always sees the latest
+  // entitlements/subscription after login, refresh, or foreground sync.
+  const setUser = useCallback((nextUser: UserResource | null) => {
+    setUserState(nextUser)
+    if (nextUser) {
+      queryClient.setQueryData(['user'], nextUser)
+    } else {
+      queryClient.removeQueries({ queryKey: ['user'] })
+    }
+  }, [queryClient])
 
   function applyPartnerColors(currentUser: UserResource) {
     const identity = currentUser.partner?.visual_identity
@@ -58,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { user: currentUser } = await authApi.getCurrentUser()
           applyPartnerColors(currentUser)
           setUser(currentUser)
+          await identifyRevenueCatUser(String(currentUser.id))
         }
       } catch {
         await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
@@ -98,11 +114,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { user: fullUser } = await authApi.getCurrentUser()
     applyPartnerColors(fullUser)
     setUser(fullUser)
+    await identifyRevenueCatUser(String(fullUser.id))
   }
 
   async function logout() {
     await authApi.logout()
     await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
+    await logOutRevenueCat()
     setUser(null)
   }
 
