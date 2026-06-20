@@ -107,10 +107,14 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
   const exerciseCount = exercises.length
 
-  // Clamp currentIndex when exercises change (e.g. after removal)
+  // Clamp currentIndex when exercises change (e.g. after removal).
+  // Must also scroll the PagerView — state-only update leaves the native widget
+  // stuck on the now-blank removed page.
   useEffect(() => {
     if (currentIndex >= exerciseCount && exerciseCount > 0) {
-      setCurrentIndex(exerciseCount - 1)
+      const newIndex = exerciseCount - 1
+      setCurrentIndex(newIndex)
+      pagerRef.current?.setPage(newIndex)
     }
   }, [currentIndex, exerciseCount])
 
@@ -163,6 +167,21 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const performRemoveExercise = async () => {
     const exerciseId = removeExerciseRefId.current
     if (exerciseId == null) return
+
+    // Navigate away from the page being removed BEFORE the mutation fires.
+    // The native PagerView breaks if its currently-displayed page disappears
+    // via a React re-render — scroll to safety first so the page count drop
+    // hits a stable native state.
+    const removingIdx = exercises.findIndex(ex => ex.session_exercise.id === exerciseId)
+    if (removingIdx !== -1) {
+      // Prefer going forward so the user lands on the exercise that follows
+      // the removed one. Only fall back to the previous exercise when removing
+      // the last item in the list (nowhere forward to go).
+      const safeIdx = removingIdx < exercises.length - 1 ? removingIdx + 1 : removingIdx - 1
+      setCurrentIndex(safeIdx)
+      pagerRef.current?.setPage(safeIdx)
+    }
+
     try {
       await removeSessionExerciseRef.current.mutateAsync({
         sessionId: numericSessionId,
