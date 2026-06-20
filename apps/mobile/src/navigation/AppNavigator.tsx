@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
+import { useEntitlements, Entitlement } from '../hooks/useEntitlements'
 import { TabNavigator } from './TabNavigator'
 import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
@@ -22,18 +23,25 @@ import { ProgramDetailScreen } from '../screens/placeholders/ProgramDetailScreen
 import { RoutineDetailScreen } from '../screens/placeholders/RoutineDetailScreen'
 import { RoutineWorkoutDetailScreen } from '../screens/placeholders/RoutineWorkoutDetailScreen'
 import { SessionDetailScreen } from '../screens/placeholders/SessionDetailScreen'
+import { PaywallScreen } from '../screens/PaywallScreen'
 import type { AppStackParamList } from './types'
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
 export function AppNavigator() {
   const { user } = useAuth()
+  const { has } = useEntitlements()
   const needsVerification = !user?.email_verified_at
   const needsOnboarding = !user?.onboarding_completed_at
+  const needsPaywall = !has(Entitlement.AppAccess)
 
   const initialRouteName = needsVerification
     ? 'EmailVerification'
-    : needsOnboarding ? 'Onboarding' : 'Tabs'
+    : needsOnboarding
+      ? 'Onboarding'
+      : needsPaywall
+        ? 'Paywall'
+        : 'Tabs'
 
   return (
     <Stack.Navigator
@@ -50,6 +58,11 @@ export function AppNavigator() {
         name="Onboarding"
         component={OnboardingScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="Paywall"
+        component={PaywallScreen}
+        options={{ gestureEnabled: false }}
       />
       <Stack.Screen
         name="WorkoutSession"

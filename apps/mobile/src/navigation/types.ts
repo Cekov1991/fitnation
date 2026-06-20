@@ -25,6 +25,7 @@ export type AppStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList> | undefined
   EmailVerification: undefined
   Onboarding: undefined
+  Paywall: undefined
   WorkoutSession: { sessionId: string }
   WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }
   WorkoutSessionExerciseDetail: { sessionId: string; exerciseId: number }
