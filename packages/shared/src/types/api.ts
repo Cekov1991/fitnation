@@ -18,6 +18,15 @@ export type PlanType = 'routine' | 'program';
 // USER RESOURCES
 // ============================================
 
+export interface SubscriptionResource {
+  status: 'active' | 'trialing' | 'past_due' | 'cancelled' | 'expired';
+  period_type: 'trial' | 'monthly' | 'annual' | 'lifetime';
+  purchased_at: string | null;
+  expires_at: string | null;
+  grace_period_ends_at: string | null;
+  partner_id: number | null;
+}
+
 export interface UserResource {
   id: number;
   name: string;
@@ -27,6 +36,8 @@ export interface UserResource {
   partner: UserPartner | null;
   onboarding_completed_at: string | null;
   email_verified_at: string | null;
+  entitlements: string[];
+  subscription: SubscriptionResource | null;
   created_at: string;
   updated_at: string;
 }
