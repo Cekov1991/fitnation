@@ -4,19 +4,12 @@ import { useTheme } from '../context/ThemeContext'
 import { useEntitlements, Entitlement } from '../hooks/useEntitlements'
 import type { SubscriptionResource } from '@fit-nation/shared'
 
-const STATUS_LABELS: Record<SubscriptionResource['status'], string> = {
+const STATUS_LABELS: Record<NonNullable<SubscriptionResource['status']>, string> = {
   active: 'Active',
-  trialing: 'Free Trial',
-  past_due: 'Payment Failed',
+  billing_issue: 'Payment Failed',
   cancelled: 'Cancelled',
   expired: 'Expired',
-}
-
-const PERIOD_LABELS: Record<SubscriptionResource['period_type'], string> = {
-  trial: 'Free Trial',
-  monthly: 'Monthly',
-  annual: 'Yearly',
-  lifetime: 'Lifetime',
+  paused: 'Paused',
 }
 
 const STORE_SUBSCRIPTION_URL =
@@ -50,8 +43,7 @@ export function SubscriptionSection({ onUpgrade }: Props) {
     ? formatDate(subscription.expires_at)
     : null
 
-  // Sponsored gym users have access without a subscription row
-  const isSponsored = hasAccess && !subscription
+  const isSponsored = subscription?.is_sponsored_by_gym ?? false
 
   return (
     <View className="mb-8">
@@ -81,11 +73,13 @@ export function SubscriptionSection({ onUpgrade }: Props) {
             <Text className="font-semibold text-base" style={{ color: colors.textPrimary }}>
               {isSponsored
                 ? 'Gym-Sponsored Access'
-                : subscription
-                  ? PERIOD_LABELS[subscription.period_type]
-                  : 'No Active Plan'}
+                : subscription?.is_trial
+                  ? 'Free Trial'
+                  : subscription?.status
+                    ? 'Premium Subscription'
+                    : 'No Active Plan'}
             </Text>
-            {subscription && (
+            {!isSponsored && subscription?.status && (
               <Text className="text-xs mt-0.5" style={{ color: colors.textSecondary }}>
                 {STATUS_LABELS[subscription.status]}
                 {expiresLabel ? ` · ${subscription.status === 'cancelled' ? 'Access until' : 'Renews'} ${expiresLabel}` : ''}
@@ -99,7 +93,7 @@ export function SubscriptionSection({ onUpgrade }: Props) {
           </View>
         </View>
 
-        {subscription && (
+        {subscription?.status && !isSponsored && (
           <TouchableOpacity
             onPress={() => Linking.openURL(STORE_SUBSCRIPTION_URL)}
             className="flex-row items-center justify-center py-3 rounded-xl"

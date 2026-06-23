@@ -19,12 +19,11 @@ export type PlanType = 'routine' | 'program';
 // ============================================
 
 export interface SubscriptionResource {
-  status: 'active' | 'trialing' | 'past_due' | 'cancelled' | 'expired';
-  period_type: 'trial' | 'monthly' | 'annual' | 'lifetime';
-  purchased_at: string | null;
+  status: 'active' | 'cancelled' | 'expired' | 'billing_issue' | 'paused' | null;
   expires_at: string | null;
+  is_trial: boolean;
+  is_sponsored_by_gym: boolean;
   grace_period_ends_at: string | null;
-  partner_id: number | null;
 }
 
 export interface UserResource {
