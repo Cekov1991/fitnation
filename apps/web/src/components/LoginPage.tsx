@@ -3,9 +3,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useHistory } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import AppleSignin from 'react-apple-signin-auth';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
 import { loginSchema, LoginFormData } from '@fit-nation/shared';
+import { getPartnerSlugFromSubdomain } from '../utils/subdomain';
+import { partnersApi } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 
 interface LocationState {
@@ -17,13 +21,40 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
-  const { login } = useAuth();
+  const { login, loginWithSocial } = useAuth();
   const { logo, partnerName, hasBranding } = useBranding();
   const history = useHistory();
   const location = useLocation<LocationState>();
   const navigateToRegister = onNavigateToRegister ?? (() => history.push('/register'));
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
+
+  async function resolvePartnerId(): Promise<number> {
+    const slug = getPartnerSlugFromSubdomain();
+    if (!slug) return 1;
+    try {
+      const { data } = await partnersApi.getActivePartners();
+      return data.find((p: any) => p.slug === slug)?.id ?? 1;
+    } catch {
+      return 1;
+    }
+  }
+
+  async function handleSocialSuccess(provider: 'google' | 'apple', token: string, name?: string) {
+    try {
+      setSocialLoading(provider);
+      setError(null);
+      const partnerId = await resolvePartnerId();
+      await loginWithSocial(provider, token, name, partnerId);
+      const from = location.state?.from?.pathname || '/';
+      history.replace(from);
+    } catch (err: any) {
+      setError(err.message || `${provider === 'google' ? 'Google' : 'Apple'} sign in failed.`);
+    } finally {
+      setSocialLoading(null);
+    }
+  }
 
   const {
     register,
@@ -229,6 +260,70 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                     Sign up
                   </button>
                 </p>
+              </div>
+
+              {/* Social login */}
+              <div className="mt-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>or continue with</span>
+                  <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={(credentialResponse) => {
+                        if (credentialResponse.credential) {
+                          handleSocialSuccess('google', credentialResponse.credential);
+                        }
+                      }}
+                      onError={() => setError('Google sign in failed.')}
+                      theme="filled_black"
+                      shape="rectangular"
+                      width="368"
+                      text="continue_with"
+                    />
+                  </div>
+
+                  <AppleSignin
+                    authOptions={{
+                      clientId: import.meta.env.VITE_APPLE_SERVICE_ID ?? '',
+                      scope: 'email name',
+                      redirectURI: import.meta.env.VITE_APPLE_REDIRECT_URI ?? window.location.origin,
+                      usePopup: true,
+                    }}
+                    onSuccess={(response: any) => {
+                      const token = response.authorization?.id_token;
+                      if (!token) return;
+                      const name = [
+                        response.user?.name?.firstName,
+                        response.user?.name?.lastName,
+                      ].filter(Boolean).join(' ') || undefined;
+                      handleSocialSuccess('apple', token, name);
+                    }}
+                    onError={(error: any) => setError(error?.error || 'Apple sign in failed.')}
+                    render={(props: any) => (
+                      <button
+                        {...props}
+                        disabled={socialLoading !== null}
+                        className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border font-semibold text-sm transition-opacity hover:opacity-90"
+                        style={{
+                          backgroundColor: '#000',
+                          borderColor: '#333',
+                          color: '#fff',
+                        }}
+                      >
+                        {socialLoading === 'apple' ? (
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span style={{ fontSize: 16 }}>🍎</span>
+                        )}
+                        Continue with Apple
+                      </button>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 

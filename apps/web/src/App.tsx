@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './hooks/useAuth';
 import { BrandingProvider } from './hooks/useBranding';
 import { ModalsProvider } from './contexts/ModalsContext';
@@ -18,6 +19,7 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
     <QueryClientProvider client={queryClient}>
       <InstallPromptProvider>
         <AuthProvider>
@@ -30,5 +32,6 @@ export function App() {
         </AuthProvider>
       </InstallPromptProvider>
     </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 }

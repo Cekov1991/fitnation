@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, User, Loader2, ChevronDown } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import AppleSignin from 'react-apple-signin-auth';
 import { useAuth } from '../hooks/useAuth';
 import { registerSchema, type RegisterFormData } from '@fit-nation/shared';
 import { partnersApi } from '@fit-nation/shared';
@@ -11,12 +13,13 @@ import { LoadingButton } from './ui';
 import { getPartnerSlugFromSubdomain } from '../utils/subdomain';
 
 export function RegisterPage() {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, loginWithSocial } = useAuth();
   const history = useHistory();
   const subdomainSlug = getPartnerSlugFromSubdomain();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   const [partners, setPartners] = useState<PartnerListResource[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(true);
   const [partnersError, setPartnersError] = useState<string | null>(null);
@@ -78,6 +81,19 @@ export function RegisterPage() {
       setError(err.message || 'Registration failed. Please try again.');
     }
   };
+
+  async function handleSocialRegister(provider: 'google' | 'apple', token: string, name?: string) {
+    try {
+      setSocialLoading(provider);
+      setError(null);
+      await loginWithSocial(provider, token, name, selectedPartner?.id ?? 1);
+      history.replace('/');
+    } catch (err: any) {
+      setError(err.message || `${provider === 'google' ? 'Google' : 'Apple'} sign in failed.`);
+    } finally {
+      setSocialLoading(null);
+    }
+  }
 
   if (loadingPartners) {
     return (
@@ -380,6 +396,66 @@ export function RegisterPage() {
                   Sign in
                 </button>
               </p>
+            </div>
+
+            {/* Social registration */}
+            <div className="mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>or sign up with</span>
+                <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                      if (credentialResponse.credential) {
+                        handleSocialRegister('google', credentialResponse.credential);
+                      }
+                    }}
+                    onError={() => setError('Google sign in failed.')}
+                    theme="filled_black"
+                    shape="rectangular"
+                    width="368"
+                    text="continue_with"
+                  />
+                </div>
+
+                <AppleSignin
+                  authOptions={{
+                    clientId: import.meta.env.VITE_APPLE_SERVICE_ID ?? '',
+                    scope: 'email name',
+                    redirectURI: import.meta.env.VITE_APPLE_REDIRECT_URI ?? window.location.origin,
+                    usePopup: true,
+                  }}
+                  onSuccess={(response: any) => {
+                    const token = response.authorization?.id_token;
+                    if (!token) return;
+                    const name = [
+                      response.user?.name?.firstName,
+                      response.user?.name?.lastName,
+                    ].filter(Boolean).join(' ') || undefined;
+                    handleSocialRegister('apple', token, name);
+                  }}
+                  onError={(error: any) => setError(error?.error || 'Apple sign in failed.')}
+                  render={(props: any) => (
+                    <button
+                      {...props}
+                      disabled={socialLoading !== null}
+                      className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border font-semibold text-sm transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: '#000', borderColor: '#333', color: '#fff' }}
+                    >
+                      {socialLoading === 'apple' ? (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span style={{ fontSize: 16 }}>🍎</span>
+                      )}
+                      Continue with Apple
+                    </button>
+                  )}
+                />
+              </div>
             </div>
           </div>
 
