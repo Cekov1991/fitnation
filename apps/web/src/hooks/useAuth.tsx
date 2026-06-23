@@ -7,6 +7,7 @@ interface AuthContextType {
   user: UserResource | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithSocial: (provider: 'google' | 'apple', token: string, name?: string, partnerId?: number) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: {
     name: string;
@@ -64,6 +65,19 @@ export function AuthProvider({
     };
     initAuthCheck();
   }, []);
+  const loginWithSocial = async (provider: 'google' | 'apple', token: string, name?: string, partnerId?: number) => {
+    queryClient.clear();
+    const storage = getAuthStorage();
+    const response = await authApi.socialLogin({ provider, token, name, partner_id: partnerId });
+    await storage.setItem(AUTH_TOKEN_KEY, response.token);
+    setUser(response.user);
+    if (response.user.partner?.slug) {
+      await storage.setItem('partner-slug', response.user.partner.slug);
+    } else {
+      await storage.removeItem('partner-slug');
+    }
+  };
+
   const login = async (email: string, password: string) => {
     // Clear cache before login to ensure fresh data is fetched for the new user
     queryClient.clear();
@@ -164,6 +178,7 @@ export function AuthProvider({
     user,
     loading,
     login,
+    loginWithSocial,
     logout,
     register,
     resendVerification,

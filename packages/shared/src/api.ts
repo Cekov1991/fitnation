@@ -128,6 +128,17 @@ export const authApi = {
       })
     });
   },
+  socialLogin: async (data: {
+    provider: 'google' | 'apple';
+    token: string;
+    name?: string;
+    partner_id?: number;
+  }): Promise<AuthResponse> => {
+    return fetchPublic('/auth/social', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
   logout: async (): Promise<MessageResponse> => {
     return fetchWithAuth('/logout', {
       method: 'POST'

@@ -3,6 +3,7 @@ import { AppState, type AppStateStatus } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
 import { useQueryClient } from '@tanstack/react-query'
 import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
+import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
 
@@ -19,15 +20,23 @@ interface AuthContextValue {
   user: UserResource | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithSocial: (provider: 'google' | 'apple', token: string, name?: string) => Promise<void>
   logout: () => Promise<void>
   setUser: (user: UserResource | null) => void
   refreshUser: () => Promise<void>
 }
 
+// Configure Google Sign-In once at module load
+GoogleSignin.configure({
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+})
+
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   isLoading: true,
   login: async () => {},
+  loginWithSocial: async () => {},
   logout: async () => {},
   setUser: () => {},
   refreshUser: async () => {},
@@ -112,6 +121,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(fullUser)
   }
 
+  async function loginWithSocial(provider: 'google' | 'apple', token: string, name?: string) {
+    const response = await authApi.socialLogin({ provider, token, name })
+    await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
+    const { user: fullUser } = await authApi.getCurrentUser()
+    applyPartnerColors(fullUser)
+    setUser(fullUser)
+  }
+
   async function logout() {
     const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
     if (token) {
@@ -123,6 +140,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
+    // Sign out from Google so the account picker appears on next social login
+    try { await GoogleSignin.signOut() } catch {}
     queryClient.clear()
     setUser(null)
   }
@@ -134,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginWithSocial, logout, setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
