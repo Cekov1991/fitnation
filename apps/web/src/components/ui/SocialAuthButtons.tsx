@@ -64,7 +64,7 @@ export function SocialAuthButtons({
           authOptions={{
             clientId: import.meta.env.VITE_APPLE_SERVICE_ID ?? '',
             scope: 'email name',
-            redirectURI: import.meta.env.VITE_APPLE_REDIRECT_URI ?? window.location.origin,
+            redirectURI: window.location.origin,
             usePopup: true,
           }}
           onSuccess={(response: any) => {
