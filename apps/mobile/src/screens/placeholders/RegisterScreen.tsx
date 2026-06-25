@@ -1,31 +1,25 @@
-import { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Pressable, Linking } from 'react-native'
+import { useState, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Linking } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as SecureStore from 'expo-secure-store'
-import { User, Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown } from 'lucide-react-native'
-import { registerSchema, type RegisterFormData, authApi, partnersApi, AUTH_TOKEN_KEY } from '@fit-nation/shared'
-import type { PartnerListResource } from '@fit-nation/shared'
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
+import { registerSchema, type RegisterFormData, authApi, AUTH_TOKEN_KEY } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
-import { ActionSheet } from '../../components/ui/ActionSheet'
+import { SocialAuthButtons } from '../../components/ui/SocialAuthButtons'
 import type { AuthScreenProps } from '../../navigation/types'
 
 export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
-  const { setUser } = useAuth()
+  const { setUser, loginWithSocial } = useAuth()
   const { colors } = useTheme()
 
   const [error, setError] = useState<string | null>(null)
-  const [partners, setPartners] = useState<PartnerListResource[]>([])
-  const [loadingPartners, setLoadingPartners] = useState(true)
-  const [partnersError, setPartnersError] = useState<string | null>(null)
-  const [selectedPartner, setSelectedPartner] = useState<PartnerListResource | null>(null)
-  const [partnerSheetVisible, setPartnerSheetVisible] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const scrollRef = useRef<ScrollView>(null)
@@ -33,32 +27,10 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
   const passwordRef = useRef<TextInput>(null)
   const confirmPasswordRef = useRef<TextInput>(null)
 
-  const { control, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: '', email: '', password: '', password_confirmation: '', partner_id: 0 },
+    defaultValues: { name: '', email: '', password: '', password_confirmation: '', partner_id: 1 },
   })
-
-  async function loadPartners() {
-    setLoadingPartners(true)
-    setPartnersError(null)
-    try {
-      const response = await partnersApi.getActivePartners()
-      setPartners(response.data)
-    } catch {
-      setPartnersError('Could not load partners. Please try again.')
-    } finally {
-      setLoadingPartners(false)
-    }
-  }
-
-  useEffect(() => {
-    loadPartners()
-  }, [])
-
-  function selectPartner(partner: PartnerListResource) {
-    setSelectedPartner(partner)
-    setValue('partner_id', partner.id, { shouldValidate: true })
-  }
 
   async function onSubmit(data: RegisterFormData) {
     try {
@@ -72,61 +44,9 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
     }
   }
 
-  if (loadingPartners) {
-    return (
-      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text className="text-sm mt-4" style={{ color: colors.textSecondary }}>
-          Loading partners...
-        </Text>
-      </SafeAreaView>
-    )
-  }
-
-  if (partnersError) {
-    return (
-      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
-        <View
-          style={{
-            backgroundColor: colors.bgSurface,
-            borderRadius: 24,
-            padding: 24,
-            borderWidth: 1,
-            borderColor: colors.bgElevated,
-            width: '100%',
-          }}
-        >
-          <View
-            className="flex-row items-start gap-3 p-4 rounded-xl mb-6"
-            style={{ backgroundColor: `${colors.error}18`, borderWidth: 1, borderColor: `${colors.error}30` }}
-          >
-            <AlertCircle color={colors.error} size={22} />
-            <View className="flex-1">
-              <Text className="text-sm font-semibold mb-1" style={{ color: colors.error }}>
-                Could not load partners
-              </Text>
-              <Text className="text-xs" style={{ color: colors.error }}>
-                {partnersError}
-              </Text>
-            </View>
-          </View>
-          <Button
-            label="Try Again"
-            onPress={loadPartners}
-          />
-        </View>
-      </SafeAreaView>
-    )
-  }
-
-  const logoUrl = selectedPartner?.visual_identity?.logo || null
-
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior="padding"
-      >
+      <KeyboardAvoidingView className="flex-1" behavior="padding">
         <ScrollView
           ref={scrollRef}
           className="flex-1"
@@ -136,8 +56,8 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
         >
           <AuthLogoHeader
             title="Create Your Account"
-            subtitle={selectedPartner ? `Join ${selectedPartner.name} and start your fitness journey` : 'Select your gym to get started'}
-            logoUrl={logoUrl}
+            subtitle="Start your fitness journey"
+            logoUrl={null}
           />
 
           <View
@@ -158,39 +78,6 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
                 <Text className="text-sm flex-1" style={{ color: colors.error }}>{error}</Text>
               </View>
             )}
-
-            {/* Partner picker */}
-            <View className="mb-4">
-              <Text className="text-sm font-semibold mb-2" style={{ color: colors.textSecondary }}>
-                Your Gym / Partner
-              </Text>
-              <Pressable
-                onPress={() => setPartnerSheetVisible(true)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 16,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: errors.partner_id ? colors.error : colors.bgElevated,
-                  backgroundColor: colors.bgElevated,
-                }}
-              >
-                <Text
-                  className="flex-1 text-base"
-                  style={{ color: selectedPartner ? colors.textPrimary : colors.textMuted }}
-                >
-                  {selectedPartner ? selectedPartner.name : 'Select a partner...'}
-                </Text>
-                <ChevronDown color={colors.textMuted} size={18} />
-              </Pressable>
-              {errors.partner_id && (
-                <Text className="text-xs mt-1" style={{ color: colors.error }}>
-                  {errors.partner_id.message}
-                </Text>
-              )}
-            </View>
 
             <Controller
               control={control}
@@ -312,6 +199,15 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
             </Text>
           </View>
 
+          <SocialAuthButtons
+            onSuccess={async (provider, token, name) => {
+              setError(null)
+              await loginWithSocial(provider, token, name)
+            }}
+            onError={(_, message) => setError(message ?? 'Social sign in failed.')}
+            dividerLabel="or sign up with"
+          />
+
           <Text className="text-xs text-center mt-4" style={{ color: colors.textMuted }}>
             By creating an account, you agree to our{' '}
             <Text
@@ -330,16 +226,6 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <ActionSheet
-        visible={partnerSheetVisible}
-        onClose={() => setPartnerSheetVisible(false)}
-        title="Select Your Partner"
-        actions={partners.map(p => ({
-          label: p.name,
-          onPress: () => selectPartner(p),
-        }))}
-      />
     </SafeAreaView>
   )
 }
