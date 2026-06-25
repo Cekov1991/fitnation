@@ -45,7 +45,13 @@
       "expo-video",
       "expo-screen-orientation",
       "expo-updates",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.327354045336-9krq6ni33jra4066c33agblqi61hk83p"
+        }
+      ]
     ],
     "extra": {
       "apiUrl": "$EXPO_PUBLIC_API_URL",
