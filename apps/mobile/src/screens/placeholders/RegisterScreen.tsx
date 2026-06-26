@@ -187,26 +187,26 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             />
-          </View>
 
-          <View className="flex-row justify-center mt-6">
-            <Text style={{ color: colors.textSecondary }}>Already have an account? </Text>
-            <Text
-              style={{ color: colors.primary, fontWeight: '600' }}
-              onPress={() => navigation.navigate('Login')}
-            >
-              Sign in
-            </Text>
-          </View>
+            <View className="flex-row justify-center mt-6">
+              <Text style={{ color: colors.textSecondary }}>Already have an account? </Text>
+              <Text
+                style={{ color: colors.primary, fontWeight: '600' }}
+                onPress={() => navigation.navigate('Login')}
+              >
+                Sign in
+              </Text>
+            </View>
 
-          <SocialAuthButtons
-            onSuccess={async (provider, token, name) => {
-              setError(null)
-              await loginWithSocial(provider, token, name)
-            }}
-            onError={(_, message) => setError(message ?? 'Social sign in failed.')}
-            dividerLabel="or sign up with"
-          />
+            <SocialAuthButtons
+              onSuccess={async (provider, token, name) => {
+                setError(null)
+                await loginWithSocial(provider, token, name)
+              }}
+              onError={(_, message) => setError(message ?? 'Social sign in failed.')}
+              dividerLabel="or sign up with"
+            />
+          </View>
 
           <Text className="text-xs text-center mt-4" style={{ color: colors.textMuted }}>
             By creating an account, you agree to our{' '}

@@ -28,8 +28,11 @@ export function SocialAuthButtons({
       if (!idToken) throw new Error('No ID token returned from Google.')
       await onSuccess('google', idToken, data?.user.name ?? undefined)
     } catch (e: any) {
-      if (e.code !== statusCodes.SIGN_IN_CANCELLED) {
-        onError('google', e.message || 'Google sign in failed.')
+      const cancelled = e.code === statusCodes.SIGN_IN_CANCELLED
+        || e.code === statusCodes.IN_PROGRESS
+        || e.message?.includes('sign in')  // catches "getTokens requires a user to be signed in"
+      if (!cancelled) {
+        onError('google', 'Google sign in failed. Please try again.')
       }
     } finally {
       setLoading(null)
@@ -51,7 +54,7 @@ export function SocialAuthButtons({
       await onSuccess('apple', credential.identityToken!, name)
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
-        onError('apple', e.message || 'Apple sign in failed.')
+        onError('apple', 'Apple sign in failed. Please try again.')
       }
     } finally {
       setLoading(null)
