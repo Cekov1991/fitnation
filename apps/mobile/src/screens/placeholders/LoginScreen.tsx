@@ -154,25 +154,25 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             />
-          </View>
 
-          {/* Social login */}
-          <SocialAuthButtons
-            onSuccess={async (provider, token, name) => {
-              setError(null)
-              await loginWithSocial(provider, token, name)
-            }}
-            onError={(_, message) => setError(message ?? 'Social sign in failed.')}
-          />
+            <View className="flex-row justify-center mt-6">
+              <Text style={{ color: colors.textSecondary }}>Don't have an account? </Text>
+              <Text
+                style={{ color: colors.primary, fontWeight: '600' }}
+                onPress={() => navigation.navigate('Register', {})}
+              >
+                Sign up
+              </Text>
+            </View>
 
-          <View className="flex-row justify-center mt-6">
-            <Text style={{ color: colors.textSecondary }}>Don't have an account? </Text>
-            <Text
-              style={{ color: colors.primary, fontWeight: '600' }}
-              onPress={() => navigation.navigate('Register', {})}
-            >
-              Sign up
-            </Text>
+            {/* Social login */}
+            <SocialAuthButtons
+              onSuccess={async (provider, token, name) => {
+                setError(null)
+                await loginWithSocial(provider, token, name)
+              }}
+              onError={(_, message) => setError(message ?? 'Social sign in failed.')}
+            />
           </View>
 
           <Text className="text-xs text-center mt-8" style={{ color: colors.textMuted }}>
