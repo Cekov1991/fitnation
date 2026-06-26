@@ -10,10 +10,8 @@ interface AuthContextType {
   loginWithSocial: (provider: 'google' | 'apple', token: string, name?: string, partnerId?: number) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: {
-    name: string;
     email: string;
     password: string;
-    password_confirmation: string;
     partner_id: number;
   }) => Promise<void>;
   resendVerification: () => Promise<void>;
@@ -107,10 +105,8 @@ export function AuthProvider({
     setUser(null);
   };
   const register = async (data: {
-    name: string;
     email: string;
     password: string;
-    password_confirmation: string;
     partner_id: number;
   }) => {
     const storage = getAuthStorage()

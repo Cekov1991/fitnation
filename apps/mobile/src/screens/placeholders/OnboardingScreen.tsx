@@ -71,6 +71,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   // Pre-fill from existing profile so re-entrant users see their saved data
   const [state, dispatch] = useReducer(onboardingReducer, {
     currentStep: 0,
+    name: user?.name ?? undefined,
     fitness_goal: user?.profile?.fitness_goal ?? undefined,
     age: user?.profile?.age ?? undefined,
     gender: user?.profile?.gender ?? undefined,
@@ -126,7 +127,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
   function canProceed() {
     switch (step) {
-      case 1: return !!(state.gender && state.age && state.height && state.weight)
+      case 1: return !!(state.name?.trim() && state.gender && state.age && state.height && state.weight)
       case 2: return !!state.fitness_goal
       case 3: return !!(state.training_experience && state.training_days_per_week && state.workout_duration_minutes)
       default: return true
@@ -329,26 +330,16 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                 Tell us a bit about yourself so we can tailor your experience.
               </Text>
 
-              {/* Read-only name */}
-              <View
-                className="mb-4 p-4 rounded-xl"
-                style={{ backgroundColor: colors.bgSurface, opacity: 0.75 }}
-              >
-                <Text className="text-xs mb-0.5" style={{ color: colors.textMuted }}>Full Name</Text>
-                <Text className="text-base font-medium" style={{ color: colors.textPrimary }}>
-                  {user?.name || '—'}
-                </Text>
-              </View>
-
-              {/* Read-only email */}
-              <View
-                className="mb-5 p-4 rounded-xl"
-                style={{ backgroundColor: colors.bgSurface, opacity: 0.75 }}
-              >
-                <Text className="text-xs mb-0.5" style={{ color: colors.textMuted }}>Email Address</Text>
-                <Text className="text-base font-medium" style={{ color: colors.textPrimary }}>
-                  {user?.email || '—'}
-                </Text>
+              {/* Full Name */}
+              <View className="mb-4">
+                <Input
+                  label="Full Name"
+                  value={state.name ?? ''}
+                  onChangeText={v => set({ name: v })}
+                  autoComplete="name"
+                  autoCorrect={false}
+                  placeholder="John Doe"
+                />
               </View>
 
               {/* Age + Gender row */}

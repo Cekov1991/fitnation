@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
-import { User, Mail, Calendar, Ruler, Weight, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
+import { User, Calendar, Ruler, Weight, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import { UseFormRegister, FieldErrors, Control, Controller } from 'react-hook-form';
-import { useAuth } from '../../hooks/useAuth';
 import { useSlideTransition } from '../../utils/animations';
 import { OnboardingFormData } from '@fit-nation/shared';
 
@@ -21,7 +20,6 @@ export function PersonalInfoStep({
   onBack,
   isValid,
 }: PersonalInfoStepProps) {
-  const { user } = useAuth();
   const slideProps = useSlideTransition('up');
 
   return (
@@ -40,58 +38,49 @@ export function PersonalInfoStep({
 
       <div className="flex-1 overflow-y-auto -mx-4 px-4 pb-4">
         <div className="space-y-5">
-          {/* Read-only Name */}
+          {/* Name */}
           <div>
-            <label 
+            <label
               className="text-xs mb-2 block"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               Full Name
             </label>
             <div className="relative">
-              <User 
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" 
-                style={{ color: 'var(--color-text-muted)' }} 
+              <User
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                style={{ color: 'var(--color-text-muted)' }}
               />
-              <input
-                type="text"
-                value={user?.name || ''}
-                readOnly
-                className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none transition-all cursor-not-allowed opacity-75"
-                style={{
-                  backgroundColor: 'var(--color-bg-surface)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)'
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Read-only Email */}
-          <div>
-            <label 
-              className="text-xs mb-2 block"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail 
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" 
-                style={{ color: 'var(--color-text-muted)' }} 
-              />
-              <input
-                type="email"
-                value={user?.email || ''}
-                readOnly
-                className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none transition-all cursor-not-allowed opacity-75"
-                style={{
-                  backgroundColor: 'var(--color-bg-surface)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)'
-                }}
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    placeholder="John Doe"
+                    className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
+                    style={{
+                      backgroundColor: 'var(--color-bg-surface)',
+                      borderColor: errors.name ? '#f87171' : 'var(--color-border)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                    onFocus={(e) => {
+                      if (!errors.name) {
+                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (!errors.name) {
+                        e.currentTarget.style.borderColor = 'var(--color-border)';
+                      }
+                    }}
+                  />
+                )}
               />
             </div>
+            {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
           </div>
 
           {/* Age and Gender */}
