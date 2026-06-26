@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''} use_fedcm_for_prompt={false}>
     <QueryClientProvider client={queryClient}>
       <InstallPromptProvider>
         <AuthProvider>
