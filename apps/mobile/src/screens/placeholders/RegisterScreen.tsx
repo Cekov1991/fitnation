@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as SecureStore from 'expo-secure-store'
-import { User, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
 import { registerSchema, type RegisterFormData, authApi, AUTH_TOKEN_KEY } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -21,15 +21,12 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
 
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const scrollRef = useRef<ScrollView>(null)
-  const emailRef = useRef<TextInput>(null)
   const passwordRef = useRef<TextInput>(null)
-  const confirmPasswordRef = useRef<TextInput>(null)
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: '', email: '', password: '', password_confirmation: '', partner_id: 1 },
+    defaultValues: { email: '', password: '', partner_id: 1 },
   })
 
   async function onSubmit(data: RegisterFormData) {
@@ -81,26 +78,6 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
 
             <Controller
               control={control}
-              name="name"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Full Name"
-                  value={value}
-                  onChangeText={onChange}
-                  autoComplete="name"
-                  autoCorrect={false}
-                  placeholder="John Doe"
-                  error={errors.name?.message}
-                  leftIcon={<User color={colors.textMuted} size={18} />}
-                  returnKeyType="next"
-                  onSubmitEditing={() => emailRef.current?.focus()}
-                  blurOnSubmit={false}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
               name="email"
               render={({ field: { onChange, value } }) => (
                 <Input
@@ -116,7 +93,6 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
-                  inputRef={emailRef}
                 />
               )}
             />
@@ -133,8 +109,8 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
                   placeholder="At least 8 characters"
                   error={errors.password?.message}
                   leftIcon={<Lock color={colors.textMuted} size={18} />}
-                  returnKeyType="next"
-                  onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubmit(onSubmit)}
                   blurOnSubmit={false}
                   inputRef={passwordRef}
                   onFocusScroll={() => {
@@ -143,36 +119,6 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
                   rightElement={
                     <TouchableOpacity onPress={() => setShowPassword(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       {showPassword
-                        ? <EyeOff color={colors.textMuted} size={18} />
-                        : <Eye color={colors.textMuted} size={18} />
-                      }
-                    </TouchableOpacity>
-                  }
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="password_confirmation"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Confirm Password"
-                  value={value}
-                  onChangeText={onChange}
-                  secureTextEntry={!showConfirmPassword}
-                  placeholder="Re-enter your password"
-                  error={errors.password_confirmation?.message}
-                  leftIcon={<Lock color={colors.textMuted} size={18} />}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSubmit(onSubmit)}
-                  inputRef={confirmPasswordRef}
-                  onFocusScroll={() => {
-                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120)
-                  }}
-                  rightElement={
-                    <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      {showConfirmPassword
                         ? <EyeOff color={colors.textMuted} size={18} />
                         : <Eye color={colors.textMuted} size={18} />
                       }

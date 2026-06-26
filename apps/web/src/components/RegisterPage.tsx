@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, User } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
 import { registerSchema, type RegisterFormData } from '@fit-nation/shared';
@@ -15,7 +15,6 @@ export function RegisterPage() {
   const { logo, partnerName, hasBranding } = useBranding();
   const history = useHistory();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
 
@@ -28,10 +27,8 @@ export function RegisterPage() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
       email: '',
       password: '',
-      password_confirmation: '',
       partner_id: 1,
     },
   });
@@ -122,35 +119,6 @@ export function RegisterPage() {
               </div>
             )}
 
-            {/* Name Field */}
-            <div>
-              <label
-                htmlFor="name"
-                className="text-sm font-semibold mb-2 block"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                <input
-                  id="name"
-                  type="text"
-                  {...register('name')}
-                  placeholder="John Doe"
-                  className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-bg-elevated)',
-                    borderColor: errors.name ? '#f87171' : 'var(--color-border)',
-                    color: 'var(--color-text-primary)'
-                  }}
-                  onFocus={(e) => { if (!errors.name) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)'; }}
-                  onBlur={(e) => { if (!errors.name) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                />
-              </div>
-              {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
-            </div>
-
             {/* Email Field */}
             <div>
               <label
@@ -216,43 +184,6 @@ export function RegisterPage() {
                 </button>
               </div>
               {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label
-                htmlFor="password_confirmation"
-                className="text-sm font-semibold mb-2 block"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
-                <input
-                  id="password_confirmation"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  {...register('password_confirmation')}
-                  placeholder="Re-enter your password"
-                  className="w-full pl-12 pr-12 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-bg-elevated)',
-                    borderColor: errors.password_confirmation ? '#f87171' : 'var(--color-border)',
-                    color: 'var(--color-text-primary)'
-                  }}
-                  onFocus={(e) => { if (!errors.password_confirmation) e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-primary) 50%, transparent)'; }}
-                  onBlur={(e) => { if (!errors.password_confirmation) e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.password_confirmation && <p className="text-xs text-red-400 mt-1">{errors.password_confirmation.message}</p>}
             </div>
 
             {/* Register Button */}

@@ -103,10 +103,8 @@ export const authApi = {
     return fetchWithAuth(`/invitations/${token}`);
   },
   register: async (data: {
-    name: string;
     email: string;
     password: string;
-    password_confirmation: string;
     partner_id: number;
   }): Promise<AuthResponse> => {
     return fetchWithAuth('/register', {
