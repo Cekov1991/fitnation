@@ -23,6 +23,7 @@ export interface UserResource {
   name: string;
   email: string;
   profile_photo: string;
+  has_password: boolean;
   profile: UserProfileResource | null;
   partner: UserPartner | null;
   onboarding_completed_at: string | null;

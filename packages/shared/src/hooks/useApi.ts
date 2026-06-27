@@ -78,7 +78,7 @@ export function useDeleteProfilePhoto() {
 export function useDeleteAccount() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (password: string) => authApi.deleteAccount(password),
+    mutationFn: (password?: string) => authApi.deleteAccount(password),
     onSuccess: async () => {
       await getAuthStorage().removeItem(AUTH_TOKEN_KEY);
       queryClient.clear();
