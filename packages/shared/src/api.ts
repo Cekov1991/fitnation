@@ -142,7 +142,7 @@ export const authApi = {
       method: 'POST'
     });
   },
-  deleteAccount: async (password: string): Promise<void> => {
+  deleteAccount: async (password?: string): Promise<void> => {
     await fetchWithAuth('/user', {
       method: 'DELETE',
       body: JSON.stringify({ password }),

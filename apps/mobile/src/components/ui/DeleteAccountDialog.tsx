@@ -16,13 +16,15 @@ import { useTheme } from '../../context/ThemeContext'
 interface DeleteAccountDialogProps {
   visible: boolean
   onClose: () => void
-  onConfirm: (password: string) => Promise<void>
+  onConfirm: (password?: string) => Promise<void>
+  requiresPassword?: boolean
 }
 
 export function DeleteAccountDialog({
   visible,
   onClose,
   onConfirm,
+  requiresPassword = true,
 }: DeleteAccountDialogProps) {
   const { colors } = useTheme()
   const [password, setPassword] = useState('')
@@ -39,19 +41,19 @@ export function DeleteAccountDialog({
   }
 
   const handleConfirm = async () => {
-    if (!password) {
+    if (requiresPassword && !password) {
       setError('Please enter your password.')
       return
     }
     setError(null)
     setIsLoading(true)
     try {
-      await onConfirm(password)
+      await onConfirm(requiresPassword ? password : undefined)
     } catch (err: any) {
       const msg =
         err?.errors?.password?.[0] ||
         err?.message ||
-        'Incorrect password. Please try again.'
+        'Something went wrong. Please try again.'
       setError(msg)
       setIsLoading(false)
     }
@@ -90,52 +92,63 @@ export function DeleteAccountDialog({
             </Text>
           </View>
 
-          {/* Password input */}
-          <View style={styles.inputSection}>
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
-              Confirm your password
-            </Text>
-            <View
-              style={[
-                styles.inputRow,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: error ? colors.error : colors.border,
-                },
-              ]}
-            >
-              <TextInput
-                value={password}
-                onChangeText={(v) => {
-                  setPassword(v)
-                  if (error) setError(null)
-                }}
-                secureTextEntry={!passwordVisible}
-                placeholder="Enter your password"
-                placeholderTextColor={colors.textMuted}
-                autoCapitalize="none"
-                autoCorrect={false}
-                style={[styles.textInput, { color: colors.textPrimary }]}
-                onSubmitEditing={handleConfirm}
-                returnKeyType="done"
-              />
-              <TouchableOpacity
-                onPress={() => setPasswordVisible((v) => !v)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          {/* Password input (only for users with a password set) */}
+          {requiresPassword && (
+            <View style={styles.inputSection}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                Confirm your password
+              </Text>
+              <View
+                style={[
+                  styles.inputRow,
+                  {
+                    backgroundColor: colors.bgElevated,
+                    borderColor: error ? colors.error : colors.border,
+                  },
+                ]}
               >
-                {passwordVisible ? (
-                  <EyeOff size={18} color={colors.textMuted} />
-                ) : (
-                  <Eye size={18} color={colors.textMuted} />
-                )}
-              </TouchableOpacity>
+                <TextInput
+                  value={password}
+                  onChangeText={(v) => {
+                    setPassword(v)
+                    if (error) setError(null)
+                  }}
+                  secureTextEntry={!passwordVisible}
+                  placeholder="Enter your password"
+                  placeholderTextColor={colors.textMuted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={[styles.textInput, { color: colors.textPrimary }]}
+                  onSubmitEditing={handleConfirm}
+                  returnKeyType="done"
+                />
+                <TouchableOpacity
+                  onPress={() => setPasswordVisible((v) => !v)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  {passwordVisible ? (
+                    <EyeOff size={18} color={colors.textMuted} />
+                  ) : (
+                    <Eye size={18} color={colors.textMuted} />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {error && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {error}
+                </Text>
+              )}
             </View>
-            {error && (
+          )}
+
+          {/* Error for users without a password */}
+          {!requiresPassword && error && (
+            <View style={styles.inputSection}>
               <Text style={[styles.errorText, { color: colors.error }]}>
                 {error}
               </Text>
-            )}
-          </View>
+            </View>
+          )}
 
           {/* Buttons */}
           <View style={styles.buttonsContainer}>

@@ -114,7 +114,7 @@ function FieldInput({
 
 export function ProfileScreen() {
   const { colors } = useTheme()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
   const deleteAccount = useDeleteAccount()
@@ -676,6 +676,7 @@ export function ProfileScreen() {
 
       <DeleteAccountDialog
         visible={deleteVisible}
+        requiresPassword={user?.has_password ?? true}
         onClose={() => setDeleteVisible(false)}
         onConfirm={async (password) => {
           await deleteAccount.mutateAsync(password)
