@@ -7,11 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F0F0F"
-    },
+    "backgroundColor": "#F2F2F2",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.fitnation.app",
@@ -41,6 +37,18 @@
       "policy": "appVersion"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F2F2F2",
+          "dark": {
+            "backgroundColor": "#0A0A0A"
+          }
+        }
+      ],
       "expo-secure-store",
       "expo-video",
       "expo-screen-orientation",
