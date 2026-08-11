@@ -34,6 +34,7 @@ interface ExerciseContentProps {
   onOpenExerciseMenu: () => void;
   isAddSetLoading: boolean;
   isLogSetLoading?: boolean;
+  weightUnit: 'kg' | 'lbs';
 }
 
 export function ExerciseContent({
@@ -59,6 +60,7 @@ export function ExerciseContent({
   onOpenExerciseMenu,
   isAddSetLoading,
   isLogSetLoading = false,
+  weightUnit,
 }: ExerciseContentProps) {
   const shouldReduceMotion = useReducedMotion();
   const simpleTransition = useSimpleTransition();
@@ -176,6 +178,7 @@ export function ExerciseContent({
               totalRepsTarget={currentExercise.totalRepsTarget}
               isAddSetLoading={isAddSetLoading}
               isLogSetLoading={isLogSetLoading}
+              weightUnit={weightUnit}
             />
           </motion.div>
         </AnimatePresence>

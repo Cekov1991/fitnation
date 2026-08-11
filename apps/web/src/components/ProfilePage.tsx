@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download, Trash2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
-import { useProfile, useUpdateProfile, useDeleteAccount } from '@fit-nation/shared';
+import { useProfile, useUpdateProfile, useDeleteAccount, weightUnitLabel, heightUnitLabel } from '@fit-nation/shared';
+import type { UnitSystem } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { profileSchema, ProfileFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
@@ -26,6 +27,9 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
   const updateProfile = useUpdateProfile();
   const deleteAccount = useDeleteAccount();
   const requiresPassword = profile?.has_password ?? true;
+  const unitSystem: UnitSystem = profile?.profile?.unit_system ?? 'metric';
+  const weightLabel = weightUnitLabel(unitSystem);
+  const heightLabel = heightUnitLabel(unitSystem);
   const { isIOS } = useInstallPrompt();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -69,7 +73,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
         age: profile.profile?.age || null,
         gender: profile.profile?.gender || 'other',
         height: profile.profile?.height || null,
-        weight: profile.profile?.weight ? Math.round(profile.profile.weight) : null,
+        weight: profile.profile?.weight || null,
         training_experience: profile.profile?.training_experience || 'beginner',
         training_days_per_week: profile.profile?.training_days_per_week || null,
         workout_duration_minutes: profile.profile?.workout_duration_minutes || null,
@@ -137,11 +141,20 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       age: data.age ?? undefined,
       gender: data.gender,
       height: data.height ?? undefined,
-      weight: data.weight ? Math.round(data.weight) : undefined,
+      weight: data.weight ?? undefined,
       training_experience: data.training_experience,
       training_days_per_week: data.training_days_per_week ?? undefined,
       workout_duration_minutes: data.workout_duration_minutes ?? undefined,
     });
+  };
+
+  const handleUnitToggle = async (newUnit: UnitSystem) => {
+    if (newUnit === unitSystem || updateProfile.isPending) return;
+    try {
+      await updateProfile.mutateAsync({ unit_system: newUnit });
+    } catch (error) {
+      console.error('Failed to update unit system:', error);
+    }
   };
 
   return (
@@ -307,11 +320,40 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                     </div>
                   </div>
 
+                  {/* Unit System Toggle */}
+                  <div>
+                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                      Units
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['metric', 'imperial'] as UnitSystem[]).map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          disabled={updateProfile.isPending}
+                          onClick={() => handleUnitToggle(option)}
+                          className="py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                          style={{
+                            backgroundColor: unitSystem === option
+                              ? 'var(--color-primary)'
+                              : 'var(--color-bg-surface)',
+                            color: unitSystem === option
+                              ? 'white'
+                              : 'var(--color-text-secondary)',
+                            border: `2px solid ${unitSystem === option ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                          }}
+                        >
+                          {option === 'metric' ? 'Metric (kg/cm)' : 'Imperial (lbs/in)'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Height and Weight - Side by Side */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                        Height (cm)
+                        Height ({heightLabel})
                       </label>
                       <div className="relative">
                         <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
@@ -323,7 +365,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                               type="number"
                               value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                              placeholder="175"
+                              placeholder={unitSystem === 'imperial' ? '69' : '175'}
                               className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
                               style={{
                                 backgroundColor: 'var(--color-bg-surface)',
@@ -349,7 +391,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
 
                     <div>
                       <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                        Weight (kg)
+                        Weight ({weightLabel})
                       </label>
                       <div className="relative">
                         <Weight className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-text-muted)' }} />
@@ -359,9 +401,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                           render={({ field }) => (
                             <input
                               type="number"
-                              value={field.value || ''}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                              placeholder="70"
+                              step={unitSystem === 'imperial' ? 0.5 : 1}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                              placeholder={unitSystem === 'imperial' ? '154' : '70'}
                               className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
                               style={{
                                 backgroundColor: 'var(--color-bg-surface)',

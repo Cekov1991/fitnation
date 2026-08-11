@@ -6,6 +6,7 @@
 
 export type FitnessGoal = 'fat_loss' | 'muscle_gain' | 'strength' | 'general_fitness';
 export type Gender = 'male' | 'female' | 'other';
+export type UnitSystem = 'metric' | 'imperial';
 export type TrainingExperience = 'beginner' | 'intermediate' | 'advanced';
 export type StrengthLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 export type BalanceLevel = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_IMPROVEMENT';
@@ -35,8 +36,9 @@ export interface UserProfileResource {
   fitness_goal: FitnessGoal | null;
   age: number | null;
   gender: Gender | null;
-  height: number | null; // cm
-  weight: number | null; // kg
+  height: number | null; // formatted for unit_system: cm if metric, whole inches if imperial
+  weight: number | null; // formatted for unit_system: kg if metric, lbs (nearest 0.5) if imperial
+  unit_system: UnitSystem | null;
   training_experience: TrainingExperience | null;
   training_days_per_week: number | null;
   workout_duration_minutes: number | null;
@@ -277,7 +279,7 @@ export interface TemplateExercisePivot {
   target_sets: number | null;
   min_target_reps: number | null;
   max_target_reps: number | null;
-  target_weight: number | null;
+  target_weight: number | null; // read-only, formatted for the reading user's unit_system
   rest_seconds: number | null;
 }
 
@@ -317,7 +319,7 @@ export interface WorkoutSessionExerciseResource {
   min_target_reps: number | null;
   max_target_reps: number | null;
   progression_status: 'no_history' | 'below_min' | 'working' | 'ready';
-  target_weight: number | null;
+  target_weight: number | null; // formatted for the user's unit_system
   total_reps_previous: number | null;
   total_reps_target: number | null;
   rest_seconds: number | null;
@@ -329,7 +331,7 @@ export interface SetLogResource {
   workout_session_id: number;
   exercise_id: number;
   set_number: number;
-  weight: number;
+  weight: number; // formatted for the user's unit_system
   reps: number;
   rest_seconds: number | null;
   created_at: string;
@@ -583,8 +585,9 @@ export interface UpdateProfileInput {
   fitness_goal?: FitnessGoal;
   age?: number;
   gender?: Gender;
-  height?: number;
-  weight?: number;
+  unit_system?: UnitSystem; // 'metric' or 'imperial'; omit to keep the stored preference
+  height?: number; // in the unit_system being submitted (cm if metric/omitted, inches if imperial)
+  weight?: number; // in the unit_system being submitted (kg if metric/omitted, lbs if imperial)
   training_experience?: TrainingExperience;
   training_days_per_week?: number;
   workout_duration_minutes?: number;

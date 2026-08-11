@@ -52,6 +52,7 @@ export function WorkoutSessionPage({
         formattedDuration={state.formattedDuration}
         onDone={state.handleSummaryDismiss}
         newPrs={state.sessionNewPrs}
+        weightUnit={state.weightUnit}
       />
     );
   }
@@ -100,6 +101,7 @@ export function WorkoutSessionPage({
           onOpenExerciseMenu={() => state.setShowExerciseMenu(true)}
           isAddSetLoading={false}
           isLogSetLoading={state.isLoggingSet}
+          weightUnit={state.weightUnit}
         />
       </main>
 

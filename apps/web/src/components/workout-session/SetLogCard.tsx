@@ -22,6 +22,7 @@ interface SetLogCardProps {
   totalRepsPrevious?: number | null;
   totalRepsTarget?: number | null;
   isLoading?: boolean;
+  weightUnit: 'kg' | 'lbs';
 }
 
 export function SetLogCard({
@@ -42,6 +43,7 @@ export function SetLogCard({
   totalRepsPrevious,
   totalRepsTarget,
   isLoading = false,
+  weightUnit,
 }: SetLogCardProps) {
   const showGoalWeightBadge = goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight;
   const showTotalRepsHint = totalRepsTarget != null;
@@ -85,12 +87,12 @@ export function SetLogCard({
                 className="ionic-input-workout" 
               />
               <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                kg
+                {weightUnit}
               </span>
             </div>
             {showGoalWeightBadge && (
               <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-                Suggested: {formatWeight(goalWeight!)} kg based on your performance
+                Suggested: {formatWeight(goalWeight!)} {weightUnit} based on your performance
               </p>
             )}
           </div>

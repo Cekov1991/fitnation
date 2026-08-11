@@ -12,6 +12,7 @@ interface SetEditCardProps {
   onCancel: () => void;
   setNumber?: number;
   allowWeightLogging?: boolean;
+  weightUnit: 'kg' | 'lbs';
 }
 
 export function SetEditCard({
@@ -23,6 +24,7 @@ export function SetEditCard({
   onCancel,
   setNumber,
   allowWeightLogging = true,
+  weightUnit,
 }: SetEditCardProps) {
   const slideTransition = useSlideTransition()
   return (
@@ -54,7 +56,7 @@ export function SetEditCard({
                 className="ionic-input-workout" 
               />
               <span className="text-sm font-semibold text-orange-100 ml-2">
-                kg
+                {weightUnit}
               </span>
             </div>
           </div>

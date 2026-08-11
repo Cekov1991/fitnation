@@ -21,11 +21,10 @@ export const profileSchema = z.object({
   age: numberCoerce.refine((val) => val == null || val >= 1, { message: 'Age must be 1 or greater' })
     .refine((val) => val == null || val <= 150, { message: 'Age must be 150 or less' }),
   gender: z.enum(['male', 'female', 'other']),
-  height: numberCoerce.refine((val) => val == null || val >= 50, { message: 'Height must be 50cm or greater' })
-    .refine((val) => val == null || val <= 300, { message: 'Height must be 300cm or less' }),
-  weight: numberCoerce.refine((val) => val == null || val >= 1, { message: 'Weight must be 1kg or greater' })
-    .refine((val) => val == null || val <= 500, { message: 'Weight must be 500kg or less' })
-    .refine((val) => val == null || Number.isInteger(val), { message: 'Weight must be a whole number' }),
+  height: numberCoerce.refine((val) => val == null || val >= 50, { message: 'Height must be 50 or greater' })
+    .refine((val) => val == null || val <= 300, { message: 'Height must be 300 or less' }),
+  weight: numberCoerce.refine((val) => val == null || val >= 1, { message: 'Weight must be 1 or greater' })
+    .refine((val) => val == null || val <= 500, { message: 'Weight must be 500 or less' }),
   training_experience: z.enum(['beginner', 'intermediate', 'advanced']),
   training_days_per_week: numberCoerce.refine((val) => val == null || val >= 1, { message: 'Training days must be 1 or greater' })
     .refine((val) => val == null || val <= 7, { message: 'Training days must be 7 or less' }),

@@ -29,6 +29,7 @@ interface SetsListProps {
   totalRepsTarget: number | null;
   isAddSetLoading?: boolean;
   isLogSetLoading?: boolean;
+  weightUnit: 'kg' | 'lbs';
 }
 
 export function SetsList({
@@ -54,6 +55,7 @@ export function SetsList({
   totalRepsTarget,
   isAddSetLoading = false,
   isLogSetLoading = false,
+  weightUnit,
 }: SetsListProps) {
   return (
     <div className="space-y-2">
@@ -83,6 +85,7 @@ export function SetsList({
               totalRepsPrevious={set.previousReps ?? null}
               totalRepsTarget={totalRepsTarget}
               isLoading={isLogSetLoading}
+              weightUnit={weightUnit}
             />
           );
         }
@@ -100,6 +103,7 @@ export function SetsList({
               onCancel={onCancelEdit}
               setNumber={index + 1}
               allowWeightLogging={allowWeightLogging}
+              weightUnit={weightUnit}
             />
           );
         }
@@ -128,7 +132,7 @@ export function SetsList({
                     <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                       {set.completed ? formatWeight(set.weight) : '--'}
                     </span>
-                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>kg</span>
+                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{weightUnit}</span>
                   </div>
                   <span style={{ color: 'var(--color-border)' }}>×</span>
                 </>
