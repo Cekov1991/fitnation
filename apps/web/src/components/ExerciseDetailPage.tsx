@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises, useExerciseHistory } from '@fit-nation/shared';
+import { useExercises, useExerciseHistory, useProfile, weightUnitLabel } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
@@ -37,6 +37,8 @@ export function ExerciseDetailPage({
   hidePerformanceTab = false,
   initialActiveTab
 }: ExerciseDetailPageProps) {
+  const { data: profile } = useProfile();
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
   const resolvedInitialTab =
     hidePerformanceTab ? 'guidance' : (initialActiveTab ?? 'guidance');
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>(resolvedInitialTab);
@@ -597,11 +599,11 @@ export function ExerciseDetailPage({
                               }}
                               formatter={(value: number, name: string) => {
                                 if (name === 'value') {
-                                  return allowWeightLogging 
-                                    ? [`${value} kg`, 'Volume']
+                                  return allowWeightLogging
+                                    ? [`${value} ${weightUnit}`, 'Volume']
                                     : [`${value} reps`, 'Best Set'];
                                 }
-                                if (name === 'weight') return [`${value} kg`, 'Weight'];
+                                if (name === 'weight') return [`${value} ${weightUnit}`, 'Weight'];
                                 if (name === 'reps') return [value, 'Reps'];
                                 if (name === 'volume') return [value, 'Volume'];
                                 return [value, name];
@@ -644,7 +646,7 @@ export function ExerciseDetailPage({
                                 </p>
                                 <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                                   {allowWeightLogging 
-                                    ? `${session.volume} kg volume · ${session.sets} sets`
+                                    ? `${session.volume} ${weightUnit} volume · ${session.sets} sets`
                                     : `${session.best_set_reps} reps (best set) • ${session.sets} sets`
                                   }
                                 </p>

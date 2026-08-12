@@ -3,7 +3,7 @@ import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { formatWeight } from './workout-session/utils';
 import { estimateWorkoutDuration } from '@fit-nation/shared';
-import { formatRepRange } from '@fit-nation/shared';
+import { formatRepRange, useProfile, weightUnitLabel } from '@fit-nation/shared';
 import type { WorkoutTemplateResource, TemplateExercise } from '@fit-nation/shared';
 
 interface WorkoutCardProps {
@@ -90,6 +90,8 @@ export function WorkoutCard({
   onExerciseClick, 
   onEditWorkout 
 }: WorkoutCardProps) {
+  const { data: profile } = useProfile();
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
   // Normalize exercises to handle both API response formats
   const normalizedExercises = useMemo(() => normalizeExercises(template), [template]);
   const duration = useMemo(() => estimateWorkoutDuration(normalizedExercises), [normalizedExercises]);
@@ -208,7 +210,7 @@ export function WorkoutCard({
                       {exercise.name}
                     </h5>
                     <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                      {sets} sets × {formatRepRange(minReps, maxReps)} reps × {formatWeight(weight)} kg
+                      {sets} sets × {formatRepRange(minReps, maxReps)} reps × {formatWeight(weight)} {weightUnit}
                     </p>
                   </div>
                 </div>

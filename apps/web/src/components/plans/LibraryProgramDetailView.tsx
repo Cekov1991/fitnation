@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Calendar, Dumbbell } from 'lucide-react';
 import { ProgramWeekCard } from './ProgramWeekCard';
-import { formatRepRange } from '@fit-nation/shared';
+import { formatRepRange, useProfile, weightUnitLabel } from '@fit-nation/shared';
 import type { LibraryProgramResource, WorkoutTemplateResource, TemplateExercise } from '@fit-nation/shared';
 
 interface LibraryProgramDetailViewProps {
@@ -29,6 +29,8 @@ function groupWorkoutsByWeek(workoutTemplates: WorkoutTemplateResource[] | null)
 
 export function LibraryProgramDetailView({ program, onBack, onStartProgram }: LibraryProgramDetailViewProps) {
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutTemplateResource | null>(null);
+  const { data: profile } = useProfile();
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
   const programWeeks = useMemo(() => groupWorkoutsByWeek(program.workout_templates), [program.workout_templates]);
 
   const handleWorkoutClick = (templateId: number) => {
@@ -97,7 +99,7 @@ export function LibraryProgramDetailView({ program, onBack, onStartProgram }: Li
                       </p>
                       <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                         {sets} sets · {formatRepRange(minReps, maxReps)} reps
-                        {weight != null && weight > 0 ? ` · ${weight} kg` : ' · 0 kg'}
+                        {weight != null && weight > 0 ? ` · ${weight} ${weightUnit}` : ` · 0 ${weightUnit}`}
                       </p>
                     </div>
                   </div>
