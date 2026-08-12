@@ -389,12 +389,14 @@ The API supports both metric (kg/cm) and imperial (lbs/inches) units. **Storage 
 - `user.profile.height` / `user.profile.weight` (`GET /api/profile`, and nested in `UserResource` anywhere it appears)
 - `SetLogResource.weight` (logged set weights)
 - `WorkoutSessionExerciseResource.target_weight` (live progression targets)
-- `WorkoutTemplateResource` exercise pivot `target_weight` (template targets) — **read-only conversion**; writing a template's `target_weight` via `POST/PUT /api/workout-templates/{id}/exercises*` always expects kg regardless of the user's preference (template editing is coach/admin tooling and stays metric-only)
-- Request bodies that accept weight/height: `PATCH /api/profile`, `POST /api/workout-sessions/{session}/sets` (log set), `PUT /api/workout-sessions/{session}/sets/{setLog}` (update set)
+- `WorkoutTemplateResource` exercise pivot `target_weight` (template targets) — converted both for display (`GET`) and on write via `PUT /api/workout-templates/{id}/exercises/{exercise}` (log a set uses the mobile API, owner-only, same as everything else in this list)
+- Request bodies that accept weight/height: `PATCH /api/profile`, `POST /api/workout-sessions/{session}/sets` (log set), `PUT /api/workout-sessions/{session}/sets/{setLog}` (update set), `PUT /api/workout-templates/{id}/exercises/{exercise}` (update template exercise)
+
+**Not unit-aware, by design:** the internal staff/coach dashboard (session-authenticated Blade admin tooling, separate from the mobile API's `Api\WorkoutTemplateController`) always works in kg/cm regardless of any preference — that surface is staff-only and intentionally excluded from this feature.
 
 **How the unit is resolved on write:**
 1. `PATCH /api/profile` — uses `unit_system` from that request's own body if present, otherwise falls back to the user's stored preference, otherwise defaults to metric.
-2. Set-logging endpoints (log/update set) — always use the user's stored `profile.unit_system` (there's no per-request override here).
+2. All other write endpoints (log/update set, update template exercise) — always use the user's stored `profile.unit_system` (there's no per-request override here).
 
 **Rounding conventions (imperial display only, metric is always exact passthrough):**
 - Body weight (profile): rounds to the nearest **0.5 lb**.
@@ -1610,13 +1612,10 @@ POST /api/workout-templates/{workoutTemplate}/exercises
 ```typescript
 interface AddTemplateExerciseRequest {
   exercise_id: number;       // required, must exist
-  target_sets?: number;      // optional, min 1
-  min_target_reps?: number;  // optional, min 1
-  max_target_reps?: number;  // optional, min 1, must be >= min_target_reps
-  target_weight?: number;    // optional, min 0
-  rest_seconds?: number;     // optional, min 0
 }
 ```
+
+**Note:** Only `exercise_id` is accepted at add-time — the exercise is added with default pivot values (order is assigned automatically). To set `target_sets`/`target_weight`/etc., follow up with `PUT .../exercises/{exercise}` (below) using the pivot ID returned in the response.
 
 **Response (201 Created):**
 ```typescript
@@ -1642,7 +1641,7 @@ interface UpdateTemplateExerciseRequest {
   target_sets?: number;      // optional, min 1
   min_target_reps?: number;  // optional, min 1
   max_target_reps?: number;  // optional, min 1, must be >= min_target_reps
-  target_weight?: number;    // optional, min 0
+  target_weight?: number;    // optional, min 0 - in the user's unit_system (lbs if imperial, kg if metric); converted and stored as kg
   rest_seconds?: number;     // optional, min 0
 }
 ```

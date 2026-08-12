@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ExercisePickerPage } from '../components/ExercisePickerPage';
 import {
   useAddTemplateExercise,
+  useUpdateTemplateExercise,
   useRemoveTemplateExercise,
   useReorderTemplateExercises
 } from '@fit-nation/shared';
@@ -23,6 +24,7 @@ export default function ExercisePickerPageWrapper() {
   const location = useLocation<LocationState>();
   const queryClient = useQueryClient();
   const addTemplateExercise = useAddTemplateExercise();
+  const updateTemplateExercise = useUpdateTemplateExercise();
   const removeTemplateExercise = useRemoveTemplateExercise();
   const reorderExercises = useReorderTemplateExercises();
 
@@ -57,15 +59,12 @@ export default function ExercisePickerPageWrapper() {
           pivotId: swapPivotId
         });
 
+        // POST .../exercises only accepts exercise_id; the exercise is added with
+        // default pivot values. Restore the swapped-out exercise's sets/reps/weight
+        // via a follow-up update once we know the new pivot id.
         await addTemplateExercise.mutateAsync({
           templateId,
-          data: {
-            exercise_id: exercise.id,
-            target_sets: pivotData?.target_sets ?? 3,
-            min_target_reps: pivotData?.min_target_reps ?? 8,
-            max_target_reps: pivotData?.max_target_reps ?? 12,
-            target_weight: pivotData?.target_weight ?? 0
-          }
+          data: { exercise_id: exercise.id }
         });
 
         // Refetch template to get the new pivot id, then reorder so new exercise is at swapOrderIndex
@@ -75,6 +74,19 @@ export default function ExercisePickerPageWrapper() {
         const exercises = template?.exercises ?? [];
         const newExerciseEntry = exercises.find((ex: { id: number }) => ex.id === exercise.id);
         const newPivotId = newExerciseEntry?.pivot?.id;
+
+        if (newPivotId != null) {
+          await updateTemplateExercise.mutateAsync({
+            templateId,
+            pivotId: newPivotId,
+            data: {
+              target_sets: pivotData?.target_sets ?? 3,
+              min_target_reps: pivotData?.min_target_reps ?? 8,
+              max_target_reps: pivotData?.max_target_reps ?? 12,
+              target_weight: pivotData?.target_weight ?? 0
+            }
+          });
+        }
 
         if (newPivotId != null && exercises.length > 0) {
           const currentOrder = exercises.map((ex: { pivot: { id: number } }) => ex.pivot.id);
@@ -106,6 +118,7 @@ export default function ExercisePickerPageWrapper() {
 
   const isLoading =
     addTemplateExercise.isPending ||
+    updateTemplateExercise.isPending ||
     removeTemplateExercise.isPending ||
     reorderExercises.isPending;
 

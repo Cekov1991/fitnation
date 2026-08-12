@@ -279,7 +279,7 @@ export interface TemplateExercisePivot {
   target_sets: number | null;
   min_target_reps: number | null;
   max_target_reps: number | null;
-  target_weight: number | null; // read-only, formatted for the reading user's unit_system
+  target_weight: number | null; // formatted for the reading user's unit_system; writable via UpdateTemplateExerciseInput (same unit-aware conversion)
   rest_seconds: number | null;
 }
 
@@ -519,19 +519,14 @@ export interface UpdateTemplateInput {
 
 // Template exercise mutations
 export interface AddTemplateExerciseInput {
-  exercise_id: number;
-  target_sets?: number;
-  min_target_reps?: number;
-  max_target_reps?: number;
-  target_weight?: number;
-  rest_seconds?: number;
+  exercise_id: number; // only field accepted at add-time; exercise is added with default pivot values. Follow up with UpdateTemplateExerciseInput to set target_sets/target_weight/etc.
 }
 
 export interface UpdateTemplateExerciseInput {
   target_sets?: number;
   min_target_reps?: number;
   max_target_reps?: number;
-  target_weight?: number;
+  target_weight?: number; // in the user's unit_system (lbs if imperial, kg if metric); converted and stored as kg
   rest_seconds?: number;
 }
 
