@@ -18,6 +18,7 @@ interface EditSetsRepsModalProps {
   onSave: (sets: number, minReps: number, maxReps: number, weight: string) => void;
   isLoading?: boolean;
   exerciseName?: string;
+  weightUnit: 'kg' | 'lbs';
 }
 
 export function EditSetsRepsModal({
@@ -29,7 +30,8 @@ export function EditSetsRepsModal({
   initialWeight,
   onSave,
   isLoading = false,
-  exerciseName
+  exerciseName,
+  weightUnit
 }: EditSetsRepsModalProps) {
   const { backdrop, panel } = useModalTransition();
   const {
@@ -220,7 +222,7 @@ export function EditSetsRepsModal({
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                        Weight
+                        Weight ({weightUnit})
                       </label>
                       <div 
                         className="w-full px-4 py-3 border rounded-xl transition-all"

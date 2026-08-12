@@ -13,7 +13,9 @@ import {
   useRemoveSessionExercise,
   useCancelSession,
   useSession,
-  useUpdateSessionExercise
+  useUpdateSessionExercise,
+  useProfile,
+  weightUnitLabel
 } from '@fit-nation/shared';
 import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '@fit-nation/shared';
 import { formatRepRange } from '@fit-nation/shared';
@@ -32,6 +34,9 @@ export function WorkoutPreviewPage() {
     location.state?.generationParams
   );
   
+  const { data: profile } = useProfile();
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+
   const confirmDraft = useConfirmDraftSession();
   const regenerateDraft = useRegenerateDraftSession();
   const removeExercise = useRemoveSessionExercise();
@@ -110,7 +115,7 @@ export function WorkoutPreviewPage() {
     if (!selectedExercise || !sessionId) return;
 
     try {
-      const weightNum = parseFloat(weight.replace(' kg', '')) || 0;
+      const weightNum = parseFloat(weight) || 0;
 
       await updateExercise.mutateAsync({
         sessionId: Number(sessionId),
@@ -281,7 +286,7 @@ export function WorkoutPreviewPage() {
                         {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
                           <>
                             <span className="mx-1 opacity-40">×</span>
-                            <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} kg</span>
+                            <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} {weightUnit}</span>
                           </>
                         )}
                       </p>
@@ -399,6 +404,7 @@ export function WorkoutPreviewPage() {
           onSave={handleSaveSetsReps} 
           isLoading={updateExercise.isPending} 
           exerciseName={selectedExercise.session_exercise.exercise?.name}
+          weightUnit={weightUnit}
         />
       )}
     </div>
