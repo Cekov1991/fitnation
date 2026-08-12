@@ -34,6 +34,7 @@ export function OnboardingFlow() {
       gender: 'other',
       height: null,
       weight: null,
+      unit_system: 'metric',
       fitness_goal: 'general_fitness',
       training_experience: 'beginner',
       training_days_per_week: 3,
@@ -50,7 +51,8 @@ export function OnboardingFlow() {
         age: existingProfile.age ?? null,
         gender: existingProfile.gender ?? 'other',
         height: existingProfile.height ?? null,
-        weight: existingProfile.weight ? Math.round(existingProfile.weight) : null,
+        weight: existingProfile.weight ?? null,
+        unit_system: existingProfile.unit_system ?? 'metric',
         fitness_goal: existingProfile.fitness_goal ?? 'general_fitness',
         training_experience: existingProfile.training_experience ?? 'beginner',
         training_days_per_week: existingProfile.training_days_per_week ?? 3,
@@ -67,7 +69,7 @@ export function OnboardingFlow() {
 
     // Validate current step before proceeding
     if (step === 1) {
-      isStepValid = await trigger(['name', 'age', 'gender', 'height', 'weight']);
+      isStepValid = await trigger(['name', 'age', 'gender', 'unit_system', 'height', 'weight']);
     } else if (step === 2) {
       isStepValid = await trigger(['fitness_goal']);
     } else if (step === 3) {
@@ -113,6 +115,7 @@ export function OnboardingFlow() {
             onNext={nextStep}
             onBack={prevStep}
             isValid={isStepValid()}
+            unitSystem={formData.unit_system}
           />
         );
       case 2:

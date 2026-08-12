@@ -54,6 +54,9 @@ export function CompleteStep({ formData }: CompleteStepProps) {
         fitness_goal: formData.fitness_goal,
         age: formData.age ?? undefined,
         gender: formData.gender,
+        // unit_system must travel with height/weight: the API converts those
+        // values from the unit system named in this same request.
+        unit_system: formData.unit_system,
         height: formData.height ?? undefined,
         weight: formData.weight ?? undefined,
         training_experience: formData.training_experience,
