@@ -1,0 +1,22 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_APPLE_TEAM_ID.com.fitnation.app"],
+        "components": [
+          {
+            "/": "/verify-email/*",
+            "comment": "Email verification links open the app"
+          },
+          {
+            "/": "/reset-password*",
+            "comment": "Password reset links open the app"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REPLACE_WITH_APPLE_TEAM_ID.com.fitnation.app"]
+  }
+}

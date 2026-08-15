@@ -8,6 +8,7 @@ import { SupportPage } from './components/SupportPage';
 import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { EmailVerificationPage } from './components/EmailVerificationPage';
+import { VerifyEmailLinkPage } from './components/VerifyEmailLinkPage';
 import { OnboardingFlow } from './components/onboarding';
 import { AuthGuard } from './components/AuthGuard';
 import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
@@ -87,6 +88,10 @@ export function AppRoutes() {
           </Route>
           <Route exact path="/reset-password/:token">
             <ResetPasswordPage />
+          </Route>
+
+          <Route exact path="/verify-email/:id/:hash">
+            <VerifyEmailLinkPage />
           </Route>
 
           <Route exact path="/verify-email">

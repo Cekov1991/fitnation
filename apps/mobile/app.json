@@ -8,9 +8,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "backgroundColor": "#F2F2F2",
+    "scheme": "fitnation",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.fitnation.app",
+      "associatedDomains": [
+        "applinks:app.fitnation.mk"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UISupportedInterfaceOrientations": [
@@ -25,7 +29,18 @@
       },
       "package": "com.fitnation.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "autoVerify": true,
+          "action": "VIEW",
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [
+            { "scheme": "https", "host": "app.fitnation.mk", "pathPrefix": "/verify-email" },
+            { "scheme": "https", "host": "app.fitnation.mk", "pathPrefix": "/reset-password" }
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
