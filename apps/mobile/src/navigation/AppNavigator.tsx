@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
 import { TabNavigator } from './TabNavigator'
 import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
+import { VerifyEmailLinkScreen } from '../screens/placeholders/VerifyEmailLinkScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
 import { WorkoutSessionScreen } from '../screens/placeholders/WorkoutSessionScreen'
 import { WorkoutSummaryScreen } from '../screens/placeholders/WorkoutSummaryScreen'
@@ -44,6 +45,11 @@ export function AppNavigator() {
       <Stack.Screen
         name="EmailVerification"
         component={EmailVerificationScreen}
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="VerifyEmailLink"
+        component={VerifyEmailLinkScreen}
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
