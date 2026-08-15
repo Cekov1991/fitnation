@@ -24,6 +24,7 @@ export type TabParamList = {
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList> | undefined
   EmailVerification: undefined
+  VerifyEmailLink: { id: string; hash: string; expires?: string; signature?: string }
   Onboarding: undefined
   WorkoutSession: { sessionId: string }
   WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }
