@@ -11,6 +11,7 @@ import { scheduleOnRN } from 'react-native-worklets'
 import * as SplashScreen from 'expo-splash-screen'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import { linking } from '../config/deepLinking'
 import { AuthNavigator } from './AuthNavigator'
 import { AppNavigator } from './AppNavigator'
 
@@ -62,7 +63,7 @@ export function RootNavigator() {
       {/* Mounted only once auth resolves — rendering it earlier would flash the
           auth stack at users who turn out to be logged in. */}
       {!isLoading && (
-        <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <NavigationContainer linking={linking} theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
           {user ? <AppNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       )}
