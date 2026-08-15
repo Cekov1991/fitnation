@@ -119,10 +119,9 @@ Re-do together with the Play Data safety form when punch list 06 lands.
 
 ### 6. Screenshots (later — blocked on punch list 04)
 
-- Required sets: **6.9" iPhone** (1290 × 2796 or 1320 × 2868) and — because
-  `apps/mobile/app.json` sets `supportsTablet: true` — **13" iPad**
-  (2064 × 2752 or 2048 × 2732). Up to 10 per size; smaller devices scale down
-  from these automatically.
+- Required set: **6.9" iPhone** (1290 × 2796 or 1320 × 2868). iPad screenshots
+  are not required — `apps/mobile/app.json` sets `supportsTablet: false`. Up to
+  10 per size; smaller devices scale down from the 6.9" set automatically.
 
 ## Checklist
 
