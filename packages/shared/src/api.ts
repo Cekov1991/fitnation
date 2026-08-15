@@ -117,6 +117,20 @@ export const authApi = {
       method: 'POST',
     });
   },
+  // Consumes the signed verification link (id/hash from the path, expires/
+  // signature from the query) that the verification email points at the web
+  // app host. The query string must be forwarded exactly as received — the
+  // backend validates the signature against it.
+  verifyEmailLink: async (params: {
+    id: string;
+    hash: string;
+    expires: string;
+    signature: string;
+  }): Promise<MessageResponse> => {
+    const { id, hash, expires, signature } = params;
+    const query = `expires=${encodeURIComponent(expires)}&signature=${encodeURIComponent(signature)}`;
+    return fetchWithAuth(`/email/verify/${id}/${hash}?${query}`);
+  },
   login: async (email: string, password: string): Promise<AuthResponse> => {
     return fetchWithAuth('/login', {
       method: 'POST',
