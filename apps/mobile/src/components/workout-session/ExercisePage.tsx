@@ -1,5 +1,6 @@
 import { memo, useState, useCallback, useMemo, useEffect } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
 import { Plus } from 'lucide-react-native'
 import {
@@ -20,7 +21,7 @@ import { ExerciseOptionsMenu } from './ExerciseOptionsMenu'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
-const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT']
+const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT', 'TRX']
 
 // Tracks which session_exercise ids have had a background default-patch attempted
 // this app session, so PagerView remounts don't re-fire it.
@@ -112,9 +113,9 @@ function ExercisePageComponent({
 
   const firstPendingSetNumber = slots.find(s => s.kind === 'pending')?.setNumber ?? null
 
-  const prevSet1 = previous_sets.find(s => s.set_number === 1)
-  const defaultWeight = session_exercise.target_weight ?? prevSet1?.weight ?? 0
-  const defaultReps = prevSet1?.reps ?? (minReps > 0 ? minReps : 0)
+  const prevActiveSet = previous_sets.find(s => s.set_number === (firstPendingSetNumber ?? 1))
+  const defaultWeight = session_exercise.target_weight ?? prevActiveSet?.weight ?? 0
+  const defaultReps = prevActiveSet?.reps ?? (minReps > 0 ? minReps : 0)
 
   const anyLoading =
     logSet.isPending ||
@@ -212,9 +213,9 @@ function ExercisePageComponent({
   const activeSlot =
     setMenuSetNumber != null ? slots.find(s => s.setNumber === setMenuSetNumber) : null
   const canEditSet = activeSlot?.kind === 'completed'
-  const isLastSet =
-    setMenuSetNumber != null && setMenuSetNumber === slots[slots.length - 1]?.setNumber
-  const canRemoveSet = isLastSet && targetSets > 1
+  // Any set can be removed as long as at least one set remains. The server
+  // re-sequences the remaining sets' set_number after a delete.
+  const canRemoveSet = setMenuSetNumber != null && targetSets > 1
 
   const handleEditFromMenu = () => {
     if (activeSlot?.kind === 'completed') {
@@ -363,10 +364,13 @@ function ExercisePageComponent({
                 goalMinReps={minReps}
                 goalMaxReps={maxReps}
                 goalWeight={session_exercise.target_weight}
-                totalRepsPrevious={session_exercise.total_reps_previous}
+                totalRepsPrevious={previous_sets.find(s => s.set_number === slot.setNumber)?.reps ?? null}
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!showRestTimer && !!session_exercise.rest_seconds}
                 isPending={logSet.isPending}
+                onOpenMenu={
+                  targetSets > 1 ? () => handleOpenSetMenu(slot.setNumber) : undefined
+                }
               />
             )
           }
@@ -527,11 +531,11 @@ function ExercisePageComponent({
     </ScrollView>
   )
 
-  return Platform.OS === 'ios' ? (
+  return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       {content}
     </KeyboardAvoidingView>
-  ) : content
+  )
 }
 
 export const ExercisePage = memo(ExercisePageComponent)

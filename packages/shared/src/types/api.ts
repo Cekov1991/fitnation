@@ -31,6 +31,7 @@ export interface UserResource {
   name: string;
   email: string;
   profile_photo: string;
+  has_password: boolean;
   profile: UserProfileResource | null;
   partner: UserPartner | null;
   onboarding_completed_at: string | null;
@@ -637,18 +638,30 @@ export interface AngleResource {
 
 export interface GenerateWorkoutInput {
   target_regions?: string[];
+  equipment_types?: string[];
   movement_patterns?: string[];
   angles?: string[];
+  training_styles?: string[];
   duration_minutes?: number;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
 export interface RegenerateWorkoutInput {
   target_regions?: string[];
+  equipment_types?: string[];
   movement_patterns?: string[];
   angles?: string[];
+  training_styles?: string[];
   duration_minutes?: number;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export interface RegeneratePlanInput {
+  plan_name?: string;
+  equipment_types?: string[];
+  movement_patterns?: string[];
+  angles?: string[];
+  training_styles?: string[];
 }
 
 export interface GeneratedSessionResource extends WorkoutSessionResource {

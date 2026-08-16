@@ -1,7 +1,7 @@
 // Fit Nation API Service Layer
 
 import { getConfig } from './config'
-import { getAuthStorage, AUTH_TOKEN_KEY } from './auth'
+import { getAuthStorage, AUTH_TOKEN_KEY, notifyUnauthorized } from './auth'
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -19,6 +19,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  RegeneratePlanInput,
   AuthResponse,
   MessageResponse,
   UserResource,
@@ -78,6 +79,13 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     const err: any = new Error(data.message || `HTTP error! status: ${response.status}`);
     err.status = response.status;
     err.errors = data.errors;
+    // Token was present but the server rejected it (user deleted, token revoked,
+    // session expired). Clear local credentials and notify the app so it can
+    // bounce the user back to the login screen.
+    if (response.status === 401 && token) {
+      try { await storage.removeItem(AUTH_TOKEN_KEY); } catch {}
+      await notifyUnauthorized();
+    }
     throw err;
   }
   if (response.status === 204 || response.headers.get('content-length') === '0') {
@@ -95,10 +103,8 @@ export const authApi = {
     return fetchWithAuth(`/invitations/${token}`);
   },
   register: async (data: {
-    name: string;
     email: string;
     password: string;
-    password_confirmation: string;
     partner_id: number;
   }): Promise<AuthResponse> => {
     return fetchWithAuth('/register', {
@@ -120,12 +126,23 @@ export const authApi = {
       })
     });
   },
+  socialLogin: async (data: {
+    provider: 'google' | 'apple';
+    token: string;
+    name?: string;
+    partner_id?: number;
+  }): Promise<AuthResponse> => {
+    return fetchPublic('/auth/social', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
   logout: async (): Promise<MessageResponse> => {
     return fetchWithAuth('/logout', {
       method: 'POST'
     });
   },
-  deleteAccount: async (password: string): Promise<void> => {
+  deleteAccount: async (password?: string): Promise<void> => {
     await fetchWithAuth('/user', {
       method: 'DELETE',
       body: JSON.stringify({ password }),
@@ -370,10 +387,10 @@ export const plansApi = {
       method: 'DELETE'
     });
   },
-  regeneratePlan: async () => {
+  regeneratePlan: async (data?: RegeneratePlanInput) => {
     return fetchWithAuth('/plans/regenerate', {
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify(data ?? {})
     });
   }
 };

@@ -4,6 +4,7 @@ export interface Set {
   reps: number;
   weight: number;
   completed: boolean;
+  previousReps?: number | null;
 }
 
 export interface Exercise {

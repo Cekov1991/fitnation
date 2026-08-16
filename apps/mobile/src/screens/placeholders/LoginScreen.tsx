@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, TextInput, Linking } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Linking } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,10 +11,11 @@ import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
+import { SocialAuthButtons } from '../../components/ui/SocialAuthButtons'
 import type { AuthScreenProps } from '../../navigation/types'
 
 export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
-  const { login } = useAuth()
+  const { login, loginWithSocial } = useAuth()
   const { colors } = useTheme()
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -41,7 +43,6 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
       <KeyboardAvoidingView
         className="flex-1"
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <ScrollView
           ref={scrollRef}
@@ -153,16 +154,25 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             />
-          </View>
 
-          <View className="flex-row justify-center mt-6">
-            <Text style={{ color: colors.textSecondary }}>Don't have an account? </Text>
-            <Text
-              style={{ color: colors.primary, fontWeight: '600' }}
-              onPress={() => navigation.navigate('Register', {})}
-            >
-              Sign up
-            </Text>
+            <View className="flex-row justify-center mt-6">
+              <Text style={{ color: colors.textSecondary }}>Don't have an account? </Text>
+              <Text
+                style={{ color: colors.primary, fontWeight: '600' }}
+                onPress={() => navigation.navigate('Register', {})}
+              >
+                Sign up
+              </Text>
+            </View>
+
+            {/* Social login */}
+            <SocialAuthButtons
+              onSuccess={async (provider, token, name) => {
+                setError(null)
+                await loginWithSocial(provider, token, name)
+              }}
+              onError={(_, message) => setError(message ?? 'Social sign in failed.')}
+            />
           </View>
 
           <Text className="text-xs text-center mt-8" style={{ color: colors.textMuted }}>

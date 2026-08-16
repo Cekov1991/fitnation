@@ -2,12 +2,25 @@ import './global.css'
 import { useEffect } from 'react'
 import { Alert, AppState } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { KeyboardProvider } from 'react-native-keyboard-controller'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { MutationCache, QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query'
 import * as Updates from 'expo-updates'
 import Purchases from 'react-native-purchases'
+import * as SplashScreen from 'expo-splash-screen'
 import { initApi } from '@fit-nation/shared'
 import { configureRevenueCat } from './src/lib/revenuecat'
+
+// Hold the native splash until RootNavigator's overlay is laid out, so the swap
+// happens between two identical frames. `fade: false` keeps the teardown instant
+// — a native cross-dissolve would be visible against an identical view.
+// RootNavigator calls hideAsync(); this timer is the safety net, so a failure
+// there can never leave the splash up forever.
+SplashScreen.preventAutoHideAsync().catch(() => {})
+SplashScreen.setOptions({ fade: false })
+setTimeout(() => {
+  SplashScreen.hideAsync().catch(() => {})
+}, 4000)
 
 // Wire React Query's focusManager to AppState so all queries refetch on foreground
 AppState.addEventListener('change', (state) => {
@@ -74,17 +87,19 @@ export default function App() {
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider>
-              <AuthProvider>
-                <OfflineBanner />
-                <RootNavigator />
-                <ToastHost />
-              </AuthProvider>
-            </ThemeProvider>
-          </QueryClientProvider>
-        </SafeAreaProvider>
+        <KeyboardProvider>
+          <SafeAreaProvider>
+            <QueryClientProvider client={queryClient}>
+              <ThemeProvider>
+                <AuthProvider>
+                  <OfflineBanner />
+                  <RootNavigator />
+                  <ToastHost />
+                </AuthProvider>
+              </ThemeProvider>
+            </QueryClientProvider>
+          </SafeAreaProvider>
+        </KeyboardProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>
   )

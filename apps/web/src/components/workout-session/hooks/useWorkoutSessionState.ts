@@ -69,7 +69,7 @@ interface UseWorkoutSessionStateReturn {
   selectedSet: Set | null;
   selectedSetId: string | null;
   setSelectedSetId: (id: string | null) => void;
-  isSelectedSetLast: boolean;
+  canRemoveSet: boolean;
   showExercisePicker: boolean;
   setShowExercisePicker: (v: boolean) => void;
   exercisePickerMode: 'add' | 'swap';
@@ -172,9 +172,7 @@ export function useWorkoutSessionState({
   const selectedSet = selectedSetId && currentExercise
     ? (currentExercise.sets.find(s => s.id === selectedSetId) ?? null)
     : null;
-  const isSelectedSetLast = selectedSet && currentExercise
-    ? currentExercise.sets.findIndex(s => s.id === selectedSet.id) === currentExercise.sets.length - 1
-    : false;
+  const canRemoveSet = selectedSet != null && (currentExercise?.sets.length ?? 0) > 1;
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
 
   // Update exercise index when exercises load and we have initialExerciseName from navigation state
@@ -567,7 +565,7 @@ export function useWorkoutSessionState({
     selectedSet,
     selectedSetId,
     setSelectedSetId,
-    isSelectedSetLast,
+    canRemoveSet,
     showExercisePicker,
     setShowExercisePicker,
     exercisePickerMode,

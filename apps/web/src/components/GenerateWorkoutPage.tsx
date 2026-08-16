@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Sparkles } from 'lucide-react';
-import { 
+import {
+  DEFAULT_TRAINING_STYLES,
+  TRAINING_STYLE_OPTIONS,
   useGenerateDraftSession,
-  useProfile 
+  useProfile,
+  useEquipmentTypes,
 } from '@fit-nation/shared';
+import type { EquipmentTypeResource, GenerateWorkoutInput } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 
 // Preset target region mappings
@@ -33,6 +37,10 @@ export function GenerateWorkoutPage() {
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([...DEFAULT_TRAINING_STYLES]);
+
+  const { data: equipmentTypes = [] } = useEquipmentTypes();
 
   // Sync duration from profile when it loads - map to closest option
   useEffect(() => {
@@ -48,6 +56,18 @@ export function GenerateWorkoutPage() {
     }
   }, [profile?.profile?.workout_duration_minutes]);
 
+  const toggleEquipment = (code: string) => {
+    setSelectedEquipment(prev =>
+      prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+    );
+  };
+
+  const toggleStyle = (code: string) => {
+    setSelectedStyles(prev =>
+      prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+    );
+  };
+
   const handlePresetClick = (presetKey: string) => {
     if (selectedPreset === presetKey) {
       // Deselect
@@ -61,10 +81,12 @@ export function GenerateWorkoutPage() {
   const handleGenerate = async () => {
     try {
       const preset = selectedPreset ? PRESETS[selectedPreset as keyof typeof PRESETS] : null;
-      const generationParams = {
+      const generationParams: GenerateWorkoutInput = {
         target_regions: preset && preset.targetRegions.length > 0 ? preset.targetRegions : undefined,
         duration_minutes: selectedDuration || undefined,
         difficulty: profile?.profile?.training_experience || undefined,
+        equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
+        training_styles: selectedStyles.length > 0 ? selectedStyles : [...DEFAULT_TRAINING_STYLES],
       };
       const response = await generateDraft.mutateAsync(generationParams);
       const sessionId = response.data.id;
@@ -163,6 +185,78 @@ export function GenerateWorkoutPage() {
                     {option.label}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Equipment */}
+            {equipmentTypes.length > 0 && (
+              <div>
+                <h2 className="text-sm font-bold mb-3 uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
+                  Equipment
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {equipmentTypes.map((eq: EquipmentTypeResource) => {
+                    const isSelected = selectedEquipment.includes(eq.code);
+                    return (
+                      <button
+                        key={eq.code}
+                        onClick={() => toggleEquipment(eq.code)}
+                        className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
+                          isSelected ? 'shadow-lg' : 'border'
+                        }`}
+                        style={isSelected ? {
+                          background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                          boxShadow: '0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent)',
+                        } : {
+                          backgroundColor: 'var(--color-bg-surface)',
+                          borderColor: 'var(--color-border-subtle)',
+                        }}
+                      >
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: isSelected ? '#ffffff' : 'var(--color-text-primary)' }}
+                        >
+                          {eq.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Training Style */}
+            <div>
+              <h2 className="text-sm font-bold mb-3 uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
+                Training Style
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {TRAINING_STYLE_OPTIONS.map((style) => {
+                  const isSelected = selectedStyles.includes(style.code);
+                  return (
+                    <button
+                      key={style.code}
+                      onClick={() => toggleStyle(style.code)}
+                      className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
+                        isSelected ? 'shadow-lg' : 'border'
+                      }`}
+                      style={isSelected ? {
+                        background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                        boxShadow: '0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent)',
+                      } : {
+                        backgroundColor: 'var(--color-bg-surface)',
+                        borderColor: 'var(--color-border-subtle)',
+                      }}
+                    >
+                      <span
+                        className="text-xs font-medium"
+                        style={{ color: isSelected ? '#ffffff' : 'var(--color-text-primary)' }}
+                      >
+                        {style.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

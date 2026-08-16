@@ -1,18 +1,17 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi, getAuthStorage, AUTH_TOKEN_KEY } from '@fit-nation/shared';
+import { authApi, getAuthStorage, setOnUnauthorized, AUTH_TOKEN_KEY } from '@fit-nation/shared';
 import type { UserResource } from '@fit-nation/shared';
 
 interface AuthContextType {
   user: UserResource | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithSocial: (provider: 'google' | 'apple', token: string, name?: string, partnerId?: number) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: {
-    name: string;
     email: string;
     password: string;
-    password_confirmation: string;
     partner_id: number;
   }) => Promise<void>;
   resendVerification: () => Promise<void>;
@@ -27,6 +26,19 @@ export function AuthProvider({
   const queryClient = useQueryClient();
   const [user, setUser] = useState<UserResource | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Server rejected the token (deleted user, revoked session, expired token).
+  // Clear cached state and drop back to the login screen.
+  useEffect(() => {
+    const storage = getAuthStorage();
+    setOnUnauthorized(async () => {
+      await storage.removeItem('partner-slug');
+      queryClient.clear();
+      setUser(null);
+    });
+    return () => setOnUnauthorized(null);
+  }, [queryClient]);
+
   useEffect(() => {
     // Check if user is already logged in
     const initAuthCheck = async () => {
@@ -51,6 +63,19 @@ export function AuthProvider({
     };
     initAuthCheck();
   }, []);
+  const loginWithSocial = async (provider: 'google' | 'apple', token: string, name?: string, partnerId?: number) => {
+    queryClient.clear();
+    const storage = getAuthStorage();
+    const response = await authApi.socialLogin({ provider, token, name, partner_id: partnerId });
+    await storage.setItem(AUTH_TOKEN_KEY, response.token);
+    setUser(response.user);
+    if (response.user.partner?.slug) {
+      await storage.setItem('partner-slug', response.user.partner.slug);
+    } else {
+      await storage.removeItem('partner-slug');
+    }
+  };
+
   const login = async (email: string, password: string) => {
     // Clear cache before login to ensure fresh data is fetched for the new user
     queryClient.clear();
@@ -80,10 +105,8 @@ export function AuthProvider({
     setUser(null);
   };
   const register = async (data: {
-    name: string;
     email: string;
     password: string;
-    password_confirmation: string;
     partner_id: number;
   }) => {
     const storage = getAuthStorage()
@@ -151,6 +174,7 @@ export function AuthProvider({
     user,
     loading,
     login,
+    loginWithSocial,
     logout,
     register,
     resendVerification,

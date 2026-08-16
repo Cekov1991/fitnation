@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 export const onboardingSchema = z.object({
-  // Personal Info (age, gender, height, weight)
+  // Personal Info (name, age, gender, height, weight)
+  name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
   age: z.number()
     .min(13, 'You must be at least 13 years old')
     .max(120, 'Please enter a valid age')

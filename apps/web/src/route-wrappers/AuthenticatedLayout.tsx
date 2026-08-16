@@ -1,7 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { BottomNav } from '../components/BottomNav';
 import { InstallAppBanner } from '../components/InstallAppBanner';
-import { IOSInstallOverlay } from '../components/IOSInstallOverlay';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { useScrollRestoration } from '../hooks/useScrollRestoration';
 
@@ -30,7 +29,6 @@ export function AuthenticatedLayout({
       className="h-screen w-full overflow-y-auto"
     >
       <InstallAppBanner />
-      <IOSInstallOverlay />
 
       <div style={{ paddingTop: showInstallBar ? INSTALL_BANNER_OFFSET : 0 }}>
         {children}

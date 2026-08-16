@@ -6,9 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Application from 'expo-application'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -119,7 +118,7 @@ function FieldInput({
 
 export function ProfileScreen() {
   const { colors } = useTheme()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
@@ -225,7 +224,7 @@ export function ProfileScreen() {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"
@@ -684,6 +683,7 @@ export function ProfileScreen() {
 
       <DeleteAccountDialog
         visible={deleteVisible}
+        requiresPassword={user?.has_password ?? true}
         onClose={() => setDeleteVisible(false)}
         onConfirm={async (password) => {
           await deleteAccount.mutateAsync(password)

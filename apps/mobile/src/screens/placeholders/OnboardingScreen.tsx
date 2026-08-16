@@ -17,6 +17,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/ui/Input'
 import { onboardingReducer } from '../Onboarding/onboardingReducer'
+import { PlanGeneratingContent } from '../../components/ui/PlanGeneratingOverlay'
 import type { AppScreenProps } from '../../navigation/types'
 
 const localLogo = require('../../../assets/logo.png')
@@ -70,6 +71,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   // Pre-fill from existing profile so re-entrant users see their saved data
   const [state, dispatch] = useReducer(onboardingReducer, {
     currentStep: 0,
+    name: user?.name ?? undefined,
     fitness_goal: user?.profile?.fitness_goal ?? undefined,
     age: user?.profile?.age ?? undefined,
     gender: user?.profile?.gender ?? undefined,
@@ -125,7 +127,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
   function canProceed() {
     switch (step) {
-      case 1: return !!(state.gender && state.age && state.height && state.weight)
+      case 1: return !!(state.name?.trim() && state.gender && state.age && state.height && state.weight)
       case 2: return !!state.fitness_goal
       case 3: return !!(state.training_experience && state.training_days_per_week && state.workout_duration_minutes)
       default: return true
@@ -221,20 +223,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
         )}
 
         {(phase === 'generating-plan' || phase === 'plan-success') && (
-          <View className="items-center gap-4">
-            <Image
-              source={partnerLogoUrl ?? localLogo}
-              style={{ width: 100, height: 100, borderRadius: 16 }}
-              contentFit="contain"
-            />
-            <Text className="text-xl font-bold text-center" style={{ color: colors.textPrimary }}>
-              Building your plan...
-            </Text>
-            <Text className="text-center" style={{ color: colors.textSecondary }}>
-              This takes a few seconds
-            </Text>
-            <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} />
-          </View>
+          <PlanGeneratingContent partnerLogoUrl={partnerLogoUrl} />
         )}
 
         {phase === 'error' && (
@@ -341,26 +330,16 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                 Tell us a bit about yourself so we can tailor your experience.
               </Text>
 
-              {/* Read-only name */}
-              <View
-                className="mb-4 p-4 rounded-xl"
-                style={{ backgroundColor: colors.bgSurface, opacity: 0.75 }}
-              >
-                <Text className="text-xs mb-0.5" style={{ color: colors.textMuted }}>Full Name</Text>
-                <Text className="text-base font-medium" style={{ color: colors.textPrimary }}>
-                  {user?.name || '—'}
-                </Text>
-              </View>
-
-              {/* Read-only email */}
-              <View
-                className="mb-5 p-4 rounded-xl"
-                style={{ backgroundColor: colors.bgSurface, opacity: 0.75 }}
-              >
-                <Text className="text-xs mb-0.5" style={{ color: colors.textMuted }}>Email Address</Text>
-                <Text className="text-base font-medium" style={{ color: colors.textPrimary }}>
-                  {user?.email || '—'}
-                </Text>
+              {/* Full Name */}
+              <View className="mb-4">
+                <Input
+                  label="Full Name"
+                  value={state.name ?? ''}
+                  onChangeText={v => set({ name: v })}
+                  autoComplete="name"
+                  autoCorrect={false}
+                  placeholder="John Doe"
+                />
               </View>
 
               {/* Age + Gender row */}

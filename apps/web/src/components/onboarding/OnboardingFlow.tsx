@@ -29,6 +29,7 @@ export function OnboardingFlow() {
     resolver: zodResolver(onboardingSchema),
     mode: 'onChange',
     defaultValues: {
+      name: '',
       age: null,
       gender: 'other',
       height: null,
@@ -45,6 +46,7 @@ export function OnboardingFlow() {
     if (profile?.profile) {
       const existingProfile = profile.profile;
       reset({
+        name: profile.name ?? '',
         age: existingProfile.age ?? null,
         gender: existingProfile.gender ?? 'other',
         height: existingProfile.height ?? null,
@@ -65,7 +67,7 @@ export function OnboardingFlow() {
 
     // Validate current step before proceeding
     if (step === 1) {
-      isStepValid = await trigger(['age', 'gender', 'height', 'weight']);
+      isStepValid = await trigger(['name', 'age', 'gender', 'height', 'weight']);
     } else if (step === 2) {
       isStepValid = await trigger(['fitness_goal']);
     } else if (step === 3) {
@@ -87,7 +89,7 @@ export function OnboardingFlow() {
   const isStepValid = () => {
     if (step === 0) return true;
     if (step === 1) {
-      return formData.age !== null && formData.gender && formData.height !== null && formData.weight !== null;
+      return !!formData.name?.trim() && formData.age !== null && formData.gender && formData.height !== null && formData.weight !== null;
     }
     if (step === 2) {
       return !!formData.fitness_goal;

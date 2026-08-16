@@ -25,7 +25,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
   const deleteAccount = useDeleteAccount();
-  const { isIOSSafari, setShowIOSOverlay } = useInstallPrompt();
+  const requiresPassword = profile?.has_password ?? true;
+  const { isIOS } = useInstallPrompt();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deletePasswordVisible, setDeletePasswordVisible] = useState(false);
@@ -105,23 +106,25 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     setDeletePasswordVisible(false);
     setDeleteError(null);
     setDeleteModalOpen(true);
-    setTimeout(() => deletePasswordRef.current?.focus(), 50);
+    if (requiresPassword) {
+      setTimeout(() => deletePasswordRef.current?.focus(), 50);
+    }
   };
 
   const handleDeleteAccount = async () => {
-    if (!deletePassword) {
+    if (requiresPassword && !deletePassword) {
       setDeleteError('Please enter your password.');
       return;
     }
     setDeleteError(null);
     try {
-      await deleteAccount.mutateAsync(deletePassword);
+      await deleteAccount.mutateAsync(requiresPassword ? deletePassword : undefined);
       onLogout();
     } catch (err: any) {
       const msg =
         err?.errors?.password?.[0] ||
         err?.message ||
-        'Incorrect password. Please try again.';
+        'Something went wrong. Please try again.';
       setDeleteError(msg);
     }
   };
@@ -548,10 +551,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               </LoadingButton>
             </form>
 
-            {isIOSSafari && (
+            {isIOS && (
               <button
                 type="button"
-                onClick={() => setShowIOSOverlay(true)}
+                onClick={() => window.open('https://apps.apple.com/app/fit-nation-the-movement/id6766201705', '_blank')}
                 className="w-full py-4 mb-4 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2"
                 style={{
                   borderColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
@@ -612,39 +615,47 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
               </p>
             </div>
 
-            {/* Password input */}
-            <div className="mb-4">
-              <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
-                Confirm your password
-              </label>
-              <div className="relative">
-                <input
-                  ref={deletePasswordRef}
-                  type={deletePasswordVisible ? 'text' : 'password'}
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleDeleteAccount()}
-                  placeholder="Enter your password"
-                  className="w-full pl-4 pr-12 py-4 border rounded-xl focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-bg-elevated)',
-                    borderColor: deleteError ? '#f87171' : 'var(--color-border)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setDeletePasswordVisible(v => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  {deletePasswordVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+            {/* Password input (only for users with a password set) */}
+            {requiresPassword && (
+              <div className="mb-4">
+                <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                  Confirm your password
+                </label>
+                <div className="relative">
+                  <input
+                    ref={deletePasswordRef}
+                    type={deletePasswordVisible ? 'text' : 'password'}
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleDeleteAccount()}
+                    placeholder="Enter your password"
+                    className="w-full pl-4 pr-12 py-4 border rounded-xl focus:outline-none transition-all"
+                    style={{
+                      backgroundColor: 'var(--color-bg-elevated)',
+                      borderColor: deleteError ? '#f87171' : 'var(--color-border)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDeletePasswordVisible(v => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
+                    {deletePasswordVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {deleteError && (
+                  <p className="text-xs text-red-400 mt-1">{deleteError}</p>
+                )}
               </div>
-              {deleteError && (
-                <p className="text-xs text-red-400 mt-1">{deleteError}</p>
-              )}
-            </div>
+            )}
+            {/* Error for social-only users (no password field shown) */}
+            {!requiresPassword && deleteError && (
+              <div className="mb-4">
+                <p className="text-xs text-red-400">{deleteError}</p>
+              </div>
+            )}
 
             {/* Actions */}
             <button

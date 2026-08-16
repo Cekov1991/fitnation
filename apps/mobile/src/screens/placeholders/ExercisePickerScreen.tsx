@@ -179,9 +179,17 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
           renderItem={({ item }) => (
             <ExerciseCard
               exercise={item}
-              onPress={() => {
-                if (!templateId) navigation.goBack()
-              }}
+              onPress={() =>
+                navigation.navigate('ExerciseDetail', {
+                  exerciseName: item.name,
+                  action:
+                    templateId == null
+                      ? undefined
+                      : isSwap && swapPivotId != null
+                        ? { kind: 'swap-in-template', templateId, pivotId: swapPivotId }
+                        : { kind: 'add-to-template', templateId },
+                })
+              }
               rightAction={
                 templateId ? (
                   isSwap ? (
@@ -189,12 +197,12 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
                       onPress={() => handleSwap(item)}
                       disabled={actionId === item.id}
                       className="ml-2 p-2 rounded-full"
-                      style={{ backgroundColor: `${colors.secondary}20`, opacity: actionId === item.id ? 0.5 : 1 }}
+                      style={{ backgroundColor: `${colors.primary}20`, opacity: actionId === item.id ? 0.5 : 1 }}
                       activeOpacity={0.7}
                     >
                       {actionId === item.id
-                        ? <ActivityIndicator size="small" color={colors.secondary} />
-                        : <ArrowUpDown size={18} color={colors.secondary} />
+                        ? <ActivityIndicator size="small" color={colors.primary} />
+                        : <ArrowUpDown size={18} color={colors.primary} />
                       }
                     </TouchableOpacity>
                   ) : (
