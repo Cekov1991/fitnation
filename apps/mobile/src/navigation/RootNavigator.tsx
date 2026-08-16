@@ -1,4 +1,4 @@
-import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native'
+import { NavigationContainer, DarkTheme, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native'
 import { useCallback, useEffect, useState } from 'react'
 import { StyleSheet, View, Image, useColorScheme } from 'react-native'
 import Animated, {
@@ -13,6 +13,8 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { AuthNavigator } from './AuthNavigator'
 import { AppNavigator } from './AppNavigator'
+import { EntitlementWatcher } from './EntitlementWatcher'
+import type { AppStackParamList } from './types'
 
 // Keep in sync with the `imageWidth` of the expo-splash-screen plugin in app.json —
 // the native splash hands off to this overlay, so at rest they must render identically.
@@ -24,6 +26,7 @@ export function RootNavigator() {
   const { user, isLoading } = useAuth()
   const { colors } = useTheme()
   const scheme = useColorScheme()
+  const navRef = useNavigationContainerRef<AppStackParamList>()
 
   const [showOverlay, setShowOverlay] = useState(true)
   // 0 = at rest, pixel-identical to the native splash. 1 = fully exited.
@@ -62,8 +65,15 @@ export function RootNavigator() {
       {/* Mounted only once auth resolves — rendering it earlier would flash the
           auth stack at users who turn out to be logged in. */}
       {!isLoading && (
-        <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-          {user ? <AppNavigator /> : <AuthNavigator />}
+        <NavigationContainer ref={navRef} theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+          {user ? (
+            <>
+              <AppNavigator />
+              <EntitlementWatcher navRef={navRef} />
+            </>
+          ) : (
+            <AuthNavigator />
+          )}
         </NavigationContainer>
       )}
 

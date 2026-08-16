@@ -18,6 +18,14 @@ export type PlanType = 'routine' | 'program';
 // USER RESOURCES
 // ============================================
 
+export interface SubscriptionResource {
+  status: 'active' | 'cancelled' | 'expired' | 'billing_issue' | 'paused' | null;
+  expires_at: string | null;
+  is_trial: boolean;
+  is_sponsored_by_gym: boolean;
+  grace_period_ends_at: string | null;
+}
+
 export interface UserResource {
   id: number;
   name: string;
@@ -28,6 +36,8 @@ export interface UserResource {
   partner: UserPartner | null;
   onboarding_completed_at: string | null;
   email_verified_at: string | null;
+  entitlements: string[];
+  subscription: SubscriptionResource | null;
   created_at: string;
   updated_at: string;
 }

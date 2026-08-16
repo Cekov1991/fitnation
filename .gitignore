@@ -23,5 +23,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+play-service-account.json
 
 AppScreens-Fit-Nation.render
