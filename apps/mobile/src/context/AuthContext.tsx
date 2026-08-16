@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { AppState, type AppStateStatus } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import * as SecureStore from 'expo-secure-store'
-import { initAuth, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
+import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
+import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
 import { identifyRevenueCatUser, logOutRevenueCat } from '../lib/revenuecat'
@@ -20,15 +21,23 @@ interface AuthContextValue {
   user: UserResource | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithSocial: (provider: 'google' | 'apple', token: string, name?: string) => Promise<void>
   logout: () => Promise<void>
   setUser: (user: UserResource | null) => void
   refreshUser: () => Promise<void>
 }
 
+// Configure Google Sign-In once at module load
+GoogleSignin.configure({
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+})
+
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   isLoading: true,
   login: async () => {},
+  loginWithSocial: async () => {},
   logout: async () => {},
   setUser: () => {},
   refreshUser: async () => {},
@@ -52,6 +61,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       queryClient.removeQueries({ queryKey: ['user'] })
     }
   }, [queryClient])
+
+  // Server rejected the token (deleted user, revoked session, expired token).
+  // Clear cached state and drop back to the auth navigator.
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      setUser(null)
+      queryClient.clear()
+    })
+    return () => setOnUnauthorized(null)
+  }, [queryClient, setUser])
 
   function applyPartnerColors(currentUser: UserResource) {
     const identity = currentUser.partner?.visual_identity
@@ -117,10 +136,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await identifyRevenueCatUser(String(fullUser.id))
   }
 
+  async function loginWithSocial(provider: 'google' | 'apple', token: string, name?: string) {
+    const response = await authApi.socialLogin({ provider, token, name })
+    await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
+    const { user: fullUser } = await authApi.getCurrentUser()
+    applyPartnerColors(fullUser)
+    setUser(fullUser)
+    await identifyRevenueCatUser(String(fullUser.id))
+  }
+
   async function logout() {
-    await authApi.logout()
+    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
+    if (token) {
+      try {
+        await authApi.logout()
+      } catch {
+        // Continue with local logout even if the server call fails (token
+        // already revoked, account deleted, network down, etc).
+      }
+    }
     await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
-    await logOutRevenueCat()
+    // Reset RevenueCat to an anonymous user so the next account on this device
+    // doesn't inherit this user's purchase identity. Guarded like the calls
+    // below: local logout must always complete.
+    try { await logOutRevenueCat() } catch {}
+    // Sign out from Google so the account picker appears on next social login
+    try { await GoogleSignin.signOut() } catch {}
+    queryClient.clear()
     setUser(null)
   }
 
@@ -131,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginWithSocial, logout, setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

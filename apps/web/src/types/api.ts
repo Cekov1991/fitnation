@@ -608,18 +608,30 @@ export interface AngleResource {
 
 export interface GenerateWorkoutInput {
   target_regions?: string[];
+  equipment_types?: string[];
   movement_patterns?: string[];
   angles?: string[];
+  training_styles?: string[];
   duration_minutes?: number;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
 export interface RegenerateWorkoutInput {
   target_regions?: string[];
+  equipment_types?: string[];
   movement_patterns?: string[];
   angles?: string[];
+  training_styles?: string[];
   duration_minutes?: number;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export interface RegeneratePlanInput {
+  plan_name?: string;
+  equipment_types?: string[];
+  movement_patterns?: string[];
+  angles?: string[];
+  training_styles?: string[];
 }
 
 export interface GeneratedSessionResource extends WorkoutSessionResource {

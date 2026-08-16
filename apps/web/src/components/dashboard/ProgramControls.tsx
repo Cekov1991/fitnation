@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, RefreshCw } from 'lucide-react';
 import { useProfile, useRegeneratePlan, useUpdateProfile } from '@fit-nation/shared';
 import type { FitnessGoal, ProgramResource, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
-import { ConfirmDialog, PlanGeneratingOverlay } from '../ui';
+import { PlanGeneratingOverlay } from '../ui';
+import { RegeneratePlanModal } from './RegeneratePlanModal';
 
 const DURATION_OPTIONS = [
   { label: '20-30 min', value: 30 },
@@ -48,8 +49,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
   const { data: profileData } = useProfile();
   const updateProfile = useUpdateProfile();
   const regeneratePlan = useRegeneratePlan();
-  const pendingActionRef = useRef<null | (() => Promise<void>)>(null);
-  const [showWarning, setShowWarning] = useState(false);
+  const [isRegenerateModalOpen, setIsRegenerateModalOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   const profile = profileData?.profile ?? null;
@@ -83,41 +83,30 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
 
   const isBusy = isRegenerating || updateProfile.isPending || regeneratePlan.isPending;
 
-  const withWarningIfNeeded = async (action: () => Promise<void>) => {
-    if (!hasCompletedWorkouts) {
-      await action();
-      return;
-    }
-    pendingActionRef.current = action;
-    setShowWarning(true);
-  };
-
-  const executeRegenerate = async () => {
+  const executeRegenerate = async (params: {
+    equipment_types?: string[];
+    training_styles?: string[];
+  }) => {
     setIsRegenerating(true);
     const delayPromise = sleep(MIN_LOADING_DELAY_MS);
     try {
-      await regeneratePlan.mutateAsync();
+      await regeneratePlan.mutateAsync(params);
       // Refetch the new plan data before hiding the overlay so the UI is
       // already updated when the loading screen fades out.
       await queryClient.refetchQueries({ queryKey: ['programs'] });
       await delayPromise;
     } catch (error) {
       await delayPromise;
-      throw error;
+      console.error('Failed to regenerate plan:', error);
     } finally {
       setIsRegenerating(false);
+      setIsRegenerateModalOpen(false);
     }
   };
 
-  const handleRefreshClick = async () => {
+  const handleRefreshClick = () => {
     if (isBusy || !isProfileComplete) return;
-    try {
-      await withWarningIfNeeded(async () => {
-        await executeRegenerate();
-      });
-    } catch (error) {
-      console.error('Failed to regenerate plan:', error);
-    }
+    setIsRegenerateModalOpen(true);
   };
 
   const handleProfileChange = async (
@@ -147,18 +136,6 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           workout_duration_minutes: profile.workout_duration_minutes ?? '',
         });
       }
-    }
-  };
-
-  const handleWarningConfirm = async () => {
-    if (!pendingActionRef.current) return;
-    const action = pendingActionRef.current;
-    pendingActionRef.current = null;
-    setShowWarning(false);
-    try {
-      await action();
-    } catch (error) {
-      console.error('Regenerate flow failed:', error);
     }
   };
 
@@ -266,18 +243,12 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
 
       {isRegenerating && <PlanGeneratingOverlay partnerName={profileData?.partner?.name} fullscreen />}
 
-      <ConfirmDialog
-        isOpen={showWarning}
-        onClose={() => {
-          setShowWarning(false);
-          pendingActionRef.current = null;
-        }}
-        onConfirm={handleWarningConfirm}
-        title="Refresh personalized plan?"
-        message="Your current personalized plan has completed workouts. Refreshing will create a new plan and you will start from scratch."
-        confirmText="Refresh Plan"
-        variant="warning"
-        isLoading={isBusy}
+      <RegeneratePlanModal
+        isOpen={isRegenerateModalOpen}
+        onClose={() => setIsRegenerateModalOpen(false)}
+        onConfirm={executeRegenerate}
+        showWarning={hasCompletedWorkouts}
+        isLoading={isRegenerating}
       />
     </>
   );

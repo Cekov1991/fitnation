@@ -50,6 +50,7 @@ export function CompleteStep({ formData }: CompleteStepProps) {
 
     try {
       await updateProfile.mutateAsync({
+        name: formData.name,
         fitness_goal: formData.fitness_goal,
         age: formData.age ?? undefined,
         gender: formData.gender,

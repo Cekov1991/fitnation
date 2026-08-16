@@ -2,7 +2,7 @@ import type { SessionDetailResponse } from '@fit-nation/shared';
 import type { Exercise, ExerciseCompletionStatus } from './types';
 
 // Equipment types that don't require weight logging
-const BODYWEIGHT_EQUIPMENT_TYPES = ['BODYWEIGHT'] as const;
+const BODYWEIGHT_EQUIPMENT_TYPES = ['BODYWEIGHT', 'TRX'] as const;
 
 /**
  * Format weight for display - shows whole numbers without decimals,
@@ -46,7 +46,8 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse | undef
           id: `set-${exDetail.session_exercise.id}-${i}`,
           reps: previousSet?.reps ?? (progressionMode === 'total_reps' ? 0 : minTargetReps),
           weight: previousSet?.weight ?? targetWeight,
-          completed: false
+          completed: false,
+          previousReps: previousSet?.reps ?? null,
         });
       }
     }

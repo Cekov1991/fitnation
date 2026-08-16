@@ -2,16 +2,12 @@
   "expo": {
     "name": "Fit Nation",
     "slug": "fit-nation",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F0F0F"
-    },
+    "backgroundColor": "#F2F2F2",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.fitnation.app",
@@ -24,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/android-icon.png",
         "backgroundColor": "#0F0F0F"
       },
       "package": "com.fitnation.app",
@@ -41,10 +37,29 @@
       "policy": "appVersion"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F2F2F2",
+          "dark": {
+            "backgroundColor": "#0A0A0A"
+          }
+        }
+      ],
       "expo-secure-store",
       "expo-video",
       "expo-screen-orientation",
-      "expo-updates"
+      "expo-updates",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.327354045336-9krq6ni33jra4066c33agblqi61hk83p"
+        }
+      ]
     ],
     "extra": {
       "apiUrl": "$EXPO_PUBLIC_API_URL",

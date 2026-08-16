@@ -18,6 +18,9 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Play Store service account key (secret — never commit)
+play-service-account.json
+
 # Metro
 .metro-health-check*
 

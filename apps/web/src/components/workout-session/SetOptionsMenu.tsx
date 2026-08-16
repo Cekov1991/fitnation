@@ -11,7 +11,7 @@ interface SetOptionsMenuProps {
   onEditSet: () => void;
   onRemoveSet: () => void;
   isRemoveLoading?: boolean;
-  isLastSet?: boolean;
+  canRemoveSet?: boolean;
 }
 
 export function SetOptionsMenu({
@@ -21,7 +21,7 @@ export function SetOptionsMenu({
   onEditSet,
   onRemoveSet,
   isRemoveLoading = false,
-  isLastSet = false,
+  canRemoveSet = false,
 }: SetOptionsMenuProps) {
   const { backdrop, panel } = useModalTransition();
   if (!selectedSet) return null;
@@ -64,7 +64,7 @@ export function SetOptionsMenu({
                   />
                 )}
 
-                {isLastSet && (
+                {canRemoveSet && (
                   <MenuButton
                     icon={<Trash2 className="text-red-400 w-5 h-5" />}
                     iconBg="rgb(239 68 68 / 0.2)"

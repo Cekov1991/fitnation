@@ -6,7 +6,9 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
 import { loginSchema, LoginFormData } from '@fit-nation/shared';
-import { LoadingButton } from './ui';
+import { getPartnerSlugFromSubdomain } from '../utils/subdomain';
+import { partnersApi } from '@fit-nation/shared';
+import { LoadingButton, SocialAuthButtons } from './ui';
 
 interface LocationState {
   from?: { pathname: string };
@@ -17,13 +19,40 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
-  const { login } = useAuth();
+  const { login, loginWithSocial } = useAuth();
   const { logo, partnerName, hasBranding } = useBranding();
   const history = useHistory();
   const location = useLocation<LocationState>();
   const navigateToRegister = onNavigateToRegister ?? (() => history.push('/register'));
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
+
+  async function resolvePartnerId(): Promise<number> {
+    const slug = getPartnerSlugFromSubdomain();
+    if (!slug) return 1;
+    try {
+      const { data } = await partnersApi.getActivePartners();
+      return data.find((p: any) => p.slug === slug)?.id ?? 1;
+    } catch {
+      return 1;
+    }
+  }
+
+  async function handleSocialSuccess(provider: 'google' | 'apple', token: string, name?: string) {
+    try {
+      setSocialLoading(provider);
+      setError(null);
+      const partnerId = await resolvePartnerId();
+      await loginWithSocial(provider, token, name, partnerId);
+      const from = location.state?.from?.pathname || '/';
+      history.replace(from);
+    } catch (err: any) {
+      setError(err.message || `${provider === 'google' ? 'Google' : 'Apple'} sign in failed.`);
+    } finally {
+      setSocialLoading(null);
+    }
+  }
 
   const {
     register,
@@ -230,6 +259,14 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                   </button>
                 </p>
               </div>
+
+              {/* Social login */}
+              <SocialAuthButtons
+                loading={socialLoading}
+                onSuccess={(provider, token, name) => handleSocialSuccess(provider, token, name)}
+                onError={(_, message) => setError(message ?? 'Social sign in failed.')}
+                dividerLabel="or continue with"
+              />
             </div>
 
             {/* Footer */}

@@ -18,6 +18,7 @@ import type {
   UpdateProfileInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
+  RegeneratePlanInput,
   CompleteSessionResponse,
 } from '../types/api';
 
@@ -77,7 +78,7 @@ export function useDeleteProfilePhoto() {
 export function useDeleteAccount() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (password: string) => authApi.deleteAccount(password),
+    mutationFn: (password?: string) => authApi.deleteAccount(password),
     onSuccess: async () => {
       await getAuthStorage().removeItem(AUTH_TOKEN_KEY);
       queryClient.clear();
@@ -200,17 +201,11 @@ export function useDeletePlan() {
 export function useRegeneratePlan() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => plansApi.regeneratePlan(),
+    mutationFn: (data?: RegeneratePlanInput) => plansApi.regeneratePlan(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['programs']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['profile']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['user']
-      });
+      queryClient.invalidateQueries({ queryKey: ['programs'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     }
   });
 }
@@ -944,9 +939,20 @@ export function useDeleteSet() {
           );
 
           if (hasSetLog) {
-            const updatedLoggedSets = exDetail.logged_sets.filter(
-              (setLog: any) => setLog.id !== variables.setLogId
-            );
+            // set_number of the row being deleted, so we can re-sequence the rest
+            const deletedSetNumber = exDetail.logged_sets.find(
+              (setLog: any) => setLog.id === variables.setLogId
+            )?.set_number;
+
+            // Drop the deleted row and shift every later set's number down by one
+            // to match the server's re-sequencing (keeps numbering contiguous).
+            const updatedLoggedSets = exDetail.logged_sets
+              .filter((setLog: any) => setLog.id !== variables.setLogId)
+              .map((setLog: any) =>
+                deletedSetNumber != null && setLog.set_number > deletedSetNumber
+                  ? { ...setLog, set_number: setLog.set_number - 1 }
+                  : setLog
+              );
 
             // Also decrease target_sets so the set is fully removed
             return {
