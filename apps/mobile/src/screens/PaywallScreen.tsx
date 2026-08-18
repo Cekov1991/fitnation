@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Purchases, { type PurchasesPackage, INTRO_ELIGIBILITY_STATUS } from 'react-native-purchases'
 import { useQueryClient } from '@tanstack/react-query'
@@ -34,7 +34,9 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   }, [])
 
   useEffect(() => {
-    if (packages.length === 0) return
+    // iOS only — on Android this API always returns UNKNOWN; trial presence
+    // there is read from the product's default option instead (see below).
+    if (Platform.OS !== 'ios' || packages.length === 0) return
     const ids = packages.map(p => p.product.identifier)
     Purchases.checkTrialOrIntroductoryPriceEligibility(ids)
       .then(result => {
@@ -112,8 +114,14 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
       ? Math.round((1 - annualPkg.product.price / 12 / monthlyPkg.product.price) * 100)
       : 0
 
+  // iOS: introPrice + the eligibility API (reliable there). Android: the
+  // eligibility API is useless (UNKNOWN), but Play already tailors returned
+  // offers to the current user — a free phase on the default option means a
+  // trial is genuinely on offer.
   const selectedHasTrial = selectedPkg
-    ? !!selectedPkg.product.introPrice && trialEligibility[selectedPkg.product.identifier] === true
+    ? Platform.OS === 'android'
+      ? selectedPkg.product.defaultOption?.freePhase != null
+      : !!selectedPkg.product.introPrice && trialEligibility[selectedPkg.product.identifier] === true
     : false
 
   const headline = selectedHasTrial ? 'Start Your 7-Day Free Trial' : 'Unlock Your Full Potential'

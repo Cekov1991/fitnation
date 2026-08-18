@@ -37,5 +37,20 @@ export async function notifyUnauthorized() {
   }
 }
 
+let _onSubscriptionRequired: (() => void | Promise<void>) | null = null
+
+export function setOnSubscriptionRequired(handler: (() => void | Promise<void>) | null) {
+  _onSubscriptionRequired = handler
+}
+
+export async function notifySubscriptionRequired() {
+  if (!_onSubscriptionRequired) return
+  try {
+    await _onSubscriptionRequired()
+  } catch {
+    // swallow — handler must be best-effort
+  }
+}
+
 export const AUTH_TOKEN_KEY = 'authToken'
 export const PARTNER_SLUG_KEY = 'partnerSlug'

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { AppState, type AppStateStatus } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import * as SecureStore from 'expo-secure-store'
-import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
+import { initAuth, setOnUnauthorized, setOnSubscriptionRequired, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
@@ -71,6 +71,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
     return () => setOnUnauthorized(null)
   }, [queryClient, setUser])
+
+  // A gated endpoint returned 403 subscription_required — entitlements changed
+  // server-side while the cached user still granted access. Refresh both
+  // entitlement sources; EntitlementWatcher reroutes to the paywall once the
+  // fresh user lands. GET /api/user is pre-paywall, so this cannot loop.
+  useEffect(() => {
+    setOnSubscriptionRequired(() => {
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+      queryClient.invalidateQueries({ queryKey: ['rc-customer-info'] })
+    })
+    return () => setOnSubscriptionRequired(null)
+  }, [queryClient])
 
   function applyPartnerColors(currentUser: UserResource) {
     const identity = currentUser.partner?.visual_identity

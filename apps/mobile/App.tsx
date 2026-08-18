@@ -9,7 +9,7 @@ import * as Updates from 'expo-updates'
 import Purchases from 'react-native-purchases'
 import * as SplashScreen from 'expo-splash-screen'
 import { initApi } from '@fit-nation/shared'
-import { configureRevenueCat } from './src/lib/revenuecat'
+import { configureRevenueCat, isRevenueCatConfigured } from './src/lib/revenuecat'
 
 // Hold the native splash until RootNavigator's overlay is laid out, so the swap
 // happens between two identical frames. `fade: false` keeps the teardown instant
@@ -51,11 +51,14 @@ const queryClient = new QueryClient({
 
 // Listen for RevenueCat customer-info changes (renewals, refunds, cross-device
 // purchases, sandbox expirations) and invalidate cached user data so the
-// EntitlementWatcher can reroute when access is gained or lost.
-Purchases.addCustomerInfoUpdateListener(() => {
-  queryClient.invalidateQueries({ queryKey: ['user'] })
-  queryClient.invalidateQueries({ queryKey: ['rc-customer-info'] })
-})
+// EntitlementWatcher can reroute when access is gained or lost. Registering a
+// listener on an unconfigured SDK throws, so gate on configure success.
+if (isRevenueCatConfigured()) {
+  Purchases.addCustomerInfoUpdateListener(() => {
+    queryClient.invalidateQueries({ queryKey: ['user'] })
+    queryClient.invalidateQueries({ queryKey: ['rc-customer-info'] })
+  })
+}
 
 function useOTAUpdates() {
   useEffect(() => {
