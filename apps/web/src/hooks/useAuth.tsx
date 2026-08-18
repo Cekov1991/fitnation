@@ -1,6 +1,6 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi, getAuthStorage, setOnUnauthorized, AUTH_TOKEN_KEY } from '@fit-nation/shared';
+import { authApi, getAuthStorage, setOnUnauthorized, setOnSubscriptionRequired, AUTH_TOKEN_KEY } from '@fit-nation/shared';
 import type { UserResource } from '@fit-nation/shared';
 
 interface AuthContextType {
@@ -38,6 +38,22 @@ export function AuthProvider({
     });
     return () => setOnUnauthorized(null);
   }, [queryClient]);
+
+  // A gated endpoint returned 403 subscription_required — entitlements changed
+  // server-side while this session still had access. Refresh the user so
+  // AuthGuard routes to /subscribe with current data. GET /api/user is
+  // pre-paywall, so this cannot loop.
+  useEffect(() => {
+    setOnSubscriptionRequired(async () => {
+      try {
+        const response = await authApi.getCurrentUser();
+        setUser(response.user);
+      } catch {
+        // best-effort — a failed refresh keeps current state
+      }
+    });
+    return () => setOnSubscriptionRequired(null);
+  }, []);
 
   useEffect(() => {
     // Check if user is already logged in
