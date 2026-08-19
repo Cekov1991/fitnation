@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { IonInput } from '@ionic/react';
 import { useSlideTransition } from '../../utils/animations';
 import { inputStep, useUnitSystem, type WeightUnit } from '@fit-nation/shared';
 
@@ -45,18 +44,18 @@ export function SetEditCard({
               Weight
             </label>
             <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-              <IonInput 
-                type="number" 
-                inputmode="decimal" 
+              <input
+                type="number"
+                inputMode="decimal"
                 step={String(inputStep('training_weight', unitSystem))}
                 // Raw value, not formatWeight — see SetLogCard.
-                value={weight === 0 ? '' : String(weight)} 
-                onIonInput={e => {
-                  const value = e.detail.value || '';
+                value={weight === 0 ? '' : String(weight)}
+                onChange={e => {
+                  const value = e.target.value || '';
                   const numValue = value === '' ? 0 : parseFloat(value);
                   onWeightChange(isNaN(numValue) ? 0 : numValue);
-                }} 
-                className="ionic-input-workout" 
+                }}
+                className="flex-1 w-full min-w-0 bg-transparent border-0 outline-none p-0 text-4xl font-black text-center text-white placeholder:text-[#d6d6d653]"
               />
               <span className="text-sm font-semibold text-orange-100 ml-2">
                 {weightUnit}
@@ -71,17 +70,17 @@ export function SetEditCard({
             Reps
           </label>
           <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-            <IonInput 
-              type="number" 
-              inputmode="numeric" 
-              pattern="[0-9]*" 
-              value={reps?.toString() || ''} 
-              onIonInput={e => {
-                const value = e.detail.value || '';
+            <input
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={reps?.toString() || ''}
+              onChange={e => {
+                const value = e.target.value || '';
                 const numValue = value === '' ? 0 : parseInt(value, 10);
                 onRepsChange(isNaN(numValue) ? 0 : numValue);
-              }} 
-              className="ionic-input-workout" 
+              }}
+              className="flex-1 w-full min-w-0 bg-transparent border-0 outline-none p-0 text-4xl font-black text-center text-white placeholder:text-[#d6d6d653]"
             />
             <span className="text-sm font-semibold text-orange-100 ml-2">
               reps

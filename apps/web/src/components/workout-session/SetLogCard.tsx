@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { IonInput } from '@ionic/react';
 import { Timer } from 'lucide-react';
 import { formatWeight } from './utils';
 import { formatRepRange, inputStep, useUnitSystem, type WeightUnit } from '@fit-nation/shared';
@@ -72,25 +71,25 @@ export function SetLogCard({
               Weight
             </label>
             <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-              <IonInput 
-                type="number" 
-                inputmode="decimal" 
+              <input
+                type="number"
+                inputMode="decimal"
                 step={String(inputStep('training_weight', unitSystem))}
                 placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
                 // Raw value, not formatWeight: the display formatter rounds to
                 // 1dp and this value is written back on save, so formatting it
                 // here would nudge a metric weight a little further every cycle.
-                value={weight !== null ? String(weight) : ''} 
-                onIonInput={e => {
-                  const value = e.detail.value || '';
+                value={weight !== null ? String(weight) : ''}
+                onChange={e => {
+                  const value = e.target.value || '';
                   if (value === '') {
                     onWeightChange(null); // Use default when empty
                   } else {
                     const numValue = parseFloat(value);
                     onWeightChange(isNaN(numValue) ? null : numValue);
                   }
-                }} 
-                className="ionic-input-workout" 
+                }}
+                className="flex-1 w-full min-w-0 bg-transparent border-0 outline-none p-0 text-4xl font-black text-center text-white placeholder:text-[#d6d6d653]"
               />
               <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                 {weightUnit}
@@ -110,22 +109,22 @@ export function SetLogCard({
             Reps
           </label>
           <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-            <IonInput 
-              type="number" 
-              inputmode="numeric" 
-              pattern="[0-9]*" 
+            <input
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
-              value={reps !== null ? reps.toString() : ''} 
-              onIonInput={e => {
-                const value = e.detail.value || '';
+              value={reps !== null ? reps.toString() : ''}
+              onChange={e => {
+                const value = e.target.value || '';
                 if (value === '') {
                   onRepsChange(null); // Use default when empty
                 } else {
                   const numValue = parseInt(value, 10);
                   onRepsChange(isNaN(numValue) ? null : numValue);
                 }
-              }} 
-              className="ionic-input-workout" 
+              }}
+              className="flex-1 w-full min-w-0 bg-transparent border-0 outline-none p-0 text-4xl font-black text-center text-white placeholder:text-[#d6d6d653]"
             />
             <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
               reps

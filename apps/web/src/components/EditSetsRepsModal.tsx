@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IonInput } from '@ionic/react';
 import { X, Check } from 'lucide-react';
 import { LoadingButton } from './ui';
 import { setsRepsSchema, SetsRepsFormData, type WeightUnit} from '@fit-nation/shared';
@@ -140,15 +139,16 @@ export function EditSetsRepsModal({
                           name="sets"
                           control={control}
                           render={({ field }) => (
-                            <IonInput 
-                              type="number" 
-                              inputmode="numeric" 
-                              pattern="[0-9]*" 
-                              value={field.value?.toString() || ''} 
-                              onIonInput={e => {
-                                const val = e.detail.value;
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              className="w-full bg-transparent border-0 outline-none p-4"
+                              value={field.value?.toString() || ''}
+                              onChange={e => {
+                                const val = e.target.value;
                                 field.onChange(val ? parseInt(val, 10) || 0 : 0);
-                              }} 
+                              }}
                             />
                           )}
                         />
@@ -174,13 +174,14 @@ export function EditSetsRepsModal({
                               name="minReps"
                               control={control}
                               render={({ field }) => (
-                                <IonInput
+                                <input
                                   type="number"
-                                  inputmode="numeric"
+                                  inputMode="numeric"
                                   pattern="[0-9]*"
+                                  className="w-full bg-transparent border-0 outline-none p-4"
                                   value={field.value?.toString() || ''}
-                                  onIonInput={e => {
-                                    const val = e.detail.value;
+                                  onChange={e => {
+                                    const val = e.target.value;
                                     field.onChange(val ? parseInt(val, 10) || 0 : 0);
                                   }}
                                 />
@@ -203,13 +204,14 @@ export function EditSetsRepsModal({
                               name="maxReps"
                               control={control}
                               render={({ field }) => (
-                                <IonInput
+                                <input
                                   type="number"
-                                  inputmode="numeric"
+                                  inputMode="numeric"
                                   pattern="[0-9]*"
+                                  className="w-full bg-transparent border-0 outline-none p-4"
                                   value={field.value?.toString() || ''}
-                                  onIonInput={e => {
-                                    const val = e.detail.value;
+                                  onChange={e => {
+                                    const val = e.target.value;
                                     field.onChange(val ? parseInt(val, 10) || 0 : 0);
                                   }}
                                 />
@@ -236,15 +238,16 @@ export function EditSetsRepsModal({
                           name="weight"
                           control={control}
                           render={({ field }) => (
-                            <IonInput 
-                              type="number" 
-                              inputmode="decimal" 
+                            <input
+                              type="number"
+                              inputMode="decimal"
                               step="0.01"
-                              value={field.value || ''} 
-                              onIonInput={e => {
-                                const val = e.detail.value;
+                              className="w-full bg-transparent border-0 outline-none p-4"
+                              value={field.value || ''}
+                              onChange={e => {
+                                const val = e.target.value;
                                 field.onChange(val ? parseFloat(val).toString() || '0' : '0');
-                              }} 
+                              }}
                             />
                           )}
                         />
