@@ -5,9 +5,17 @@
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:mobile": "pnpm --filter mobile start",
-    "build:web": "pnpm --filter web build"
+    "build:web": "pnpm --filter web build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "pnpm --filter web exec tsc --noEmit && pnpm --filter mobile exec tsc --noEmit"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "vitest": "^3.2.7"
   }
 }

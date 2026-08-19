@@ -225,42 +225,35 @@ boundary that has no reason to happen during a swap.
 
 ## Testing Decisions
 
-There is no test runner anywhere in the front-end, and standing one up is out
-of scope for this spec by explicit decision. That constrains what can be
-claimed: nothing here is verified by automated test, and the spec should not
-pretend otherwise.
+A test runner was originally excluded from this spec and has since been added:
+Vitest at the workspace root, `pnpm test`. Coverage is deliberately limited to
+pure logic — the unit tables, the two form schemas, the decimal-text helpers,
+and the fixed-point property. None of it needs a DOM, so no environment is
+configured; that decision belongs to whoever first tests a component or a hook.
 
-What that leaves:
+Every test here was checked by reintroducing the defect it describes and
+confirming it fails. A test that has never been seen to fail is not evidence.
+That exercise found a real gap — the round-trip tests initially covered only the
+web input path — which is why they now run over both.
 
-- The type checker is the only automatic signal available, and it is currently
-  unusable in the web app. Aligning the React types is therefore a
-  prerequisite, not a nicety — after it, a clean run must be established as the
-  baseline so that a regression is visible.
+What is still not covered:
+
+- Anything that renders. No component or hook is tested, so the seam is proven
+  correct but not proven to be *used* correctly on any given screen.
+- The real HTTP round trip. The server's rounding is modelled in the test from
+  the documented rules; nothing here talks to the back-end, so a change on that
+  side breaks the model silently rather than turning a test red.
 - Unit types are exported and required rather than optional at call sites, so a
-  missed unit is a compile error rather than a wrong label at runtime. This is
-  the main mechanical guarantee the spec relies on, and it only pays off once
-  the type checker is readable.
-- Manual verification must cover the fixed-point property directly, because it
-  is the property most likely to be silently wrong: save a Body Weight in
-  imperial, reload, save again unchanged, and confirm the value is identical on
-  the second read. The same walk applies to a template Target Weight. A value
-  that moves once is correct; a value that keeps moving is the bug.
-- Manual verification must also cover the bounds fix in both directions: a
-  value valid in the user's unit is accepted, and a value the server would
-  reject is caught client-side.
+  missed unit is a compile error rather than a wrong label at runtime. That is a
+  type-checker guarantee, not a test one, and it only became readable once the
+  React major divergence was resolved. `pnpm typecheck` runs both apps.
 
-When a runner is introduced, the modules worth testing first are the unit
-module's bounds and step tables, the two schemas' behaviour under each Unit
-System, and the decimal-text helpers. These are pure and need no rendering. A
-good test here asserts external behaviour — that a given input in a given Unit
-System is accepted or rejected — and not the shape of the table behind it.
-
-There is no prior art for tests in this repo to follow.
+A good test here asserts external behaviour — that a given input in a given Unit
+System is accepted or rejected — and not the shape of the table behind it. The
+existing files are the prior art to follow.
 
 ## Out of Scope
 
-- Introducing a test runner and writing the tests described above. Deliberately
-  excluded; it should be its own piece of work.
 - Any change to the back-end. Its behaviour is the contract this spec conforms
   to, and it is treated as fixed.
 - Runtime validation of API responses. The front-end validates none, anywhere,
