@@ -3,7 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Award, CheckCircle2, Clock, Dumbbell, Target, TrendingUp, Trophy } from 'lucide-react-native'
-import { useSession } from '@fit-nation/shared'
+import { useSession, useProfile, weightUnitLabel } from '@fit-nation/shared'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -29,6 +29,8 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
   const { data: sessionData, isLoading, isError, refetch } = useSession(numericSessionId)
+  const { data: profile } = useProfile()
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
 
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
   const duration = formatDuration(sessionData?.performed_at ?? null, sessionData?.completed_at ?? null)
@@ -129,7 +131,7 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
               {stats.hasWeighted ? formatWeight(stats.weightedVolume) : stats.bodyweightReps}
             </Text>
             <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-              {stats.hasWeighted ? 'Volume (kg)' : 'Total Reps'}
+              {stats.hasWeighted ? `Volume (${weightUnit})` : 'Total Reps'}
             </Text>
           </View>
         </View>
@@ -160,13 +162,13 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
                     {pr.previous_best > 0 && (
                       <Text>
                         {' · was '}
-                        {pr.pr_type === 'weight' ? `${formatWeight(pr.previous_best)} kg` : `${pr.previous_best} reps`}
+                        {pr.pr_type === 'weight' ? `${formatWeight(pr.previous_best)} ${weightUnit}` : `${pr.previous_best} reps`}
                       </Text>
                     )}
                   </Text>
                   <View className="flex-row items-center justify-between">
                     <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>
-                      {pr.pr_type === 'weight' ? `${formatWeight(pr.new_best)} kg` : `${pr.new_best} reps`}
+                      {pr.pr_type === 'weight' ? `${formatWeight(pr.new_best)} ${weightUnit}` : `${pr.new_best} reps`}
                     </Text>
                     <Text style={{ fontSize: 11, fontWeight: '700', color: colors.success }}>NEW PR</Text>
                   </View>
@@ -204,14 +206,14 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>{totalReps} reps</Text>
                     ) : (
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>
-                        {bestSet ? `${formatWeight(bestSet.weight)} kg × ${bestSet.reps}` : 'No sets'}
+                        {bestSet ? `${formatWeight(bestSet.weight)} ${weightUnit} × ${bestSet.reps}` : 'No sets'}
                       </Text>
                     )}
                   </View>
                   {!isBodyweight && volume > 0 && (
                     <View className="flex-row items-center justify-between mt-3 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.borderSubtle }}>
                       <Text style={{ fontSize: 12, color: colors.textSecondary }}>Volume</Text>
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>{formatWeight(volume)} kg</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>{formatWeight(volume)} {weightUnit}</Text>
                     </View>
                   )}
                 </View>

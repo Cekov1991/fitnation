@@ -7,6 +7,8 @@ interface CompletedSetRowProps {
   weight: number | null
   reps: number
   allowWeightLogging: boolean
+  /** Required so a missed call site is a compile error. */
+  weightUnit: 'kg' | 'lbs'
   onOpenMenu: () => void
 }
 
@@ -19,6 +21,7 @@ export function CompletedSetRow({
   weight,
   reps,
   allowWeightLogging,
+  weightUnit,
   onOpenMenu,
 }: CompletedSetRowProps) {
   const { colors } = useTheme()
@@ -53,7 +56,7 @@ export function CompletedSetRow({
               <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>
                 {weight != null ? formatWeight(weight) : '--'}
               </Text>
-              <Text style={{ fontSize: 11, color: colors.textMuted }}>kg</Text>
+              <Text style={{ fontSize: 11, color: colors.textMuted }}>{weightUnit}</Text>
             </View>
             <Text style={{ color: colors.textMuted, fontSize: 16 }}>×</Text>
           </>
@@ -84,12 +87,15 @@ export function CompletedSetRow({
 interface PendingSetRowProps {
   setNumber: number
   allowWeightLogging: boolean
+  /** Required so a missed call site is a compile error. */
+  weightUnit: 'kg' | 'lbs'
   onOpenMenu: () => void
 }
 
 export function PendingSetRow({
   setNumber,
   allowWeightLogging,
+  weightUnit,
   onOpenMenu,
 }: PendingSetRowProps) {
   const { colors } = useTheme()
@@ -122,7 +128,7 @@ export function PendingSetRow({
           <>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
               <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textMuted }}>--</Text>
-              <Text style={{ fontSize: 11, color: colors.textMuted }}>kg</Text>
+              <Text style={{ fontSize: 11, color: colors.textMuted }}>{weightUnit}</Text>
             </View>
             <Text style={{ color: colors.textMuted, fontSize: 16 }}>×</Text>
           </>

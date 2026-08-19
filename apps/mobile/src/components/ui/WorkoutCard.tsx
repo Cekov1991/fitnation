@@ -6,6 +6,8 @@ import { Activity, Clock, Dumbbell, Edit2 } from 'lucide-react-native'
 import {
   estimateWorkoutDuration,
   formatRepRange,
+  useProfile,
+  weightUnitLabel,
   type TemplateExercise,
   type WorkoutTemplateResource,
 } from '@fit-nation/shared'
@@ -39,6 +41,8 @@ export function WorkoutCard({
   onEditWorkout,
 }: WorkoutCardProps) {
   const { colors } = useTheme()
+  const { data: profile } = useProfile()
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
 
   const exercises = useMemo<TemplateExercise[]>(() => {
     if (!template) return []
@@ -149,7 +153,7 @@ export function WorkoutCard({
             const minReps = ex.pivot?.min_target_reps ?? 0
             const maxReps = ex.pivot?.max_target_reps ?? 0
             const weight = ex.pivot?.target_weight ?? 0
-            const label = `${sets} sets × ${formatRepRange(minReps, maxReps)} reps${weight ? ` × ${weight} kg` : ''}`
+            const label = `${sets} sets × ${formatRepRange(minReps, maxReps)} reps${weight ? ` × ${weight} ${weightUnit}` : ''}`
 
             return (
               <TouchableOpacity

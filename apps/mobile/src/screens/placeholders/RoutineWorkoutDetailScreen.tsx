@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useBrowsableRoutine, useStartSession, useTodayWorkout, formatRepRange } from '@fit-nation/shared'
+import { useBrowsableRoutine, useStartSession, useTodayWorkout, useProfile, formatRepRange, weightUnitLabel } from '@fit-nation/shared'
 import type { TemplateExercise, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -18,6 +18,8 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
   const { data: routine, isLoading, isError, refetch } = useBrowsableRoutine(routineId)
   const startSession = useStartSession()
   const { data: todayWorkout } = useTodayWorkout()
+  const { data: profile } = useProfile()
+  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
 
   const workout = useMemo(() => {
     if (!routine?.workout_templates) return null
@@ -159,7 +161,7 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
                       {ex.name}
                     </Text>
                     <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                      {sets} sets · {formatRepRange(minReps, maxReps)} reps{weight > 0 ? ` · ${weight} kg` : ' · 0 kg'}
+                      {sets} sets · {formatRepRange(minReps, maxReps)} reps{weight > 0 ? ` · ${weight} ${weightUnit}` : ` · 0 ${weightUnit}`}
                     </Text>
                   </View>
                   <ChevronRight size={18} color={colors.textMuted} style={{ flexShrink: 0, marginRight: 4 }} />
