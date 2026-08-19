@@ -3,7 +3,7 @@ import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { formatWeight } from './workout-session/utils';
 import { estimateWorkoutDuration } from '@fit-nation/shared';
-import { formatRepRange, useProfile, weightUnitLabel } from '@fit-nation/shared';
+import { formatRepRange, useWeightUnit } from '@fit-nation/shared';
 import type { WorkoutTemplateResource, TemplateExercise } from '@fit-nation/shared';
 
 interface WorkoutCardProps {
@@ -27,7 +27,7 @@ interface RawWorkoutTemplateExercise {
   target_sets: number | null;
   min_target_reps: number | null;
   max_target_reps: number | null;
-  target_weight: string | null;
+  target_weight: number | null;
   rest_seconds: number | null;
   exercise: {
     id: number;
@@ -70,7 +70,7 @@ function normalizeExercises(template: WorkoutTemplateResource | null | Record<st
         target_sets: item.target_sets,
         min_target_reps: item.min_target_reps,
         max_target_reps: item.max_target_reps,
-        target_weight: item.target_weight ? parseFloat(item.target_weight) : null,
+        target_weight: item.target_weight,
         rest_seconds: item.rest_seconds
       }
     })) as TemplateExercise[];
@@ -90,8 +90,7 @@ export function WorkoutCard({
   onExerciseClick, 
   onEditWorkout 
 }: WorkoutCardProps) {
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
   // Normalize exercises to handle both API response formats
   const normalizedExercises = useMemo(() => normalizeExercises(template), [template]);
   const duration = useMemo(() => estimateWorkoutDuration(normalizedExercises), [normalizedExercises]);

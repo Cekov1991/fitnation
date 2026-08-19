@@ -2,10 +2,19 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User, Mail, Target, Calendar, Ruler, Weight, Dumbbell, LogOut, ChevronDown, Download, Trash2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
-import { useProfile, useUpdateProfile, useDeleteAccount, weightUnitLabel, heightUnitLabel } from '@fit-nation/shared';
+import {
+  useProfile,
+  useUpdateProfile,
+  useDeleteAccount,
+  useUnitSystem,
+  useWeightUnit,
+  useHeightUnit,
+  inputStep,
+  UNIT_OPTIONS,
+} from '@fit-nation/shared';
 import type { UnitSystem } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { profileSchema, ProfileFormData } from '@fit-nation/shared';
+import { createProfileSchema, ProfileFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 import { ProfilePageSkeleton } from './ProfilePageSkeleton';
 
@@ -27,15 +36,20 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
   const updateProfile = useUpdateProfile();
   const deleteAccount = useDeleteAccount();
   const requiresPassword = profile?.has_password ?? true;
-  const unitSystem: UnitSystem = profile?.profile?.unit_system ?? 'metric';
-  const weightLabel = weightUnitLabel(unitSystem);
-  const heightLabel = heightUnitLabel(unitSystem);
+  const unitSystem = useUnitSystem();
+  const weightLabel = useWeightUnit();
+  const heightLabel = useHeightUnit();
   const { isIOS } = useInstallPrompt();
+  const [unitError, setUnitError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deletePasswordVisible, setDeletePasswordVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const deletePasswordRef = useRef<HTMLInputElement>(null);
+
+  // Height and weight are validated in the unit the user is typing in, so the
+  // schema is rebuilt when the unit system changes.
+  const profileSchema = useMemo(() => createProfileSchema(unitSystem), [unitSystem]);
 
   const {
     register,
@@ -148,12 +162,18 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     });
   };
 
+  // Sent on its own so the server re-formats the stored height/weight into the
+  // new unit; the response rewrites the ['profile'] cache, which re-seeds the
+  // form via the effect above. Known: this discards unsaved edits, hence the
+  // isPending guard only.
   const handleUnitToggle = async (newUnit: UnitSystem) => {
     if (newUnit === unitSystem || updateProfile.isPending) return;
+    setUnitError(null);
     try {
       await updateProfile.mutateAsync({ unit_system: newUnit });
-    } catch (error) {
-      console.error('Failed to update unit system:', error);
+    } catch (error: any) {
+      // Failing silently here left the toggle looking like it had worked.
+      setUnitError(error?.message || 'Failed to update units. Please try again.');
     }
   };
 
@@ -326,27 +346,28 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                       Units
                     </label>
                     <div className="grid grid-cols-2 gap-2">
-                      {(['metric', 'imperial'] as UnitSystem[]).map((option) => (
+                      {UNIT_OPTIONS.map((option) => (
                         <button
-                          key={option}
+                          key={option.value}
                           type="button"
                           disabled={updateProfile.isPending}
-                          onClick={() => handleUnitToggle(option)}
+                          onClick={() => handleUnitToggle(option.value)}
                           className="py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                           style={{
-                            backgroundColor: unitSystem === option
+                            backgroundColor: unitSystem === option.value
                               ? 'var(--color-primary)'
                               : 'var(--color-bg-surface)',
-                            color: unitSystem === option
+                            color: unitSystem === option.value
                               ? 'white'
                               : 'var(--color-text-secondary)',
-                            border: `2px solid ${unitSystem === option ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                            border: `2px solid ${unitSystem === option.value ? 'var(--color-primary)' : 'var(--color-border)'}`,
                           }}
                         >
-                          {option === 'metric' ? 'Metric (kg/cm)' : 'Imperial (lbs/in)'}
+                          {option.label} ({option.hint})
                         </button>
                       ))}
                     </div>
+                    {unitError && <p className="text-xs text-red-400 mt-1">{unitError}</p>}
                   </div>
 
                   {/* Height and Weight - Side by Side */}
@@ -363,6 +384,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                           render={({ field }) => (
                             <input
                               type="number"
+                              // Height is whole cm / whole inches by contract.
+                              step={inputStep('height', unitSystem)}
                               value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                               placeholder={unitSystem === 'imperial' ? '69' : '175'}
@@ -401,7 +424,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                           render={({ field }) => (
                             <input
                               type="number"
-                              step={unitSystem === 'imperial' ? 0.5 : 1}
+                              step={inputStep('body_weight', unitSystem)}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
                               placeholder={unitSystem === 'imperial' ? '154' : '70'}

@@ -5,13 +5,14 @@ import { useModalTransition, useSlideTransition } from '../../utils/animations';
 import { formatWeight } from './utils';
 import type { Exercise } from './types';
 import type { NewPrResource } from '@fit-nation/shared';
+import type { WeightUnit } from '@fit-nation/shared';
 
 interface WorkoutSummaryScreenProps {
   exercises: Exercise[];
   formattedDuration: string;
   onDone: () => void;
   newPrs?: NewPrResource[];
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 interface SummaryStats {

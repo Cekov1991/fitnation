@@ -23,8 +23,7 @@ import {
   useExercises,
   useSwapSessionExercise,
   useSwapTemplateExercise,
-  useProfile,
-  weightUnitLabel,
+  useWeightUnit,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -149,8 +148,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
   const [chartMode, setChartMode] = useState<'volume' | 'weight'>('weight')
 
   const { data: exercises = [] } = useExercises()
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
   const exercise = useMemo(
     () => exercises.find(e => e.name.toLowerCase() === exerciseName.toLowerCase()),
     [exercises, exerciseName]

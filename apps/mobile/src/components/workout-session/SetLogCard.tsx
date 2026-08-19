@@ -2,7 +2,8 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'reac
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
-import { sanitizeDecimalText } from '../../lib/numericInput'
+import type { WeightUnit } from '@fit-nation/shared'
+import { sanitizeDecimalText } from '@fit-nation/shared'
 
 interface SetLogCardProps {
   setNumber: number
@@ -24,7 +25,7 @@ interface SetLogCardProps {
   totalRepsTarget?: number | null
   showTimerButton?: boolean
   /** Required so a missed call site is a compile error. */
-  weightUnit: 'kg' | 'lbs'
+  weightUnit: WeightUnit
   isPending?: boolean
 }
 

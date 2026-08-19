@@ -14,8 +14,7 @@ import {
   useCancelSession,
   useSession,
   useUpdateSessionExercise,
-  useProfile,
-  weightUnitLabel
+  useWeightUnit
 } from '@fit-nation/shared';
 import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '@fit-nation/shared';
 import { formatRepRange } from '@fit-nation/shared';
@@ -34,8 +33,7 @@ export function WorkoutPreviewPage() {
     location.state?.generationParams
   );
   
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
 
   const confirmDraft = useConfirmDraftSession();
   const regenerateDraft = useRegenerateDraftSession();
@@ -136,11 +134,6 @@ export function WorkoutPreviewPage() {
 
   const handleSwap = () => {
     setIsEditMenuOpen(false);
-    const swapOrderIndex =
-      draftSession?.exercises?.findIndex(
-        (ex: SessionExerciseDetail) =>
-          ex.session_exercise.id === selectedExercise?.session_exercise.id
-      ) ?? -1;
     const swapExercise = selectedExercise?.session_exercise.exercise;
     const primaryMuscleGroupIds = (
       swapExercise?.primary_muscle_groups?.length
@@ -148,14 +141,8 @@ export function WorkoutPreviewPage() {
         : (swapExercise?.muscle_groups ?? []).filter((g: MuscleGroupResource) => g.is_primary)
     ).map((g: MuscleGroupResource) => g.id);
     history.push(`/generate-workout/preview/${sessionId}/pick?mode=swap`, {
+      // The swap endpoint preserves the row, so no pivot data travels with it.
       swapExerciseId: selectedExercise?.session_exercise.id,
-      swapOrderIndex,
-      pivotData: {
-        target_sets: selectedExercise?.session_exercise.target_sets,
-        min_target_reps: selectedExercise?.session_exercise.min_target_reps,
-        max_target_reps: selectedExercise?.session_exercise.max_target_reps,
-        target_weight: selectedExercise?.session_exercise.target_weight
-      },
       initialMuscleGroupIds: primaryMuscleGroupIds
     });
   };

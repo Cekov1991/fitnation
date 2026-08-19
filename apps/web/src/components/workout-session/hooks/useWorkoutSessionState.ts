@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises, useProfile, weightUnitLabel } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises, useWeightUnit, type WeightUnit } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
@@ -27,7 +27,7 @@ interface UseWorkoutSessionStateReturn {
   isLoading: boolean;
   formattedDuration: string;
   allExercisesCompleted: boolean;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 
   // Set logging
   currentSet: Set | undefined;
@@ -109,8 +109,7 @@ export function useWorkoutSessionState({
   initialExerciseName
 }: UseWorkoutSessionStateProps): UseWorkoutSessionStateReturn {
   const { data: sessionData, isLoading } = useSession(sessionId);
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
   const queryClient = useQueryClient();
   const logSet = useLogSet();
   const updateSet = useUpdateSet();

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
-import { formatWeight } from './utils';
 import { useSlideTransition } from '../../utils/animations';
+import { inputStep, useUnitSystem, type WeightUnit } from '@fit-nation/shared';
 
 interface SetEditCardProps {
   weight: number;
@@ -12,7 +12,7 @@ interface SetEditCardProps {
   onCancel: () => void;
   setNumber?: number;
   allowWeightLogging?: boolean;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 export function SetEditCard({
@@ -26,6 +26,8 @@ export function SetEditCard({
   allowWeightLogging = true,
   weightUnit,
 }: SetEditCardProps) {
+  // See SetLogCard: the label comes in as a prop, the step is resolved here.
+  const unitSystem = useUnitSystem();
   const slideTransition = useSlideTransition()
   return (
     <motion.div 
@@ -46,8 +48,9 @@ export function SetEditCard({
               <IonInput 
                 type="number" 
                 inputmode="decimal" 
-                step="0.5"
-                value={weight === 0 ? '' : formatWeight(weight)} 
+                step={String(inputStep('training_weight', unitSystem))}
+                // Raw value, not formatWeight — see SetLogCard.
+                value={weight === 0 ? '' : String(weight)} 
                 onIonInput={e => {
                   const value = e.detail.value || '';
                   const numValue = value === '' ? 0 : parseFloat(value);

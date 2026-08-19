@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { sanitizeDecimalText } from '../../lib/numericInput'
+import type { WeightUnit } from '@fit-nation/shared'
+import { sanitizeDecimalText } from '@fit-nation/shared'
 
 interface SetEditCardProps {
   setNumber: number
@@ -12,7 +13,7 @@ interface SetEditCardProps {
   onCancel: () => void
   allowWeightLogging: boolean
   /** Required so a missed call site is a compile error. */
-  weightUnit: 'kg' | 'lbs'
+  weightUnit: WeightUnit
 }
 
 export function SetEditCard({

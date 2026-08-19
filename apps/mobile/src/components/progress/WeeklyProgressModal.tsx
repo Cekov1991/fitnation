@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { LineChart } from 'react-native-gifted-charts'
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react-native'
-import { useFitnessMetrics, useProfile, weightUnitLabel } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -51,7 +51,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
   const { colors } = useTheme()
   const { data: metrics } = useFitnessMetrics()
   const { data: profileUser } = useProfile()
-  const weightUnit = weightUnitLabel(profileUser?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
 
   const weeklyProgress = metrics?.weekly_progress
   const percentage = weeklyProgress?.percentage ?? 0

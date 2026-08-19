@@ -7,6 +7,7 @@ import { ProgressionBanner } from './ProgressionBanner';
 import { RestTimer } from './RestTimer';
 import { SetsList } from './SetsList';
 import type { Exercise, Set } from './types';
+import type { WeightUnit } from '@fit-nation/shared';
 
 interface ExerciseContentProps {
   exercises: Exercise[];
@@ -34,7 +35,7 @@ interface ExerciseContentProps {
   onOpenExerciseMenu: () => void;
   isAddSetLoading: boolean;
   isLogSetLoading?: boolean;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 export function ExerciseContent({

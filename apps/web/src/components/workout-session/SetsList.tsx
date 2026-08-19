@@ -4,6 +4,7 @@ import type { Set } from './types';
 import { formatWeight } from './utils';
 import { SetLogCard } from './SetLogCard';
 import { SetEditCard } from './SetEditCard';
+import type { WeightUnit } from '@fit-nation/shared';
 
 interface SetsListProps {
   sets: Set[];
@@ -29,7 +30,7 @@ interface SetsListProps {
   totalRepsTarget: number | null;
   isAddSetLoading?: boolean;
   isLogSetLoading?: boolean;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 export function SetsList({

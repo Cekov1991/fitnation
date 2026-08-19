@@ -2,7 +2,10 @@ import { motion } from 'framer-motion';
 import { User, Calendar, Ruler, Weight, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import { UseFormRegister, FieldErrors, Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData, weightUnitLabel, heightUnitLabel } from '@fit-nation/shared';
+// The unit system here is form state, not the saved profile — the user has no
+// stored preference yet — so the pure label helpers are used rather than the
+// useWeightUnit()/useHeightUnit() hooks, which read from the profile.
+import { OnboardingFormData, weightUnitLabel, heightUnitLabel, inputStep, UNIT_OPTIONS } from '@fit-nation/shared';
 import type { UnitSystem } from '@fit-nation/shared';
 
 interface PersonalInfoStepProps {
@@ -198,23 +201,23 @@ export function PersonalInfoStep({
               control={control}
               render={({ field }) => (
                 <div className="grid grid-cols-2 gap-2">
-                  {(['metric', 'imperial'] as UnitSystem[]).map((option) => (
+                  {UNIT_OPTIONS.map((option) => (
                     <button
-                      key={option}
+                      key={option.value}
                       type="button"
-                      onClick={() => field.onChange(option)}
+                      onClick={() => field.onChange(option.value)}
                       className="py-3 rounded-xl text-sm font-semibold transition-all"
                       style={{
-                        backgroundColor: field.value === option
+                        backgroundColor: field.value === option.value
                           ? 'var(--color-primary)'
                           : 'var(--color-bg-surface)',
-                        color: field.value === option
+                        color: field.value === option.value
                           ? 'white'
                           : 'var(--color-text-secondary)',
-                        border: `2px solid ${field.value === option ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                        border: `2px solid ${field.value === option.value ? 'var(--color-primary)' : 'var(--color-border)'}`,
                       }}
                     >
-                      {option === 'metric' ? 'Metric (kg/cm)' : 'Imperial (lbs/in)'}
+                      {option.label} ({option.hint})
                     </button>
                   ))}
                 </div>
@@ -242,6 +245,8 @@ export function PersonalInfoStep({
                   render={({ field }) => (
                     <input
                       type="number"
+                      // Height is whole cm / whole inches by contract.
+                      step={inputStep('height', unitSystem)}
                       value={field.value || ''}
                       onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                       placeholder={unitSystem === 'imperial' ? '69' : '175'}
@@ -286,7 +291,7 @@ export function PersonalInfoStep({
                   render={({ field }) => (
                     <input
                       type="number"
-                      step={unitSystem === 'imperial' ? 0.5 : 1}
+                      step={inputStep('body_weight', unitSystem)}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
                       placeholder={unitSystem === 'imperial' ? '154' : '70'}

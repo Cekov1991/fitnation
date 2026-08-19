@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { Timer } from 'lucide-react';
 import { formatWeight } from './utils';
-import { formatRepRange } from '@fit-nation/shared';
+import { formatRepRange, inputStep, useUnitSystem, type WeightUnit } from '@fit-nation/shared';
 
 interface SetLogCardProps {
   weight: number | null;
@@ -22,7 +22,7 @@ interface SetLogCardProps {
   totalRepsPrevious?: number | null;
   totalRepsTarget?: number | null;
   isLoading?: boolean;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 export function SetLogCard({
@@ -45,6 +45,9 @@ export function SetLogCard({
   isLoading = false,
   weightUnit,
 }: SetLogCardProps) {
+  // weightUnit arrives as a prop (the parent computes it once), but the input
+  // step is a property of the Measurement Kind, so it is resolved here.
+  const unitSystem = useUnitSystem();
   const showGoalWeightBadge = goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight;
   const showTotalRepsHint = totalRepsTarget != null;
 
@@ -72,9 +75,12 @@ export function SetLogCard({
               <IonInput 
                 type="number" 
                 inputmode="decimal" 
-                step="0.5"
+                step={String(inputStep('training_weight', unitSystem))}
                 placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
-                value={weight !== null ? formatWeight(weight) : ''} 
+                // Raw value, not formatWeight: the display formatter rounds to
+                // 1dp and this value is written back on save, so formatting it
+                // here would nudge a metric weight a little further every cycle.
+                value={weight !== null ? String(weight) : ''} 
                 onIonInput={e => {
                   const value = e.detail.value || '';
                   if (value === '') {

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IonInput } from '@ionic/react';
 import { X, Check } from 'lucide-react';
 import { LoadingButton } from './ui';
-import { setsRepsSchema, SetsRepsFormData } from '@fit-nation/shared';
+import { setsRepsSchema, SetsRepsFormData, type WeightUnit} from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
 
 interface EditSetsRepsModalProps {
@@ -18,7 +18,7 @@ interface EditSetsRepsModalProps {
   onSave: (sets: number, minReps: number, maxReps: number, weight: string) => void;
   isLoading?: boolean;
   exerciseName?: string;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 export function EditSetsRepsModal({

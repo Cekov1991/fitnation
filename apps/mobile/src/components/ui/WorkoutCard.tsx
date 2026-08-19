@@ -6,8 +6,7 @@ import { Activity, Clock, Dumbbell, Edit2 } from 'lucide-react-native'
 import {
   estimateWorkoutDuration,
   formatRepRange,
-  useProfile,
-  weightUnitLabel,
+  useWeightUnit,
   type TemplateExercise,
   type WorkoutTemplateResource,
 } from '@fit-nation/shared'
@@ -41,8 +40,7 @@ export function WorkoutCard({
   onEditWorkout,
 }: WorkoutCardProps) {
   const { colors } = useTheme()
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
 
   const exercises = useMemo<TemplateExercise[]>(() => {
     if (!template) return []

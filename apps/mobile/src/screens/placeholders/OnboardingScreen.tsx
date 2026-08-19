@@ -6,7 +6,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { useMutation } from '@tanstack/react-query'
-import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel } from '@fit-nation/shared'
+// unitSystem here is form state, not the saved profile, so the pure label
+// helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
+import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS } from '@fit-nation/shared'
 import type { UpdateProfileInput, UnitSystem } from '@fit-nation/shared'
 import {
   Dumbbell, ArrowRight, ArrowLeft,
@@ -17,7 +19,6 @@ import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/ui/Input'
 import { onboardingReducer } from '../Onboarding/onboardingReducer'
-import { sanitizeDecimalText, parseDecimalText } from '../../lib/numericInput'
 import { PlanGeneratingContent } from '../../components/ui/PlanGeneratingOverlay'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -31,11 +32,6 @@ const FITNESS_GOALS = [
   { value: 'fat_loss' as const, label: 'Fat Loss', description: 'Burn fat and lose weight', Icon: TrendingDown },
   { value: 'muscle_gain' as const, label: 'Build Muscle', description: 'Gain size and strength', Icon: Dumbbell },
   { value: 'strength' as const, label: 'Strength', description: 'Increase overall strength', Icon: Target },
-]
-
-const UNIT_OPTIONS: { value: UnitSystem; label: string; hint: string }[] = [
-  { value: 'metric', label: 'Metric', hint: 'kg · cm' },
-  { value: 'imperial', label: 'Imperial', hint: 'lbs · in' },
 ]
 
 const EXPERIENCE_LEVELS = [

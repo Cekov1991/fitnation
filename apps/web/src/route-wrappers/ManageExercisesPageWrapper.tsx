@@ -37,14 +37,8 @@ export default function ManageExercisesPageWrapper() {
     history.push(`/exercises/pick?mode=swap&templateId=${templateId}`, {
       mode: 'swap',
       templateId: parseInt(templateId),
+      // The swap endpoint preserves the pivot row, so no pivot data travels with it.
       swapPivotId: context.pivotId,
-      swapOrderIndex: context.orderIndex,
-      pivotData: {
-        target_sets: context.target_sets,
-        min_target_reps: context.min_target_reps,
-        max_target_reps: context.max_target_reps,
-        target_weight: context.target_weight
-      },
       initialMuscleGroupIds: context.muscleGroupIds ?? []
     });
   };

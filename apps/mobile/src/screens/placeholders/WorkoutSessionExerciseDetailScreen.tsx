@@ -15,7 +15,7 @@ import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
 import { ArrowLeft, Maximize2, X } from 'lucide-react-native'
 import * as ScreenOrientation from 'expo-screen-orientation'
-import { useExercises, useExerciseHistory, useProfile, weightUnitLabel } from '@fit-nation/shared'
+import { useExercises, useExerciseHistory, useWeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -141,8 +141,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
   const [chartMode, setChartMode] = useState<'volume' | 'weight'>('weight')
 
   const { data: exercises = [] } = useExercises()
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
   const exercise = useMemo(
     () => (exercises as any[]).find((e: any) => e.id === exerciseId) ?? null,
     [exercises, exerciseId]

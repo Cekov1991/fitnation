@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import { MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import type { WeightUnit } from '@fit-nation/shared'
 
 interface CompletedSetRowProps {
   setNumber: number
@@ -8,7 +9,7 @@ interface CompletedSetRowProps {
   reps: number
   allowWeightLogging: boolean
   /** Required so a missed call site is a compile error. */
-  weightUnit: 'kg' | 'lbs'
+  weightUnit: WeightUnit
   onOpenMenu: () => void
 }
 
@@ -88,7 +89,7 @@ interface PendingSetRowProps {
   setNumber: number
   allowWeightLogging: boolean
   /** Required so a missed call site is a compile error. */
-  weightUnit: 'kg' | 'lbs'
+  weightUnit: WeightUnit
   onOpenMenu: () => void
 }
 

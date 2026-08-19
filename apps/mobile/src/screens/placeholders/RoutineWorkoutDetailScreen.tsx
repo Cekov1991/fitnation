@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useBrowsableRoutine, useStartSession, useTodayWorkout, useProfile, formatRepRange, weightUnitLabel } from '@fit-nation/shared'
+import { useBrowsableRoutine, useStartSession, useTodayWorkout, useWeightUnit, formatRepRange } from '@fit-nation/shared'
 import type { TemplateExercise, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -18,8 +18,7 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
   const { data: routine, isLoading, isError, refetch } = useBrowsableRoutine(routineId)
   const startSession = useStartSession()
   const { data: todayWorkout } = useTodayWorkout()
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
 
   const workout = useMemo(() => {
     if (!routine?.workout_templates) return null

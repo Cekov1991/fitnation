@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
-import { useSession, useCompleteSession, useTemplate, useProfile, weightUnitLabel } from '@fit-nation/shared';
+import { useSession, useCompleteSession, useTemplate, useWeightUnit } from '@fit-nation/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -40,8 +40,7 @@ function calculateDuration(performedAt: string, completedAt: string | null): num
 }
 
 export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps) {
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
   const history = useHistory();
   const queryClient = useQueryClient();
   const { data: sessionData, isLoading, error } = useSession(sessionId);

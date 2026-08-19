@@ -12,15 +12,14 @@ import {
   useReorderTemplateExercises,
   useStartSession,
   useUpdateTemplateExercise,
-  useProfile,
+  useWeightUnit,
   formatRepRange,
-  weightUnitLabel,
+  sanitizeDecimalText,
 } from '@fit-nation/shared'
 import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { sanitizeDecimalText } from '../../lib/numericInput'
 import { Image } from 'expo-image'
 import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Play, Plus, Trash2 } from 'lucide-react-native'
 import { showToast } from '../../lib/toast'
@@ -54,8 +53,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   const swipeableRefs = useRef<Map<string, { close: () => void }>>(new Map())
 
   const insets = useSafeAreaInsets()
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
   const [editingItem, setEditingItem] = useState<ExerciseItem | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSets, setEditSets] = useState('3')

@@ -8,8 +8,7 @@ import {
   useUpdateSet,
   useDeleteSet,
   useUpdateSessionExercise,
-  useProfile,
-  weightUnitLabel,
+  useWeightUnit,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -60,8 +59,7 @@ function ExercisePageComponent({
 }: ExercisePageProps) {
   const { colors } = useTheme()
   // Computed once here and passed down; the set cards/rows stay presentational.
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
   const logSet = useLogSet()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()

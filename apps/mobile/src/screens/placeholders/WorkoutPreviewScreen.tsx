@@ -17,14 +17,13 @@ import {
   useRemoveSessionExercise,
   useUpdateSessionExercise,
   useReorderSessionExercises,
-  useProfile,
+  useWeightUnit,
   formatRepRange,
-  weightUnitLabel,
+  sanitizeDecimalText,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { sanitizeDecimalText } from '../../lib/numericInput'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
@@ -34,8 +33,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const { sessionId, generationParams } = route.params
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
 
   const { data: draftSession, isLoading, isError, refetch } = useSession(numericSessionId)
   const confirmDraft = useConfirmDraftSession()

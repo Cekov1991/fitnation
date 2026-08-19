@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { ArrowLeft, Clock, Dumbbell, TrendingUp, CheckCircle2, Circle, ChevronRight } from 'lucide-react-native'
-import { useSession, useProfile, weightUnitLabel } from '@fit-nation/shared'
+import { useSession, useWeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -40,8 +40,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
   const numericSessionId = Number(sessionId)
 
   const { data: sessionData, isLoading, isError, refetch } = useSession(numericSessionId)
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
 
   if (isLoading) {
     return (

@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises, useExerciseHistory, useProfile, weightUnitLabel } from '@fit-nation/shared';
+import { useExercises, useExerciseHistory, useWeightUnit } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
@@ -37,8 +37,7 @@ export function ExerciseDetailPage({
   hidePerformanceTab = false,
   initialActiveTab
 }: ExerciseDetailPageProps) {
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
   const resolvedInitialTab =
     hidePerformanceTab ? 'guidance' : (initialActiveTab ?? 'guidance');
   const [activeTab, setActiveTab] = useState<'guidance' | 'performance'>(resolvedInitialTab);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ScrollView,
   View,
@@ -28,11 +28,15 @@ import {
   useProfile,
   useUpdateProfile,
   useDeleteAccount,
-  profileSchema,
-  weightUnitLabel,
-  heightUnitLabel,
+  useUnitSystem,
+  useWeightUnit,
+  useHeightUnit,
+  createProfileSchema,
+  UNIT_OPTIONS,
   type ProfileFormData,
   type UnitSystem,
+  sanitizeDecimalText,
+  parseDecimalText,
 } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -41,12 +45,6 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
 import { showToast } from '../../lib/toast'
-import { sanitizeDecimalText, parseDecimalText } from '../../lib/numericInput'
-
-const UNIT_OPTIONS: { value: UnitSystem; label: string }[] = [
-  { value: 'metric', label: 'Metric (kg/cm)' },
-  { value: 'imperial', label: 'Imperial (lbs/in)' },
-]
 
 const DURATION_OPTIONS = [
   { label: '20-30 min', value: 30 },
@@ -132,9 +130,13 @@ export function ProfileScreen() {
 
   // The backend converts height/weight server-side from unit_system, so these
   // are label-only. Never convert on the client.
-  const unitSystem: UnitSystem = profile?.profile?.unit_system ?? 'metric'
-  const weightLabel = weightUnitLabel(unitSystem)
-  const heightLabel = heightUnitLabel(unitSystem)
+  const unitSystem = useUnitSystem()
+  const weightLabel = useWeightUnit()
+  const heightLabel = useHeightUnit()
+
+  // Height and weight are validated in the unit the user is typing in, so the
+  // schema is rebuilt when the unit system changes.
+  const profileSchema = useMemo(() => createProfileSchema(unitSystem), [unitSystem])
 
   const {
     control,
@@ -406,7 +408,7 @@ export function ProfileScreen() {
                         className="text-xs font-semibold"
                         style={{ color: selected ? '#fff' : colors.textSecondary }}
                       >
-                        {option.label}
+                        {option.label} ({option.hint})
                       </Text>
                     </TouchableOpacity>
                   )
@@ -460,7 +462,7 @@ export function ProfileScreen() {
                 <Controller
                   control={control}
                   name="weight"
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field: { value, onChange, onBlur: fieldOnBlur } }) => (
                     <View
                       className="flex-row items-center px-4 rounded-xl"
                       style={{
@@ -478,8 +480,14 @@ export function ProfileScreen() {
                         value={value != null ? String(value) : ''}
                         onChangeText={(t) => onChange(sanitizeDecimalText(t))}
                         // Settle to a number on blur so isDirty compares
-                        // like-for-like and '154.' tidies to '154'.
-                        onBlur={() => onChange(parseDecimalText(String(value ?? '')))}
+                        // like-for-like and '154.' tidies to '154'. fieldOnBlur
+                        // must still run: the form is mode:'onBlur', so dropping
+                        // it stopped this field validating and being marked
+                        // touched.
+                        onBlur={() => {
+                          onChange(parseDecimalText(String(value ?? '')))
+                          fieldOnBlur()
+                        }}
                         placeholder={unitSystem === 'imperial' ? '154' : '70'}
                         placeholderTextColor={colors.textMuted}
                         keyboardType="decimal-pad"

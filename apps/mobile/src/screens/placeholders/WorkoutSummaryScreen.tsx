@@ -3,7 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Award, CheckCircle2, Clock, Dumbbell, Target, TrendingUp, Trophy } from 'lucide-react-native'
-import { useSession, useProfile, weightUnitLabel } from '@fit-nation/shared'
+import { useSession, useWeightUnit } from '@fit-nation/shared'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -29,8 +29,7 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
   const { data: sessionData, isLoading, isError, refetch } = useSession(numericSessionId)
-  const { data: profile } = useProfile()
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
 
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
   const duration = formatDuration(sessionData?.performed_at ?? null, sessionData?.completed_at ?? null)

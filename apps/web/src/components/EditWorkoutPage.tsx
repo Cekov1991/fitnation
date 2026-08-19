@@ -5,7 +5,7 @@ import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { LoadingContent } from './ui';
 import { EditWorkoutPageSkeleton } from './EditWorkoutPageSkeleton';
-import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises, useProfile, weightUnitLabel } from '@fit-nation/shared';
+import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises, useWeightUnit, type WeightUnit } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -38,7 +38,7 @@ interface DraggableExerciseItemProps {
   onDragEnd: () => void;
   onClick?: (exercise: Exercise) => void;
   skipDragAnimation?: boolean;
-  weightUnit: 'kg' | 'lbs';
+  weightUnit: WeightUnit;
 }
 
 function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skipDragAnimation, weightUnit }: DraggableExerciseItemProps) {
@@ -153,8 +153,7 @@ export function EditWorkoutPage({
   onViewExerciseDetail
 }: EditWorkoutPageProps) {
   const { data: template, isLoading, isError, error, refetch } = useTemplate(templateId);
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
   const reorderExercises = useReorderTemplateExercises();

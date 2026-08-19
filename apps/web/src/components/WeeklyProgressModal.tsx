@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useFitnessMetrics, useProfile, weightUnitLabel } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit } from '@fit-nation/shared'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 
@@ -77,7 +77,7 @@ export function WeeklyProgressModal({
   const dailyBreakdown = weeklyProgress?.daily_breakdown ?? []
   const historicalWeeks = weeklyProgress?.historical_weeks ?? []
   const trainingDaysGoal = profileUser?.profile?.training_days_per_week ?? null
-  const weightUnit = weightUnitLabel(profileUser?.profile?.unit_system)
+  const weightUnit = useWeightUnit()
   const weeklyGoalMessage = getWeeklyGoalMessage(currentWeekWorkouts, trainingDaysGoal)
   const { backdrop, panel } = useModalTransition()
 

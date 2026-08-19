@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { LoadingContent } from '../ui';
 import { RoutineWorkoutDetailPageSkeleton } from './RoutineWorkoutDetailPageSkeleton';
 import { ExerciseImage } from '../ExerciseImage';
-import { useBrowsableRoutine, useStartSession, useTodayWorkout, useProfile, weightUnitLabel } from '@fit-nation/shared';
+import { useBrowsableRoutine, useStartSession, useTodayWorkout, useWeightUnit } from '@fit-nation/shared';
 import { formatRepRange } from '@fit-nation/shared';
 import type { TemplateExercise } from '@fit-nation/shared';
 
@@ -18,8 +18,7 @@ export function RoutineWorkoutDetailPage({ routineId, workoutId, onBack }: Routi
   const history = useHistory();
   const startSession = useStartSession();
   const { data: todayWorkout } = useTodayWorkout();
-  const { data: profile } = useProfile();
-  const weightUnit = weightUnitLabel(profile?.profile?.unit_system);
+  const weightUnit = useWeightUnit();
 
   const {
     data: routine,

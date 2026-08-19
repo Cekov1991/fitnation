@@ -1,18 +1,11 @@
 import { z } from 'zod';
+import { BOUNDS } from '../units';
 
 // Height/weight are entered in whichever unit system the user picks during
 // onboarding, and converted to cm/kg server-side. Bounds are checked per unit
 // system in the superRefine below, so the field-level rules here only need to
-// be loose enough to admit both.
-const HEIGHT_BOUNDS = {
-  metric: { min: 100, max: 250, unit: 'cm' },
-  imperial: { min: 39, max: 98, unit: 'in' },
-} as const;
-
-const WEIGHT_BOUNDS = {
-  metric: { min: 30, max: 300, unit: 'kg' },
-  imperial: { min: 66, max: 661, unit: 'lbs' },
-} as const;
+// be loose enough to admit both. The table itself lives in ../units so the
+// profile editor checks against the same numbers.
 
 export const onboardingSchema = z.object({
   // Personal Info (name, age, gender, height, weight)
@@ -24,17 +17,17 @@ export const onboardingSchema = z.object({
   gender: z.enum(['male', 'female', 'other']),
   unit_system: z.enum(['metric', 'imperial']),
   height: z.number()
-    .min(HEIGHT_BOUNDS.imperial.min, 'Please enter a valid height')
-    .max(HEIGHT_BOUNDS.metric.max, 'Please enter a valid height')
+    .min(BOUNDS.height.imperial.min, 'Please enter a valid height')
+    .max(BOUNDS.height.metric.max, 'Please enter a valid height')
     .nullable(),
   weight: z.number()
-    .min(WEIGHT_BOUNDS.metric.min, 'Please enter a valid weight')
-    .max(WEIGHT_BOUNDS.imperial.max, 'Please enter a valid weight')
+    .min(BOUNDS.weight.metric.min, 'Please enter a valid weight')
+    .max(BOUNDS.weight.imperial.max, 'Please enter a valid weight')
     .nullable(),
-  
+
   // Fitness Goals
   fitness_goal: z.enum(['fat_loss', 'muscle_gain', 'strength', 'general_fitness']),
-  
+
   // Training Preferences
   training_experience: z.enum(['beginner', 'intermediate', 'advanced']),
   training_days_per_week: z.number()
@@ -46,7 +39,7 @@ export const onboardingSchema = z.object({
 }).superRefine((data, ctx) => {
   const system = data.unit_system === 'imperial' ? 'imperial' : 'metric';
 
-  const height = HEIGHT_BOUNDS[system];
+  const height = BOUNDS.height[system];
   if (data.height != null && (data.height < height.min || data.height > height.max)) {
     ctx.addIssue({
       code: 'custom',
@@ -55,7 +48,7 @@ export const onboardingSchema = z.object({
     });
   }
 
-  const weight = WEIGHT_BOUNDS[system];
+  const weight = BOUNDS.weight[system];
   if (data.weight != null && (data.weight < weight.min || data.weight > weight.max)) {
     ctx.addIssue({
       code: 'custom',
