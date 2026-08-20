@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useFitnessMetrics, useProfile } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit } from '@fit-nation/shared'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 
@@ -77,6 +77,7 @@ export function WeeklyProgressModal({
   const dailyBreakdown = weeklyProgress?.daily_breakdown ?? []
   const historicalWeeks = weeklyProgress?.historical_weeks ?? []
   const trainingDaysGoal = profileUser?.profile?.training_days_per_week ?? null
+  const weightUnit = useWeightUnit()
   const weeklyGoalMessage = getWeeklyGoalMessage(currentWeekWorkouts, trainingDaysGoal)
   const { backdrop, panel } = useModalTransition()
 
@@ -238,7 +239,7 @@ export function WeeklyProgressModal({
                   >
                     <Dumbbell className="w-5 h-5 mb-2" style={{ color: 'var(--color-secondary)' }} />
                     <p className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>{formatVolume(currentWeekVolume)}</p>
-                    <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Volume (kg)</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Volume ({weightUnit})</p>
                   </div>
                   <div 
                     className="rounded-xl p-4 border"
@@ -303,7 +304,7 @@ export function WeeklyProgressModal({
                               borderRadius: '8px',
                               color: '#fff',
                             }}
-                            formatter={(value: number) => [`${value} kg`, 'Volume']}
+                            formatter={(value: number) => [`${value} ${weightUnit}`, 'Volume']}
                           />
                           <Line
                             type="monotone"
@@ -398,7 +399,7 @@ export function WeeklyProgressModal({
                           </span>
                           <div className="flex items-center gap-4">
                             <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                              {day.workouts > 0 ? `${formatVolumeFull(day.volume)} kg` : 'Rest'}
+                              {day.workouts > 0 ? `${formatVolumeFull(day.volume)} ${weightUnit}` : 'Rest'}
                             </span>
                             {day.workouts > 0 && (
                               <div className="w-2 h-2 bg-green-400 rounded-full" />
@@ -425,20 +426,20 @@ export function WeeklyProgressModal({
                     <div className="flex items-center justify-between">
                       <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Last Week</span>
                       <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                        {formatVolumeFull(currentWeekVolume)} kg
+                        {formatVolumeFull(currentWeekVolume)} {weightUnit}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>The Week Before</span>
                       <span className="text-sm font-bold" style={{ color: 'var(--color-text-muted)' }}>
-                        {formatVolumeFull(previousWeekVolume)} kg
+                        {formatVolumeFull(previousWeekVolume)} {weightUnit}
                       </span>
                     </div>
                     <div className="h-px" style={{ backgroundColor: 'var(--color-border)' }} />
                     <div className="flex items-center justify-between">
                       <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Difference</span>
                       <span className={`text-sm font-bold ${volumeDifference >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {volumeDifference >= 0 ? '+' : ''}{formatVolumeFull(volumeDifference)} kg ({volumeDifferencePercent >= 0 ? '+' : ''}{Math.round(volumeDifferencePercent)}%)
+                        {volumeDifference >= 0 ? '+' : ''}{formatVolumeFull(volumeDifference)} {weightUnit} ({volumeDifferencePercent >= 0 ? '+' : ''}{Math.round(volumeDifferencePercent)}%)
                       </span>
                     </div>
                   </div>

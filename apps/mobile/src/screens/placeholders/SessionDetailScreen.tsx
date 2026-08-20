@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { ArrowLeft, Clock, Dumbbell, TrendingUp, CheckCircle2, Circle, ChevronRight } from 'lucide-react-native'
-import { useSession } from '@fit-nation/shared'
+import { useSession, useWeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -40,6 +40,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
   const numericSessionId = Number(sessionId)
 
   const { data: sessionData, isLoading, isError, refetch } = useSession(numericSessionId)
+  const weightUnit = useWeightUnit()
 
   if (isLoading) {
     return (
@@ -171,7 +172,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                 {hasWeighted ? formatWeight(totalVolume) : totalBodyweightReps}
               </Text>
               <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                {hasWeighted ? 'Volume (kg)' : 'Total Reps'}
+                {hasWeighted ? `Volume (${weightUnit})` : 'Total Reps'}
               </Text>
             </View>
           </View>
@@ -254,7 +255,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                                     <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>
                                       {formatWeight(set.weight)}
                                     </Text>
-                                    <Text className="text-xs" style={{ color: colors.textMuted }}>kg</Text>
+                                    <Text className="text-xs" style={{ color: colors.textMuted }}>{weightUnit}</Text>
                                   </View>
                                   <Text style={{ color: `${colors.textMuted}60` }}>×</Text>
                                 </>
@@ -269,7 +270,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                             {!isBodyweight && (
                               <View className="items-end">
                                 <Text className="text-xs font-medium" style={{ color: colors.textMuted }}>
-                                  {formatWeight(set.weight * set.reps)} kg
+                                  {formatWeight(set.weight * set.reps)} {weightUnit}
                                 </Text>
                                 <Text style={{ color: colors.textMuted, fontSize: 10 }}>volume</Text>
                               </View>
@@ -287,7 +288,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                             <Text className="text-sm font-bold" style={{ color: colors.primary }}>
                               {isBodyweight
                                 ? `${loggedSets.reduce((s: number, set: SetLogResource) => s + set.reps, 0)} reps`
-                                : `${formatWeight(loggedSets.reduce((s: number, set: SetLogResource) => s + set.weight * set.reps, 0))} kg`}
+                                : `${formatWeight(loggedSets.reduce((s: number, set: SetLogResource) => s + set.weight * set.reps, 0))} ${weightUnit}`}
                             </Text>
                           </View>
                         )}

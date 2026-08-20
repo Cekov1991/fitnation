@@ -5,12 +5,14 @@ import { useModalTransition, useSlideTransition } from '../../utils/animations';
 import { formatWeight } from './utils';
 import type { Exercise } from './types';
 import type { NewPrResource } from '@fit-nation/shared';
+import type { WeightUnit } from '@fit-nation/shared';
 
 interface WorkoutSummaryScreenProps {
   exercises: Exercise[];
   formattedDuration: string;
   onDone: () => void;
   newPrs?: NewPrResource[];
+  weightUnit: WeightUnit;
 }
 
 interface SummaryStats {
@@ -67,6 +69,7 @@ export function WorkoutSummaryScreen({
   formattedDuration,
   onDone,
   newPrs = [],
+  weightUnit,
 }: WorkoutSummaryScreenProps) {
   const { panel } = useModalTransition();
   const slideTransition = useSlideTransition('up');
@@ -204,7 +207,7 @@ export function WorkoutSummaryScreen({
                   className="text-xs"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  {stats.hasWeightedExercises ? 'Volume (kg)' : 'Total Reps'}
+                  {stats.hasWeightedExercises ? `Volume (${weightUnit})` : 'Total Reps'}
                 </p>
               </div>
             </motion.div>
@@ -288,7 +291,7 @@ export function WorkoutSummaryScreen({
                         >
                           {pr.pr_type === 'weight' ? 'Max weight' : 'Max reps'}
                           {pr.previous_best > 0 && (
-                            <span> · was {pr.pr_type === 'weight' ? `${formatWeight(pr.previous_best)} kg` : `${pr.previous_best} reps`}</span>
+                            <span> · was {pr.pr_type === 'weight' ? `${formatWeight(pr.previous_best)} ${weightUnit}` : `${pr.previous_best} reps`}</span>
                           )}
                         </p>
                       </div>
@@ -298,7 +301,7 @@ export function WorkoutSummaryScreen({
                           style={{ color: 'var(--color-primary)' }}
                         >
                           {pr.pr_type === 'weight'
-                            ? `${formatWeight(pr.new_best)} kg`
+                            ? `${formatWeight(pr.new_best)} ${weightUnit}`
                             : `${pr.new_best} reps`}
                         </p>
                         <p className="text-xs font-semibold text-green-400">NEW PR</p>
@@ -392,7 +395,7 @@ export function WorkoutSummaryScreen({
                                 className="text-sm font-bold"
                                 style={{ color: 'var(--color-text-primary)' }}
                               >
-                                {formatWeight(bestSet.weight)} kg × {bestSet.reps}
+                                {formatWeight(bestSet.weight)} {weightUnit} × {bestSet.reps}
                               </p>
                               <p
                                 className="text-xs"
@@ -419,7 +422,7 @@ export function WorkoutSummaryScreen({
                                 className="text-xs font-bold"
                                 style={{ color: 'var(--color-primary)' }}
                               >
-                                {formatWeight(exerciseVolume)} kg
+                                {formatWeight(exerciseVolume)} {weightUnit}
                               </span>
                             </div>
                           </div>

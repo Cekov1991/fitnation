@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion';
-import { IonInput } from '@ionic/react';
 import { Timer } from 'lucide-react';
 import { formatWeight } from './utils';
-import { formatRepRange } from '@fit-nation/shared';
+import { formatRepRange, inputStep, useUnitSystem, type WeightUnit } from '@fit-nation/shared';
 
 interface SetLogCardProps {
   weight: number | null;
@@ -22,6 +21,7 @@ interface SetLogCardProps {
   totalRepsPrevious?: number | null;
   totalRepsTarget?: number | null;
   isLoading?: boolean;
+  weightUnit: WeightUnit;
 }
 
 export function SetLogCard({
@@ -42,7 +42,11 @@ export function SetLogCard({
   totalRepsPrevious,
   totalRepsTarget,
   isLoading = false,
+  weightUnit,
 }: SetLogCardProps) {
+  // weightUnit arrives as a prop (the parent computes it once), but the input
+  // step is a property of the Measurement Kind, so it is resolved here.
+  const unitSystem = useUnitSystem();
   const showGoalWeightBadge = goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight;
   const showTotalRepsHint = totalRepsTarget != null;
 
@@ -67,30 +71,33 @@ export function SetLogCard({
               Weight
             </label>
             <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-              <IonInput 
-                type="number" 
-                inputmode="decimal" 
-                step="0.5"
+              <input
+                type="number"
+                inputMode="decimal"
+                step={String(inputStep('training_weight', unitSystem))}
                 placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
-                value={weight !== null ? formatWeight(weight) : ''} 
-                onIonInput={e => {
-                  const value = e.detail.value || '';
+                // Raw value, not formatWeight: the display formatter rounds to
+                // 1dp and this value is written back on save, so formatting it
+                // here would nudge a metric weight a little further every cycle.
+                value={weight !== null ? String(weight) : ''}
+                onChange={e => {
+                  const value = e.target.value || '';
                   if (value === '') {
                     onWeightChange(null); // Use default when empty
                   } else {
                     const numValue = parseFloat(value);
                     onWeightChange(isNaN(numValue) ? null : numValue);
                   }
-                }} 
-                className="ionic-input-workout" 
+                }}
+                className="flex-1 w-full min-w-0 bg-transparent border-0 outline-none p-0 text-4xl font-black text-center text-white placeholder:text-[#d6d6d653]"
               />
               <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                kg
+                {weightUnit}
               </span>
             </div>
             {showGoalWeightBadge && (
               <p className="mt-1.5 text-xs leading-tight" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
-                Suggested: {formatWeight(goalWeight!)} kg based on your performance
+                Suggested: {formatWeight(goalWeight!)} {weightUnit} based on your performance
               </p>
             )}
           </div>
@@ -102,22 +109,22 @@ export function SetLogCard({
             Reps
           </label>
           <div className="relative flex items-center bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 focus-within:border-white/40 transition-colors">
-            <IonInput 
-              type="number" 
-              inputmode="numeric" 
-              pattern="[0-9]*" 
+            <input
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
-              value={reps !== null ? reps.toString() : ''} 
-              onIonInput={e => {
-                const value = e.detail.value || '';
+              value={reps !== null ? reps.toString() : ''}
+              onChange={e => {
+                const value = e.target.value || '';
                 if (value === '') {
                   onRepsChange(null); // Use default when empty
                 } else {
                   const numValue = parseInt(value, 10);
                   onRepsChange(isNaN(numValue) ? null : numValue);
                 }
-              }} 
-              className="ionic-input-workout" 
+              }}
+              className="flex-1 w-full min-w-0 bg-transparent border-0 outline-none p-0 text-4xl font-black text-center text-white placeholder:text-[#d6d6d653]"
             />
             <span className="text-sm font-semibold ml-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
               reps

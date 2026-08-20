@@ -2,7 +2,11 @@ import { motion } from 'framer-motion';
 import { User, Calendar, Ruler, Weight, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import { UseFormRegister, FieldErrors, Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData } from '@fit-nation/shared';
+// The unit system here is form state, not the saved profile — the user has no
+// stored preference yet — so the pure label helpers are used rather than the
+// useWeightUnit()/useHeightUnit() hooks, which read from the profile.
+import { OnboardingFormData, weightUnitLabel, heightUnitLabel, inputStep, UNIT_OPTIONS } from '@fit-nation/shared';
+import type { UnitSystem } from '@fit-nation/shared';
 
 interface PersonalInfoStepProps {
   register: UseFormRegister<OnboardingFormData>;
@@ -11,6 +15,7 @@ interface PersonalInfoStepProps {
   onNext: () => void;
   onBack: () => void;
   isValid: boolean;
+  unitSystem: UnitSystem;
 }
 
 export function PersonalInfoStep({
@@ -19,8 +24,11 @@ export function PersonalInfoStep({
   onNext,
   onBack,
   isValid,
+  unitSystem,
 }: PersonalInfoStepProps) {
   const slideProps = useSlideTransition('up');
+  const weightLabel = weightUnitLabel(unitSystem);
+  const heightLabel = heightUnitLabel(unitSystem);
 
   return (
     <div className="flex flex-col h-full">
@@ -180,6 +188,43 @@ export function PersonalInfoStep({
             </div>
           </div>
 
+          {/* Unit System */}
+          <div>
+            <label
+              className="text-xs mb-2 block"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Units
+            </label>
+            <Controller
+              name="unit_system"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {UNIT_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => field.onChange(option.value)}
+                      className="py-3 rounded-xl text-sm font-semibold transition-all"
+                      style={{
+                        backgroundColor: field.value === option.value
+                          ? 'var(--color-primary)'
+                          : 'var(--color-bg-surface)',
+                        color: field.value === option.value
+                          ? 'white'
+                          : 'var(--color-text-secondary)',
+                        border: `2px solid ${field.value === option.value ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                      }}
+                    >
+                      {option.label} ({option.hint})
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+          </div>
+
           {/* Height and Weight */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -187,7 +232,7 @@ export function PersonalInfoStep({
                 className="text-xs mb-2 block"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                Height (cm)
+                Height ({heightLabel})
               </label>
               <div className="relative">
                 <Ruler 
@@ -200,9 +245,11 @@ export function PersonalInfoStep({
                   render={({ field }) => (
                     <input
                       type="number"
+                      // Height is whole cm / whole inches by contract.
+                      step={inputStep('height', unitSystem)}
                       value={field.value || ''}
                       onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                      placeholder="175"
+                      placeholder={unitSystem === 'imperial' ? '69' : '175'}
                       className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
                       style={{
                         backgroundColor: 'var(--color-bg-surface)',
@@ -231,7 +278,7 @@ export function PersonalInfoStep({
                 className="text-xs mb-2 block"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                Weight (kg)
+                Weight ({weightLabel})
               </label>
               <div className="relative">
                 <Weight 
@@ -244,9 +291,10 @@ export function PersonalInfoStep({
                   render={({ field }) => (
                     <input
                       type="number"
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                      placeholder="70"
+                      step={inputStep('body_weight', unitSystem)}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder={unitSystem === 'imperial' ? '154' : '70'}
                       className="w-full pl-12 pr-4 py-4 border rounded-xl focus:outline-none focus:ring-2 transition-all"
                       style={{
                         backgroundColor: 'var(--color-bg-surface)',

@@ -5,7 +5,7 @@ import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import { LoadingContent } from './ui';
 import { EditWorkoutPageSkeleton } from './EditWorkoutPageSkeleton';
-import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises } from '@fit-nation/shared';
+import { useTemplate, useUpdateTemplateExercise, useRemoveTemplateExercise, useReorderTemplateExercises, useWeightUnit, type WeightUnit } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import { useModalTransition } from '../utils/animations';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -38,9 +38,10 @@ interface DraggableExerciseItemProps {
   onDragEnd: () => void;
   onClick?: (exercise: Exercise) => void;
   skipDragAnimation?: boolean;
+  weightUnit: WeightUnit;
 }
 
-function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skipDragAnimation }: DraggableExerciseItemProps) {
+function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skipDragAnimation, weightUnit }: DraggableExerciseItemProps) {
   const controls = useDragControls();
 
   return (
@@ -101,7 +102,7 @@ function DraggableExerciseItem({ exercise, onEditClick, onDragEnd, onClick, skip
           <span className="mx-1 opacity-40">×</span>
           <span style={{ color: 'var(--color-primary)' }}>{exercise.reps} reps</span>
           <span className="mx-1 opacity-40">×</span>
-          <span style={{ color: 'var(--color-primary)' }}>{exercise.weight} kg</span>
+          <span style={{ color: 'var(--color-primary)' }}>{exercise.weight} {weightUnit}</span>
         </p>
       </div>
 
@@ -152,6 +153,7 @@ export function EditWorkoutPage({
   onViewExerciseDetail
 }: EditWorkoutPageProps) {
   const { data: template, isLoading, isError, error, refetch } = useTemplate(templateId);
+  const weightUnit = useWeightUnit();
   const updateExercise = useUpdateTemplateExercise();
   const removeExercise = useRemoveTemplateExercise();
   const reorderExercises = useReorderTemplateExercises();
@@ -232,8 +234,7 @@ export function EditWorkoutPage({
   };
   const handleSaveSetsReps = async (sets: number, minReps: number, maxReps: number, weight: string) => {
     if (editingExercise) {
-      // Parse weight (remove "kg" suffix)
-      const weightNum = parseFloat(weight.replace(' kg', '')) || 0;
+      const weightNum = parseFloat(weight) || 0;
       
       await updateExercise.mutateAsync({
         templateId,
@@ -252,7 +253,7 @@ export function EditWorkoutPage({
     if (!editingExercise) return;
     const orderIndex = exercises.findIndex((ex) => ex.id === editingExercise.id);
     if (orderIndex < 0) return;
-    const target_weight = parseFloat(editingExercise.weight.replace(/ kg$/, '')) || 0;
+    const target_weight = parseFloat(editingExercise.weight) || 0;
     onSwapExercise({
       pivotId: editingExercise.pivotId,
       orderIndex,
@@ -362,6 +363,7 @@ export function EditWorkoutPage({
                         onDragEnd={handleDragEnd}
                         onClick={handleExerciseClick}
                         skipDragAnimation={skipDragAnimation}
+                        weightUnit={weightUnit}
                       />
                     ))}
                   </Reorder.Group>
@@ -397,7 +399,7 @@ export function EditWorkoutPage({
       <ExerciseEditMenu isOpen={isEditMenuOpen} onClose={() => setIsEditMenuOpen(false)} onEditSetsReps={handleEditSetsReps} onSwap={handleSwapExerciseClick} onRemove={handleRemoveExercise} isRemoveLoading={removeExercise.isPending} exerciseName={editingExercise?.name} />
 
       {/* Edit Sets/Reps Modal */}
-      {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialMinReps={editingExercise.minReps} initialMaxReps={editingExercise.maxReps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} isLoading={updateExercise.isPending} exerciseName={editingExercise.name} />}
+      {editingExercise && <EditSetsRepsModal isOpen={isEditSetsRepsOpen} onClose={() => setIsEditSetsRepsOpen(false)} initialSets={editingExercise.sets} initialMinReps={editingExercise.minReps} initialMaxReps={editingExercise.maxReps} initialWeight={editingExercise.weight} onSave={handleSaveSetsReps} isLoading={updateExercise.isPending} exerciseName={editingExercise.name} weightUnit={weightUnit} />}
     </div>
       </div>
     </div>;

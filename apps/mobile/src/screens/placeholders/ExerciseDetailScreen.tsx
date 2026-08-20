@@ -23,6 +23,7 @@ import {
   useExercises,
   useSwapSessionExercise,
   useSwapTemplateExercise,
+  useWeightUnit,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -147,6 +148,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
   const [chartMode, setChartMode] = useState<'volume' | 'weight'>('weight')
 
   const { data: exercises = [] } = useExercises()
+  const weightUnit = useWeightUnit()
   const exercise = useMemo(
     () => exercises.find(e => e.name.toLowerCase() === exerciseName.toLowerCase()),
     [exercises, exerciseName]
@@ -257,17 +259,17 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     const latest = historyData.performance_data[historyData.performance_data.length - 1]
     if (!allowWeightLogging) return `${historyData.stats.current_best_set_reps} reps`
     return chartMode === 'weight'
-      ? `${historyData.stats.current_weight} kg`
-      : `${latest.volume} kg`
-  }, [historyData, allowWeightLogging, chartMode])
+      ? `${historyData.stats.current_weight} ${weightUnit}`
+      : `${latest.volume} ${weightUnit}`
+  }, [historyData, allowWeightLogging, chartMode, weightUnit])
 
   const bestStat = useMemo(() => {
     if (!historyData?.performance_data?.length) return '—'
     if (!allowWeightLogging) return `${historyData.stats.best_set_reps} reps`
     return chartMode === 'weight'
-      ? `${historyData.stats.best_weight} kg`
-      : `${Math.max(...historyData.performance_data.map(p => p.volume))} kg`
-  }, [historyData, allowWeightLogging, chartMode])
+      ? `${historyData.stats.best_weight} ${weightUnit}`
+      : `${Math.max(...historyData.performance_data.map(p => p.volume))} ${weightUnit}`
+  }, [historyData, allowWeightLogging, chartMode, weightUnit])
 
   const progressSign = progressPercentage >= 0 ? '+' : ''
   const progressStat = `${progressSign}${progressPercentage.toFixed(0)}%`
@@ -538,7 +540,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                             className="text-xs font-semibold capitalize"
                             style={{ color: chartMode === mode ? '#fff' : colors.textSecondary }}
                           >
-                            {mode === 'weight' ? 'Weight (kg)' : 'Volume'}
+                            {mode === 'weight' ? `Weight (${weightUnit})` : 'Volume'}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -618,8 +620,8 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                             <Text className="text-xs" style={{ color: colors.textSecondary }}>
                               {allowWeightLogging
                                 ? chartMode === 'weight'
-                                  ? `${session.weight} kg best · ${session.sets} sets`
-                                  : `${session.volume} kg volume · ${session.sets} sets`
+                                  ? `${session.weight} ${weightUnit} best · ${session.sets} sets`
+                                  : `${session.volume} ${weightUnit} volume · ${session.sets} sets`
                                 : `${session.best_set_reps} reps (best set) · ${session.sets} sets`}
                             </Text>
                           </View>
@@ -634,7 +636,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                             </Text>
                             <Text className="text-xs" style={{ color: colors.textSecondary }}>
                               {allowWeightLogging
-                                ? chartMode === 'weight' ? 'kg' : 'vol'
+                                ? chartMode === 'weight' ? weightUnit : 'vol'
                                 : 'total reps'}
                             </Text>
                           </View>

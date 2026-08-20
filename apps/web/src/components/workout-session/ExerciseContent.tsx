@@ -7,6 +7,7 @@ import { ProgressionBanner } from './ProgressionBanner';
 import { RestTimer } from './RestTimer';
 import { SetsList } from './SetsList';
 import type { Exercise, Set } from './types';
+import type { WeightUnit } from '@fit-nation/shared';
 
 interface ExerciseContentProps {
   exercises: Exercise[];
@@ -34,6 +35,7 @@ interface ExerciseContentProps {
   onOpenExerciseMenu: () => void;
   isAddSetLoading: boolean;
   isLogSetLoading?: boolean;
+  weightUnit: WeightUnit;
 }
 
 export function ExerciseContent({
@@ -59,6 +61,7 @@ export function ExerciseContent({
   onOpenExerciseMenu,
   isAddSetLoading,
   isLogSetLoading = false,
+  weightUnit,
 }: ExerciseContentProps) {
   const shouldReduceMotion = useReducedMotion();
   const simpleTransition = useSimpleTransition();
@@ -176,6 +179,7 @@ export function ExerciseContent({
               totalRepsTarget={currentExercise.totalRepsTarget}
               isAddSetLoading={isAddSetLoading}
               isLogSetLoading={isLogSetLoading}
+              weightUnit={weightUnit}
             />
           </motion.div>
         </AnimatePresence>

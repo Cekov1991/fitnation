@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ScrollView,
   View,
@@ -28,8 +28,15 @@ import {
   useProfile,
   useUpdateProfile,
   useDeleteAccount,
-  profileSchema,
+  useUnitSystem,
+  useWeightUnit,
+  useHeightUnit,
+  createProfileSchema,
+  UNIT_OPTIONS,
   type ProfileFormData,
+  type UnitSystem,
+  sanitizeDecimalText,
+  parseDecimalText,
 } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -121,6 +128,16 @@ export function ProfileScreen() {
   const [logoutVisible, setLogoutVisible] = useState(false)
   const [deleteVisible, setDeleteVisible] = useState(false)
 
+  // The backend converts height/weight server-side from unit_system, so these
+  // are label-only. Never convert on the client.
+  const unitSystem = useUnitSystem()
+  const weightLabel = useWeightUnit()
+  const heightLabel = useHeightUnit()
+
+  // Height and weight are validated in the unit the user is typing in, so the
+  // schema is rebuilt when the unit system changes.
+  const profileSchema = useMemo(() => createProfileSchema(unitSystem), [unitSystem])
+
   const {
     control,
     handleSubmit,
@@ -152,7 +169,9 @@ export function ProfileScreen() {
         age: profile.profile?.age || null,
         gender: profile.profile?.gender || 'other',
         height: profile.profile?.height || null,
-        weight: profile.profile?.weight ? Math.round(profile.profile.weight) : null,
+        // No rounding: imperial body weight arrives at the nearest 0.5 lb and
+        // metric is stored as decimal(5,2), so rounding here corrupts the value.
+        weight: profile.profile?.weight ?? null,
         training_experience: profile.profile?.training_experience || 'beginner',
         training_days_per_week: profile.profile?.training_days_per_week || null,
         workout_duration_minutes: profile.profile?.workout_duration_minutes || null,
@@ -169,7 +188,8 @@ export function ProfileScreen() {
         age: data.age ?? undefined,
         gender: data.gender,
         height: data.height ?? undefined,
-        weight: data.weight ? Math.round(data.weight) : undefined,
+        // Sent as-is; the backend converts from the stored unit_system.
+        weight: data.weight ?? undefined,
         training_experience: data.training_experience,
         training_days_per_week: data.training_days_per_week ?? undefined,
         workout_duration_minutes: data.workout_duration_minutes ?? undefined,
@@ -177,6 +197,19 @@ export function ProfileScreen() {
       showToast('Your profile has been updated.', 'success')
     } catch (e) {
       showToast('Failed to save profile. Please try again.', 'error')
+    }
+  }
+
+  // Sent on its own so the server re-formats the stored height/weight into the
+  // new unit; the response rewrites the ['profile'] cache, which re-seeds the
+  // form via the effect above. Known (and matching web): this discards unsaved
+  // edits, hence the isPending guard only.
+  const handleUnitToggle = async (newUnit: UnitSystem) => {
+    if (newUnit === unitSystem || updateProfile.isPending) return
+    try {
+      await updateProfile.mutateAsync({ unit_system: newUnit })
+    } catch (e) {
+      showToast('Failed to update units. Please try again.', 'error')
     }
   }
 
@@ -349,11 +382,45 @@ export function ProfileScreen() {
               </View>
             </View>
 
+            {/* Unit system toggle — deliberately outside the form: it PATCHes
+                immediately so the server can re-format height/weight. */}
+            <View className="mb-4">
+              <Text className="text-xs mb-2" style={{ color: colors.textSecondary }}>
+                Units
+              </Text>
+              <View className="flex-row gap-1">
+                {UNIT_OPTIONS.map((option) => {
+                  const selected = unitSystem === option.value
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() => handleUnitToggle(option.value)}
+                      disabled={updateProfile.isPending}
+                      className="flex-1 py-3 rounded-xl items-center"
+                      style={{
+                        backgroundColor: selected ? colors.primary : colors.bgSurface,
+                        borderWidth: 1,
+                        borderColor: selected ? colors.primary : colors.bgElevated,
+                        opacity: updateProfile.isPending ? 0.6 : 1,
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{ color: selected ? '#fff' : colors.textSecondary }}
+                      >
+                        {option.label} ({option.hint})
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </View>
+
             {/* Height + Weight row */}
             <View className="flex-row gap-4">
               <View className="flex-1">
                 <Text className="text-xs mb-2" style={{ color: colors.textSecondary }}>
-                  Height (cm)
+                  Height ({heightLabel})
                 </Text>
                 <Controller
                   control={control}
@@ -370,9 +437,10 @@ export function ProfileScreen() {
                     >
                       <Ruler size={16} color={colors.textMuted} />
                       <TextInput
+                        // Height is whole cm / whole inches, so parseInt is correct here.
                         value={value != null ? String(value) : ''}
                         onChangeText={(t) => onChange(t ? parseInt(t, 10) : null)}
-                        placeholder="175"
+                        placeholder={unitSystem === 'imperial' ? '69' : '175'}
                         placeholderTextColor={colors.textMuted}
                         keyboardType="numeric"
                         className="flex-1 ml-3 text-base py-3"
@@ -389,12 +457,12 @@ export function ProfileScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-xs mb-2" style={{ color: colors.textSecondary }}>
-                  Weight (kg)
+                  Weight ({weightLabel})
                 </Text>
                 <Controller
                   control={control}
                   name="weight"
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field: { value, onChange, onBlur: fieldOnBlur } }) => (
                     <View
                       className="flex-row items-center px-4 rounded-xl"
                       style={{
@@ -406,11 +474,23 @@ export function ProfileScreen() {
                     >
                       <Weight size={16} color={colors.textMuted} />
                       <TextInput
+                        // Holds the raw text while typing (e.g. '154.') so the
+                        // decimal point survives; profileSchema's numberCoerce
+                        // parseFloats it, so onSubmit still receives a number.
                         value={value != null ? String(value) : ''}
-                        onChangeText={(t) => onChange(t ? parseInt(t, 10) : null)}
-                        placeholder="70"
+                        onChangeText={(t) => onChange(sanitizeDecimalText(t))}
+                        // Settle to a number on blur so isDirty compares
+                        // like-for-like and '154.' tidies to '154'. fieldOnBlur
+                        // must still run: the form is mode:'onBlur', so dropping
+                        // it stopped this field validating and being marked
+                        // touched.
+                        onBlur={() => {
+                          onChange(parseDecimalText(String(value ?? '')))
+                          fieldOnBlur()
+                        }}
+                        placeholder={unitSystem === 'imperial' ? '154' : '70'}
                         placeholderTextColor={colors.textMuted}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         className="flex-1 ml-3 text-base py-3"
                         style={{ color: colors.textPrimary }}
                       />

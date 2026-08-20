@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { LoadingContent } from '../ui';
 import { RoutineWorkoutDetailPageSkeleton } from './RoutineWorkoutDetailPageSkeleton';
 import { ExerciseImage } from '../ExerciseImage';
-import { useBrowsableRoutine, useStartSession, useTodayWorkout } from '@fit-nation/shared';
+import { useBrowsableRoutine, useStartSession, useTodayWorkout, useWeightUnit } from '@fit-nation/shared';
 import { formatRepRange } from '@fit-nation/shared';
 import type { TemplateExercise } from '@fit-nation/shared';
 
@@ -18,6 +18,7 @@ export function RoutineWorkoutDetailPage({ routineId, workoutId, onBack }: Routi
   const history = useHistory();
   const startSession = useStartSession();
   const { data: todayWorkout } = useTodayWorkout();
+  const weightUnit = useWeightUnit();
 
   const {
     data: routine,
@@ -187,7 +188,7 @@ export function RoutineWorkoutDetailPage({ routineId, workoutId, onBack }: Routi
                     </p>
                     <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                       {sets} sets · {formatRepRange(minReps, maxReps)} reps
-                      {weight != null && weight > 0 ? ` · ${weight} kg` : ' · 0 kg'}
+                      {weight != null && weight > 0 ? ` · ${weight} ${weightUnit}` : ` · 0 ${weightUnit}`}
                     </p>
                   </div>
                   <ChevronRight className="w-5 h-5 flex-shrink-0 mr-3" style={{ color: 'var(--color-text-muted)' }} />

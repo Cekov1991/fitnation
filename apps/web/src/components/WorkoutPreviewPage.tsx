@@ -13,7 +13,8 @@ import {
   useRemoveSessionExercise,
   useCancelSession,
   useSession,
-  useUpdateSessionExercise
+  useUpdateSessionExercise,
+  useWeightUnit
 } from '@fit-nation/shared';
 import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '@fit-nation/shared';
 import { formatRepRange } from '@fit-nation/shared';
@@ -32,6 +33,8 @@ export function WorkoutPreviewPage() {
     location.state?.generationParams
   );
   
+  const weightUnit = useWeightUnit();
+
   const confirmDraft = useConfirmDraftSession();
   const regenerateDraft = useRegenerateDraftSession();
   const removeExercise = useRemoveSessionExercise();
@@ -110,7 +113,7 @@ export function WorkoutPreviewPage() {
     if (!selectedExercise || !sessionId) return;
 
     try {
-      const weightNum = parseFloat(weight.replace(' kg', '')) || 0;
+      const weightNum = parseFloat(weight) || 0;
 
       await updateExercise.mutateAsync({
         sessionId: Number(sessionId),
@@ -131,11 +134,6 @@ export function WorkoutPreviewPage() {
 
   const handleSwap = () => {
     setIsEditMenuOpen(false);
-    const swapOrderIndex =
-      draftSession?.exercises?.findIndex(
-        (ex: SessionExerciseDetail) =>
-          ex.session_exercise.id === selectedExercise?.session_exercise.id
-      ) ?? -1;
     const swapExercise = selectedExercise?.session_exercise.exercise;
     const primaryMuscleGroupIds = (
       swapExercise?.primary_muscle_groups?.length
@@ -143,14 +141,8 @@ export function WorkoutPreviewPage() {
         : (swapExercise?.muscle_groups ?? []).filter((g: MuscleGroupResource) => g.is_primary)
     ).map((g: MuscleGroupResource) => g.id);
     history.push(`/generate-workout/preview/${sessionId}/pick?mode=swap`, {
+      // The swap endpoint preserves the row, so no pivot data travels with it.
       swapExerciseId: selectedExercise?.session_exercise.id,
-      swapOrderIndex,
-      pivotData: {
-        target_sets: selectedExercise?.session_exercise.target_sets,
-        min_target_reps: selectedExercise?.session_exercise.min_target_reps,
-        max_target_reps: selectedExercise?.session_exercise.max_target_reps,
-        target_weight: selectedExercise?.session_exercise.target_weight
-      },
       initialMuscleGroupIds: primaryMuscleGroupIds
     });
   };
@@ -281,7 +273,7 @@ export function WorkoutPreviewPage() {
                         {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
                           <>
                             <span className="mx-1 opacity-40">×</span>
-                            <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} kg</span>
+                            <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_weight} {weightUnit}</span>
                           </>
                         )}
                       </p>
@@ -399,6 +391,7 @@ export function WorkoutPreviewPage() {
           onSave={handleSaveSetsReps} 
           isLoading={updateExercise.isPending} 
           exerciseName={selectedExercise.session_exercise.exercise?.name}
+          weightUnit={weightUnit}
         />
       )}
     </div>

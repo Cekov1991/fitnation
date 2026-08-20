@@ -8,6 +8,7 @@ import {
   useUpdateSet,
   useDeleteSet,
   useUpdateSessionExercise,
+  useWeightUnit,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -57,6 +58,8 @@ function ExercisePageComponent({
   isRemoveExerciseLoading,
 }: ExercisePageProps) {
   const { colors } = useTheme()
+  // Computed once here and passed down; the set cards/rows stay presentational.
+  const weightUnit = useWeightUnit()
   const logSet = useLogSet()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
@@ -331,6 +334,7 @@ function ExercisePageComponent({
                   onSave={handleSaveEdit}
                   onCancel={handleCancelEdit}
                   allowWeightLogging={allowWeightLogging}
+                  weightUnit={weightUnit}
                 />
               )
             }
@@ -341,6 +345,7 @@ function ExercisePageComponent({
                 weight={allowWeightLogging ? slot.weight : null}
                 reps={slot.reps}
                 allowWeightLogging={allowWeightLogging}
+                weightUnit={weightUnit}
                 onOpenMenu={() => handleOpenSetMenu(slot.setNumber)}
               />
             )
@@ -367,6 +372,7 @@ function ExercisePageComponent({
                 totalRepsPrevious={previous_sets.find(s => s.set_number === slot.setNumber)?.reps ?? null}
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!showRestTimer && !!session_exercise.rest_seconds}
+                weightUnit={weightUnit}
                 isPending={logSet.isPending}
                 onOpenMenu={
                   targetSets > 1 ? () => handleOpenSetMenu(slot.setNumber) : undefined
@@ -380,6 +386,7 @@ function ExercisePageComponent({
               key={`pending-${slot.setNumber}`}
               setNumber={slot.setNumber}
               allowWeightLogging={allowWeightLogging}
+              weightUnit={weightUnit}
               onOpenMenu={() => handleOpenSetMenu(slot.setNumber)}
             />
           )
@@ -463,7 +470,7 @@ function ExercisePageComponent({
                       {allowWeightLogging && (
                         <>
                           <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.weight}</Text>
-                          <Text style={{ fontSize: 14, color: colors.textMuted }}>kg</Text>
+                          <Text style={{ fontSize: 14, color: colors.textMuted }}>{weightUnit}</Text>
                           <Text style={{ fontSize: 14, color: colors.textMuted, marginHorizontal: 2 }}>×</Text>
                         </>
                       )}
@@ -472,7 +479,7 @@ function ExercisePageComponent({
                     </View>
                     {allowWeightLogging && (
                       <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted }}>{setVolume} kg</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted }}>{setVolume} {weightUnit}</Text>
                         <Text style={{ fontSize: 10, color: colors.textMuted }}>volume</Text>
                       </View>
                     )}
@@ -492,7 +499,7 @@ function ExercisePageComponent({
                   }}
                 >
                   <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary }}>Volume</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primary }}>{totalVolume} kg</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primary }}>{totalVolume} {weightUnit}</Text>
                 </View>
               )}
             </View>

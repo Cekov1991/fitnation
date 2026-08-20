@@ -2,6 +2,8 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'reac
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import type { WeightUnit } from '@fit-nation/shared'
+import { sanitizeDecimalText } from '@fit-nation/shared'
 
 interface SetLogCardProps {
   setNumber: number
@@ -22,6 +24,8 @@ interface SetLogCardProps {
   totalRepsPrevious?: number | null
   totalRepsTarget?: number | null
   showTimerButton?: boolean
+  /** Required so a missed call site is a compile error. */
+  weightUnit: WeightUnit
   isPending?: boolean
 }
 
@@ -47,6 +51,7 @@ export function SetLogCard({
   totalRepsPrevious,
   totalRepsTarget,
   showTimerButton = false,
+  weightUnit,
   isPending = false,
 }: SetLogCardProps) {
   const { colors } = useTheme()
@@ -140,7 +145,9 @@ export function SetLogCard({
                   padding: 0,
                 }}
                 value={weight}
-                onChangeText={onWeightChange}
+                // decimal-pad emits ',' on some locales; parseFloat('154,5') would
+                // silently truncate to 154, so normalise before it reaches state.
+                onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
                 keyboardType="decimal-pad"
                 placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
                 placeholderTextColor="rgba(255,255,255,0.5)"
@@ -153,7 +160,7 @@ export function SetLogCard({
                   marginLeft: 4,
                 }}
               >
-                kg
+                {weightUnit}
               </Text>
             </View>
             {showGoalWeightBadge && (
@@ -164,7 +171,7 @@ export function SetLogCard({
                   color: 'rgba(255,255,255,0.7)',
                 }}
               >
-                Suggested: {formatWeight(goalWeight!)} kg
+                Suggested: {formatWeight(goalWeight!)} {weightUnit}
               </Text>
             )}
           </View>

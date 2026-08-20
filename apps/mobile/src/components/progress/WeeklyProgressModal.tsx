@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { LineChart } from 'react-native-gifted-charts'
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react-native'
-import { useFitnessMetrics, useProfile } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -51,6 +51,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
   const { colors } = useTheme()
   const { data: metrics } = useFitnessMetrics()
   const { data: profileUser } = useProfile()
+  const weightUnit = useWeightUnit()
 
   const weeklyProgress = metrics?.weekly_progress
   const percentage = weeklyProgress?.percentage ?? 0
@@ -145,7 +146,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
             {formatVolume(currentWeekVolume)}
           </Text>
           <Text className="text-xs" style={{ color: colors.textSecondary }}>
-            Volume (kg)
+            Volume ({weightUnit})
           </Text>
         </InfoBlock>
         <InfoBlock style={{ flex: 1 }}>
@@ -259,7 +260,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
                 </Text>
                 <View className="flex-row items-center gap-3">
                   <Text className="text-sm" style={{ color: colors.textSecondary }}>
-                    {day.workouts > 0 ? `${formatVolumeFull(day.value)} kg` : 'Rest'}
+                    {day.workouts > 0 ? `${formatVolumeFull(day.value)} ${weightUnit}` : 'Rest'}
                   </Text>
                   {day.workouts > 0 && (
                     <View className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4ade80' }} />
@@ -282,7 +283,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               Last Week
             </Text>
             <Text className="text-sm font-bold" style={{ color: colors.textPrimary }}>
-              {formatVolumeFull(currentWeekVolume)} kg
+              {formatVolumeFull(currentWeekVolume)} {weightUnit}
             </Text>
           </View>
           <View className="flex-row items-center justify-between">
@@ -290,7 +291,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               The Week Before
             </Text>
             <Text className="text-sm font-bold" style={{ color: colors.textMuted }}>
-              {formatVolumeFull(previousWeekVolume)} kg
+              {formatVolumeFull(previousWeekVolume)} {weightUnit}
             </Text>
           </View>
           <View style={{ height: 1, backgroundColor: colors.border }} />
@@ -303,7 +304,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               style={{ color: volumeDifference >= 0 ? '#4ade80' : '#f87171' }}
             >
               {volumeDifference >= 0 ? '+' : ''}
-              {formatVolumeFull(volumeDifference)} kg ({volumeDifferencePercent >= 0 ? '+' : ''}
+              {formatVolumeFull(volumeDifference)} {weightUnit} ({volumeDifferencePercent >= 0 ? '+' : ''}
               {Math.round(volumeDifferencePercent)}%)
             </Text>
           </View>

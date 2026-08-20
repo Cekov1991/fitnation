@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
-import { useSession, useCompleteSession, useTemplate } from '@fit-nation/shared';
+import { useSession, useCompleteSession, useTemplate, useWeightUnit } from '@fit-nation/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -40,6 +40,7 @@ function calculateDuration(performedAt: string, completedAt: string | null): num
 }
 
 export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps) {
+  const weightUnit = useWeightUnit();
   const history = useHistory();
   const queryClient = useQueryClient();
   const { data: sessionData, isLoading, error } = useSession(sessionId);
@@ -515,7 +516,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                                             {formatWeight(set.weight)}
                                           </span>
                                           <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                                            kg
+                                            {weightUnit}
                                           </span>
                                         </div>
                                         <span style={{ color: 'var(--color-border)' }}>×</span>
@@ -533,7 +534,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                                   {!isBodyweightProgression && (
                                     <div className="text-right">
                                       <div className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                                        {formatWeight(volume)} kg
+                                        {formatWeight(volume)} {weightUnit}
                                       </div>
                                       <div className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
                                         volume
@@ -559,7 +560,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                                           (sum: number, s: SetLogResource) => sum + s.weight * s.reps,
                                           0
                                         )
-                                      )} kg`}
+                                      )} ${weightUnit}`}
                                 </span>
                               </div>
                             )}

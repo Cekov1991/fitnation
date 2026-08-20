@@ -17,7 +17,9 @@ import {
   useRemoveSessionExercise,
   useUpdateSessionExercise,
   useReorderSessionExercises,
+  useWeightUnit,
   formatRepRange,
+  sanitizeDecimalText,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -31,6 +33,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const { sessionId, generationParams } = route.params
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
+  const weightUnit = useWeightUnit()
 
   const { data: draftSession, isLoading, isError, refetch } = useSession(numericSessionId)
   const confirmDraft = useConfirmDraftSession()
@@ -421,7 +424,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         {se.target_weight && se.target_weight > 0 ? (
                           <>
                             <Text style={{ color: colors.textMuted }}> × </Text>
-                            <Text style={{ color: colors.primary }}>{se.target_weight} kg</Text>
+                            <Text style={{ color: colors.primary }}>{se.target_weight} {weightUnit}</Text>
                           </>
                         ) : null}
                       </Text>
@@ -494,10 +497,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </View>
                     </View>
                     <View className="mb-6">
-                      <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Weight (kg)</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Weight ({weightUnit})</Text>
                       <TextInput
                         value={editWeight}
-                        onChangeText={setEditWeight}
+                        onChangeText={(t) => setEditWeight(sanitizeDecimalText(t))}
                         keyboardType="decimal-pad"
                         style={{ backgroundColor: colors.bgElevated, borderRadius: 12, padding: 12, fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}
                       />

@@ -133,82 +133,24 @@ button, a, [role="button"], .cursor-pointer {
 }
 
 /* ============================================
-   Ionic Input Global Overrides
+   NUMBER INPUTS
    ============================================ */
 
-/* Reset IonInput wrapper to behave like a normal input */
-ion-input {
-  --background: transparent !important;
-  --color: var(--color-text-primary) !important;
-  --placeholder-color: var(--color-text-secondary) !important;
-  --padding-start: 0 !important;
-  --padding-end: 0 !important;
-  --padding-top: 0 !important;
-  --padding-bottom: 0 !important;
-  --highlight-color-focused: transparent !important;
-  --highlight-color-valid: transparent !important;
-  --highlight-color-invalid: transparent !important;
-  --border-width: 0 !important;
-  --border-color: transparent !important;
-  min-height: unset !important;
-  height: auto !important;
-  width: 100% !important;
-  display: block !important;
-}
-
-/* Reset the label container that Ionic adds */
-ion-input .input-wrapper {
-  min-height: unset !important;
-  height: auto !important;
-}
-
-/* Remove Ionic's default bottom border/highlight */
-ion-input::part(native) {
-  padding: 0 !important;
-  height: auto !important;
-  min-height: unset !important;
-}
-
-/* Style the actual native input inside IonInput */
-ion-input .native-input {
-  padding: 1rem !important;
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  color: var(--color-text-primary) !important;
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  width: 100% !important;
-  height: auto !important;
-}
-
-/* Hide Ionic's native number spinner */
-ion-input[type="number"] .native-input::-webkit-inner-spin-button,
-ion-input[type="number"] .native-input::-webkit-outer-spin-button {
+/* The spinner is noise on the weight/reps fields, which are the only number
+   inputs in the app. Kept from the old Ionic override block; everything else
+   in that block existed purely to make IonInput look like a plain input, and
+   went with it. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-ion-input[type="number"] .native-input {
+input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
-/* Workout session large inputs */
-ion-input.ionic-input-workout {
-  flex: 1;
-}
-
-ion-input.ionic-input-workout .native-input {
-  font-size: 2.25rem !important;
-  line-height: 2.5rem !important;
-  font-weight: 900 !important;
-  text-align: center !important;
-  padding: 0 !important;
-  color: white !important;
-}
-ion-input.ionic-input-workout .native-input::placeholder {
-  color: #d6d6d653 !important;
-}
 /* ============================================
    INTERACTIVE ELEMENT STYLES
    ============================================ */

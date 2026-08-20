@@ -12,7 +12,9 @@ import {
   useReorderTemplateExercises,
   useStartSession,
   useUpdateTemplateExercise,
+  useWeightUnit,
   formatRepRange,
+  sanitizeDecimalText,
 } from '@fit-nation/shared'
 import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -51,6 +53,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
   const swipeableRefs = useRef<Map<string, { close: () => void }>>(new Map())
 
   const insets = useSafeAreaInsets()
+  const weightUnit = useWeightUnit()
   const [editingItem, setEditingItem] = useState<ExerciseItem | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSets, setEditSets] = useState('3')
@@ -275,7 +278,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                 <Text style={{ color: colors.textMuted }}> × </Text>
                 <Text style={{ color: colors.primary }}>{item.reps} reps</Text>
                 <Text style={{ color: colors.textMuted }}> × </Text>
-                <Text style={{ color: colors.primary }}>{item.weight} kg</Text>
+                <Text style={{ color: colors.primary }}>{item.weight} {weightUnit}</Text>
               </Text>
             </View>
 
@@ -459,10 +462,10 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                       </View>
                     </View>
                     <View className="mb-6">
-                      <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Weight (kg)</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Weight ({weightUnit})</Text>
                       <TextInput
                         value={editWeight}
-                        onChangeText={setEditWeight}
+                        onChangeText={(t) => setEditWeight(sanitizeDecimalText(t))}
                         keyboardType="decimal-pad"
                         style={{ backgroundColor: colors.bgElevated, borderRadius: 12, padding: 12, fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}
                       />

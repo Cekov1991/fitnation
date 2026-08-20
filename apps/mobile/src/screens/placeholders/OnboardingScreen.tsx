@@ -6,8 +6,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { useMutation } from '@tanstack/react-query'
-import { profileApi, onboardingApi, plansApi } from '@fit-nation/shared'
-import type { UpdateProfileInput } from '@fit-nation/shared'
+// unitSystem here is form state, not the saved profile, so the pure label
+// helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
+import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS } from '@fit-nation/shared'
+import type { UpdateProfileInput, UnitSystem } from '@fit-nation/shared'
 import {
   Dumbbell, ArrowRight, ArrowLeft,
   HeartPulse, TrendingDown, Target,
@@ -76,7 +78,9 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
     age: user?.profile?.age ?? undefined,
     gender: user?.profile?.gender ?? undefined,
     height: user?.profile?.height ?? undefined,
-    weight: user?.profile?.weight != null ? Math.round(user.profile.weight) : undefined,
+    // No rounding: imperial body weight arrives at the nearest 0.5 lb.
+    weight: user?.profile?.weight ?? undefined,
+    unit_system: user?.profile?.unit_system ?? 'metric',
     training_experience: user?.profile?.training_experience ?? undefined,
     training_days_per_week: user?.profile?.training_days_per_week ?? undefined,
     workout_duration_minutes: user?.profile?.workout_duration_minutes ?? undefined,
@@ -84,6 +88,24 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const [phase, setPhase] = useState<Phase>('saving-profile')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const fadeAnim = useRef(new Animated.Value(1)).current
+
+  // Labels only — the API converts height/weight from the unit_system sent in
+  // the same request (see the submit payload below).
+  const unitSystem: UnitSystem = state.unit_system ?? 'metric'
+  const weightLabel = weightUnitLabel(unitSystem)
+  const heightLabel = heightUnitLabel(unitSystem)
+
+  // Weight is kept as raw text so a half-pound (e.g. '154.5') can be typed:
+  // parsing on every keystroke would erase the decimal point.
+  const [weightText, setWeightText] = useState(() =>
+    user?.profile?.weight != null ? String(user.profile.weight) : ''
+  )
+
+  function handleWeightChange(raw: string) {
+    const text = sanitizeDecimalText(raw)
+    setWeightText(text)
+    set({ weight: parseDecimalText(text) ?? undefined })
+  }
 
   const step = state.currentStep
   const isDataStep = step >= 1 && step <= 3
@@ -127,7 +149,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
   function canProceed() {
     switch (step) {
-      case 1: return !!(state.name?.trim() && state.gender && state.age && state.height && state.weight)
+      case 1: return !!(state.name?.trim() && state.gender && state.age && state.height && state.weight && state.unit_system)
       case 2: return !!state.fitness_goal
       case 3: return !!(state.training_experience && state.training_days_per_week && state.workout_duration_minutes)
       default: return true
@@ -390,24 +412,62 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                 </View>
               </View>
 
+              {/* Units — must be chosen before height/weight, since it decides
+                  how the API interprets them (same request, see submit). */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium mb-1" style={{ color: colors.textSecondary }}>
+                  Units
+                </Text>
+                <View className="flex-row gap-1.5">
+                  {UNIT_OPTIONS.map(option => {
+                    const selected = unitSystem === option.value
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => set({ unit_system: option.value })}
+                        className="flex-1 py-3 rounded-xl items-center"
+                        style={{
+                          backgroundColor: selected ? colors.primary : colors.bgElevated,
+                          borderWidth: 1.5,
+                          borderColor: selected ? colors.primary : 'transparent',
+                        }}
+                      >
+                        <Text
+                          className="text-xs font-medium"
+                          style={{ color: selected ? '#fff' : colors.textSecondary }}
+                        >
+                          {option.label}
+                        </Text>
+                        <Text
+                          className="text-xs"
+                          style={{ color: selected ? '#fff' : colors.textMuted }}
+                        >
+                          {option.hint}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              </View>
+
               {/* Height + Weight row */}
               <View className="flex-row gap-3">
                 <View style={{ flex: 1 }}>
                   <Input
-                    label="Height (cm)"
+                    label={`Height (${heightLabel})`}
                     keyboardType="numeric"
                     value={state.height?.toString() ?? ''}
                     onChangeText={v => set({ height: parseInt(v) || undefined })}
-                    placeholder="175"
+                    placeholder={unitSystem === 'imperial' ? '69' : '175'}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Input
-                    label="Weight (kg)"
-                    keyboardType="numeric"
-                    value={state.weight?.toString() ?? ''}
-                    onChangeText={v => set({ weight: parseInt(v) || undefined })}
-                    placeholder="70"
+                    label={`Weight (${weightLabel})`}
+                    keyboardType="decimal-pad"
+                    value={weightText}
+                    onChangeText={handleWeightChange}
+                    placeholder={unitSystem === 'imperial' ? '154' : '70'}
                   />
                 </View>
               </View>

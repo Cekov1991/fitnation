@@ -1,5 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import type { WeightUnit } from '@fit-nation/shared'
+import { sanitizeDecimalText } from '@fit-nation/shared'
 
 interface SetEditCardProps {
   setNumber: number
@@ -10,6 +12,8 @@ interface SetEditCardProps {
   onSave: () => void
   onCancel: () => void
   allowWeightLogging: boolean
+  /** Required so a missed call site is a compile error. */
+  weightUnit: WeightUnit
 }
 
 export function SetEditCard({
@@ -21,6 +25,7 @@ export function SetEditCard({
   onSave,
   onCancel,
   allowWeightLogging,
+  weightUnit,
 }: SetEditCardProps) {
   return (
     <LinearGradient
@@ -76,7 +81,8 @@ export function SetEditCard({
               <TextInput
                 style={{ flex: 1, color: '#fff', fontSize: 18, fontWeight: '700', padding: 0 }}
                 value={weight}
-                onChangeText={onWeightChange}
+                // See SetLogCard: normalise the locale decimal separator.
+                onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
                 keyboardType="decimal-pad"
                 placeholderTextColor="rgba(255,255,255,0.5)"
               />
@@ -88,7 +94,7 @@ export function SetEditCard({
                   marginLeft: 4,
                 }}
               >
-                kg
+                {weightUnit}
               </Text>
             </View>
           </View>
