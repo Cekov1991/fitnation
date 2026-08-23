@@ -16,6 +16,7 @@
 
     /* Path aliases */
     "paths": {
+      "@fit-nation/legal": ["../../packages/legal/src/index.ts"],
       "@fit-nation/shared": ["../../packages/shared/src/index.ts"],
       "@fit-nation/shared/*": ["../../packages/shared/src/*"]
     },
