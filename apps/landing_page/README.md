@@ -1,0 +1,115 @@
+# landing
+
+Fit Nation marketing landing page. Deployed standalone to Vercel; shares no code
+with `apps/web` or `apps/mobile`.
+
+- **Framework**: TanStack Start (SSR) on Vite 8
+- **UI**: React 19, Tailwind CSS 4, shadcn/ui (new-york), lucide icons
+- **Content**: a single route, `src/routes/index.tsx`, composed from
+  `src/components/landing/*`. Copy, store links and feature blurbs live in
+  `src/components/landing/data.ts`.
+
+## Commands
+
+Run from this directory, or from the repo root with the `--filter` form:
+
+```bash
+pnpm dev          # or: pnpm --filter landing dev      (root)
+pnpm build        # or: pnpm --filter landing build    (root)
+pnpm preview      # serve the production build
+pnpm typecheck
+pnpm lint
+pnpm format
+```
+
+Dependencies are installed from the repo root — this is a pnpm workspace package.
+Run `pnpm install` at the root, not here.
+
+## Deploying to Vercel
+
+The build is fully static — every route is prerendered to HTML at build time and
+`dist/client` is served as a plain static directory. No serverless function, no
+SSR at runtime, no cold starts.
+
+Create a Vercel project pointing at this repo with:
+
+| Setting          | Value                                                 |
+| ---------------- | ----------------------------------------------------- |
+| Root Directory   | `apps/landing_page`                                   |
+| Framework Preset | Other                                                 |
+| Install Command  | _(default)_ — Vercel installs from the workspace root |
+| Build Command    | `pnpm build`                                          |
+| Output Directory | `dist/client`                                         |
+
+There is deliberately no `vercel.json` here. The one at `front-end/` is the SPA
+rewrite for `apps/web`; it does not apply (Vercel reads `vercel.json` from the
+Root Directory only) and must not be copied in — it would rewrite every URL to
+`/index.html` and return 200 for pages that should 404.
+
+To check a build the way Vercel serves it:
+
+```bash
+pnpm build
+cd dist/client && python3 -m http.server 4455
+```
+
+`/` should be ~36KB of fully rendered HTML. See `CLAUDE.md` for what to verify
+and for the constraints that come with a static build — notably that server
+functions and request-time data are unavailable.
+
+## Legal pages
+
+`/privacy` and `/terms` render from `packages/legal`, the shared source of truth
+for the legal text (also used by `apps/web`). Edit the markdown there, then run
+`pnpm legal:build` from the repo root and commit the regenerated output. There is
+no copy of the legal text in this app.
+
+## Crawlers and AI agents
+
+Served from `https://joinfitnation.com`. The site is open to all crawlers,
+including AI ones — assistant answers are a discovery channel for a consumer app.
+
+- `public/robots.txt` — allows everything, names the AI user-agents explicitly,
+  and carries a Cloudflare `Content-Signal:` line granting `search`, `ai-input`
+  and `ai-train`.
+- `public/llms.txt` — factual plain-language summary for assistants to quote.
+  Keep it in sync with `src/components/landing/data.ts`.
+- `sitemap.xml` — generated at build time from the prerendered routes, so it
+  stays correct as pages are added. Host comes from `sitemap.host` in
+  `vite.config.ts`.
+
+`SITE_URL` in `data.ts` is the canonical origin and feeds `canonical` and
+`og:url`. See `CLAUDE.md` for the details, and for one known gap: there is no
+`og:image` yet, so shared links render without a preview image.
+
+## Notes on the Lovable origin
+
+This app was scaffolded by [Lovable](https://lovable.dev) and has since been
+absorbed into the monorepo. It no longer depends on Lovable at build or run
+time. Four things changed in the process, worth knowing if you compare against
+a Lovable-generated project:
+
+1. **Images are vendored.** Lovable stored assets as `*.asset.json` stubs whose
+   `url` pointed at `/__l5e/assets-v1/…`, a path served only by Lovable's own
+   hosting — the dev-only proxy plugin never emitted anything into the build, so
+   every image would have 404'd on Vercel. The nine images now live in
+   `src/assets/` as real files and are imported normally.
+
+2. **The Vite config is plain.** The `@lovable.dev/vite-tanstack-config` wrapper
+   was inlined into `vite.config.ts`. It bundled sandbox-only concerns (dev
+   server bridge, HMR gate, error telemetry, port pinning) and pinned Cloudflare
+   as the fallback Nitro preset. The remaining plugins and the `resolve.dedupe`
+   list are carried over verbatim; CSS output is byte-identical.
+
+3. **`src/server.ts` was removed.** That file was registered as the server entry
+   yet dynamically imported `@tanstack/react-start/server-entry` — itself. The
+   resulting ESM cycle put the Rolldown runtime helpers in a chunk that imported
+   back from the main server chunk, so SSR crashed on load with `__exportAll is
+not a function` and every request returned 500. This reproduced on a pristine
+   Lovable checkout, so the app could never have deployed.
+
+4. **The build is prerendered, not SSR.** Lovable's setup shipped a Nitro
+   serverless function that re-rendered identical HTML on every request. Since
+   nothing here is dynamic, pages are now rendered once at build time and Nitro
+   was dropped entirely. `CLAUDE.md` covers how to add a page, and how to get SSR
+   back if a real server need ever appears.

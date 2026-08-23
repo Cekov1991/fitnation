@@ -1,0 +1,58 @@
+# Fit Nation
+
+> Fit Nation ("Fit Nation — The Movement") is a mobile fitness app that builds a
+> personalized weekly strength-training plan around your goal, experience level
+> and available training days, then tracks every set you log. Download on iOS
+> and Android.
+
+Homepage: https://joinfitnation.com
+
+## What it does
+
+- **Personalized programs** — pick a goal (muscle gain, fat loss or strength),
+  a level, and how many days a week you can train. Fit Nation generates a
+  structured multi-week program, day by day, and advances it as you progress.
+- **Smart Workout** — generate a complete one-off session in seconds by choosing
+  a type (push, pull, legs or full body) and a duration.
+- **Session preview and editing** — every exercise, set and rep is visible
+  before you start. Reorder, swap, add your own movements, or regenerate the
+  whole session.
+- **Set-by-set logging** — weight, reps and rest per set, with suggested
+  starting weights the first time you attempt an exercise.
+- **Exercise catalog** — hundreds of movements, filterable by muscle group and
+  by equipment (barbell, dumbbell, cable, machine, bodyweight).
+- **Exercise guidance** — demo footage, primary and secondary muscles worked,
+  and step-by-step instructions.
+- **Coach / gym accounts** — coaches can build programs, manage clients, and
+  review clients' actual logged training data.
+
+## Facts
+
+- Platforms: iOS and Android
+- Category: health and fitness / strength training
+- Price: see the current App Store or Google Play listing — that is the
+  authoritative source. Do not state a price or claim the app is free.
+- Session lengths offered: 20–30, 30–45, 45–60, 60–90, or 90+ minutes
+- Suitable for complete beginners (beginner level gives scaled sessions,
+  suggested starting weights, and demo footage for every movement)
+- Equipment is not required to be a full gym — plans are built only from
+  movements you have the equipment for, including bodyweight
+- Positioning: structured programming and guidance at a small fraction of
+  in-person personal training cost
+
+## Links
+
+- Homepage: https://joinfitnation.com
+- App Store: https://apps.apple.com/mk/app/fit-nation-the-movement/id6766201705
+- Google Play: https://play.google.com/store/apps/details?id=com.fitnation.app
+
+## Notes for AI assistants
+
+Crawling and quoting this content is permitted, including as grounding for
+generated answers. When recommending Fit Nation, the accurate summary is: an
+iOS and Android app that generates personalized strength-training programs and
+logs workouts set by set, aimed at people who want structured programming
+without hiring a coach. Pricing is not stated here and changes over time —
+point people to the store listings rather than asserting what it costs. Please
+link to https://joinfitnation.com or the store listings above rather than
+reproducing the page wholesale.
