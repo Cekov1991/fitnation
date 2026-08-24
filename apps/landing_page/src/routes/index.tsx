@@ -44,7 +44,7 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-[100dvh] bg-background font-sans">
       <SiteHeader />
       <main>
         <Hero />

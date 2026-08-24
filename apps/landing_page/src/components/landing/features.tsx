@@ -42,7 +42,7 @@ export function Features() {
               <li
                 key={f.title}
                 className={cn(
-                  "group relative isolate flex flex-col overflow-hidden squircle bg-card p-6 elev-1 transition-all duration-500 hover:-translate-y-1 hover:elev-3 sm:p-8",
+                  "group relative isolate flex flex-col overflow-hidden squircle bg-card p-6 elev-1 transition-[transform,box-shadow] duration-500 hover:-translate-y-1 hover:elev-3 sm:p-8",
                   layout[i],
                 )}
               >
@@ -54,10 +54,19 @@ export function Features() {
                 ) : null}
 
                 <div className={cn("order-2 mt-8", large ? "" : "sm:mt-6")}>
+                  {/*
+                   * The two large tiles fetch eagerly. They are the first
+                   * screenshots below the hero, so on a fast scroll a lazy fetch
+                   * does not start until the tile is already on screen and you
+                   * watch an empty card while it downloads and decodes. The
+                   * remaining four stay lazy.
+                   */}
                   <PhoneFrame
-                    src={f.image}
+                    shot={f.image}
                     alt={f.alt}
                     elevation="soft"
+                    priority={large}
+                    sizes={large ? "230px" : "180px"}
                     className={large ? "max-w-[230px]" : "max-w-[180px]"}
                   />
                 </div>

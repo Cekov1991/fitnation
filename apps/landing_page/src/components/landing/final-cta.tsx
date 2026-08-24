@@ -36,6 +36,8 @@ export function SiteFooter() {
               <img
                 src={logoUrl}
                 alt=""
+                width={36}
+                height={36}
                 className="size-9 shrink-0 rounded-full"
                 aria-hidden="true"
               />

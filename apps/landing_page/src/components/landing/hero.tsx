@@ -3,7 +3,7 @@ import { Clock, LineChart, Sparkles } from "lucide-react";
 import { PhoneFrame } from "./phone-frame";
 import { StoreBadges } from "./store-badges";
 import { Glow } from "./glow";
-import { features, heroShotUrl } from "./data";
+import { features, heroShot } from "./data";
 
 const catalogShot = features[4];
 const smartShot = features[1];
@@ -54,27 +54,30 @@ export function Hero() {
           <div className="relative flex items-end justify-center">
             <div className="hidden w-[30%] -rotate-[9deg] translate-x-6 translate-y-6 opacity-90 sm:block">
               <PhoneFrame
-                src={catalogShot!.image}
+                shot={catalogShot!.image}
                 alt={catalogShot!.alt}
                 elevation="soft"
+                sizes="269px"
                 className="max-w-none"
               />
             </div>
 
             <div className="relative z-10 w-[78%] max-w-[290px] sm:w-[36%] sm:max-w-none">
               <PhoneFrame
-                src={heroShotUrl}
+                shot={heroShot}
                 alt="Fit Nation dashboard showing a personalized weekly training program"
                 priority
+                sizes="(min-width: 640px) 322px, min(78vw, 290px)"
                 className="max-w-none"
               />
             </div>
 
             <div className="hidden w-[30%] -translate-x-6 translate-y-6 rotate-[9deg] sm:block">
               <PhoneFrame
-                src={smartShot!.image}
+                shot={smartShot!.image}
                 alt={smartShot!.alt}
                 elevation="soft"
+                sizes="269px"
                 className="max-w-none"
               />
             </div>

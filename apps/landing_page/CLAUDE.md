@@ -75,6 +75,31 @@ Copy, store links, and the feature list are in
 `src/components/landing/data.ts`. Prefer editing that over the section
 components in `src/components/landing/`.
 
+## Images
+
+Screenshots ship as **WebP derivatives, generated and committed** — not as the
+masters. Masters live in `src/assets/originals/` and are imported by nothing, so
+Vite never emits them.
+
+```bash
+pnpm images   # regenerate src/assets/*.webp from src/assets/originals/
+```
+
+Run it after adding or replacing a screenshot, and commit both the master and the
+derivatives. The script throws if it finds a master it has no entry for, so a new
+file cannot silently go unprocessed — wire it into `SHOTS` or `BADGES` in
+`scripts/optimize-images.mjs`. It needs `cwebp` (`brew install webp`); it is a
+maintenance step, not part of `pnpm build`, so CI never runs it.
+
+Consumers get a `Shot` (`src`, `srcSet`, `width`, `height`) from
+`src/components/landing/data.ts`, and `PhoneFrame` requires an explicit `sizes`
+matching the slot's `max-w-*`. A `sizes` that overstates the slot makes every
+device pull the 720w variant, which defeats the srcset.
+
+**Do not drop `width`/`height` or `h-auto` from those `<img>`s.** The dimensions
+reserve the box so a lazy tile is not zero-high, and `h-auto` is what stops the
+height attribute being taken as a literal 1560px.
+
 ## Legal pages
 
 `/privacy` and `/terms` render from **`packages/legal`**, which is the single

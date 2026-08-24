@@ -1,10 +1,50 @@
-import dashboard from "@/assets/dashboard.jpeg";
-import smartWorkout from "@/assets/smart-workout.jpeg";
-import workoutPreview from "@/assets/workout-preview.jpeg";
-import logging from "@/assets/logging.jpeg";
-import catalog from "@/assets/catalog.jpeg";
-import guidance from "@/assets/guidance.jpeg";
+import dashboard360 from "@/assets/dashboard-360.webp";
+import dashboard720 from "@/assets/dashboard-720.webp";
+import smartWorkout360 from "@/assets/smart-workout-360.webp";
+import smartWorkout720 from "@/assets/smart-workout-720.webp";
+import workoutPreview360 from "@/assets/workout-preview-360.webp";
+import workoutPreview720 from "@/assets/workout-preview-720.webp";
+import logging360 from "@/assets/logging-360.webp";
+import logging720 from "@/assets/logging-720.webp";
+import catalog360 from "@/assets/catalog-360.webp";
+import catalog720 from "@/assets/catalog-720.webp";
+import guidance360 from "@/assets/guidance-360.webp";
+import guidance720 from "@/assets/guidance-720.webp";
 import icon from "@/assets/fitnation-icon.png";
+
+/**
+ * A phone screenshot in the two widths `scripts/optimize-images.mjs` emits.
+ * Masters live in `src/assets/originals/` and are not imported anywhere, so
+ * they never reach the bundle — run `pnpm images` after changing one.
+ */
+export type Shot = {
+  /** Largest variant. Also the fallback for anything ignoring srcSet. */
+  src: string;
+  srcSet: string;
+  width: number;
+  height: number;
+};
+
+// Every master shares the same aspect within a rounding error, so the encoder
+// forces one exact size for all of them. Consumers need these on the <img> to
+// reserve the box before the bytes land — without them a lazy tile is zero-high
+// and the page reflows as each one decodes.
+const SHOT_WIDTH = 720;
+const SHOT_HEIGHT = 1560;
+
+const shot = (w360: string, w720: string): Shot => ({
+  src: w720,
+  srcSet: `${w360} 360w, ${w720} 720w`,
+  width: SHOT_WIDTH,
+  height: SHOT_HEIGHT,
+});
+
+const dashboard = shot(dashboard360, dashboard720);
+const smartWorkout = shot(smartWorkout360, smartWorkout720);
+const workoutPreview = shot(workoutPreview360, workoutPreview720);
+const logging = shot(logging360, logging720);
+const catalog = shot(catalog360, catalog720);
+const guidance = shot(guidance360, guidance720);
 
 // Canonical origin, no trailing slash. Used for canonical/og:url and anywhere
 // else an absolute URL is required. Keep in sync with `sitemap.host` in
@@ -15,7 +55,7 @@ export const APP_STORE_URL = "https://apps.apple.com/mk/app/fit-nation-the-movem
 export const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.fitnation.app";
 
 export const logoUrl = icon;
-export const heroShotUrl = dashboard;
+export const heroShot = dashboard;
 
 export const features = [
   {
