@@ -70,7 +70,7 @@ function Blocks({ blocks }: { blocks: LegalBlock[] }) {
 
 export function LegalPage({ doc }: { doc: LegalDocument }) {
   return (
-    <div className="min-h-screen bg-background font-sans text-muted-foreground">
+    <div className="min-h-[100dvh] bg-background font-sans text-muted-foreground">
       <header className="sticky top-0 z-30 border-b border-navy/[0.08] bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5">

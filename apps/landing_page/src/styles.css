@@ -106,7 +106,11 @@
   --radius-squircle: 2rem;
   --radius-squircle-lg: 2.5rem;
   --glass-light: oklch(1 0 0 / 0.62);
-  --glass-dark: oklch(0.33 0.055 245 / 0.42);
+  --glass-dark: oklch(0.33 0.055 245 / 0.6);
+  /* Opaque, not translucent. Without a backdrop-filter to smear it, even 8%
+   * transparency lets the navy section headings read straight through the
+   * header pill as it scrolls over them. */
+  --glass-solid: oklch(1 0 0);
   --shadow-elev-1:
     0 1px 2px oklch(0.33 0.055 245 / 0.05), 0 8px 24px -12px oklch(0.33 0.055 245 / 0.18);
   --shadow-elev-2:
@@ -114,8 +118,30 @@
   --shadow-elev-3:
     0 4px 8px oklch(0.33 0.055 245 / 0.06), 0 48px 100px -40px oklch(0.33 0.055 245 / 0.42);
   --shadow-glass: inset 0 1px 0 oklch(1 0 0 / 0.5), 0 24px 60px -30px oklch(0.33 0.055 245 / 0.35);
-  --glow-blue: radial-gradient(closest-side, oklch(0.7 0.117 205 / 0.5), transparent 72%);
-  --glow-orange: radial-gradient(closest-side, oklch(0.7 0.183 42 / 0.42), transparent 72%);
+  /*
+   * Multi-stop falloff that approximates a Gaussian. These used to be two-stop
+   * gradients softened by `blur-3xl` (filter: blur(64px)) on the element — ten
+   * of those on the page, each a full-size offscreen buffer re-blurred on paint.
+   * The stops do the same job in the rasterizer for free. Keep them extending
+   * to 100%: the removed blur used to bleed the glow past the element box, and
+   * the wider ramp is what recovers that spread.
+   */
+  --glow-blue: radial-gradient(
+    closest-side,
+    oklch(0.7 0.117 205 / 0.46) 0%,
+    oklch(0.7 0.117 205 / 0.39) 25%,
+    oklch(0.7 0.117 205 / 0.25) 50%,
+    oklch(0.7 0.117 205 / 0.1) 75%,
+    transparent 100%
+  );
+  --glow-orange: radial-gradient(
+    closest-side,
+    oklch(0.7 0.183 42 / 0.38) 0%,
+    oklch(0.7 0.183 42 / 0.32) 25%,
+    oklch(0.7 0.183 42 / 0.21) 50%,
+    oklch(0.7 0.183 42 / 0.085) 75%,
+    transparent 100%
+  );
 
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -181,7 +207,6 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     overflow-x: hidden;
-    text-rendering: optimizeLegibility;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -245,12 +270,27 @@
   box-shadow: var(--shadow-glass);
 }
 
+/*
+ * No backdrop-filter here on purpose. These cards sit on `bg-navy` and are
+ * themselves navy, so the blur was only ever softening the glows bleeding
+ * through — six live blur layers for an effect the raised alpha reproduces.
+ */
 @utility glass-dark {
   background-color: var(--glass-dark);
-  backdrop-filter: blur(24px) saturate(180%);
   box-shadow:
     inset 0 1px 0 oklch(1 0 0 / 0.12),
     0 24px 60px -30px oklch(0 0 0 / 0.5);
+}
+
+/*
+ * For surfaces that overlay *scrolling* content — the sticky header, the mobile
+ * nav sheet. A sticky backdrop-filter is re-sampled and re-blurred every scroll
+ * frame, which is the single most expensive thing on this page. Near-opaque
+ * white hides what passes underneath without a compositor pass.
+ */
+@utility glass-solid {
+  background-color: var(--glass-solid);
+  box-shadow: var(--shadow-glass);
 }
 
 @utility glow-blue {

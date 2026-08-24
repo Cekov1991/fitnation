@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
-import appStoreBadge from "@/assets/app-store-badge.png";
-import googlePlayBadge from "@/assets/google-play-badge.png";
+import appStoreBadge from "@/assets/app-store-badge-420.webp";
+import googlePlayBadge from "@/assets/google-play-badge-420.webp";
 import { APP_STORE_URL, PLAY_STORE_URL } from "./data";
 
 export function StoreBadges({ className }: { className?: string }) {
@@ -26,8 +26,8 @@ export function StoreBadges({ className }: { className?: string }) {
         <img
           src={appStoreBadge}
           alt="Download on the App Store"
-          width={800}
-          height={240}
+          width={420}
+          height={126}
           className={img}
           loading="lazy"
         />
@@ -42,8 +42,8 @@ export function StoreBadges({ className }: { className?: string }) {
         <img
           src={googlePlayBadge}
           alt="Get it on Google Play"
-          width={800}
-          height={240}
+          width={420}
+          height={126}
           className={img}
           loading="lazy"
         />
