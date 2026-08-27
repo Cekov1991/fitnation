@@ -1,7 +1,25 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, type ViewStyle } from 'react-native'
 import { MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import type { AppColors } from '../../constants/theme'
 import type { WeightUnit } from '@fit-nation/shared'
+
+/**
+ * Logged and pending sets share one shell. A logged set is distinguished by
+ * carrying real values where a pending one shows placeholders — it does not
+ * also need its own colour.
+ */
+const rowShell = (colors: AppColors): ViewStyle => ({
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 16,
+  paddingVertical: 14,
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: colors.borderSubtle,
+  backgroundColor: colors.bgElevated,
+})
 
 interface CompletedSetRowProps {
   setNumber: number
@@ -28,19 +46,7 @@ export function CompletedSetRow({
   const { colors } = useTheme()
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderRadius: 14,
-        borderWidth: 2,
-        borderColor: colors.success,
-        backgroundColor: `${colors.success}0D`,
-      }}
-    >
+    <View style={rowShell(colors)}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, flex: 1 }}>
         <Text
           style={{
@@ -102,19 +108,7 @@ export function PendingSetRow({
   const { colors } = useTheme()
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: colors.borderSubtle,
-        backgroundColor: colors.bgElevated,
-      }}
-    >
+    <View style={rowShell(colors)}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, flex: 1 }}>
         <Text
           style={{

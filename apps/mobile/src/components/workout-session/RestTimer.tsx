@@ -148,7 +148,7 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
                 cx={SIZE / 2}
                 cy={SIZE / 2}
                 r={RADIUS}
-                stroke="rgba(255,255,255,0.25)"
+                stroke={`${colors.textButton}40`}
                 strokeWidth={STROKE}
                 fill="none"
               />
@@ -157,14 +157,14 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
                 cx={SIZE / 2}
                 cy={SIZE / 2}
                 r={RADIUS}
-                stroke="#fff"
+                stroke={colors.textButton}
                 strokeWidth={STROKE}
                 fill="none"
                 strokeDasharray={CIRCUMFERENCE}
                 strokeLinecap="round"
               />
             </Svg>
-            <Timer size={20} color="#fff" />
+            <Timer size={20} color={colors.textButton} />
           </View>
 
           {/* Label + countdown */}
@@ -173,7 +173,7 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
               style={{
                 fontSize: 10,
                 fontWeight: '700',
-                color: 'rgba(255,255,255,0.75)',
+                color: `${colors.textButton}BF`,
                 letterSpacing: 1.2,
               }}
             >
@@ -187,7 +187,7 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
               style={{
                 fontSize: 26,
                 fontWeight: '700',
-                color: '#fff',
+                color: colors.textButton,
                 letterSpacing: 1,
                 padding: 0,
                 margin: 0,
@@ -207,10 +207,10 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
               borderRadius: 10,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              backgroundColor: `${colors.textButton}2E`,
             }}
           >
-            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>-15s</Text>
+            <Text style={{ color: colors.textButton, fontSize: 11, fontWeight: '700' }}>-15s</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => addTime(15)}
@@ -221,10 +221,10 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
               borderRadius: 10,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              backgroundColor: `${colors.textButton}2E`,
             }}
           >
-            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>+15s</Text>
+            <Text style={{ color: colors.textButton, fontSize: 11, fontWeight: '700' }}>+15s</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onSkip}
@@ -235,11 +235,11 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
               borderRadius: 10,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              backgroundColor: `${colors.textButton}2E`,
               marginLeft: 4,
             }}
           >
-            <X size={16} color="#fff" />
+            <X size={16} color={colors.textButton} />
           </TouchableOpacity>
         </View>
       </View>
