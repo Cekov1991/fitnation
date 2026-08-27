@@ -1,8 +1,8 @@
-import { memo, useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
-import { Plus } from 'lucide-react-native'
+import { ArrowRight, Plus } from 'lucide-react-native'
 import {
   useLogSet,
   useUpdateSet,
@@ -12,20 +12,24 @@ import {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
-import { ExerciseVideoCard } from './ExerciseVideoCard'
+import { ExerciseHeader } from './ExerciseHeader'
 import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
-import { RestTimer } from './RestTimer'
 import { SetOptionsMenu } from './SetOptionsMenu'
 import { ExerciseOptionsMenu } from './ExerciseOptionsMenu'
+import { isExerciseComplete } from './progress'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
 const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT', 'TRX']
 
-// Tracks which session_exercise ids have had a background default-patch attempted
-// this app session, so PagerView remounts don't re-fire it.
+// Tracks which session_exercise ids have had a background default-patch
+// attempted this app session, so remounts don't re-fire it. Note this page now
+// remounts on every exercise switch (one page is rendered at a time), so the
+// guard is what keeps a PATCH from firing each time the user flips between two
+// exercises. It records *attempts*, so a failed patch is never retried — see
+// docs/specs/0007-default-target-autopatch-never-retries.md.
 const autoFixedSessionExerciseIds = new Set<number>()
 
 const DEFAULT_SETS = 3
@@ -35,8 +39,16 @@ const DEFAULT_MAX_REPS = 12
 interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
   sessionId: number
-  exerciseCount: number
-  isActive: boolean
+  canRemoveExercise: boolean
+  /** Draft set input, owned by the screen so it survives an exercise switch. */
+  logWeight: string
+  logReps: string
+  onLogWeightChange: (v: string) => void
+  onLogRepsChange: (v: string) => void
+  /** The rest timer lives above this page so it outlives an exercise switch. */
+  isRestRunning: boolean
+  onStartRest: (seconds: number) => void
+  onNext?: () => void
   onView: () => void
   onSwap: () => void
   onRemoveExercise: () => void
@@ -47,11 +59,17 @@ type SetSlot =
   | { kind: 'completed'; setNumber: number; logId: number; weight: number; reps: number }
   | { kind: 'pending'; setNumber: number }
 
-function ExercisePageComponent({
+export function ExercisePage({
   exerciseDetail,
   sessionId,
-  exerciseCount,
-  isActive,
+  canRemoveExercise,
+  logWeight,
+  logReps,
+  onLogWeightChange,
+  onLogRepsChange,
+  isRestRunning,
+  onStartRest,
+  onNext,
   onView,
   onSwap,
   onRemoveExercise,
@@ -64,12 +82,6 @@ function ExercisePageComponent({
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
   const updateSessionExercise = useUpdateSessionExercise()
-
-  const [showRestTimer, setShowRestTimer] = useState(false)
-  const [restSeconds, setRestSeconds] = useState(0)
-
-  const [logWeight, setLogWeight] = useState('')
-  const [logReps, setLogReps] = useState('')
 
   const [editingLogId, setEditingLogId] = useState<number | null>(null)
   const [editWeight, setEditWeight] = useState('')
@@ -126,6 +138,8 @@ function ExercisePageComponent({
     deleteSet.isPending ||
     updateSessionExercise.isPending
 
+  const isComplete = isExerciseComplete(exerciseDetail)
+
   // Silently patch missing targets on the server the first time we see them.
   // The UI always uses the defaults above so this never blocks interaction.
   const hasMissingTargets =
@@ -169,11 +183,10 @@ function ExercisePageComponent({
         },
       })
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      setLogWeight('')
-      setLogReps('')
+      onLogWeightChange('')
+      onLogRepsChange('')
       if (session_exercise.rest_seconds && session_exercise.rest_seconds > 0) {
-        setRestSeconds(session_exercise.rest_seconds)
-        setShowRestTimer(true)
+        onStartRest(session_exercise.rest_seconds)
       }
     } catch (err) {
       console.error('Log set failed:', err)
@@ -188,12 +201,14 @@ function ExercisePageComponent({
     logSet,
     sessionId,
     session_exercise,
+    onLogWeightChange,
+    onLogRepsChange,
+    onStartRest,
   ])
 
   const handleStartTimer = () => {
     if (session_exercise.rest_seconds && session_exercise.rest_seconds > 0) {
-      setRestSeconds(session_exercise.rest_seconds)
-      setShowRestTimer(true)
+      onStartRest(session_exercise.rest_seconds)
     }
   }
 
@@ -274,8 +289,6 @@ function ExercisePageComponent({
     }
   }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
 
-  // On Android the OS handles keyboard insets via adjustResize; KAV adds a
-  // redundant layout pass that causes double-jank on keyboard open/close.
   const content = (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgBase }}
@@ -283,13 +296,11 @@ function ExercisePageComponent({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Hero card */}
-      <ExerciseVideoCard
+      {/* Header */}
+      <ExerciseHeader
         name={exercise?.name ?? 'Exercise'}
         muscleGroup={primaryMuscle}
         imageUrl={exercise?.image}
-        videoUrl={exercise?.video}
-        isActive={isActive}
         onOpenMenu={() => setShowExerciseMenu(true)}
         onView={onView}
       />
@@ -303,17 +314,6 @@ function ExercisePageComponent({
             progressionMode={progressionMode}
             totalRepsPrevious={session_exercise.total_reps_previous}
             totalRepsTarget={session_exercise.total_reps_target}
-          />
-        </View>
-      )}
-
-      {/* Rest timer */}
-      {showRestTimer && (
-        <View style={{ marginTop: 12 }}>
-          <RestTimer
-            seconds={restSeconds}
-            onComplete={() => setShowRestTimer(false)}
-            onSkip={() => setShowRestTimer(false)}
           />
         </View>
       )}
@@ -359,8 +359,8 @@ function ExercisePageComponent({
                 setNumber={slot.setNumber}
                 weight={logWeight}
                 reps={logReps}
-                onWeightChange={setLogWeight}
-                onRepsChange={setLogReps}
+                onWeightChange={onLogWeightChange}
+                onRepsChange={onLogRepsChange}
                 onLog={handleLog}
                 onStartTimer={handleStartTimer}
                 defaultWeight={defaultWeight}
@@ -371,7 +371,7 @@ function ExercisePageComponent({
                 goalWeight={session_exercise.target_weight}
                 totalRepsPrevious={previous_sets.find(s => s.set_number === slot.setNumber)?.reps ?? null}
                 totalRepsTarget={session_exercise.total_reps_target}
-                showTimerButton={!showRestTimer && !!session_exercise.rest_seconds}
+                showTimerButton={!isRestRunning && !!session_exercise.rest_seconds}
                 weightUnit={weightUnit}
                 isPending={logSet.isPending}
                 onOpenMenu={
@@ -419,6 +419,37 @@ function ExercisePageComponent({
             <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '700' }}>
               {updateSessionExercise.isPending ? 'Adding...' : 'Add Set'}
             </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Next exercise — tabs are the only other way to move, so the linear
+            case gets a button. Filled once this exercise is done. */}
+        {onNext && !editingLogId && (
+          <TouchableOpacity
+            onPress={onNext}
+            activeOpacity={0.75}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: 16,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: isComplete ? colors.success : colors.borderSubtle,
+              backgroundColor: isComplete ? colors.success : colors.bgSurface,
+            }}
+          >
+            <Text
+              style={{
+                color: isComplete ? colors.textButton : colors.textSecondary,
+                fontSize: 14,
+                fontWeight: '700',
+              }}
+            >
+              Next Exercise
+            </Text>
+            <ArrowRight size={18} color={isComplete ? colors.textButton : colors.textSecondary} />
           </TouchableOpacity>
         )}
 
@@ -532,17 +563,19 @@ function ExercisePageComponent({
           setShowExerciseMenu(false)
           onRemoveExercise()
         }}
-        canRemove={exerciseCount > 1}
+        canRemove={canRemoveExercise}
         isRemoveLoading={isRemoveExerciseLoading}
       />
     </ScrollView>
   )
 
+  // keyboard-controller's KAV on both platforms, deliberately: 341b495 replaced
+  // the old `Platform.OS === 'ios' ? KAV : content` split because edge-to-edge
+  // (app.json `edgeToEdgeEnabled`) stops adjustResize from resizing the window,
+  // so Android has nothing insetting the ScrollView without it.
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       {content}
     </KeyboardAvoidingView>
   )
 }
-
-export const ExercisePage = memo(ExercisePageComponent)

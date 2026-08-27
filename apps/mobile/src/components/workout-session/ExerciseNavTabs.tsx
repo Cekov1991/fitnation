@@ -1,8 +1,9 @@
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { FlatList, View, Text, TouchableOpacity } from 'react-native'
 import { Image } from 'expo-image'
 import { Check, Plus } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import { countCompletedSlots, isExerciseComplete } from './progress'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
 interface ExerciseNavTabsProps {
@@ -26,19 +27,7 @@ interface AddItem {
 
 type ListItem = TabItem | AddItem
 
-// Count only the slots (1..target) that have a matching log — mirrors the
-// slot computation in ExercisePage so the nav tab and the set list agree.
-function countCompletedSlots(
-  loggedSets: SessionExerciseDetail['logged_sets'] | undefined,
-  target: number,
-): number {
-  if (target === 0) return 0
-  let count = 0
-  for (let n = 1; n <= target; n++) {
-    if (loggedSets?.some(l => l.set_number === n)) count++
-  }
-  return count
-}
+const THUMB = 56
 
 function ExerciseNavTabsComponent({
   exercises,
@@ -49,18 +38,27 @@ function ExerciseNavTabsComponent({
   const { colors } = useTheme()
   const flatListRef = useRef<FlatList<ListItem>>(null)
 
+  // Tabs are the only way to switch exercise, so the active one has to be
+  // brought into view however the index changed — tap, removal, clamp or
+  // auto-advance. Scrolling only from the tab's own onPress would leave the
+  // active tab offscreen for every programmatic change.
+  useEffect(() => {
+    if (currentIndex < 0 || currentIndex >= exercises.length) return
+    flatListRef.current?.scrollToIndex({
+      index: currentIndex,
+      animated: true,
+      viewPosition: 0.5,
+    })
+  }, [currentIndex, exercises.length])
+
   const data: ListItem[] = [
-    ...exercises.map((detail, index): TabItem => {
-      const target = detail.session_exercise.target_sets ?? 0
-      const logged = countCompletedSlots(detail.logged_sets, target)
-      return {
-        type: 'exercise',
-        detail,
-        index,
-        isActive: index === currentIndex,
-        isComplete: target > 0 && logged >= target,
-      }
-    }),
+    ...exercises.map((detail, index): TabItem => ({
+      type: 'exercise',
+      detail,
+      index,
+      isActive: index === currentIndex,
+      isComplete: isExerciseComplete(detail),
+    })),
     { type: 'add' },
   ]
 
@@ -82,13 +80,12 @@ function ExerciseNavTabsComponent({
               justifyContent: 'center',
               gap: 8,
               paddingHorizontal: 16,
-              paddingVertical: 12,
-              borderRadius: 12,
+              borderRadius: 14,
               borderWidth: 2,
               borderStyle: 'dashed',
               borderColor: colors.border,
               backgroundColor: colors.bgSurface,
-              minWidth: 140,
+              minWidth: 150,
             }}
           >
             <Plus size={18} color={colors.primary} />
@@ -105,14 +102,18 @@ function ExerciseNavTabsComponent({
       const logged = countCompletedSlots(detail.logged_sets, target)
       const exerciseName = sessionEx.exercise?.name ?? `Exercise ${index + 1}`
       const imageUri = sessionEx.exercise?.image ?? undefined
+      const progress = target > 0 ? Math.min(1, logged / target) : 0
+
+      const onSurface = isActive ? '#fff' : colors.textPrimary
+      const onSurfaceMuted = isActive ? 'rgba(255,255,255,0.85)' : colors.textMuted
 
       const cardContent = (
-        <View className="flex-row items-center gap-3 px-3 py-2.5">
+        <View className="flex-row items-center gap-3 px-3.5 py-3">
           <View
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 8,
+              width: THUMB,
+              height: THUMB,
+              borderRadius: 12,
               overflow: 'hidden',
               backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : colors.bgElevated,
             }}
@@ -127,53 +128,71 @@ function ExerciseNavTabsComponent({
               />
             ) : null}
           </View>
-          <View>
+          <View style={{ width: 150 }}>
             <Text
-              className="text-sm font-bold"
-              style={{ color: isActive ? '#fff' : colors.textSecondary, maxWidth: 140 }}
-              numberOfLines={1}
+              style={{ color: onSurface, fontSize: 14, fontWeight: '700', lineHeight: 18 }}
+              numberOfLines={2}
             >
-              {exerciseName.length > 18 ? `${exerciseName.slice(0, 18)}…` : exerciseName}
+              {exerciseName}
             </Text>
-            <Text
-              className="text-xs"
-              style={{ color: isActive ? 'rgba(255,255,255,0.85)' : colors.textMuted }}
-            >
-              {logged}/{target} sets
-            </Text>
-          </View>
-          {isComplete && (
+            <View className="flex-row items-center gap-1.5" style={{ marginTop: 6 }}>
+              <Text style={{ color: onSurfaceMuted, fontSize: 12, fontWeight: '600' }}>
+                {logged}/{target} sets
+              </Text>
+              {isComplete && (
+                <View
+                  className="items-center justify-center rounded-full"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : `${colors.success}25`,
+                  }}
+                >
+                  <Check size={12} color={isActive ? '#fff' : colors.success} />
+                </View>
+              )}
+            </View>
+            {/* Progress bar */}
             <View
-              className="items-center justify-center rounded-full"
               style={{
-                width: 22,
-                height: 22,
-                backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : `${colors.success}25`,
+                marginTop: 6,
+                height: 4,
+                borderRadius: 2,
+                overflow: 'hidden',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : colors.borderSubtle,
               }}
             >
-              <Check size={14} color={isActive ? '#fff' : colors.success} />
+              <View
+                style={{
+                  width: `${progress * 100}%`,
+                  height: '100%',
+                  borderRadius: 2,
+                  backgroundColor: isActive
+                    ? '#fff'
+                    : isComplete
+                      ? colors.success
+                      : colors.primary,
+                }}
+              />
             </View>
-          )}
+          </View>
         </View>
       )
 
       return (
         <TouchableOpacity
-          onPress={() => {
-            onSelect(index)
-            flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 })
-          }}
+          onPress={() => onSelect(index)}
           activeOpacity={0.85}
-          style={{ borderRadius: 12, overflow: 'hidden' }}
+          style={{ borderRadius: 14, overflow: 'hidden' }}
         >
           {isActive ? (
-            <View style={{ borderRadius: 12, backgroundColor: colors.primary }}>
+            <View style={{ borderRadius: 14, backgroundColor: colors.primary }}>
               {cardContent}
             </View>
           ) : (
             <View
               style={{
-                borderRadius: 12,
+                borderRadius: 14,
                 backgroundColor: isComplete ? `${colors.success}10` : colors.bgSurface,
                 borderWidth: 1,
                 borderColor: isComplete ? `${colors.success}30` : colors.borderSubtle,
@@ -200,7 +219,24 @@ function ExerciseNavTabsComponent({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-        onScrollToIndexFailed={() => {}}
+        // A tab past the highest measured frame cannot be scrolled to directly.
+        // Swallowing that would leave the active tab offscreen with no selected
+        // tab visible — and tabs are the only navigation. Jump to the estimated
+        // offset to force measurement, then land the real scroll.
+        onScrollToIndexFailed={info => {
+          flatListRef.current?.scrollToOffset({
+            offset: info.averageItemLength * info.index,
+            animated: true,
+          })
+          setTimeout(() => {
+            if (info.index < 0 || info.index >= exercises.length) return
+            flatListRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+              viewPosition: 0.5,
+            })
+          }, 80)
+        }}
         extraData={currentIndex}
       />
     </View>
