@@ -1105,6 +1105,35 @@ export function useRemoveSessionExercise() {
       sessionId: number;
       exerciseId: number;
     }) => sessionsApi.removeSessionExercise(sessionId, exerciseId),
+    // Optimistic, like useUpdateSet/useDeleteSet. Without it the removed
+    // exercise stays in the list for the whole round trip, so a UI that follows
+    // the list has to show a stale entry or hold a temporary index and correct
+    // it once the refetch lands — which reads as the list flickering.
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+        if (!old?.exercises) return old;
+        return {
+          ...old,
+          exercises: old.exercises.filter(
+            (exDetail: any) => exDetail.session_exercise.id !== variables.exerciseId
+          )
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to remove session exercise:', error);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]

@@ -28,6 +28,7 @@ import { isExerciseComplete } from '../../components/workout-session/progress'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { ExerciseOptionsMenu } from '../../components/workout-session/ExerciseOptionsMenu'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 import type { CompleteSessionResponse, SessionExerciseDetail } from '@fit-nation/shared'
@@ -59,6 +60,11 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   const [cancelVisible, setCancelVisible] = useState(false)
   const [finishVisible, setFinishVisible] = useState(false)
   const [removeExerciseVisible, setRemoveExerciseVisible] = useState(false)
+  // The exercise whose options menu is open — not necessarily the current one,
+  // since every nav tab carries its own ⋯ button. Held as the exercise itself
+  // rather than an index: indices shift under a refetch, and every action needs
+  // the detail anyway.
+  const [menuExercise, setMenuExercise] = useState<SessionExerciseDetail | null>(null)
   const [removeExerciseName, setRemoveExerciseName] = useState<string>('')
   const removeExerciseRefId = useRef<number | null>(null)
   // Exercise to land on once a removal is reflected in the refetched list.
@@ -140,8 +146,10 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     }
   }, [currentIndex, exerciseCount])
 
-  // Re-find the landing exercise once the removal shows up in the refetched
-  // list, since its index will have shifted down by one.
+  // Move to the landing exercise as soon as the removal shows up in the list,
+  // which the hook's optimistic onMutate makes immediate. Deliberately the only
+  // place that sets the index for a removal: setting it here *and* eagerly
+  // before the request is what made the tab strip animate twice.
   useEffect(() => {
     const landingId = pendingLandingIdRef.current
     if (landingId == null) return
@@ -213,49 +221,58 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     if (nextIndex != null) setCurrentIndex(nextIndex)
   }, [nextIndex])
 
-  const handleViewCurrent = useCallback(() => {
-    const exerciseId = currentExercise?.session_exercise.exercise_id
-    if (exerciseId != null) {
-      navigation.navigate('WorkoutSessionExerciseDetail', { sessionId, exerciseId })
-    }
-  }, [navigation, sessionId, currentExercise])
+  const handleView = useCallback(
+    (detail: SessionExerciseDetail | undefined) => {
+      const exerciseId = detail?.session_exercise.exercise_id
+      if (exerciseId != null) {
+        navigation.navigate('WorkoutSessionExerciseDetail', { sessionId, exerciseId })
+      }
+    },
+    [navigation, sessionId]
+  )
 
-  const handleSwapCurrent = useCallback(() => {
-    if (!currentExercise) return
-    navigation.navigate('WorkoutPreviewExercisePicker', {
-      sessionId,
-      swapExerciseId: currentExercise.session_exercise.id,
-      swapMuscleGroupId: currentExercise.session_exercise.exercise?.muscle_groups?.find(m => m.is_primary)?.id.toString(),
-    })
-  }, [navigation, sessionId, currentExercise])
+  const handleSwap = useCallback(
+    (detail: SessionExerciseDetail | undefined) => {
+      if (!detail) return
+      navigation.navigate('WorkoutPreviewExercisePicker', {
+        sessionId,
+        swapExerciseId: detail.session_exercise.id,
+        swapMuscleGroupId: detail.session_exercise.exercise?.muscle_groups?.find(m => m.is_primary)?.id.toString(),
+      })
+    },
+    [navigation, sessionId]
+  )
 
-  const handleRemoveCurrent = useCallback(() => {
-    if (!currentExercise) return
-    if (exerciseCount <= 1) {
-      showToast('The workout needs at least one exercise.', 'error')
-      return
-    }
-    removeExerciseRefId.current = currentExercise.session_exercise.id
-    setRemoveExerciseName(currentExercise.session_exercise.exercise?.name ?? 'this exercise')
-    setRemoveExerciseVisible(true)
-  }, [currentExercise, exerciseCount])
+  const handleRemove = useCallback(
+    (detail: SessionExerciseDetail | undefined) => {
+      if (!detail) return
+      if (exerciseCount <= 1) {
+        showToast('The workout needs at least one exercise.', 'error')
+        return
+      }
+      removeExerciseRefId.current = detail.session_exercise.id
+      setRemoveExerciseName(detail.session_exercise.exercise?.name ?? 'this exercise')
+      setRemoveExerciseVisible(true)
+    },
+    [exerciseCount]
+  )
 
   const performRemoveExercise = async () => {
     const exerciseId = removeExerciseRefId.current
     if (exerciseId == null) return
 
-    // The DELETE is not optimistic (invalidate-then-refetch), so without moving
-    // now the exercise the user just removed sits on screen for the whole round
-    // trip with no feedback. Move to the neighbour immediately, and remember it
-    // by id — the list shifts under us when the refetch lands, so an index
-    // captured here would point at the wrong exercise afterwards.
+    // Name the destination by id, not index: the optimistic removal reshuffles
+    // indices the moment the mutation fires. Removing the exercise on screen
+    // lands on the one after it, falling back to the one before when it was
+    // last; removing any other exercise (reachable from every tab's menu) must
+    // not drag the user off the one they are logging, so they stay put.
     const removingIdx = exercises.findIndex(ex => ex.session_exercise.id === exerciseId)
     if (removingIdx !== -1) {
-      const landing = exercises[removingIdx + 1] ?? exercises[removingIdx - 1]
-      if (landing) {
-        pendingLandingIdRef.current = landing.session_exercise.id
-        setCurrentIndex(exercises.indexOf(landing))
-      }
+      const landing =
+        removingIdx === safeIndex
+          ? exercises[removingIdx + 1] ?? exercises[removingIdx - 1]
+          : currentExercise
+      pendingLandingIdRef.current = landing?.session_exercise.id ?? null
     }
 
     try {
@@ -299,6 +316,17 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       console.error('Failed to cancel session:', error)
     }
   }
+
+  // The menu's three actions differ only in which handler they call; all three
+  // close the sheet first so it is never left open over a navigation.
+  const runOnMenuExercise = useCallback(
+    (fn: (detail: SessionExerciseDetail | undefined) => void) => {
+      const target = menuExercise ?? undefined
+      setMenuExercise(null)
+      fn(target)
+    },
+    [menuExercise]
+  )
 
   const handleAddExercise = useCallback(() => {
     navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })
@@ -382,6 +410,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           exercises={exercises}
           currentIndex={safeIndex}
           onSelect={goToPage}
+          onOpenMenu={setMenuExercise}
           onAddExercise={handleAddExercise}
         />
 
@@ -404,7 +433,6 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             key={`${currentExercise.session_exercise.id}:${currentExercise.session_exercise.exercise_id}`}
             exerciseDetail={currentExercise}
             sessionId={numericSessionId}
-            canRemoveExercise={exerciseCount > 1}
             logWeight={draft.weight}
             logReps={draft.reps}
             onLogWeightChange={handleLogWeightChange}
@@ -412,10 +440,6 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             isRestRunning={isRestRunning}
             onStartRest={handleStartRest}
             onNext={nextIndex != null ? handleNext : undefined}
-            onView={handleViewCurrent}
-            onSwap={handleSwapCurrent}
-            onRemoveExercise={handleRemoveCurrent}
-            isRemoveExerciseLoading={removeSessionExercise.isPending}
           />
         ) : (
           <View className="flex-1 items-center justify-center px-6">
@@ -433,7 +457,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                 backgroundColor: colors.primary,
               }}
             >
-              <Text style={{ color: '#fff', fontWeight: '700' }}>Add Exercise</Text>
+              <Text style={{ color: colors.textButton, fontWeight: '700' }}>Add Exercise</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -453,7 +477,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
                   backgroundColor: colors.success,
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 17, fontWeight: '700' }}>
+                <Text style={{ color: colors.textButton, fontSize: 17, fontWeight: '700' }}>
                   FINISH WORKOUT
                 </Text>
               </View>
@@ -461,6 +485,16 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           </SafeAreaView>
         )}
       </SafeAreaView>
+
+      <ExerciseOptionsMenu
+        visible={menuExercise != null}
+        onClose={() => setMenuExercise(null)}
+        onView={() => runOnMenuExercise(handleView)}
+        onSwap={() => runOnMenuExercise(handleSwap)}
+        onRemove={() => runOnMenuExercise(handleRemove)}
+        canRemove={exerciseCount > 1}
+        isRemoveLoading={removeSessionExercise.isPending}
+      />
 
       <ConfirmDialog
         visible={!!backInterceptAction}

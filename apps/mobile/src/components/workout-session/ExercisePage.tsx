@@ -12,12 +12,10 @@ import {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
-import { ExerciseHeader } from './ExerciseHeader'
 import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
 import { SetOptionsMenu } from './SetOptionsMenu'
-import { ExerciseOptionsMenu } from './ExerciseOptionsMenu'
 import { isExerciseComplete } from './progress'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
@@ -39,7 +37,6 @@ const DEFAULT_MAX_REPS = 12
 interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
   sessionId: number
-  canRemoveExercise: boolean
   /** Draft set input, owned by the screen so it survives an exercise switch. */
   logWeight: string
   logReps: string
@@ -49,10 +46,6 @@ interface ExercisePageProps {
   isRestRunning: boolean
   onStartRest: (seconds: number) => void
   onNext?: () => void
-  onView: () => void
-  onSwap: () => void
-  onRemoveExercise: () => void
-  isRemoveExerciseLoading: boolean
 }
 
 type SetSlot =
@@ -62,7 +55,6 @@ type SetSlot =
 export function ExercisePage({
   exerciseDetail,
   sessionId,
-  canRemoveExercise,
   logWeight,
   logReps,
   onLogWeightChange,
@@ -70,10 +62,6 @@ export function ExercisePage({
   isRestRunning,
   onStartRest,
   onNext,
-  onView,
-  onSwap,
-  onRemoveExercise,
-  isRemoveExerciseLoading,
 }: ExercisePageProps) {
   const { colors } = useTheme()
   // Computed once here and passed down; the set cards/rows stay presentational.
@@ -88,7 +76,6 @@ export function ExercisePage({
   const [editReps, setEditReps] = useState('')
 
   const [setMenuSetNumber, setSetMenuSetNumber] = useState<number | null>(null)
-  const [showExerciseMenu, setShowExerciseMenu] = useState(false)
 
   const { session_exercise, logged_sets, previous_sets } = exerciseDetail
   const exercise = session_exercise.exercise
@@ -102,11 +89,6 @@ export function ExercisePage({
   const allowWeightLogging = !BODYWEIGHT_EQUIPMENT.includes(
     exercise?.equipment_type?.code ?? ''
   )
-
-  const primaryMuscle = useMemo(() => {
-    const groups = exercise?.muscle_groups ?? []
-    return (groups.find(m => m.is_primary) ?? groups[0])?.name ?? null
-  }, [exercise])
 
   // Build ordered slots (1..targetSets). Completed if a log exists for that set_number.
   const slots = useMemo<SetSlot[]>(() => {
@@ -296,15 +278,6 @@ export function ExercisePage({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Header */}
-      <ExerciseHeader
-        name={exercise?.name ?? 'Exercise'}
-        muscleGroup={primaryMuscle}
-        imageUrl={exercise?.image}
-        onOpenMenu={() => setShowExerciseMenu(true)}
-        onView={onView}
-      />
-
       {/* Progression banner */}
       {logged_sets.length === 0 && (
         <View style={{ marginTop: 16 }}>
@@ -546,25 +519,6 @@ export function ExercisePage({
         canEdit={!!canEditSet}
         canRemove={!!canRemoveSet}
         isRemoveLoading={deleteSet.isPending || updateSessionExercise.isPending}
-      />
-
-      <ExerciseOptionsMenu
-        visible={showExerciseMenu}
-        onClose={() => setShowExerciseMenu(false)}
-        onView={() => {
-          setShowExerciseMenu(false)
-          onView()
-        }}
-        onSwap={() => {
-          setShowExerciseMenu(false)
-          onSwap()
-        }}
-        onRemove={() => {
-          setShowExerciseMenu(false)
-          onRemoveExercise()
-        }}
-        canRemove={canRemoveExercise}
-        isRemoveLoading={isRemoveExerciseLoading}
       />
     </ScrollView>
   )
