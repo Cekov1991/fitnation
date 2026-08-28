@@ -22,6 +22,7 @@ import {
   sanitizeDecimalText,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { showToast } from '../../lib/toast'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import type { AppScreenProps } from '../../navigation/types'
@@ -81,6 +82,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       navigation.replace('WorkoutSession', { sessionId })
     } catch (error) {
       console.error('Failed to confirm workout:', error)
+      showToast("Couldn't start the workout.", 'error')
     }
   }
 
@@ -99,6 +101,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       }
     } catch (error) {
       console.error('Failed to regenerate:', error)
+      showToast("Couldn't generate a new workout.", 'error')
     }
   }
 
@@ -112,6 +115,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       navigation.goBack()
     } catch (error) {
       console.error('Failed to cancel session:', error)
+      showToast("Couldn't cancel the workout.", 'error')
     }
   }
 
@@ -133,6 +137,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
     } catch (error) {
       console.error('Failed to remove exercise:', error)
+      showToast("Couldn't remove that exercise.", 'error')
     }
   }
 
@@ -149,9 +154,14 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
           target_weight: parseFloat(editWeight) || 0,
         },
       })
-      setShowEditModal(false)
     } catch (error) {
       console.error('Failed to update exercise:', error)
+      showToast("Couldn't update the exercise.", 'error')
+    } finally {
+      // Closed either way: the editor is a native Modal, and a toast raised
+      // underneath one is invisible. Nothing is lost by closing — the failed
+      // update left the server row alone, so reopening re-seeds the same values.
+      setShowEditModal(false)
     }
   }
 

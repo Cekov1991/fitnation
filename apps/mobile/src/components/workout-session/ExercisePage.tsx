@@ -184,7 +184,7 @@ export function ExercisePage({
       // back rather than making the user retype them.
       onLogWeightChange(logWeight)
       onLogRepsChange(logReps)
-      showToast('Could not log that set. Check your connection and try again.', 'error')
+      showToast("Couldn't save that set. Check your connection and try again.", 'error')
     }
   }, [
     firstPendingSetNumber,
@@ -216,6 +216,7 @@ export function ExercisePage({
       })
     } catch (err) {
       console.error('Add set failed:', err)
+      showToast("Couldn't change the number of sets.", 'error')
     }
   }, [sessionId, session_exercise.id, targetSets, updateSessionExercise])
 
@@ -263,6 +264,7 @@ export function ExercisePage({
       setEditingLogId(null)
     } catch (err) {
       console.error('Update set failed:', err)
+      showToast("Couldn't update the set.", 'error')
     }
   }, [editingLogId, editWeight, editReps, allowWeightLogging, updateSet, sessionId])
 
@@ -286,9 +288,14 @@ export function ExercisePage({
         exerciseId: session_exercise.id,
         data: { target_sets: targetSets - 1 },
       })
-      setSetMenuSetNumber(null)
     } catch (err) {
       console.error('Remove set failed:', err)
+      showToast("Couldn't change the number of sets.", 'error')
+    } finally {
+      // Closed either way: the menu is a native Modal, and a toast raised
+      // underneath one is invisible. On failure the row count is simply
+      // unchanged, which the reopened list shows plainly enough.
+      setSetMenuSetNumber(null)
     }
   }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
 

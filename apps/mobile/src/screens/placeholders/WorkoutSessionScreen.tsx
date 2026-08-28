@@ -112,6 +112,10 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       navigation.dispatch(action)
     } catch (error) {
       console.error('Failed to cancel session:', error)
+      // Drop the pending navigation as well: leaving it set would hold the
+      // dialog open over a session the user has been left sitting in.
+      setBackInterceptAction(null)
+      showToast("Couldn't cancel the workout.", 'error')
     }
   }
 
@@ -282,6 +286,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       })
     } catch (error) {
       console.error('Failed to remove exercise:', error)
+      showToast("Couldn't remove that exercise.", 'error')
     }
   }
 
@@ -300,6 +305,10 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       })
     } catch (error) {
       console.error('Failed to complete session:', error)
+      // isCleanExitRef stays false and no navigation fires, so the user is left
+      // on the session with Finish tappable again. Their sets are already
+      // persisted one by one — say so, or a failed finish reads as a lost workout.
+      showToast("Couldn't finish the workout. Your sets are saved — try again.", 'error')
     }
   }
 
@@ -314,6 +323,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       navigation.goBack()
     } catch (error) {
       console.error('Failed to cancel session:', error)
+      showToast("Couldn't cancel the workout.", 'error')
     }
   }
 
