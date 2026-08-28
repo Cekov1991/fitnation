@@ -9,6 +9,7 @@ import {
   useDeleteSet,
   useUpdateSessionExercise,
   useWeightUnit,
+  isProvisionalSetLogId,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -114,8 +115,9 @@ export function ExercisePage({
   const defaultWeight = session_exercise.target_weight ?? prevActiveSet?.weight ?? 0
   const defaultReps = prevActiveSet?.reps ?? (minReps > 0 ? minReps : 0)
 
+  // logSet is deliberately absent: it is optimistic, so an in-flight log is
+  // not a reason to grey out the rest of the page.
   const anyLoading =
-    logSet.isPending ||
     updateSet.isPending ||
     deleteSet.isPending ||
     updateSessionExercise.isPending
@@ -153,10 +155,22 @@ export function ExercisePage({
     const repsToLog = isNaN(reps) || reps <= 0 ? defaultReps : reps
     if (repsToLog <= 0) return
 
+    // useLogSet puts the row on screen in onMutate, so everything that belongs
+    // to "the set is logged" fires here rather than after the round trip —
+    // waiting would leave the haptic and the rest timer trailing the row the
+    // user is already looking at. Undone below if the log fails.
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    onLogWeightChange('')
+    onLogRepsChange('')
+    if (session_exercise.rest_seconds && session_exercise.rest_seconds > 0) {
+      onStartRest(session_exercise.rest_seconds)
+    }
+
     try {
       await logSet.mutateAsync({
         sessionId,
         data: {
+          workout_session_exercise_id: session_exercise.id,
           exercise_id: session_exercise.exercise_id,
           set_number: firstPendingSetNumber,
           weight: weight ?? 0,
@@ -164,14 +178,13 @@ export function ExercisePage({
           rest_seconds: session_exercise.rest_seconds ?? undefined,
         },
       })
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      onLogWeightChange('')
-      onLogRepsChange('')
-      if (session_exercise.rest_seconds && session_exercise.rest_seconds > 0) {
-        onStartRest(session_exercise.rest_seconds)
-      }
     } catch (err) {
       console.error('Log set failed:', err)
+      // The row has just rolled back out of the list, so hand the typed values
+      // back rather than making the user retype them.
+      onLogWeightChange(logWeight)
+      onLogRepsChange(logReps)
+      showToast('Could not log that set. Check your connection and try again.', 'error')
     }
   }, [
     firstPendingSetNumber,
@@ -212,10 +225,15 @@ export function ExercisePage({
 
   const activeSlot =
     setMenuSetNumber != null ? slots.find(s => s.setNumber === setMenuSetNumber) : null
-  const canEditSet = activeSlot?.kind === 'completed'
+  const activeLogId = activeSlot?.kind === 'completed' ? activeSlot.logId : null
+  // A row logged optimistically carries a negative id until the server replies.
+  // Edit and remove both address the server by that id, so neither is offered
+  // for the one request's worth of time in which the row is still provisional.
+  const isActiveSlotProvisional = isProvisionalSetLogId(activeLogId)
+  const canEditSet = activeLogId != null && !isActiveSlotProvisional
   // Any set can be removed as long as at least one set remains. The server
   // re-sequences the remaining sets' set_number after a delete.
-  const canRemoveSet = setMenuSetNumber != null && targetSets > 1
+  const canRemoveSet = setMenuSetNumber != null && targetSets > 1 && !isActiveSlotProvisional
 
   const handleEditFromMenu = () => {
     if (activeSlot?.kind === 'completed') {
@@ -227,7 +245,9 @@ export function ExercisePage({
   }
 
   const handleSaveEdit = useCallback(async () => {
-    if (editingLogId == null) return
+    // The menu already refuses to open an edit on a provisional row; this is
+    // the guard for anything that reaches the handler another way.
+    if (editingLogId == null || isProvisionalSetLogId(editingLogId)) return
     const weight = allowWeightLogging
       ? parseFloat(editWeight || '0')
       : 0
@@ -258,6 +278,7 @@ export function ExercisePage({
     }
     try {
       if (activeSlot.kind === 'completed') {
+        if (isProvisionalSetLogId(activeSlot.logId)) return
         await deleteSet.mutateAsync({ sessionId, setLogId: activeSlot.logId })
       }
       await updateSessionExercise.mutateAsync({
@@ -346,7 +367,6 @@ export function ExercisePage({
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!isRestRunning && !!session_exercise.rest_seconds}
                 weightUnit={weightUnit}
-                isPending={logSet.isPending}
                 onOpenMenu={
                   targetSets > 1 ? () => handleOpenSetMenu(slot.setNumber) : undefined
                 }

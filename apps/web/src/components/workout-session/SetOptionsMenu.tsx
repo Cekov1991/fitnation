@@ -11,6 +11,7 @@ interface SetOptionsMenuProps {
   onEditSet: () => void;
   onRemoveSet: () => void;
   isRemoveLoading?: boolean;
+  canEditSet?: boolean;
   canRemoveSet?: boolean;
 }
 
@@ -21,6 +22,7 @@ export function SetOptionsMenu({
   onEditSet,
   onRemoveSet,
   isRemoveLoading = false,
+  canEditSet = false,
   canRemoveSet = false,
 }: SetOptionsMenuProps) {
   const { backdrop, panel } = useModalTransition();
@@ -54,7 +56,7 @@ export function SetOptionsMenu({
               </div>
 
               <div className="space-y-2">
-                {selectedSet.completed && (
+                {canEditSet && (
                   <MenuButton
                     icon={<Edit2 className="text-orange-400 w-5 h-5" />}
                     iconBg="rgb(251 146 60 / 0.2)"

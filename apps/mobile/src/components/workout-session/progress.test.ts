@@ -6,6 +6,7 @@ function log(setNumber: number): SetLogResource {
   return {
     id: setNumber * 100,
     workout_session_id: 1,
+    workout_session_exercise_id: 1,
     exercise_id: 1,
     set_number: setNumber,
     weight: 60,

@@ -118,6 +118,7 @@ export function WorkoutSessionPage({
         selectedSet={state.selectedSet}
         selectedSetId={state.selectedSetId}
         setSelectedSetId={state.setSelectedSetId}
+        canEditSet={state.canEditSet}
         canRemoveSet={state.canRemoveSet}
         showExercisePicker={state.showExercisePicker}
         setShowExercisePicker={state.setShowExercisePicker}

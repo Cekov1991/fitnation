@@ -10,7 +10,6 @@ import type {
   AddTemplateExerciseInput,
   UpdateTemplateExerciseInput,
   SwapTemplateExerciseInput,
-  LogSetInput,
   UpdateSetInput,
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
@@ -21,6 +20,7 @@ import type {
   RegeneratePlanInput,
   CompleteSessionResponse,
 } from '../types/api';
+import { logSetMutationOptions } from './setLogMutations';
 
 // ============================================================================
 // AUTHENTICATION HELPER
@@ -787,25 +787,15 @@ export function useCancelSession() {
 }
 
 // Set Logging
+/**
+ * Optimistic like its `useUpdateSet` / `useDeleteSet` siblings: the set lands
+ * in the cache on `onMutate` and rolls back on error. The options live in
+ * `setLogMutations.ts` so the append and the rollback are testable without
+ * React — see `setLogMutations.test.ts`.
+ */
 export function useLogSet() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      data
-    }: {
-      sessionId: number;
-      data: LogSetInput;
-    }) => sessionsApi.logSet(sessionId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['exercises', variables.data.exercise_id, 'history']
-      });
-    }
-  });
+  return useMutation(logSetMutationOptions(queryClient));
 }
 export function useUpdateSet() {
   const queryClient = useQueryClient();

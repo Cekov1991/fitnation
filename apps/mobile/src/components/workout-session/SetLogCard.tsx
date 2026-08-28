@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -26,7 +26,6 @@ interface SetLogCardProps {
   showTimerButton?: boolean
   /** Required so a missed call site is a compile error. */
   weightUnit: WeightUnit
-  isPending?: boolean
 }
 
 function formatWeight(w: number) {
@@ -52,7 +51,6 @@ export function SetLogCard({
   totalRepsTarget,
   showTimerButton = false,
   weightUnit,
-  isPending = false,
 }: SetLogCardProps) {
   const { colors } = useTheme()
 
@@ -252,9 +250,12 @@ export function SetLogCard({
       </View>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+        {/* No pending state: useLogSet is optimistic, so by the time a request
+            is in flight this card already belongs to the *next* set. A spinner
+            here would sit on a set nobody has logged, and disabling the button
+            would stop a fast user logging back-to-back sets. */}
         <TouchableOpacity
           onPress={onLog}
-          disabled={isPending}
           activeOpacity={0.85}
           style={{
             flex: 1,
@@ -262,16 +263,11 @@ export function SetLogCard({
             borderRadius: 18,
             alignItems: 'center',
             backgroundColor: colors.textButton,
-            opacity: isPending ? 0.7 : 1,
           }}
         >
-          {isPending ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
-              Log Set
-            </Text>
-          )}
+          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
+            Log Set
+          </Text>
         </TouchableOpacity>
         {showTimerButton && onStartTimer && (
           <TouchableOpacity
