@@ -64,6 +64,8 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
     try {
       await reorderExercises.mutateAsync({ sessionId: numericSessionId, exerciseIds })
     } catch {
+      // user-feedback: the list snapping back to the server order is the
+      // message; a toast on top of it would say the same thing twice.
       setOrderedExercises(exercisesFromSession)
     }
   }
@@ -75,6 +77,9 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const [editMaxReps, setEditMaxReps] = useState('12')
   const [editWeight, setEditWeight] = useState('0')
   const [cancelVisible, setCancelVisible] = useState(false)
+  // Shown inside the edit modal rather than as a toast: the modal is a native
+  // Modal, and a toast raised underneath one is invisible.
+  const [editError, setEditError] = useState<string | null>(null)
 
   const handleConfirm = async () => {
     try {
@@ -121,6 +126,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
 
   const openEditModal = (exerciseDetail: SessionExerciseDetail) => {
     setSelectedExercise(exerciseDetail)
+    setEditError(null)
     setEditSets(String(exerciseDetail.session_exercise.target_sets ?? 3))
     setEditMinReps(String(exerciseDetail.session_exercise.min_target_reps ?? 8))
     setEditMaxReps(String(exerciseDetail.session_exercise.max_target_reps ?? 12))
@@ -143,6 +149,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
 
   const handleSaveEdit = async () => {
     if (!selectedExercise) return
+    setEditError(null)
     try {
       await updateExercise.mutateAsync({
         sessionId: numericSessionId,
@@ -154,14 +161,13 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
           target_weight: parseFloat(editWeight) || 0,
         },
       })
+      setShowEditModal(false)
     } catch (error) {
       console.error('Failed to update exercise:', error)
-      showToast("Couldn't update the exercise.", 'error')
-    } finally {
-      // Closed either way: the editor is a native Modal, and a toast raised
-      // underneath one is invisible. Nothing is lost by closing — the failed
-      // update left the server row alone, so reopening re-seeds the same values.
-      setShowEditModal(false)
+      // Deliberately leaves the modal open: the targets the user just typed are
+      // only held in this modal's state, so closing on a network blip would
+      // make them retype the lot. The error goes in the modal beside them.
+      setEditError("Couldn't update the exercise.")
     }
   }
 
@@ -515,6 +521,19 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         style={{ backgroundColor: colors.bgElevated, borderRadius: 12, padding: 12, fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}
                       />
                     </View>
+                    {editError && (
+                      <Text
+                        style={{
+                          color: colors.error,
+                          fontSize: 13,
+                          fontWeight: '600',
+                          textAlign: 'center',
+                          marginBottom: 12,
+                        }}
+                      >
+                        {editError}
+                      </Text>
+                    )}
                     <View className="flex-row gap-3">
                       <TouchableOpacity
                         onPress={() => setShowEditModal(false)}

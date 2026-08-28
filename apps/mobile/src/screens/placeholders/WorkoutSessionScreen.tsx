@@ -112,9 +112,10 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       navigation.dispatch(action)
     } catch (error) {
       console.error('Failed to cancel session:', error)
-      // Drop the pending navigation as well: leaving it set would hold the
-      // dialog open over a session the user has been left sitting in.
-      setBackInterceptAction(null)
+      // Nothing else to undo: the dispatch never ran and isCleanExitRef is
+      // still false, so the user simply stays in the session. ConfirmDialog
+      // closes itself on confirm, so clearing backInterceptAction here would
+      // only dismiss a dialog they had since re-opened with another back.
       showToast("Couldn't cancel the workout.", 'error')
     }
   }
