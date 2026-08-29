@@ -22,6 +22,7 @@ import {
   sanitizeDecimalText,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { showToast } from '../../lib/toast'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import type { AppScreenProps } from '../../navigation/types'
@@ -63,6 +64,8 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
     try {
       await reorderExercises.mutateAsync({ sessionId: numericSessionId, exerciseIds })
     } catch {
+      // user-feedback: the list snapping back to the server order is the
+      // message; a toast on top of it would say the same thing twice.
       setOrderedExercises(exercisesFromSession)
     }
   }
@@ -74,6 +77,9 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const [editMaxReps, setEditMaxReps] = useState('12')
   const [editWeight, setEditWeight] = useState('0')
   const [cancelVisible, setCancelVisible] = useState(false)
+  // Shown inside the edit modal rather than as a toast: the modal is a native
+  // Modal, and a toast raised underneath one is invisible.
+  const [editError, setEditError] = useState<string | null>(null)
 
   const handleConfirm = async () => {
     try {
@@ -81,6 +87,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       navigation.replace('WorkoutSession', { sessionId })
     } catch (error) {
       console.error('Failed to confirm workout:', error)
+      showToast("Couldn't start the workout.", 'error')
     }
   }
 
@@ -99,6 +106,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       }
     } catch (error) {
       console.error('Failed to regenerate:', error)
+      showToast("Couldn't generate a new workout.", 'error')
     }
   }
 
@@ -112,11 +120,13 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       navigation.goBack()
     } catch (error) {
       console.error('Failed to cancel session:', error)
+      showToast("Couldn't cancel the workout.", 'error')
     }
   }
 
   const openEditModal = (exerciseDetail: SessionExerciseDetail) => {
     setSelectedExercise(exerciseDetail)
+    setEditError(null)
     setEditSets(String(exerciseDetail.session_exercise.target_sets ?? 3))
     setEditMinReps(String(exerciseDetail.session_exercise.min_target_reps ?? 8))
     setEditMaxReps(String(exerciseDetail.session_exercise.max_target_reps ?? 12))
@@ -133,11 +143,13 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
     } catch (error) {
       console.error('Failed to remove exercise:', error)
+      showToast("Couldn't remove that exercise.", 'error')
     }
   }
 
   const handleSaveEdit = async () => {
     if (!selectedExercise) return
+    setEditError(null)
     try {
       await updateExercise.mutateAsync({
         sessionId: numericSessionId,
@@ -152,6 +164,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       setShowEditModal(false)
     } catch (error) {
       console.error('Failed to update exercise:', error)
+      // Deliberately leaves the modal open: the targets the user just typed are
+      // only held in this modal's state, so closing on a network blip would
+      // make them retype the lot. The error goes in the modal beside them.
+      setEditError("Couldn't update the exercise.")
     }
   }
 
@@ -505,6 +521,19 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         style={{ backgroundColor: colors.bgElevated, borderRadius: 12, padding: 12, fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}
                       />
                     </View>
+                    {editError && (
+                      <Text
+                        style={{
+                          color: colors.error,
+                          fontSize: 13,
+                          fontWeight: '600',
+                          textAlign: 'center',
+                          marginBottom: 12,
+                        }}
+                      >
+                        {editError}
+                      </Text>
+                    )}
                     <View className="flex-row gap-3">
                       <TouchableOpacity
                         onPress={() => setShowEditModal(false)}

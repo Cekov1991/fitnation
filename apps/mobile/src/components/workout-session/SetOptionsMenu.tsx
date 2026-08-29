@@ -57,8 +57,8 @@ export function SetOptionsMenu({
                   <MenuButton
                     title="Edit Set"
                     subtitle="Modify weight and reps"
-                    icon={<Edit2 size={20} color="#f97316" />}
-                    iconBg="rgba(249,115,22,0.15)"
+                    icon={<Edit2 size={20} color={colors.primary} />}
+                    iconBg={`${colors.primary}26`}
                     borderColor={colors.border}
                     bgColor={colors.bgElevated}
                     onPress={onEditSet}

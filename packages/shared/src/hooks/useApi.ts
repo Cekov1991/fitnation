@@ -10,7 +10,6 @@ import type {
   AddTemplateExerciseInput,
   UpdateTemplateExerciseInput,
   SwapTemplateExerciseInput,
-  LogSetInput,
   UpdateSetInput,
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
@@ -21,6 +20,7 @@ import type {
   RegeneratePlanInput,
   CompleteSessionResponse,
 } from '../types/api';
+import { logSetMutationOptions } from './setLogMutations';
 
 // ============================================================================
 // AUTHENTICATION HELPER
@@ -787,25 +787,15 @@ export function useCancelSession() {
 }
 
 // Set Logging
+/**
+ * Optimistic like its `useUpdateSet` / `useDeleteSet` siblings: the set lands
+ * in the cache on `onMutate` and rolls back on error. The options live in
+ * `setLogMutations.ts` so the append and the rollback are testable without
+ * React — see `setLogMutations.test.ts`.
+ */
 export function useLogSet() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      data
-    }: {
-      sessionId: number;
-      data: LogSetInput;
-    }) => sessionsApi.logSet(sessionId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['exercises', variables.data.exercise_id, 'history']
-      });
-    }
-  });
+  return useMutation(logSetMutationOptions(queryClient));
 }
 export function useUpdateSet() {
   const queryClient = useQueryClient();
@@ -1105,6 +1095,35 @@ export function useRemoveSessionExercise() {
       sessionId: number;
       exerciseId: number;
     }) => sessionsApi.removeSessionExercise(sessionId, exerciseId),
+    // Optimistic, like useUpdateSet/useDeleteSet. Without it the removed
+    // exercise stays in the list for the whole round trip, so a UI that follows
+    // the list has to show a stale entry or hold a temporary index and correct
+    // it once the refetch lands — which reads as the list flickering.
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+        if (!old?.exercises) return old;
+        return {
+          ...old,
+          exercises: old.exercises.filter(
+            (exDetail: any) => exDetail.session_exercise.id !== variables.exerciseId
+          )
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to remove session exercise:', error);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['sessions', variables.sessionId]

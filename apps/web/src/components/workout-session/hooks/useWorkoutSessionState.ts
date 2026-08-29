@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises, useWeightUnit, type WeightUnit } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
@@ -70,6 +70,7 @@ interface UseWorkoutSessionStateReturn {
   selectedSet: Set | null;
   selectedSetId: string | null;
   setSelectedSetId: (id: string | null) => void;
+  canEditSet: boolean;
   canRemoveSet: boolean;
   showExercisePicker: boolean;
   setShowExercisePicker: (v: boolean) => void;
@@ -174,7 +175,13 @@ export function useWorkoutSessionState({
   const selectedSet = selectedSetId && currentExercise
     ? (currentExercise.sets.find(s => s.id === selectedSetId) ?? null)
     : null;
-  const canRemoveSet = selectedSet != null && (currentExercise?.sets.length ?? 0) > 1;
+  // A set logged optimistically carries a negative id until the server replies.
+  // Edit and remove both address the server by that id, so neither is offered
+  // for the one request's worth of time in which the row is still provisional.
+  const isSelectedSetProvisional = isProvisionalSetLogId(selectedSet?.setLogId);
+  const canEditSet = selectedSet?.completed === true && !isSelectedSetProvisional;
+  const canRemoveSet =
+    selectedSet != null && (currentExercise?.sets.length ?? 0) > 1 && !isSelectedSetProvisional;
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
 
   // Update exercise index when exercises load and we have initialExerciseName from navigation state
@@ -220,6 +227,7 @@ export function useWorkoutSessionState({
         await logSet.mutateAsync({
           sessionId,
           data: {
+            workout_session_exercise_id: currentExercise.sessionExerciseId,
             exercise_id: currentExercise.exerciseId,
             set_number: setNumber,
             weight: weightToLog,
@@ -568,6 +576,7 @@ export function useWorkoutSessionState({
     selectedSet,
     selectedSetId,
     setSelectedSetId,
+    canEditSet,
     canRemoveSet,
     showExercisePicker,
     setShowExercisePicker,

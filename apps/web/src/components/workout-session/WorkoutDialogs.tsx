@@ -12,6 +12,7 @@ interface WorkoutDialogsProps {
   selectedSet: Set | null;
   selectedSetId: string | null;
   setSelectedSetId: (id: string | null) => void;
+  canEditSet: boolean;
   canRemoveSet: boolean;
   showExercisePicker: boolean;
   setShowExercisePicker: (v: boolean) => void;
@@ -45,6 +46,7 @@ export function WorkoutDialogs({
   selectedSet,
   selectedSetId,
   setSelectedSetId,
+  canEditSet,
   canRemoveSet,
   showExercisePicker,
   setShowExercisePicker,
@@ -92,6 +94,7 @@ export function WorkoutDialogs({
         onEditSet={onEditSetFromMenu}
         onRemoveSet={onRemoveSetFromMenu}
         isRemoveLoading={isRemoveSetLoading}
+        canEditSet={canEditSet}
         canRemoveSet={canRemoveSet}
       />
 

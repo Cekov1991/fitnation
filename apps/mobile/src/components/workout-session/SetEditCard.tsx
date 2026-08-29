@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { WeightUnit } from '@fit-nation/shared'
 import { sanitizeDecimalText } from '@fit-nation/shared'
+import { useTheme } from '../../context/ThemeContext'
 
 interface SetEditCardProps {
   setNumber: number
@@ -27,15 +28,17 @@ export function SetEditCard({
   allowWeightLogging,
   weightUnit,
 }: SetEditCardProps) {
+  const { colors } = useTheme()
+
   return (
     <LinearGradient
-      colors={['#ea580c', '#f97316']}
+      colors={[colors.primary, colors.secondary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{
         borderRadius: 24,
         padding: 20,
-        shadowColor: '#ea580c',
+        shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.25,
         shadowRadius: 20,
@@ -46,7 +49,7 @@ export function SetEditCard({
         style={{
           fontSize: 13,
           fontWeight: '700',
-          color: 'rgba(255,255,255,0.9)',
+          color: `${colors.textButton}E6`,
           marginBottom: 16,
         }}
       >
@@ -60,7 +63,7 @@ export function SetEditCard({
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: 'rgba(255,255,255,0.9)',
+                color: `${colors.textButton}E6`,
                 marginBottom: 8,
               }}
             >
@@ -73,22 +76,22 @@ export function SetEditCard({
                 borderRadius: 12,
                 paddingHorizontal: 14,
                 paddingVertical: 10,
-                backgroundColor: 'rgba(255,255,255,0.12)',
+                backgroundColor: `${colors.textButton}1F`,
                 borderWidth: 2,
-                borderColor: 'rgba(255,255,255,0.2)',
+                borderColor: `${colors.textButton}33`,
               }}
             >
               <TextInput
-                style={{ flex: 1, color: '#fff', fontSize: 18, fontWeight: '700', padding: 0 }}
+                style={{ flex: 1, color: colors.textButton, fontSize: 18, fontWeight: '700', padding: 0 }}
                 value={weight}
                 // See SetLogCard: normalise the locale decimal separator.
                 onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
                 keyboardType="decimal-pad"
-                placeholderTextColor="rgba(255,255,255,0.5)"
+                placeholderTextColor={`${colors.textButton}80`}
               />
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.85)',
+                  color: `${colors.textButton}D9`,
                   fontSize: 13,
                   fontWeight: '600',
                   marginLeft: 4,
@@ -105,7 +108,7 @@ export function SetEditCard({
             style={{
               fontSize: 11,
               fontWeight: '600',
-              color: 'rgba(255,255,255,0.9)',
+              color: `${colors.textButton}E6`,
               marginBottom: 8,
             }}
           >
@@ -118,21 +121,21 @@ export function SetEditCard({
               borderRadius: 12,
               paddingHorizontal: 14,
               paddingVertical: 10,
-              backgroundColor: 'rgba(255,255,255,0.12)',
+              backgroundColor: `${colors.textButton}1F`,
               borderWidth: 2,
-              borderColor: 'rgba(255,255,255,0.2)',
+              borderColor: `${colors.textButton}33`,
             }}
           >
             <TextInput
-              style={{ flex: 1, color: '#fff', fontSize: 18, fontWeight: '700', padding: 0 }}
+              style={{ flex: 1, color: colors.textButton, fontSize: 18, fontWeight: '700', padding: 0 }}
               value={reps}
               onChangeText={onRepsChange}
               keyboardType="number-pad"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={`${colors.textButton}80`}
             />
             <Text
               style={{
-                color: 'rgba(255,255,255,0.85)',
+                color: `${colors.textButton}D9`,
                 fontSize: 13,
                 fontWeight: '600',
                 marginLeft: 4,
@@ -153,10 +156,10 @@ export function SetEditCard({
             paddingVertical: 16,
             borderRadius: 18,
             alignItems: 'center',
-            backgroundColor: 'rgba(255,255,255,0.2)',
+            backgroundColor: `${colors.textButton}33`,
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Cancel</Text>
+          <Text style={{ color: colors.textButton, fontSize: 16, fontWeight: '700' }}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onSave}
@@ -166,10 +169,10 @@ export function SetEditCard({
             paddingVertical: 16,
             borderRadius: 18,
             alignItems: 'center',
-            backgroundColor: '#fff',
+            backgroundColor: colors.textButton,
           }}
         >
-          <Text style={{ color: '#ea580c', fontSize: 16, fontWeight: '700' }}>Save</Text>
+          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>Save</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>

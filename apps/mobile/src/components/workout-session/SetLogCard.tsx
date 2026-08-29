@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -26,7 +26,6 @@ interface SetLogCardProps {
   showTimerButton?: boolean
   /** Required so a missed call site is a compile error. */
   weightUnit: WeightUnit
-  isPending?: boolean
 }
 
 function formatWeight(w: number) {
@@ -52,7 +51,6 @@ export function SetLogCard({
   totalRepsTarget,
   showTimerButton = false,
   weightUnit,
-  isPending = false,
 }: SetLogCardProps) {
   const { colors } = useTheme()
 
@@ -87,7 +85,7 @@ export function SetLogCard({
           style={{
             fontSize: 13,
             fontWeight: '700',
-            color: 'rgba(255,255,255,0.9)',
+            color: `${colors.textButton}E6`,
           }}
         >
           Set {setNumber}
@@ -103,10 +101,10 @@ export function SetLogCard({
               borderRadius: 14,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              backgroundColor: `${colors.textButton}2E`,
             }}
           >
-            <MoreVertical size={16} color="#fff" />
+            <MoreVertical size={16} color={colors.textButton} />
           </TouchableOpacity>
         )}
       </View>
@@ -118,7 +116,7 @@ export function SetLogCard({
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: 'rgba(255,255,255,0.9)',
+                color: `${colors.textButton}E6`,
                 marginBottom: 8,
               }}
             >
@@ -131,15 +129,15 @@ export function SetLogCard({
                 borderRadius: 12,
                 paddingHorizontal: 14,
                 paddingVertical: 10,
-                backgroundColor: 'rgba(255,255,255,0.12)',
+                backgroundColor: `${colors.textButton}1F`,
                 borderWidth: 2,
-                borderColor: 'rgba(255,255,255,0.2)',
+                borderColor: `${colors.textButton}33`,
               }}
             >
               <TextInput
                 style={{
                   flex: 1,
-                  color: '#fff',
+                  color: colors.textButton,
                   fontSize: 18,
                   fontWeight: '700',
                   padding: 0,
@@ -150,11 +148,11 @@ export function SetLogCard({
                 onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
                 keyboardType="decimal-pad"
                 placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
-                placeholderTextColor="rgba(255,255,255,0.5)"
+                placeholderTextColor={`${colors.textButton}80`}
               />
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.85)',
+                  color: `${colors.textButton}D9`,
                   fontSize: 13,
                   fontWeight: '600',
                   marginLeft: 4,
@@ -168,7 +166,7 @@ export function SetLogCard({
                 style={{
                   marginTop: 6,
                   fontSize: 11,
-                  color: 'rgba(255,255,255,0.7)',
+                  color: `${colors.textButton}B3`,
                 }}
               >
                 Suggested: {formatWeight(goalWeight!)} {weightUnit}
@@ -182,7 +180,7 @@ export function SetLogCard({
             style={{
               fontSize: 11,
               fontWeight: '600',
-              color: 'rgba(255,255,255,0.9)',
+              color: `${colors.textButton}E6`,
               marginBottom: 8,
             }}
           >
@@ -195,15 +193,15 @@ export function SetLogCard({
               borderRadius: 12,
               paddingHorizontal: 14,
               paddingVertical: 10,
-              backgroundColor: 'rgba(255,255,255,0.12)',
+              backgroundColor: `${colors.textButton}1F`,
               borderWidth: 2,
-              borderColor: 'rgba(255,255,255,0.2)',
+              borderColor: `${colors.textButton}33`,
             }}
           >
             <TextInput
               style={{
                 flex: 1,
-                color: '#fff',
+                color: colors.textButton,
                 fontSize: 18,
                 fontWeight: '700',
                 padding: 0,
@@ -212,11 +210,11 @@ export function SetLogCard({
               onChangeText={onRepsChange}
               keyboardType="number-pad"
               placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={`${colors.textButton}80`}
             />
             <Text
               style={{
-                color: 'rgba(255,255,255,0.85)',
+                color: `${colors.textButton}D9`,
                 fontSize: 13,
                 fontWeight: '600',
                 marginLeft: 4,
@@ -230,7 +228,7 @@ export function SetLogCard({
               style={{
                 marginTop: 6,
                 fontSize: 11,
-                color: 'rgba(255,255,255,0.7)',
+                color: `${colors.textButton}B3`,
               }}
             >
               {totalRepsPrevious != null
@@ -242,7 +240,7 @@ export function SetLogCard({
               style={{
                 marginTop: 6,
                 fontSize: 11,
-                color: 'rgba(255,255,255,0.7)',
+                color: `${colors.textButton}B3`,
               }}
             >
               Target: {goalMinReps}-{goalMaxReps} reps
@@ -252,26 +250,24 @@ export function SetLogCard({
       </View>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+        {/* No pending state: useLogSet is optimistic, so by the time a request
+            is in flight this card already belongs to the *next* set. A spinner
+            here would sit on a set nobody has logged, and disabling the button
+            would stop a fast user logging back-to-back sets. */}
         <TouchableOpacity
           onPress={onLog}
-          disabled={isPending}
           activeOpacity={0.85}
           style={{
             flex: 1,
             paddingVertical: 16,
             borderRadius: 18,
             alignItems: 'center',
-            backgroundColor: '#fff',
-            opacity: isPending ? 0.7 : 1,
+            backgroundColor: colors.textButton,
           }}
         >
-          {isPending ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
-              Log Set
-            </Text>
-          )}
+          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
+            Log Set
+          </Text>
         </TouchableOpacity>
         {showTimerButton && onStartTimer && (
           <TouchableOpacity
@@ -283,12 +279,12 @@ export function SetLogCard({
               borderRadius: 18,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.18)',
+              backgroundColor: `${colors.textButton}2E`,
               borderWidth: 2,
-              borderColor: 'rgba(255,255,255,0.3)',
+              borderColor: `${colors.textButton}4D`,
             }}
           >
-            <Timer size={22} color="#fff" />
+            <Timer size={22} color={colors.textButton} />
           </TouchableOpacity>
         )}
       </View>

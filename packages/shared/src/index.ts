@@ -21,6 +21,7 @@ export * from './schemas/setsReps'
 
 // Hooks
 export * from './hooks/useApi'
+export { isProvisionalSetLogId } from './hooks/setLogMutations'
 export * from './hooks/useUnits'
 
 // Constants

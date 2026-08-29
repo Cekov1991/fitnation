@@ -329,6 +329,8 @@ export interface WorkoutSessionExerciseResource {
 export interface SetLogResource {
   id: number;
   workout_session_id: number;
+  /** null only for sets logged before the column existed. */
+  workout_session_exercise_id: number | null;
   exercise_id: number;
   set_number: number;
   weight: number; // formatted for the user's unit_system
@@ -536,6 +538,13 @@ export interface SwapTemplateExerciseInput {
 
 // Session mutations
 export interface LogSetInput {
+  /**
+   * The session-exercise row the set belongs to. Optional for compatibility with
+   * builds that predate it — the server then resolves the row from exercise_id,
+   * taking the first occurrence when the exercise appears twice in a session.
+   * Send it whenever it is known.
+   */
+  workout_session_exercise_id?: number;
   exercise_id: number;
   set_number: number;
   weight: number;
