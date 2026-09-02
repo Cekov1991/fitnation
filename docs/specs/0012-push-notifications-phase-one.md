@@ -53,6 +53,7 @@ interface DeviceResource {
   app_version: string | null; last_seen_at: string
 }
 // 200 { data: DeviceResource }
+// 400 if the session is cookie-authenticated (never the case for the app; a bearer token is required)
 ```
 
 **`PATCH /api/notification-settings`** — `{ push_enabled: boolean }` → `200 { user: UserResource }`
