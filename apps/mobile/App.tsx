@@ -31,6 +31,10 @@ import { OfflineBanner } from './src/components/ui/OfflineBanner'
 import { ErrorBoundary } from './src/components/ui/error-boundary'
 import { ToastHost } from './src/components/ui/ToastHost'
 import { showToast } from './src/lib/toast'
+import { configureForegroundHandler } from './src/lib/notifications'
+
+// M4: a push that arrives while the app is open becomes a toast, not an OS banner.
+configureForegroundHandler()
 
 // Initialise API
 initApi({
@@ -39,7 +43,10 @@ initApi({
 
 const queryClient = new QueryClient({
   mutationCache: new MutationCache({
-    onError: (error) => {
+    onError: (error, _variables, _context, mutation) => {
+      // Best-effort background work (the Device heartbeat) opts out of the
+      // global error toast.
+      if (mutation.meta?.silent) return
       const msg = error instanceof Error ? error.message : 'Something went wrong'
       showToast(msg, 'error')
     },

@@ -297,3 +297,20 @@ You only need to run `expo run:ios` or `expo run:android` again when:
 - Upgrading the Expo SDK
 
 All JS/TypeScript changes hot-reload through Metro without a rebuild.
+
+## Push notifications
+
+Remote push uses the Expo Push Service (`expo-notifications`). It does not
+work in Expo Go on Android or on the iOS simulator — test on a real phone with
+a `development` EAS build.
+
+- **Android needs `apps/mobile/google-services.json`** (referenced from
+  `app.json` → `android.googleServicesFile`). Download it from the Firebase
+  project (Android app `com.fitnation.app`) and commit it — it holds no
+  secrets. Without it, Android prebuild/EAS builds fail.
+- FCM V1 service-account key and the iOS push key live in EAS
+  (`eas credentials`), set up once by a human. See
+  `../../docs/specs/0012-push-notifications-phase-one.md` → *Native setup*.
+- Deep links use the `fitnation://` scheme; the Inactivity Nudge opens
+  `fitnation://dashboard`. Try it with
+  `npx uri-scheme open fitnation://dashboard --ios` (or `--android`).

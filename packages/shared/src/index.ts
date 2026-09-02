@@ -4,7 +4,7 @@ export { initAuth, getAuthStorage, setOnUnauthorized, AUTH_TOKEN_KEY, PARTNER_SL
 export type { AuthStorage } from './auth'
 
 // API
-export { api, authApi, partnersApi, profileApi, onboardingApi, exercisesApi, muscleGroupsApi, categoriesApi, classificationsApi, metricsApi, plansApi, programsApi, routinesApi, templatesApi, plannerApi, sessionsApi } from './api'
+export { api, authApi, partnersApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, exercisesApi, muscleGroupsApi, categoriesApi, classificationsApi, metricsApi, plansApi, programsApi, routinesApi, templatesApi, plannerApi, sessionsApi } from './api'
 
 // Types
 export type * from './types/api'
