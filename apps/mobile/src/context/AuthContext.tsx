@@ -6,6 +6,7 @@ import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-natio
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
+import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -49,12 +50,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
 
+  // Device heartbeat: registers this phone for push once the user is set,
+  // onboarded and has granted permission. See useDeviceRegistration.
+  useDeviceRegistration(user)
+
   // Server rejected the token (deleted user, revoked session, expired token).
   // Clear cached state and drop back to the auth navigator.
   useEffect(() => {
     setOnUnauthorized(() => {
       setUser(null)
       queryClient.clear()
+      clearLastDeviceRegistration()
     })
     return () => setOnUnauthorized(null)
   }, [queryClient])
@@ -140,6 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
+    // No unregister call: the server ends the Device with the revoked token.
+    // Forget the heartbeat record so a different user on this phone registers
+    // immediately instead of waiting out the throttle.
+    await clearLastDeviceRegistration()
     // Sign out from Google so the account picker appears on next social login
     try { await GoogleSignin.signOut() } catch {}
     queryClient.clear()

@@ -6,6 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Switch,
+  Linking,
 } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Application from 'expo-application'
@@ -23,10 +25,12 @@ import {
   LogOut,
   ChevronDown,
   Trash2,
+  Bell,
 } from 'lucide-react-native'
 import {
   useProfile,
   useUpdateProfile,
+  useUpdateNotificationSettings,
   useDeleteAccount,
   useUnitSystem,
   useWeightUnit,
@@ -45,6 +49,8 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
 import { showToast } from '../../lib/toast'
+import { grantPushPermission } from '../../lib/notifications'
+import { usePushPermissionStatus } from '../../hooks/usePushPermissionStatus'
 
 const DURATION_OPTIONS = [
   { label: '20-30 min', value: 30 },
@@ -119,13 +125,40 @@ function FieldInput({
   )
 }
 
+// Read-only OS permission state under the push switch, with one way forward.
+function PermissionHint({ text, action, onPress }: { text: string; action: string; onPress: () => void }) {
+  const { colors } = useTheme()
+  return (
+    <View
+      className="flex-row flex-wrap items-center mt-3 pt-3"
+      style={{ borderTopWidth: 1, borderTopColor: colors.borderSubtle }}
+    >
+      <Text className="text-xs flex-1" style={{ color: colors.textSecondary }}>
+        {text}
+      </Text>
+      <TouchableOpacity onPress={onPress} className="ml-2">
+        <Text className="text-xs font-semibold" style={{ color: colors.primary }}>
+          {action}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
 export function ProfileScreen() {
   const { colors } = useTheme()
   const { logout, user } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
+  const updateNotificationSettings = useUpdateNotificationSettings()
   const deleteAccount = useDeleteAccount()
   const [logoutVisible, setLogoutVisible] = useState(false)
+
+  // M8: the switch is the server's global `push_enabled`; the OS permission is
+  // shown alongside it, read-only, with a way into Settings when denied.
+  const pushPermission = usePushPermissionStatus()
+  const [optimisticPush, setOptimisticPush] = useState<boolean | null>(null)
+  const pushEnabled = optimisticPush ?? profile?.push_enabled ?? true
   const [deleteVisible, setDeleteVisible] = useState(false)
 
   // The backend converts height/weight server-side from unit_system, so these
@@ -211,6 +244,31 @@ export function ProfileScreen() {
     } catch (e) {
       showToast('Failed to update units. Please try again.', 'error')
     }
+  }
+
+  // Optimistic flip; a failure reverts and toasts globally via MutationCache.
+  const handlePushToggle = async (next: boolean) => {
+    if (updateNotificationSettings.isPending) return
+    if (next && pushPermission.status === 'undetermined') {
+      // The user dismissed the onboarding sheet; the OS has never been asked.
+      const granted = await grantPushPermission()
+      await pushPermission.refresh()
+      if (!granted) return // leave push_enabled untouched; the denied line shows
+    }
+    setOptimisticPush(next)
+    try {
+      await updateNotificationSettings.mutateAsync({ push_enabled: next })
+    } catch {
+      // reverted below
+    } finally {
+      setOptimisticPush(null)
+    }
+  }
+
+  // Grant from the "Allow" line (push_enabled already on, OS never asked).
+  const handleAllowPush = async () => {
+    await grantPushPermission()
+    await pushPermission.refresh()
   }
 
   const handleLogout = () => {
@@ -704,6 +762,53 @@ export function ProfileScreen() {
               </Text>
             )}
           </TouchableOpacity>
+
+          {/* Notifications */}
+          <View className="mb-8">
+            <Text className="text-lg font-bold mb-4" style={{ color: colors.textPrimary }}>
+              Notifications
+            </Text>
+            <View
+              className="rounded-2xl px-4 py-3"
+              style={{ backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border }}
+            >
+              <View className="flex-row items-center gap-3">
+                <Bell size={18} color={colors.textSecondary} />
+                <View className="flex-1">
+                  <Text className="text-base font-medium" style={{ color: colors.textPrimary }}>
+                    Push notifications
+                  </Text>
+                  <Text className="text-xs mt-0.5" style={{ color: colors.textMuted }}>
+                    A nudge when you've gone quiet. Nothing else.
+                  </Text>
+                </View>
+                <Switch
+                  value={pushEnabled}
+                  onValueChange={handlePushToggle}
+                  disabled={updateNotificationSettings.isPending}
+                  trackColor={{ true: colors.primary, false: colors.segmentTrack }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              {/* Shown whether or not the switch is on: after an OS refusal the
+                  switch snaps back and this is the only feedback. */}
+              {pushPermission.status === 'denied' && (
+                <PermissionHint
+                  text="Notifications are off for Fit Nation in your phone's settings."
+                  action="Open Settings"
+                  onPress={() => Linking.openSettings()}
+                />
+              )}
+              {pushEnabled && pushPermission.status === 'undetermined' && (
+                <PermissionHint
+                  text="This phone hasn't allowed notifications yet."
+                  action="Allow"
+                  onPress={handleAllowPush}
+                />
+              )}
+            </View>
+          </View>
 
           {/* Log Out */}
           <TouchableOpacity

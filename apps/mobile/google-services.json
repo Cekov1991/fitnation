@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "893808391051",
+    "project_id": "fit-nation-93523",
+    "storage_bucket": "fit-nation-93523.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893808391051:android:5c3404b5f48f340944f58e",
+        "android_client_info": {
+          "package_name": "com.fitnation.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvfezQu8oPZCnZzx_IMxS213qglhOnAF0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

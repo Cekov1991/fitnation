@@ -2,7 +2,8 @@
   "expo": {
     "name": "Fit Nation",
     "slug": "fit-nation",
-    "version": "1.0.5",
+    "scheme": "fitnation",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -25,7 +26,8 @@
       },
       "package": "com.fitnation.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -58,6 +60,14 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.327354045336-9krq6ni33jra4066c33agblqi61hk83p"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#0F0F0F",
+          "defaultChannel": "default"
         }
       ]
     ],

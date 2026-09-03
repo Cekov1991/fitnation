@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { AuthNavigator } from './AuthNavigator'
 import { AppNavigator } from './AppNavigator'
+import { linking } from './linking'
 
 // Keep in sync with the `imageWidth` of the expo-splash-screen plugin in app.json —
 // the native splash hands off to this overlay, so at rest they must render identically.
@@ -62,7 +63,7 @@ export function RootNavigator() {
       {/* Mounted only once auth resolves — rendering it earlier would flash the
           auth stack at users who turn out to be logged in. */}
       {!isLoading && (
-        <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <NavigationContainer linking={linking} theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
           {user ? <AppNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       )}

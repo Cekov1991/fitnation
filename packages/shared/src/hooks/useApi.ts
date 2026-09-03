@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, profileApi, onboardingApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../api';
+import { authApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../api';
 import { getAuthStorage, AUTH_TOKEN_KEY } from '../auth';
 import type {
   CreatePlanInput,
@@ -15,6 +15,8 @@ import type {
   UpdateSessionExerciseInput,
   SwapSessionExerciseInput,
   UpdateProfileInput,
+  RegisterDeviceInput,
+  UpdateNotificationSettingsInput,
   GenerateWorkoutInput,
   RegenerateWorkoutInput,
   RegeneratePlanInput,
@@ -108,6 +110,33 @@ export function useCompleteOnboarding() {
       });
       queryClient.invalidateQueries({
         queryKey: ['profile']
+      });
+    }
+  });
+}
+
+// ============================================================================
+// NOTIFICATION HOOKS — Devices + settings
+// ============================================================================
+
+// Best-effort heartbeat; the caller decides when to fire it and swallows
+// failures. Nothing in the cache describes Devices, so no side effects.
+// `meta.silent` lets an app-level MutationCache.onError skip its error toast.
+export function useRegisterDevice() {
+  return useMutation({
+    mutationFn: (data: RegisterDeviceInput) => devicesApi.register(data),
+    meta: { silent: true },
+  });
+}
+
+export function useUpdateNotificationSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateNotificationSettingsInput) => notificationSettingsApi.update(data),
+    onSuccess: response => {
+      queryClient.setQueryData(['profile'], response.user);
+      queryClient.invalidateQueries({
+        queryKey: ['user']
       });
     }
   });

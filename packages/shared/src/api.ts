@@ -25,6 +25,9 @@ import type {
   UserResource,
   ValidateInvitationResponse,
   ActivePartnersResponse,
+  RegisterDeviceInput,
+  DeviceResource,
+  UpdateNotificationSettingsInput,
 } from './types/api';
 
 const getBaseUrl = () => getConfig().baseUrl
@@ -226,6 +229,30 @@ export const onboardingApi = {
     return fetchWithAuth('/onboarding/complete', {
       method: 'POST',
       body: JSON.stringify(planName ? { plan_name: planName } : {})
+    });
+  }
+};
+
+// ============================================================================
+// NOTIFICATIONS — Devices + settings
+// ============================================================================
+
+export const devicesApi = {
+  // Idempotent for the calling session: the server upserts the Device bound to
+  // this bearer token. Requires a bearer token (400 for cookie sessions).
+  register: async (data: RegisterDeviceInput): Promise<{ data: DeviceResource }> => {
+    return fetchWithAuth('/devices', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+};
+
+export const notificationSettingsApi = {
+  update: async (data: UpdateNotificationSettingsInput): Promise<{ user: UserResource }> => {
+    return fetchWithAuth('/notification-settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data)
     });
   }
 };
@@ -644,6 +671,8 @@ export const api = {
   partners: partnersApi,
   profile: profileApi,
   onboarding: onboardingApi,
+  devices: devicesApi,
+  notificationSettings: notificationSettingsApi,
   exercises: exercisesApi,
   muscleGroups: muscleGroupsApi,
   categories: categoriesApi,

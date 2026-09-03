@@ -29,6 +29,9 @@ export interface UserResource {
   partner: UserPartner | null;
   onboarding_completed_at: string | null;
   email_verified_at: string | null;
+  // Global push switch (PATCH /notification-settings). Off ⇒ the server sends
+  // nothing; registered Devices are kept.
+  push_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +51,33 @@ export interface UserPartner {
   name: string;
   slug: string;
   visual_identity: PartnerVisualIdentityResource | null;
+}
+
+// ============================================
+// NOTIFICATIONS — Devices + settings
+// Contract shared with back-end/docs/issues/018-push-notifications-phase-one.md.
+// Change it in both or neither.
+// ============================================
+
+// A Device is this installation signed in as this user; registration is
+// idempotent for the calling session (PUT /devices).
+export interface RegisterDeviceInput {
+  push_token: string;            // ExponentPushToken[...]
+  platform: 'ios' | 'android';
+  timezone?: string | null;      // IANA
+  app_version?: string | null;   // Constants.expoConfig?.version
+  build_profile?: string | null; // 'development' | 'preview' | 'production'
+  device_name?: string | null;   // Device.modelName
+}
+export interface DeviceResource {
+  id: number;
+  platform: 'ios' | 'android';
+  timezone: string | null;
+  app_version: string | null;
+  last_seen_at: string;
+}
+export interface UpdateNotificationSettingsInput {
+  push_enabled: boolean;
 }
 
 // ============================================

@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
+import * as SecureStore from 'expo-secure-store'
 import { useMutation } from '@tanstack/react-query'
 // unitSystem here is form state, not the saved profile, so the pure label
 // helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
@@ -20,6 +21,9 @@ import { useAuth } from '../../context/AuthContext'
 import { Input } from '../../components/ui/Input'
 import { onboardingReducer } from '../Onboarding/onboardingReducer'
 import { PlanGeneratingContent } from '../../components/ui/PlanGeneratingOverlay'
+import { NotificationPermissionSheet } from '../../components/ui/NotificationPermissionSheet'
+import { getPermissionStatus } from '../../lib/notifications'
+import { PUSH_PROMPT_DISMISSED_KEY, shouldShowPermissionSheet } from '../../lib/pushPrompt'
 import type { AppScreenProps } from '../../navigation/types'
 
 const localLogo = require('../../../assets/logo.png')
@@ -61,7 +65,7 @@ const EXPERIENCE_LABELS: Record<string, string> = {
   advanced: 'Advanced',
 }
 
-type Phase = 'saving-profile' | 'generating-plan' | 'plan-success' | 'error'
+type Phase = 'saving-profile' | 'generating-plan' | 'plan-success' | 'push-prompt' | 'error'
 
 export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const { colors } = useTheme()
@@ -156,10 +160,40 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
     }
   }
 
+  // M3: ask for push permission once, here, behind an explainer — but only if
+  // the OS has never been asked and the user never said "Not now".
   async function handleGoToDashboard() {
     try { await refreshUser() } catch { /* proceed anyway */ }
+    if (await shouldAskForPush()) {
+      setPhase('push-prompt')
+      return
+    }
     navigation.replace('Tabs')
   }
+
+  async function shouldAskForPush(): Promise<boolean> {
+    // `user` here is the render-time value, i.e. from before refreshUser():
+    // set ⇒ a returning user regenerating a plan, who was already asked once.
+    if (user?.onboarding_completed_at) return false
+    try {
+      const [status, dismissed] = await Promise.all([
+        getPermissionStatus(),
+        SecureStore.getItemAsync(PUSH_PROMPT_DISMISSED_KEY),
+      ])
+      return shouldShowPermissionSheet(status, dismissed === '1')
+    } catch {
+      return false
+    }
+  }
+
+  // iOS cannot present a second Modal while the success modal is still
+  // dismissing; give it a beat before the sheet fades in.
+  const [sheetVisible, setSheetVisible] = useState(false)
+  useEffect(() => {
+    if (phase !== 'push-prompt') { setSheetVisible(false); return }
+    const t = setTimeout(() => setSheetVisible(true), 350)
+    return () => clearTimeout(t)
+  }, [phase])
 
   // ─── Complete / Generating screen ──────────────────────────────────────────
   if (isComplete) {
@@ -234,6 +268,11 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
           </View>
         </Modal>
 
+        <NotificationPermissionSheet
+          visible={sheetVisible}
+          onClose={() => navigation.replace('Tabs')}
+        />
+
         {/* Phases */}
         {phase === 'saving-profile' && (
           <View className="items-center gap-4">
@@ -244,7 +283,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
           </View>
         )}
 
-        {(phase === 'generating-plan' || phase === 'plan-success') && (
+        {(phase === 'generating-plan' || phase === 'plan-success' || phase === 'push-prompt') && (
           <PlanGeneratingContent partnerLogoUrl={partnerLogoUrl} />
         )}
 
