@@ -5,6 +5,7 @@ import { BrandingProvider } from './hooks/useBranding';
 import { ModalsProvider } from './contexts/ModalsContext';
 import { InstallPromptProvider } from './contexts/InstallPromptContext';
 import { NetworkStatusBanner } from './components/NetworkStatusBanner';
+import { ToastHost } from './components/ToastHost';
 import { AppRoutes } from './routes';
 
 const queryClient = new QueryClient({
@@ -26,6 +27,7 @@ export function App() {
           <BrandingProvider>
             <ModalsProvider>
               <NetworkStatusBanner />
+              <ToastHost />
               <AppRoutes />
             </ModalsProvider>
           </BrandingProvider>

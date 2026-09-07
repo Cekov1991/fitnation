@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { showToast } from '../lib/toast';
 import { LoadingButton } from './ui';
 
 const RESEND_COOLDOWN_S = 60;
@@ -66,8 +67,9 @@ export function EmailVerificationPage() {
       if (e?.status === 422) {
         // Already verified — refresh and let the useEffect redirect
         try { await refetchUser(); } catch { /* ignore */ }
+      } else {
+        showToast("Couldn't resend the email. Try again in a moment.", 'error');
       }
-      // Other errors surface via global mutation cache toast
     } finally {
       setResending(false);
     }

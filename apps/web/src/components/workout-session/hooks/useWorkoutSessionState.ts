@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
+import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
 import { mapSessionToExercises } from '../utils';
@@ -244,6 +245,7 @@ export function useWorkoutSessionState({
         }
       } catch (error) {
         console.error('Failed to log set:', error);
+        showToast("Couldn't save that set. Check your connection and try again.", 'error');
       }
     }
   };
@@ -271,6 +273,7 @@ export function useWorkoutSessionState({
           setEditingSetId(null);
         } catch (error) {
           console.error('Failed to update set:', error);
+          showToast("Couldn't update the set.", 'error');
         }
       }
     }
@@ -299,6 +302,7 @@ export function useWorkoutSessionState({
       setShowSummary(true);
     } catch (error) {
       console.error('Failed to complete session:', error);
+      showToast("Couldn't finish the workout. Your sets are saved — try again.", 'error');
     }
   };
 
@@ -317,6 +321,7 @@ export function useWorkoutSessionState({
       });
     } catch (error) {
       console.error('Failed to add set:', error);
+      showToast("Couldn't change the number of sets.", 'error');
     }
   };
 
@@ -328,7 +333,7 @@ export function useWorkoutSessionState({
 
     // Check if it's the last set
     if (currentExercise.sets.length <= 1) {
-      alert('Cannot remove the last set. Remove the exercise instead.');
+      showToast('Remove the exercise instead of the last set.', 'error');
       return;
     }
 
@@ -357,6 +362,7 @@ export function useWorkoutSessionState({
       setSelectedSetId(null);
     } catch (error) {
       console.error('Failed to remove set:', error);
+      showToast("Couldn't change the number of sets.", 'error');
     }
   };
 
@@ -406,6 +412,7 @@ export function useWorkoutSessionState({
         setShowExercisePicker(false);
       } catch (error) {
         console.error('Failed to add exercise:', error);
+        showToast("Couldn't add that exercise.", 'error');
         isAddingExercise.current = false;
       }
     } else if (exercisePickerMode === 'swap') {
@@ -426,9 +433,9 @@ export function useWorkoutSessionState({
         setShowExercisePicker(false);
         setShowExerciseMenu(false);
       } catch (error) {
-        // The session is untouched on failure and the picker stays open. Telling
-        // the user is blocked on apps/web having a toast at all (0031 #1).
+        // The session is untouched on failure; the picker stays open for a retry.
         console.error('Failed to swap exercise:', error);
+        showToast("Couldn't swap that exercise. Nothing was changed.", 'error');
       }
     }
   };
@@ -437,7 +444,7 @@ export function useWorkoutSessionState({
     if (!currentExercise) return;
     
     if (exercises.length <= 1) {
-      alert('Cannot remove the last exercise.');
+      showToast('The workout needs at least one exercise.', 'error');
       return;
     }
 
@@ -455,6 +462,7 @@ export function useWorkoutSessionState({
       }
     } catch (error) {
       console.error('Failed to remove exercise:', error);
+      showToast("Couldn't remove that exercise.", 'error');
     }
   };
 
@@ -499,6 +507,7 @@ export function useWorkoutSessionState({
       onBack();
     } catch (error) {
       console.error('Failed to cancel session:', error);
+      showToast("Couldn't cancel the workout.", 'error');
     }
   };
 
