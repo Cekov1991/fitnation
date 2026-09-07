@@ -17,7 +17,7 @@ export interface RestTimerService {
   // ongoing notification and the alert body; empty means "no exercise".
   start(endAtMillis: number, label: string, fallbackId: string | null): void
   // Move the end: re-posts the countdown and re-arms the alert.
-  update(endAtMillis: number, fallbackId: string | null): void
+  update(endAtMillis: number, label: string, fallbackId: string | null): void
   // Remove the countdown and stop the service without posting an alert.
   stop(): void
 }

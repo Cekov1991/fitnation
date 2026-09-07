@@ -8,6 +8,9 @@ const PERMISSIONS = [
   'android.permission.FOREGROUND_SERVICE',
   'android.permission.FOREGROUND_SERVICE_SPECIAL_USE',
   'android.permission.POST_NOTIFICATIONS',
+  // The service holds a partial wake lock for the rest so its countdown keeps
+  // running while the phone is locked.
+  'android.permission.WAKE_LOCK',
 ]
 // Android 14+ reviews `specialUse` services against this justification; the
 // same text goes in the Play Console foreground-service declaration.

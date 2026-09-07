@@ -18,26 +18,42 @@ class RestTimerModule : Module() {
     Name("RestTimer")
 
     Function("start") { endAtMillis: Long, label: String, fallbackId: String? ->
-      startService(RestTimerService.intent(context, endAtMillis, label, fallbackId))
+      arm(RestTimerService.armIntent(context, endAtMillis, label, fallbackId))
     }
 
-    Function("update") { endAtMillis: Long, fallbackId: String? ->
-      startService(RestTimerService.intent(context, endAtMillis, null, fallbackId))
+    // Same as start; the label rides along so a service the OS killed and
+    // restarted still names the exercise.
+    Function("update") { endAtMillis: Long, label: String, fallbackId: String? ->
+      arm(RestTimerService.armIntent(context, endAtMillis, label, fallbackId))
     }
 
     Function("stop") {
-      context.stopService(Intent(context, RestTimerService::class.java))
+      stop()
     }
   }
 
   // A rest starts from a tap, so the app is in the foreground and Android lets
   // us start a foreground service. If it ever is not (Android 12+ throws), the
   // caller falls back to the scheduled notification.
-  private fun startService(intent: Intent) {
+  private fun arm(intent: Intent) {
     try {
       ContextCompat.startForegroundService(context, intent)
     } catch (e: Exception) {
       throw CodedException("ERR_REST_TIMER_SERVICE", "Could not start the rest-timer service", e)
+    }
+  }
+
+  // Delivered as a command so it queues behind a start still in flight (see
+  // RestTimerService.onStartCommand). A running foreground service keeps the
+  // app eligible to call startService; if the OS still refuses — no service
+  // running and the app in the background — there is nothing to stop, and
+  // stopService is the harmless no-op that says so.
+  private fun stop() {
+    val intent = RestTimerService.stopIntent(context)
+    try {
+      context.startService(intent)
+    } catch (e: Exception) {
+      context.stopService(intent)
     }
   }
 }
