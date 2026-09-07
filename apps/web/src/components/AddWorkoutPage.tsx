@@ -4,11 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { LoadingButton } from './ui';
 import { usePlans } from '@fit-nation/shared';
-import { DAYS_OF_WEEK } from '../constants';
 import { workoutSchema, WorkoutFormData } from '@fit-nation/shared';
-import type { PlanResource, WorkoutTemplateResource } from '@fit-nation/shared';
 
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 interface AddWorkoutPageProps {
   mode?: 'create' | 'edit';
@@ -38,7 +35,6 @@ interface AddWorkoutPageProps {
 export function AddWorkoutPage({
   mode = 'create',
   planName,
-  templateId,
   initialData,
   onBack,
   onSubmit,
@@ -47,7 +43,6 @@ export function AddWorkoutPage({
 }: AddWorkoutPageProps) {
   const { data: plans = [] } = usePlans();
   const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
-  const [clickedOccupiedDay, setClickedOccupiedDay] = useState<string | null>(null);
   const [swapConfirmation, setSwapConfirmation] = useState<{
     targetDay: string;
     existingWorkout: { name: string; id: number };
@@ -102,23 +97,6 @@ export function AddWorkoutPage({
     }
   }, [initialDataKey, reset, mode]);
 
-  // Compute which days are already occupied by the selected plan's existing workouts
-  // Map: day name -> { name: workout name, id: workout template id }
-  const occupiedDays = useMemo(() => {
-    const selectedPlanData = plans.find((p: PlanResource) => p.name === selectedPlan);
-    if (!selectedPlanData?.workout_templates) return new Map<string, { name: string; id: number }>();
-    
-    const dayToWorkout = new Map<string, { name: string; id: number }>();
-    selectedPlanData.workout_templates
-      .filter((t: WorkoutTemplateResource) => t.day_of_week !== null)
-      // In edit mode, exclude the current workout from occupied days
-      .filter((t: WorkoutTemplateResource) => mode !== 'edit' || t.id !== templateId)
-      .forEach((t: WorkoutTemplateResource) => {
-        dayToWorkout.set(DAY_NAMES[t.day_of_week!], { name: t.name, id: t.id });
-      });
-    return dayToWorkout;
-  }, [plans, selectedPlan, mode, templateId]);
-
   // Update plan when plans load
   useEffect(() => {
     if (!selectedPlan && (planName || activePlanName || availablePlans[0])) {
@@ -126,26 +104,6 @@ export function AddWorkoutPage({
     }
   }, [activePlanName, availablePlans, planName, selectedPlan, setValue]);
 
-  const selectDay = (day: string) => {
-    // Only allow single day selection
-    const currentDay = selectedDays[0];
-    if (currentDay === day) {
-      setValue('daysOfWeek', []); // Deselect if clicking same day
-      return;
-    }
-    
-    // Check if day is occupied by another workout
-    const existingWorkout = occupiedDays.get(day);
-    if (existingWorkout && mode === 'edit') {
-      // Show swap confirmation dialog
-      setSwapConfirmation({ targetDay: day, existingWorkout });
-      setClickedOccupiedDay(null);
-    } else if (!existingWorkout) {
-      setValue('daysOfWeek', [day]); // Select only this day
-      setClickedOccupiedDay(null);
-    }
-  };
-  
   const handleSwapConfirm = () => {
     if (!swapConfirmation || !onSwap) return;
     
@@ -347,73 +305,6 @@ export function AddWorkoutPage({
                 />
                 {errors.description && <p className="text-xs text-red-400 mt-1">{errors.description.message}</p>}
               </div>
-
-              {/* Day of Week - Single Selection */}
-              {/* <div className="mb-8">
-                <label className="block text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                  Day of Week
-                </label>
-                <div className="grid grid-cols-7 gap-2">
-                  {DAYS_OF_WEEK.map((day) => {
-                    const isSelected = selectedDays.includes(day.full);
-                    const isOccupied = occupiedDays.has(day.full);
-                    // In edit mode, occupied days are clickable (for swap)
-                    // In create mode, occupied days show error message
-                    const canClick = mode === 'edit' || !isOccupied;
-                    
-                    return (
-                      <button 
-                        key={day.full} 
-                        type="button" 
-                        onClick={() => {
-                          if (mode === 'edit') {
-                            // In edit mode, always use selectDay (handles swap)
-                            selectDay(day.full);
-                          } else if (isOccupied) {
-                            // In create mode, show error for occupied days
-                            setClickedOccupiedDay(day.full);
-                          } else {
-                            setClickedOccupiedDay(null);
-                            selectDay(day.full);
-                          }
-                        }} 
-                        className={`relative aspect-square rounded-xl font-bold text-sm transition-all ${
-                          isSelected ? 'text-white shadow-lg' : 'border'
-                        } ${!canClick ? 'cursor-not-allowed' : ''}`}
-                        style={
-                          isSelected ? {
-                            background: 'linear-gradient(to bottom right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))',
-                            boxShadow: '0 10px 25px color-mix(in srgb, var(--color-primary) 25%, transparent)'
-                          } : isOccupied ? {
-                            backgroundColor: 'var(--color-bg-elevated)',
-                            borderColor: 'var(--color-border)',
-                            color: 'var(--color-text-muted)',
-                            opacity: mode === 'edit' ? 0.7 : 0.4 // Slightly more visible in edit mode
-                          } : {
-                            backgroundColor: 'var(--color-bg-elevated)',
-                            borderColor: 'var(--color-border)',
-                            color: 'var(--color-text-secondary)'
-                          }
-                        }
-                      >
-                        {isSelected && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Check className="w-4 h-4" strokeWidth={3} />
-                          </div>
-                        )}
-                        <span className={isSelected ? 'opacity-0' : ''}>
-                          {day.short}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {clickedOccupiedDay && occupiedDays.has(clickedOccupiedDay) && mode === 'create' && (
-                  <p className="text-xs mt-3" style={{ color: '#f87171' }}>
-                    {clickedOccupiedDay} is already assigned to "{occupiedDays.get(clickedOccupiedDay)?.name}"
-                  </p>
-                )}
-              </div> */}
 
               {/* Submit Button */}
               <LoadingButton

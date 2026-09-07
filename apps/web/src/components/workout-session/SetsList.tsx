@@ -28,7 +28,6 @@ interface SetsListProps {
   goalWeight: number;
   totalRepsPrevious: number | null;
   totalRepsTarget: number | null;
-  isAddSetLoading?: boolean;
   isLogSetLoading?: boolean;
   weightUnit: WeightUnit;
 }
@@ -54,7 +53,6 @@ export function SetsList({
   goalMaxReps,
   goalWeight,
   totalRepsTarget,
-  isAddSetLoading = false,
   isLogSetLoading = false,
   weightUnit,
 }: SetsListProps) {
@@ -161,7 +159,6 @@ export function SetsList({
       {!editingSetId && (
         <button
           onClick={onAddSet}
-          disabled={isAddSetLoading}
           className="w-full flex items-center justify-center gap-2 p-4 rounded-xl transition-colors border active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
@@ -169,21 +166,11 @@ export function SetsList({
             WebkitTapHighlightColor: 'transparent'
           }}
         >
-          {isAddSetLoading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" style={{ color: 'var(--color-primary)' }} />
-              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                Adding...
-              </span>
-            </>
-          ) : (
-            <>
-              <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-              <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-                Add Set
-              </span>
-            </>
-          )}
+          <Plus className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+          <span className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
+            Add Set
+          </span>
+        
         </button>
       )}
     </div>

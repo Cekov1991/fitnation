@@ -69,7 +69,6 @@ export function mapSessionToExercises(sessionData: SessionDetailResponse['data']
       maxWeightLifted: Math.max(...loggedSets.map(s => s.weight), 0),
       imageUrl: exercise?.image || '',
       videoUrl: exercise?.video || null,
-      history: [], // Leave empty as requested
       restSeconds: exDetail.session_exercise.rest_seconds ?? exercise?.default_rest_sec ?? null,
       allowWeightLogging: allowsWeightLogging(exercise)
     };
