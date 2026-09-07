@@ -7,7 +7,9 @@
     "dev": "npx vite",
     "build": "npx vite build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "preview": "npx vite preview"
+    "preview": "npx vite preview",
+    "test": "pnpm -w run test apps/web --passWithNoTests",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fit-nation/legal": "workspace:*",

@@ -1,11 +1,19 @@
 {
+  // The one strictness level for shared code (0022). Before this, shared was
+  // only typechecked through whichever app imported it — three apps, three
+  // different settings. Web's level is the one it had effectively been held
+  // to, so that is the level; packages/legal uses the same.
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "noEmit": true,
     "jsx": "react-jsx"
   },
   "include": ["src"]
