@@ -61,9 +61,6 @@ export function useUpdateProfile() {
     mutationFn: (data: UpdateProfileInput) => profileApi.updateProfile(data),
     onSuccess: response => {
       queryClient.setQueryData(['profile'], response.user);
-      queryClient.invalidateQueries({
-        queryKey: ['user']
-      });
     }
   });
 }
@@ -99,14 +96,10 @@ export function useCompleteOnboarding() {
     onSuccess: () => {
       // Invalidate plans and planner queries to refresh data after plan creation
       queryClient.invalidateQueries({
-        queryKey: ['custom-plans']
+        queryKey: ['plans']
       });
       queryClient.invalidateQueries({
         queryKey: ['planner']
-      });
-      // Invalidate user query to refresh onboarding_completed_at status
-      queryClient.invalidateQueries({
-        queryKey: ['user']
       });
       queryClient.invalidateQueries({
         queryKey: ['profile']
@@ -135,9 +128,6 @@ export function useUpdateNotificationSettings() {
     mutationFn: (data: UpdateNotificationSettingsInput) => notificationSettingsApi.update(data),
     onSuccess: response => {
       queryClient.setQueryData(['profile'], response.user);
-      queryClient.invalidateQueries({
-        queryKey: ['user']
-      });
     }
   });
 }
@@ -234,7 +224,6 @@ export function useRegeneratePlan() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['programs'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
     }
   });
 }
