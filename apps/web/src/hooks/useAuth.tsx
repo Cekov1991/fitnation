@@ -2,6 +2,7 @@ import { useEffect, useState, createContext, useContext, ReactNode } from 'react
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi, getAuthStorage, setOnUnauthorized, AUTH_TOKEN_KEY } from '@fit-nation/shared';
 import type { UserResource } from '@fit-nation/shared';
+import { persistPartnerSlug } from '../utils/partnerSlug';
 
 interface AuthContextType {
   user: UserResource | null;
@@ -30,9 +31,8 @@ export function AuthProvider({
   // Server rejected the token (deleted user, revoked session, expired token).
   // Clear cached state and drop back to the login screen.
   useEffect(() => {
-    const storage = getAuthStorage();
     setOnUnauthorized(async () => {
-      await storage.removeItem('partner-slug');
+      await persistPartnerSlug(null);
       queryClient.clear();
       setUser(null);
     });
@@ -48,15 +48,10 @@ export function AuthProvider({
         try {
           const response = await authApi.getCurrentUser();
           setUser(response.user);
-          // Save partner slug for PWA manifest selection
-          if (response.user.partner?.slug) {
-            await storage.setItem('partner-slug', response.user.partner.slug);
-          } else {
-            await storage.removeItem('partner-slug');
-          }
+          await persistPartnerSlug(response.user);
         } catch (error) {
           await storage.removeItem(AUTH_TOKEN_KEY);
-          await storage.removeItem('partner-slug');
+          await persistPartnerSlug(null);
         }
       }
       setLoading(false);
@@ -69,11 +64,7 @@ export function AuthProvider({
     const response = await authApi.socialLogin({ provider, token, name, partner_id: partnerId });
     await storage.setItem(AUTH_TOKEN_KEY, response.token);
     setUser(response.user);
-    if (response.user.partner?.slug) {
-      await storage.setItem('partner-slug', response.user.partner.slug);
-    } else {
-      await storage.removeItem('partner-slug');
-    }
+    await persistPartnerSlug(response.user);
   };
 
   const login = async (email: string, password: string) => {
@@ -83,12 +74,7 @@ export function AuthProvider({
     const response = await authApi.login(email, password);
     await storage.setItem(AUTH_TOKEN_KEY, response.token);
     setUser(response.user);
-    // Save partner slug for PWA manifest selection
-    if (response.user.partner?.slug) {
-      await storage.setItem('partner-slug', response.user.partner.slug);
-    } else {
-      await storage.removeItem('partner-slug');
-    }
+    await persistPartnerSlug(response.user);
   };
   const logout = async () => {
     const storage = getAuthStorage()
@@ -99,7 +85,7 @@ export function AuthProvider({
       console.error('Logout error:', error);
     }
     await storage.removeItem(AUTH_TOKEN_KEY);
-    await storage.removeItem('partner-slug');
+    await persistPartnerSlug(null);
     // Clear all React Query cache to prevent previous user's data from persisting
     queryClient.clear();
     setUser(null);
@@ -113,12 +99,7 @@ export function AuthProvider({
     const response = await authApi.register(data);
     await storage.setItem(AUTH_TOKEN_KEY, response.token);
     setUser(response.user);
-    // Save partner slug for PWA manifest selection
-    if (response.user.partner?.slug) {
-      await storage.setItem('partner-slug', response.user.partner.slug);
-    } else {
-      await storage.removeItem('partner-slug');
-    }
+    await persistPartnerSlug(response.user);
   };
 
   const resendVerification = async () => {
@@ -134,11 +115,7 @@ export function AuthProvider({
       try {
         const response = await authApi.getCurrentUser();
         setUser(response.user);
-        if (response.user.partner?.slug) {
-          await storage.setItem('partner-slug', response.user.partner.slug);
-        } else {
-          await storage.removeItem('partner-slug');
-        }
+        await persistPartnerSlug(response.user);
       } catch {
         // silent — protected route guards will handle expiry
       }
@@ -157,16 +134,11 @@ export function AuthProvider({
     try {
       const response = await authApi.getCurrentUser();
       setUser(response.user);
-      // Save partner slug for PWA manifest selection
-      if (response.user.partner?.slug) {
-        await storage.setItem('partner-slug', response.user.partner.slug);
-      } else {
-        await storage.removeItem('partner-slug');
-      }
+      await persistPartnerSlug(response.user);
     } catch (error) {
       // If refetch fails, user might be logged out
       await storage.removeItem(AUTH_TOKEN_KEY);
-      await storage.removeItem('partner-slug');
+      await persistPartnerSlug(null);
       setUser(null);
     }
   };

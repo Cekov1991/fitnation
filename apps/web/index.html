@@ -21,7 +21,19 @@
     <!-- Partner-specific PWA manifest selection -->
     <script>
       (function() {
-        var partnerSlug = localStorage.getItem('partner-slug');
+        // The key is PARTNER_SLUG_KEY from @fit-nation/shared, spelled out
+        // because this runs before any module loads; a test pins the two.
+        var partnerSlug = localStorage.getItem('partnerSlug');
+        // One-time migration off the key web wrote before 0019, so an existing
+        // install keeps its Partner manifest through the upgrade.
+        var legacySlug = localStorage.getItem('partner-slug');
+        if (legacySlug !== null) {
+          if (!partnerSlug) {
+            partnerSlug = legacySlug;
+            localStorage.setItem('partnerSlug', legacySlug);
+          }
+          localStorage.removeItem('partner-slug');
+        }
         if (partnerSlug) {
           // Swap manifest to partner-specific version
           var manifestLink = document.getElementById('pwa-manifest');
