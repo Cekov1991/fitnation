@@ -248,52 +248,39 @@ describe('cancelRestAlert', () => {
 })
 
 describe('Android foreground service (R6–R8)', () => {
-  it('starts the service at rest start and keeps a later fallback alarm', async () => {
+  it('starts the service at rest start and schedules no local notification', async () => {
     const service = withService()
-    const { startRestAlert, ANDROID_FALLBACK_GRACE_MS } = await load()
+    const { startRestAlert } = await load()
     await startRestAlert({ seconds: 90, exerciseName: 'Bench Press' })
-
-    expect(service.start).toHaveBeenCalledWith(NOW + 90_000, 'Bench Press', 'req-1')
-    // The service posts the alert on the second and cancels the fallback; the
-    // fallback is deliberately a little later so the two never collide.
-    expect(scheduled().trigger.date).toBe(NOW + 90_000 + ANDROID_FALLBACK_GRACE_MS)
-    expect(ANDROID_FALLBACK_GRACE_MS).toBeGreaterThan(0)
+    expect(service.start).toHaveBeenCalledWith(NOW + 90_000, 'Bench Press')
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
   })
 
   it('passes an empty label when there is no current exercise', async () => {
     const service = withService()
     const { startRestAlert } = await load()
     await startRestAlert({ seconds: 60, exerciseName: null })
-    expect(service.start).toHaveBeenCalledWith(NOW + 60_000, '', 'req-1')
+    expect(service.start).toHaveBeenCalledWith(NOW + 60_000, '')
   })
 
-  it('moves the service and the fallback together on ±15 s', async () => {
-    notifications.scheduleNotificationAsync.mockResolvedValueOnce('req-1').mockResolvedValueOnce('req-2')
+  it('moves the service on ±15 s', async () => {
     const service = withService()
-    const { startRestAlert, adjustRestAlert, ANDROID_FALLBACK_GRACE_MS } = await load()
+    const { startRestAlert, adjustRestAlert } = await load()
     await startRestAlert({ seconds: 90, exerciseName: 'Squat' })
     vi.setSystemTime(NOW + 10_000)
     await adjustRestAlert(95)
-
-    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 95_000, 'Squat', 'req-2')
-    expect(scheduled(1).trigger.date).toBe(NOW + 10_000 + 95_000 + ANDROID_FALLBACK_GRACE_MS)
+    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 95_000, 'Squat')
     expect(service.start).toHaveBeenCalledTimes(1)
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
   })
 
-  it('stops the service and cancels the fallback on skip / finish / leave', async () => {
+  it('stops the service on skip / finish / leave, even when nothing was started', async () => {
     const service = withService()
     const { startRestAlert, cancelRestAlert } = await load()
+    await cancelRestAlert()
     await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
     await cancelRestAlert()
-    expect(service.stop).toHaveBeenCalledTimes(1)
-    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
-  })
-
-  it('stops the service even when nothing was scheduled (permission refused mid-way)', async () => {
-    const service = withService()
-    const { cancelRestAlert } = await load()
-    await cancelRestAlert()
-    expect(service.stop).toHaveBeenCalledTimes(1)
+    expect(service.stop).toHaveBeenCalledTimes(2)
   })
 
   it('never starts the service without notification permission', async () => {
@@ -304,8 +291,7 @@ describe('Android foreground service (R6–R8)', () => {
     expect(service.start).not.toHaveBeenCalled()
   })
 
-  it('a refused service start moves the fallback back to the exact second and does not reject', async () => {
-    notifications.scheduleNotificationAsync.mockResolvedValueOnce('req-1').mockResolvedValueOnce('req-2')
+  it('a refused service start falls back to the exact local notification and does not reject', async () => {
     const service = withService()
     service.start.mockImplementation(() => {
       throw new Error('ForegroundServiceStartNotAllowed')
@@ -313,11 +299,9 @@ describe('Android foreground service (R6–R8)', () => {
     const { startRestAlert, cancelRestAlert } = await load()
     await expect(startRestAlert({ seconds: 60, exerciseName: 'Squat' })).resolves.toBeUndefined()
     expect(console.warn).toHaveBeenCalledWith('[rest-timer]', expect.any(Error))
-    // The +5 s fallback is replaced by one at the exact end: nothing else will fire.
-    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
-    expect(scheduled(1).trigger.date).toBe(NOW + 60_000)
+    expect(scheduled().trigger.date).toBe(NOW + 60_000)
     await cancelRestAlert()
-    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-2')
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
   })
 
   it('a throwing update or stop does not reject', async () => {
@@ -332,20 +316,6 @@ describe('Android foreground service (R6–R8)', () => {
     await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
     await expect(adjustRestAlert(70)).resolves.toBeUndefined()
     await expect(cancelRestAlert()).resolves.toBeUndefined()
-    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalled()
-  })
-
-  it('±15 s still reaches the service when the fallback alarm failed to schedule', async () => {
-    notifications.scheduleNotificationAsync
-      .mockRejectedValueOnce(new Error('no scheduler'))
-      .mockResolvedValueOnce('req-2')
-    const service = withService()
-    const { startRestAlert, adjustRestAlert } = await load()
-    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
-    expect(service.start).toHaveBeenCalledWith(NOW + 60_000, 'Squat', null)
-    vi.setSystemTime(NOW + 10_000)
-    await adjustRestAlert(65)
-    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 65_000, 'Squat', 'req-2')
   })
 
   it('a skip during the permission prompt never starts the service', async () => {
@@ -363,7 +333,7 @@ describe('Android foreground service (R6–R8)', () => {
     expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
   })
 
-  it('on Android without the native module (old binary) behaves like iOS: exact fallback, no service', async () => {
+  it('on Android without the native module (old binary) behaves like iOS: exact local notification', async () => {
     platform.OS = 'android'
     native.RestTimer = null
     const { startRestAlert } = await load()
@@ -372,8 +342,8 @@ describe('Android foreground service (R6–R8)', () => {
   })
 
   // modules/rest-timer/index.ts exports null off Android, so iOS never sees a
-  // service; the fallback is then the exact-time alert.
-  it('on iOS (module null) the fallback is exact and nothing native is involved', async () => {
+  // service; the local notification is the alert.
+  it('on iOS (module null) the local notification is exact and nothing native is involved', async () => {
     platform.OS = 'ios'
     native.RestTimer = null
     const { startRestAlert, adjustRestAlert, cancelRestAlert } = await load()

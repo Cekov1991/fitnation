@@ -1,16 +1,22 @@
 // The rest timer's OS-side alert (docs/specs/0013-rest-timer-notification.md).
 //
 // `RestTimer.tsx` counts down on the UI thread and only fires while the app is
-// in the foreground. This module schedules a local notification for the same
-// second so the phone still interrupts the user when it is locked or another
-// app is up. R1: scheduled at rest start, moved on ±15 s, cancelled on skip /
-// finish / session end / foreground completion — never "only when the app
-// backgrounds", because start-then-cancel has no race.
+// in the foreground. This module makes the phone interrupt the user at the
+// same second when it is locked or another app is up. R1: armed at rest start,
+// moved on ±15 s, cancelled on skip / finish / session end / foreground
+// completion — never "only when the app backgrounds", because start-then-cancel
+// has no race.
 //
-// iOS holds the schedule itself. On Android the foreground service in
-// `modules/rest-timer` is what fires on the second (R6–R8); this same local
-// notification is kept as the belt-and-braces fallback for the case where the
-// OS kills the service anyway.
+// Two mechanisms, one behaviour:
+// - iOS: a scheduled local notification. iOS holds the schedule and fires it
+//   whether the app is backgrounded or killed.
+// - Android: the foreground service in `modules/rest-timer` (R6–R8), which
+//   keeps the process alive, shows the OS-rendered countdown and posts the
+//   alert on the second — exempt from Doze and OEM battery optimisers, which
+//   throttle or kill scheduled alarms. The service is the sole owner of the
+//   rest end there; the local notification is used on Android only when the
+//   service refuses to start (Android 12+ from the background), or in a binary
+//   built before the module existed.
 //
 // Everything is best effort: a failure here must never break the in-app timer.
 import * as Notifications from 'expo-notifications'
@@ -28,27 +34,20 @@ import {
 let scheduledId: string | null = null
 let endAt = 0
 let exerciseLabel: string | null = null
-// Bumped by every start and cancel. A start awaits the permission check (and
-// possibly the OS prompt) before it can schedule; a skip or a newer start in
-// that window must win, so each async step re-checks it still owns the rest.
-let generation = 0
-
-// With the service running, the fallback alarm is pushed this far past the
-// end. The service posts its alert on the second and cancels the fallback by
-// id; the gap makes sure the cancel lands before the alarm would have fired,
-// so the user never sees two alerts. If the service is dead the fallback is
-// simply this late — the last resort was never going to be exact.
-export const ANDROID_FALLBACK_GRACE_MS = 5_000
-
-// Null on iOS, web, and an Android binary built before the module existed.
-const service = RestTimer
 // True while the service has been told about the current rest, so an adjust
-// still reaches it when the fallback alarm itself failed to schedule.
+// still reaches it when no local notification is scheduled.
 let serviceArmed = false
+// Bumped by every start and cancel. A start awaits the permission check (and
+// possibly the OS prompt) before it can arm anything; a skip or a newer start
+// in that window must win, so each async step re-checks it still owns the rest.
+let generation = 0
 // R3: if permission is undetermined when a rest first starts, ask then — once.
 // On Android a refusal keeps `canAskAgain`, so without this the OS prompt
 // would come back on every rest.
 let askedThisLaunch = false
+
+// Null on iOS, web, and an Android binary built before the module existed.
+const service = RestTimer
 
 function warn(e: unknown): void {
   console.warn('[rest-timer]', e)
@@ -70,54 +69,46 @@ async function cancelScheduled(): Promise<void> {
   if (id !== null) await Notifications.cancelScheduledNotificationAsync(id)
 }
 
-// Arms the alert for the current `endAt`: the local notification (exact on
-// iOS, the delayed fallback on Android) and, on Android, the service. Bails if
-// the rest was cancelled or superseded (generation moved on) while the OS call
-// was in flight — cancelling the fresh request so nothing is left orphaned.
-async function scheduleFallback(gen: number, at: number): Promise<string | null> {
-  let id: string | null = null
-  try {
-    id = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Rest over',
-        body: `Back to ${exerciseLabel ?? 'your workout'}`,
-        sound: 'default',
-        data: { kind: REST_TIMER_KIND },
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: at,
-        channelId: REST_TIMER_CHANNEL_ID,
-      },
-    })
-  } catch (e) {
-    warn(e)
-  }
+// Schedules the local notification for `endAt`. Bails if the rest was
+// cancelled or superseded (generation moved on) while the OS call was in
+// flight — cancelling the fresh request so nothing is left orphaned.
+async function scheduleLocal(gen: number): Promise<void> {
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Rest over',
+      body: `Back to ${exerciseLabel ?? 'your workout'}`,
+      sound: 'default',
+      data: { kind: REST_TIMER_KIND },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: endAt,
+      channelId: REST_TIMER_CHANNEL_ID,
+    },
+  })
   if (gen !== generation) {
-    if (id !== null) await Notifications.cancelScheduledNotificationAsync(id)
-    return null
+    await Notifications.cancelScheduledNotificationAsync(id)
+    return
   }
   scheduledId = id
-  return id
 }
 
 async function armCurrent(gen: number, mode: 'start' | 'update'): Promise<void> {
   if (gen !== generation || endAt <= Date.now()) return
-  const fallbackId = await scheduleFallback(gen, service ? endAt + ANDROID_FALLBACK_GRACE_MS : endAt)
-  if (gen !== generation || !service) return
-  // Independent of the fallback: a failed alarm still gets the service, and a
-  // refused service start leaves the alarm — moved back to the exact second,
-  // since nothing will fire ahead of it now.
-  try {
-    if (mode === 'start') service.start(endAt, exerciseLabel ?? '', fallbackId)
-    else service.update(endAt, exerciseLabel ?? '', fallbackId)
-    serviceArmed = true
-  } catch (e) {
-    warn(e)
-    serviceArmed = false
-    await cancelScheduled()
-    await scheduleFallback(gen, endAt)
+  if (service) {
+    try {
+      if (mode === 'start') service.start(endAt, exerciseLabel ?? '')
+      else service.update(endAt, exerciseLabel ?? '')
+      serviceArmed = true
+      return
+    } catch (e) {
+      // The OS refused the service; the scheduled notification is the next
+      // best thing.
+      warn(e)
+      serviceArmed = false
+    }
   }
+  await scheduleLocal(gen)
 }
 
 export async function startRestAlert(input: { seconds: number; exerciseName: string | null }): Promise<void> {
@@ -137,16 +128,16 @@ export async function startRestAlert(input: { seconds: number; exerciseName: str
 }
 
 // `seconds` is the new remaining time from now. Always records the new end,
-// so a start still waiting on the permission check schedules the adjusted
-// time; with nothing scheduled there is otherwise nothing to move.
+// so a start still waiting on the permission check arms the adjusted time;
+// with nothing armed there is otherwise nothing to move.
 export async function adjustRestAlert(seconds: number): Promise<void> {
   const gen = generation
   try {
     endAt = Date.now() + seconds * 1000
     if (scheduledId === null && !serviceArmed) return
     await cancelScheduled()
-    // At zero the in-app timer completes on its own next frame and cancels via
-    // handleRestFinished; an alert "now" would only double up the haptic.
+    // At zero the in-app timer completes on its own next frame; an alert "now"
+    // would only double up the haptic.
     if (seconds <= 0) return
     await armCurrent(gen, 'update')
   } catch (e) {
