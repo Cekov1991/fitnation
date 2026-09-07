@@ -24,6 +24,7 @@ import {
   useSwapSessionExercise,
   useSwapTemplateExercise,
   useWeightUnit,
+  allowsWeightLogging,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -208,7 +209,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     }
   }
 
-  const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT'
+  const allowWeightLogging = allowsWeightLogging(exercise)
 
   const { data: historyData, isLoading: isLoadingHistory } = useExerciseHistory(
     exercise?.id ?? 0,

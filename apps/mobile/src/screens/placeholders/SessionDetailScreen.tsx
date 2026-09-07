@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { ArrowLeft, Clock, Dumbbell, TrendingUp, CheckCircle2, Circle, ChevronRight } from 'lucide-react-native'
-import { useSession, useWeightUnit } from '@fit-nation/shared'
+import { useSession, useWeightUnit, sessionTotals } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -68,19 +68,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
   const exercises: SessionExerciseDetail[] = (sessionData as any).exercises ?? []
   const duration = calcDuration(sessionData.performed_at, sessionData.completed_at)
 
-  const hasWeighted = exercises.some(
-    ex => ex.session_exercise.progression_mode === 'double_progression'
-  )
-  const totalVolume = exercises
-    .filter(ex => ex.session_exercise.progression_mode === 'double_progression')
-    .reduce((sum, ex) => {
-      return sum + (ex.logged_sets ?? []).reduce((s: number, set: SetLogResource) => s + set.weight * set.reps, 0)
-    }, 0)
-  const totalBodyweightReps = exercises
-    .filter(ex => ex.session_exercise.progression_mode === 'total_reps')
-    .reduce((sum, ex) => {
-      return sum + (ex.logged_sets ?? []).reduce((s: number, set: SetLogResource) => s + set.reps, 0)
-    }, 0)
+  const { hasWeighted, weightedVolume: totalVolume, bodyweightReps: totalBodyweightReps } = sessionTotals({ exercises })
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>

@@ -1,9 +1,9 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
+import { countCompletedSlots, isExerciseComplete } from '@fit-nation/shared'
 import { FlatList, View, Text, TouchableOpacity, useWindowDimensions } from 'react-native'
 import { Image } from 'expo-image'
 import { Check, MoreVertical, Plus } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
-import { countCompletedSlots, isExerciseComplete } from './progress'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
 
 interface ExerciseNavTabsProps {

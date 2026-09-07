@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
-import { useSession, useCompleteSession, useTemplate, useWeightUnit, queryKeys } from '@fit-nation/shared';
+import { useSession, useCompleteSession, useTemplate, useWeightUnit, queryKeys, sessionTotals } from '@fit-nation/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -65,40 +65,8 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
 
   const formattedDuration = duration ? formatDuration(duration) : 'N/A';
 
-  const hasWeightedExercises = sessionData
-    ? sessionData.exercises.some(
-        (exerciseDetail: SessionExerciseDetail) =>
-          exerciseDetail.session_exercise.progression_mode === 'double_progression'
-      )
-    : false;
-
-  const totalVolume = sessionData
-    ? sessionData.exercises
-        .filter(
-          (exerciseDetail: SessionExerciseDetail) =>
-            exerciseDetail.session_exercise.progression_mode === 'double_progression'
-        )
-        .reduce((total: number, exerciseDetail: SessionExerciseDetail) => {
-          const exerciseVolume = exerciseDetail.logged_sets.reduce(
-            (sum: number, set: SetLogResource) => sum + set.weight * set.reps,
-            0
-          );
-          return total + exerciseVolume;
-        }, 0)
-    : 0;
-
-  const totalBodyweightReps = sessionData
-    ? sessionData.exercises
-        .filter(
-          (exerciseDetail: SessionExerciseDetail) =>
-            exerciseDetail.session_exercise.progression_mode === 'total_reps'
-        )
-        .reduce(
-          (total: number, exerciseDetail: SessionExerciseDetail) =>
-            total + exerciseDetail.logged_sets.reduce((sum: number, set: SetLogResource) => sum + set.reps, 0),
-          0
-        )
-    : 0;
+  // The shared read model's totals — the same numbers the summary screen shows.
+  const { hasWeighted: hasWeightedExercises, weightedVolume: totalVolume, bodyweightReps: totalBodyweightReps } = sessionTotals(sessionData);
 
   const handleResumeSession = () => {
     history.push(`/session/${sessionId}`);

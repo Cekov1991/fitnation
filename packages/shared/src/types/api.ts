@@ -636,6 +636,8 @@ export interface EquipmentTypeResource {
   code: string;
   name: string;
   display_order: number;
+  /** Server-owned: whether an exercise on this equipment takes a logged weight (back-end issue 021). */
+  supports_added_weight: boolean;
 }
 
 export interface TargetRegionResource {

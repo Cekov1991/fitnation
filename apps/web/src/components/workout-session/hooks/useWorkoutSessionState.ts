@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, persistedSetLogId, type WeightUnit, queryKeys } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, persistedSetLogId, sessionTotals, type SessionTotals, type WeightUnit, queryKeys } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
@@ -28,6 +28,8 @@ interface UseWorkoutSessionStateReturn {
   isLoading: boolean;
   formattedDuration: string;
   allExercisesCompleted: boolean;
+  /** From the shared read model; the summary screen renders these. */
+  sessionTotals: SessionTotals;
   weightUnit: WeightUnit;
 
   // Set logging
@@ -185,6 +187,7 @@ export function useWorkoutSessionState({
   const canRemoveSet =
     selectedSet != null && (currentExercise?.sets.length ?? 0) > 1 && !isSelectedSetProvisional;
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
+  const totals = useMemo(() => sessionTotals(sessionData), [sessionData]);
 
   // Update exercise index when exercises load and we have initialExerciseName from navigation state
   // This handles the case where exercises load asynchronously after component mount
@@ -521,6 +524,7 @@ export function useWorkoutSessionState({
     isLoading,
     formattedDuration,
     allExercisesCompleted,
+    sessionTotals: totals,
     weightUnit,
 
     // Set logging

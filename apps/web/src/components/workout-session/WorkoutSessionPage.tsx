@@ -49,6 +49,7 @@ export function WorkoutSessionPage({
     return (
       <WorkoutSummaryScreen
         exercises={state.exercises}
+        totals={state.sessionTotals}
         formattedDuration={state.formattedDuration}
         onDone={state.handleSummaryDismiss}
         newPrs={state.sessionNewPrs}

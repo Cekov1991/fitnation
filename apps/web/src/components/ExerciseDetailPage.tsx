@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises, useExerciseHistory, useWeightUnit } from '@fit-nation/shared';
+import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
@@ -57,7 +57,7 @@ export function ExerciseDetailPage({
   }, [exerciseName, exercises]);
 
   // Check if exercise allows weight logging (non-bodyweight exercises)
-  const allowWeightLogging = !['BODYWEIGHT', 'TRX'].includes(exercise?.equipment_type?.code ?? '');
+  const allowWeightLogging = allowsWeightLogging(exercise);
 
   // Fetch exercise history when performance tab is active and exercise exists
   const {

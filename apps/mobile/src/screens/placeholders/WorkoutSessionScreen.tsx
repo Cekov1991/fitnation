@@ -18,13 +18,13 @@ import {
   useCompleteSession,
   useCancelSession,
   useRemoveSessionExercise,
+  isExerciseComplete,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExercisePage } from '../../components/workout-session/ExercisePage'
 import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTabs'
 import { SessionClock } from '../../components/workout-session/SessionClock'
 import { RestTimer } from '../../components/workout-session/RestTimer'
-import { isExerciseComplete } from '../../components/workout-session/progress'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
