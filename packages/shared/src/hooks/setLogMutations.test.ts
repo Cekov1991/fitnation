@@ -4,7 +4,9 @@ import {
   isProvisionalSetLogId,
   nextProvisionalSetLogId,
   logSetMutationOptions,
-  updateSetMutationOptions
+  updateSetMutationOptions,
+  deleteSetMutationOptions,
+  persistedSetLogId
 } from './setLogMutations';
 import type { SetLogResource } from '../types/api';
 
@@ -240,7 +242,7 @@ describe('updateSetMutationOptions', () => {
     vi.restoreAllMocks();
   });
 
-  const variables = { sessionId: 10, setLogId: 1, data: { weight: 70, reps: 6 } };
+  const variables = { sessionId: 10, setLogId: persistedSetLogId(1)!, data: { weight: 70, reps: 6 } };
   // Loosely typed on purpose: the spy's generic signature is React Query's, and
   // all the assertions need is the queryKey of each call.
   const invalidatedKeys = (spy: { mock: { calls: unknown[][] } }) =>
@@ -295,5 +297,100 @@ describe('updateSetMutationOptions', () => {
     options.onError(new Error('offline'), variables, context);
 
     expect(queryClient.getQueryData(['sessions', 10])).toEqual(before);
+  });
+});
+
+describe('persistedSetLogId', () => {
+  it('accepts a server id and refuses a provisional or missing one', () => {
+    expect(persistedSetLogId(42)).toBe(42);
+    expect(persistedSetLogId(-1756300000000)).toBeNull();
+    expect(persistedSetLogId(0)).toBeNull();
+    expect(persistedSetLogId(null)).toBeNull();
+    expect(persistedSetLogId(undefined)).toBeNull();
+  });
+
+  it('is the only way to type a set-log id for update or delete', () => {
+    // Never called — typechecked by `pnpm typecheck`, where each line must fail.
+    function wrongShapesDoNotCompile(queryClient: QueryClient) {
+      // @ts-expect-error — a raw number is not a persisted id
+      updateSetMutationOptions(queryClient).mutationFn({ sessionId: 10, setLogId: 1, data: { weight: 1, reps: 1 } });
+      // @ts-expect-error — a raw number is not a persisted id
+      deleteSetMutationOptions(queryClient).mutationFn({ sessionId: 10, setLogId: -5 });
+    }
+    expect(typeof wrongShapesDoNotCompile).toBe('function');
+  });
+
+  it('is enforced at runtime too, before any request leaves', () => {
+    const options = deleteSetMutationOptions(new QueryClient());
+    expect(() => options.mutationFn({ sessionId: 10, setLogId: -7 as never })).toThrow(/provisional/);
+  });
+});
+
+describe('deleteSetMutationOptions', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const threeSets = () => {
+    const queryClient = seeded();
+    queryClient.setQueryData(['sessions', 10], (old: any) => ({
+      ...old,
+      exercises: [
+        {
+          ...old.exercises[0],
+          logged_sets: [setLog({ id: 1, set_number: 1 }), setLog({ id: 2, set_number: 2 }), setLog({ id: 3, set_number: 3 })]
+        },
+        old.exercises[1]
+      ]
+    }));
+    return queryClient;
+  };
+
+  it('drops the row and re-sequences the sets after it', async () => {
+    const queryClient = threeSets();
+    await deleteSetMutationOptions(queryClient).onMutate({ sessionId: 10, setLogId: persistedSetLogId(2)! });
+
+    const logged = cachedExercises(queryClient)[0].logged_sets;
+    expect(logged.map((l: any) => l.id)).toEqual([1, 3]);
+    expect(setNumbers(logged)).toEqual([1, 2]);
+  });
+
+  it('leaves target_sets to the request that owns it', async () => {
+    // 0006 part 1: DELETE .../sets/{id} does not touch target_sets; the follow-up
+    // PATCH does. Two optimistic writers of one field converged by luck before.
+    const queryClient = threeSets();
+    await deleteSetMutationOptions(queryClient).onMutate({ sessionId: 10, setLogId: persistedSetLogId(2)! });
+
+    expect(cachedExercises(queryClient)[0].session_exercise.target_sets).toBe(3);
+  });
+
+  it("names the set's exercise before the row is gone, and restores everything on error", async () => {
+    const queryClient = threeSets();
+    const options = deleteSetMutationOptions(queryClient);
+    const before = queryClient.getQueryData(['sessions', 10]);
+    const variables = { sessionId: 10, setLogId: persistedSetLogId(2)! };
+
+    const context = await options.onMutate(variables);
+    expect(context.exerciseId).toBe(55);
+    expect(cachedExercises(queryClient)[0].logged_sets).toHaveLength(2);
+
+    options.onError(new Error('offline'), variables, context);
+    expect(queryClient.getQueryData(['sessions', 10])).toEqual(before);
+  });
+
+  it("invalidates the session and that exercise's history, never the catalog", async () => {
+    const queryClient = threeSets();
+    const options = deleteSetMutationOptions(queryClient);
+    const variables = { sessionId: 10, setLogId: persistedSetLogId(2)! };
+    const context = await options.onMutate(variables);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    options.onSuccess(undefined, variables, context);
+
+    const keys = invalidate.mock.calls.map(([f]: any[]) => f?.queryKey);
+    expect(keys).toEqual([['sessions', 10], ['exercises', 55, 'history']]);
   });
 });

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, type WeightUnit, queryKeys } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, persistedSetLogId, type WeightUnit, queryKeys } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
@@ -260,11 +260,12 @@ export function useWorkoutSessionState({
   const handleSaveEdit = async () => {
     if (editingSetId && editingWeight !== null && editingReps !== null && currentExercise) {
       const set = currentExercise.sets.find(s => s.id === editingSetId);
-      if (set?.setLogId) {
+      const setLogId = persistedSetLogId(set?.setLogId);
+      if (setLogId) {
         try {
           await updateSet.mutateAsync({
             sessionId,
-            setLogId: set.setLogId,
+            setLogId,
             data: {
               weight: editingWeight,
               reps: editingReps
@@ -338,11 +339,12 @@ export function useWorkoutSessionState({
     }
 
     try {
-      if (set.completed && set.setLogId) {
-        // Remove logged set AND decrease target_sets
+      const setLogId = persistedSetLogId(set.setLogId);
+      if (set.completed && setLogId) {
+        // Remove the logged set; target_sets is the next request's to change.
         await deleteSet.mutateAsync({
           sessionId,
-          setLogId: set.setLogId
+          setLogId
         });
         // Also decrease target_sets to fully remove the set slot
         await updateSessionExercise.mutateAsync({

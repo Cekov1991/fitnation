@@ -10,6 +10,7 @@ import {
   useUpdateSessionExercise,
   useWeightUnit,
   isProvisionalSetLogId,
+  persistedSetLogId,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -248,7 +249,8 @@ export function ExercisePage({
   const handleSaveEdit = useCallback(async () => {
     // The menu already refuses to open an edit on a provisional row; this is
     // the guard for anything that reaches the handler another way.
-    if (editingLogId == null || isProvisionalSetLogId(editingLogId)) return
+    const editingId = persistedSetLogId(editingLogId)
+    if (editingId == null) return
     const weight = allowWeightLogging
       ? parseFloat(editWeight || '0')
       : 0
@@ -258,7 +260,7 @@ export function ExercisePage({
     try {
       await updateSet.mutateAsync({
         sessionId,
-        setLogId: editingLogId,
+        setLogId: editingId,
         data: { weight: isNaN(weight) ? 0 : weight, reps },
       })
       setEditingLogId(null)
@@ -280,8 +282,9 @@ export function ExercisePage({
     }
     try {
       if (activeSlot.kind === 'completed') {
-        if (isProvisionalSetLogId(activeSlot.logId)) return
-        await deleteSet.mutateAsync({ sessionId, setLogId: activeSlot.logId })
+        const logId = persistedSetLogId(activeSlot.logId)
+        if (logId == null) return
+        await deleteSet.mutateAsync({ sessionId, setLogId: logId })
       }
       await updateSessionExercise.mutateAsync({
         sessionId,

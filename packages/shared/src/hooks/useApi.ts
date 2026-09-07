@@ -11,7 +11,6 @@ import type {
   UpdateTemplateExerciseInput,
   SwapTemplateExerciseInput,
   AddSessionExerciseInput,
-  UpdateSessionExerciseInput,
   SwapSessionExerciseInput,
   UpdateProfileInput,
   RegisterDeviceInput,
@@ -21,7 +20,8 @@ import type {
   RegeneratePlanInput,
   CompleteSessionResponse,
 } from '../types/api';
-import { logSetMutationOptions, updateSetMutationOptions } from './setLogMutations';
+import { logSetMutationOptions, updateSetMutationOptions, deleteSetMutationOptions } from './setLogMutations';
+import { updateSessionExerciseMutationOptions, removeSessionExerciseMutationOptions } from './sessionExerciseMutations';
 import { queryKeys, type ExerciseHistoryParams } from '../queryKeys';
 
 // ============================================================================
@@ -815,102 +815,7 @@ export function useUpdateSet() {
 }
 export function useDeleteSet() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      setLogId
-    }: {
-      sessionId: number;
-      setLogId: number;
-    }) => sessionsApi.deleteSet(sessionId, setLogId),
-    onMutate: async (variables) => {
-      // Cancel ongoing queries to prevent race conditions
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.sessions.detail(variables.sessionId)
-      });
-
-      // Snapshot previous data for rollback
-      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
-
-      // Find exercise_id before we modify the cache (needed for history invalidation)
-      let exerciseId: number | null = null;
-      const cachedData = previousData as any;
-      if (cachedData?.exercises) {
-        for (const ex of cachedData.exercises) {
-          const setLog = ex.logged_sets?.find((log: any) => log.id === variables.setLogId);
-          if (setLog) {
-            exerciseId = setLog.exercise_id;
-            break;
-          }
-        }
-      }
-
-      // Optimistically update cache - remove the set log AND decrease target_sets
-      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) => {
-        if (!old?.exercises) return old;
-
-        const updatedExercises = old.exercises.map((exDetail: any) => {
-          const hasSetLog = exDetail.logged_sets?.some(
-            (setLog: any) => setLog.id === variables.setLogId
-          );
-
-          if (hasSetLog) {
-            // set_number of the row being deleted, so we can re-sequence the rest
-            const deletedSetNumber = exDetail.logged_sets.find(
-              (setLog: any) => setLog.id === variables.setLogId
-            )?.set_number;
-
-            // Drop the deleted row and shift every later set's number down by one
-            // to match the server's re-sequencing (keeps numbering contiguous).
-            const updatedLoggedSets = exDetail.logged_sets
-              .filter((setLog: any) => setLog.id !== variables.setLogId)
-              .map((setLog: any) =>
-                deletedSetNumber != null && setLog.set_number > deletedSetNumber
-                  ? { ...setLog, set_number: setLog.set_number - 1 }
-                  : setLog
-              );
-
-            // Also decrease target_sets so the set is fully removed
-            return {
-              ...exDetail,
-              logged_sets: updatedLoggedSets,
-              session_exercise: {
-                ...exDetail.session_exercise,
-                target_sets: Math.max(1, (exDetail.session_exercise.target_sets || 1) - 1)
-              }
-            };
-          }
-          return exDetail;
-        });
-
-        return {
-          ...old,
-          exercises: updatedExercises
-        };
-      });
-
-      return { previousData, exerciseId };
-    },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
-      }
-      console.error('Failed to delete set:', error);
-    },
-    onSuccess: (_, variables, context) => {
-      // Refetch to sync with server
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.detail(variables.sessionId)
-      });
-      // Invalidate exercise history if we found the exercise_id
-      if (context?.exerciseId) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.exercises.histories(context.exerciseId)
-        });
-      }
-    }
-  });
+  return useMutation(deleteSetMutationOptions(queryClient));
 }
 
 // Session Exercise Management
@@ -933,66 +838,7 @@ export function useAddSessionExercise() {
 }
 export function useUpdateSessionExercise() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      exerciseId,
-      data
-    }: {
-      sessionId: number;
-      exerciseId: number;
-      data: UpdateSessionExerciseInput;
-    }) => sessionsApi.updateSessionExercise(sessionId, exerciseId, data),
-    onMutate: async (variables) => {
-      // Cancel ongoing queries to prevent race conditions
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.sessions.detail(variables.sessionId)
-      });
-
-      // Snapshot previous data for rollback
-      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
-
-      // Optimistically update cache
-      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) => {
-        if (!old?.exercises) return old;
-
-        // Find and update the specific exercise
-        const updatedExercises = old.exercises.map((exDetail: any) => {
-          if (exDetail.session_exercise.id === variables.exerciseId) {
-            return {
-              ...exDetail,
-              session_exercise: {
-                ...exDetail.session_exercise,
-                ...variables.data, // Apply all updates (target_sets, rep range, etc.)
-                updated_at: new Date().toISOString()
-              }
-            };
-          }
-          return exDetail;
-        });
-
-        return {
-          ...old,
-          exercises: updatedExercises
-        };
-      });
-
-      return { previousData };
-    },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
-      }
-      console.error('Failed to update session exercise:', error);
-    },
-    onSuccess: (_, variables) => {
-      // Refetch to sync with server
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.detail(variables.sessionId)
-      });
-    }
-  });
+  return useMutation(updateSessionExerciseMutationOptions(queryClient));
 }
 export function useSwapSessionExercise() {
   const queryClient = useQueryClient();
@@ -1013,49 +859,7 @@ export function useSwapSessionExercise() {
 }
 export function useRemoveSessionExercise() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      exerciseId
-    }: {
-      sessionId: number;
-      exerciseId: number;
-    }) => sessionsApi.removeSessionExercise(sessionId, exerciseId),
-    // Optimistic, like useUpdateSet/useDeleteSet. Without it the removed
-    // exercise stays in the list for the whole round trip, so a UI that follows
-    // the list has to show a stale entry or hold a temporary index and correct
-    // it once the refetch lands — which reads as the list flickering.
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.sessions.detail(variables.sessionId)
-      });
-
-      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
-
-      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) => {
-        if (!old?.exercises) return old;
-        return {
-          ...old,
-          exercises: old.exercises.filter(
-            (exDetail: any) => exDetail.session_exercise.id !== variables.exerciseId
-          )
-        };
-      });
-
-      return { previousData };
-    },
-    onError: (error, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
-      }
-      console.error('Failed to remove session exercise:', error);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.detail(variables.sessionId)
-      });
-    }
-  });
+  return useMutation(removeSessionExerciseMutationOptions(queryClient));
 }
 export function useReorderSessionExercises() {
   const queryClient = useQueryClient();
