@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { AppState, AppStateStatus, Text, TextInput, View, TouchableOpacity } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import {
@@ -17,6 +17,9 @@ interface RestTimerProps {
   seconds: number
   onComplete: () => void
   onSkip: () => void
+  // ±15 s: called with the new remaining seconds so the OS-side alert
+  // (lib/restTimerAlert) can be moved to match.
+  onAdjust?: (remaining: number) => void
 }
 
 const SIZE = 48
@@ -35,8 +38,10 @@ function formatTime(s: number) {
   return `${sec}s`
 }
 
-export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
+export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerProps) {
   const { colors } = useTheme()
+  const onAdjustRef = useRef(onAdjust)
+  onAdjustRef.current = onAdjust
 
   // SharedValues — safe to write from both JS thread and UI-thread worklet
   const endTimeSV = useSharedValue(Date.now() + seconds * 1000)
@@ -106,16 +111,23 @@ export function RestTimer({ seconds, onComplete, onSkip }: RestTimerProps) {
     []
   )
 
+  const notifyAdjust = useCallback(() => {
+    onAdjustRef.current?.(Math.max(0, Math.ceil((endTimeSV.value - Date.now()) / 1000)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const addTime = useCallback((extra: number) => {
     endTimeSV.value = endTimeSV.value + extra * 1000
     remainingSV.value = remainingSV.value + extra
     totalSV.value = totalSV.value + extra
+    notifyAdjust()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const subTime = useCallback((extra: number) => {
     endTimeSV.value = endTimeSV.value - extra * 1000
     remainingSV.value = Math.max(1, remainingSV.value - extra)
+    notifyAdjust()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

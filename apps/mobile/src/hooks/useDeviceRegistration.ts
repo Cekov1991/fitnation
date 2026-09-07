@@ -12,7 +12,7 @@ import { useRegisterDevice, type UserResource } from '@fit-nation/shared'
 import {
   buildRegistration,
   currentTimezone,
-  ensureAndroidChannel,
+  ensureAndroidChannels,
   getPermissionStatus,
   getPushToken,
 } from '../lib/notifications'
@@ -42,7 +42,7 @@ export function useDeviceRegistration(user: UserResource | null) {
       inFlight.current = true
       try {
         if ((await getPermissionStatus()) !== 'granted') return
-        await ensureAndroidChannel()
+        await ensureAndroidChannels()
         const token = await getPushToken()
         if (!token) return
         const timezone = currentTimezone()
