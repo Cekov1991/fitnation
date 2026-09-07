@@ -22,6 +22,7 @@ import type {
   CompleteSessionResponse,
 } from '../types/api';
 import { logSetMutationOptions, updateSetMutationOptions } from './setLogMutations';
+import { queryKeys, type ExerciseHistoryParams } from '../queryKeys';
 
 // ============================================================================
 // AUTHENTICATION HELPER
@@ -46,7 +47,7 @@ function isAuthenticated(): boolean {
 
 export function useProfile() {
   return useQuery({
-    queryKey: ['profile'],
+    queryKey: queryKeys.profile.all(),
     queryFn: async () => {
       const response = await profileApi.getProfile();
       return response.user;
@@ -59,7 +60,7 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: UpdateProfileInput) => profileApi.updateProfile(data),
     onSuccess: response => {
-      queryClient.setQueryData(['profile'], response.user);
+      queryClient.setQueryData(queryKeys.profile.all(), response.user);
     }
   });
 }
@@ -68,7 +69,7 @@ export function useDeleteProfilePhoto() {
   return useMutation({
     mutationFn: profileApi.deleteProfilePhoto,
     onSuccess: response => {
-      queryClient.setQueryData(['profile'], response.user);
+      queryClient.setQueryData(queryKeys.profile.all(), response.user);
     }
   });
 }
@@ -95,13 +96,13 @@ export function useCompleteOnboarding() {
     onSuccess: () => {
       // Invalidate plans and planner queries to refresh data after plan creation
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['profile']
+        queryKey: queryKeys.profile.all()
       });
     }
   });
@@ -126,7 +127,7 @@ export function useUpdateNotificationSettings() {
   return useMutation({
     mutationFn: (data: UpdateNotificationSettingsInput) => notificationSettingsApi.update(data),
     onSuccess: response => {
-      queryClient.setQueryData(['profile'], response.user);
+      queryClient.setQueryData(queryKeys.profile.all(), response.user);
     }
   });
 }
@@ -137,7 +138,7 @@ export function useUpdateNotificationSettings() {
 
 export function useFitnessMetrics() {
   return useQuery({
-    queryKey: ['fitness-metrics'],
+    queryKey: queryKeys.fitnessMetrics.all(),
     queryFn: async () => {
       const response = await metricsApi.getFitnessMetrics();
       return response.data;
@@ -152,7 +153,7 @@ export function useFitnessMetrics() {
 
 export function usePlans() {
   return useQuery({
-    queryKey: ['plans'],
+    queryKey: queryKeys.plans.all(),
     queryFn: async () => {
       const response = await plansApi.getPlans();
       return response.data;
@@ -162,7 +163,7 @@ export function usePlans() {
 }
 export function usePlan(planId: number) {
   return useQuery({
-    queryKey: ['plans', planId],
+    queryKey: queryKeys.plans.detail(planId),
     queryFn: async () => {
       const response = await plansApi.getPlan(planId);
       return response.data;
@@ -176,7 +177,7 @@ export function useCreatePlan() {
     mutationFn: (data: CreatePlanInput) => plansApi.createPlan(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
     }
   });
@@ -193,10 +194,10 @@ export function useUpdatePlan() {
     }) => plansApi.updatePlan(planId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans', variables.planId]
+        queryKey: queryKeys.plans.detail(variables.planId)
       });
     }
   });
@@ -207,10 +208,10 @@ export function useDeletePlan() {
     mutationFn: plansApi.deletePlan,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
     }
   });
@@ -221,8 +222,8 @@ export function useRegeneratePlan() {
   return useMutation({
     mutationFn: (data?: RegeneratePlanInput) => plansApi.regeneratePlan(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['programs'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.programs.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile.all() });
     }
   });
 }
@@ -233,7 +234,7 @@ export function useRegeneratePlan() {
 
 export function usePrograms() {
   return useQuery({
-    queryKey: ['programs'],
+    queryKey: queryKeys.programs.all(),
     queryFn: async () => {
       const response = await programsApi.getActiveProgram();
       return response.data;
@@ -244,7 +245,7 @@ export function usePrograms() {
 
 export function useProgram(programId: number) {
   return useQuery({
-    queryKey: ['programs', programId],
+    queryKey: queryKeys.programs.detail(programId),
     queryFn: async () => {
       const response = await programsApi.getProgram(programId);
       return response.data;
@@ -255,7 +256,7 @@ export function useProgram(programId: number) {
 
 export function useProgramLibrary() {
   return useQuery({
-    queryKey: ['programs', 'library'],
+    queryKey: queryKeys.programs.library(),
     queryFn: async () => {
       const response = await programsApi.getProgramLibrary();
       return response.data;
@@ -270,7 +271,7 @@ export function useCloneProgram() {
     mutationFn: (programId: number) => programsApi.cloneProgram(programId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -288,10 +289,10 @@ export function useUpdateProgram() {
     }) => programsApi.updateProgram(programId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['programs', variables.programId]
+        queryKey: queryKeys.programs.detail(variables.programId)
       });
     }
   });
@@ -303,7 +304,7 @@ export function useDeleteProgram() {
     mutationFn: programsApi.deleteProgram,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -311,7 +312,7 @@ export function useDeleteProgram() {
 
 export function useNextWorkout(programId: number) {
   return useQuery({
-    queryKey: ['programs', programId, 'next-workout'],
+    queryKey: queryKeys.programs.nextWorkout(programId),
     queryFn: async () => {
       const response = await programsApi.getNextWorkout(programId);
       return response.data;
@@ -326,7 +327,7 @@ export function useNextWorkout(programId: number) {
 
 export function useBrowsableRoutines() {
   return useQuery({
-    queryKey: ['routines'],
+    queryKey: queryKeys.routines.all(),
     queryFn: async () => {
       const response = await routinesApi.getRoutines();
       return response.data;
@@ -337,7 +338,7 @@ export function useBrowsableRoutines() {
 
 export function useBrowsableRoutine(routineId: number) {
   return useQuery({
-    queryKey: ['routines', routineId],
+    queryKey: queryKeys.routines.detail(routineId),
     queryFn: async () => {
       const response = await routinesApi.getRoutine(routineId);
       return response.data;
@@ -352,7 +353,7 @@ export function useBrowsableRoutine(routineId: number) {
 
 export function useTemplates() {
   return useQuery({
-    queryKey: ['templates'],
+    queryKey: queryKeys.templates.all(),
     queryFn: async () => {
       const response = await templatesApi.getTemplates();
       return response.data;
@@ -362,7 +363,7 @@ export function useTemplates() {
 }
 export function useTemplate(templateId: number) {
   return useQuery({
-    queryKey: ['templates', templateId],
+    queryKey: queryKeys.templates.detail(templateId),
     queryFn: async () => {
       const response = await templatesApi.getTemplate(templateId);
       return response.data;
@@ -376,13 +377,13 @@ export function useCreateTemplate() {
     mutationFn: (data: CreateTemplateInput) => templatesApi.createTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['templates']
+        queryKey: queryKeys.templates.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
     }
   });
@@ -399,16 +400,16 @@ export function useUpdateTemplate() {
     }) => templatesApi.updateTemplate(templateId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['templates']
+        queryKey: queryKeys.templates.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['templates', variables.templateId]
+        queryKey: queryKeys.templates.detail(variables.templateId)
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
     }
   });
@@ -419,13 +420,13 @@ export function useDeleteTemplate() {
     mutationFn: templatesApi.deleteTemplate,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['templates']
+        queryKey: queryKeys.templates.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
     }
   });
@@ -444,13 +445,13 @@ export function useAddTemplateExercise() {
     }) => templatesApi.addExercise(templateId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['templates', variables.templateId]
+        queryKey: queryKeys.templates.detail(variables.templateId)
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -469,13 +470,13 @@ export function useUpdateTemplateExercise() {
     }) => templatesApi.updateExercise(templateId, pivotId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['templates', variables.templateId]
+        queryKey: queryKeys.templates.detail(variables.templateId)
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -493,9 +494,9 @@ export function useSwapTemplateExercise() {
       data: SwapTemplateExerciseInput;
     }) => templatesApi.swapExercise(templateId, pivotId, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['templates', variables.templateId] });
-      queryClient.invalidateQueries({ queryKey: ['plans'] });
-      queryClient.invalidateQueries({ queryKey: ['programs'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.detail(variables.templateId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plans.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.programs.all() });
     }
   });
 }
@@ -511,13 +512,13 @@ export function useRemoveTemplateExercise() {
     }) => templatesApi.removeExercise(templateId, pivotId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['templates', variables.templateId]
+        queryKey: queryKeys.templates.detail(variables.templateId)
       });
       queryClient.invalidateQueries({
-        queryKey: ['plans']
+        queryKey: queryKeys.plans.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -534,10 +535,10 @@ export function useReorderTemplateExercises() {
     }) => templatesApi.reorderExercises(templateId, order),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['templates', variables.templateId]
+        queryKey: queryKeys.templates.detail(variables.templateId)
       });
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -549,7 +550,7 @@ export function useReorderTemplateExercises() {
 
 export function useExercises(search?: string) {
   return useQuery({
-    queryKey: ['exercises', search ?? ''],
+    queryKey: queryKeys.exercises.list(search),
     queryFn: async () => {
       const response = await exercisesApi.getExercises(search ? { search } : undefined);
       return response.data;
@@ -559,7 +560,7 @@ export function useExercises(search?: string) {
 }
 export function useExercise(exerciseId: number) {
   return useQuery({
-    queryKey: ['exercises', exerciseId],
+    queryKey: queryKeys.exercises.detail(exerciseId),
     queryFn: async () => {
       const response = await exercisesApi.getExercise(exerciseId);
       return response.data;
@@ -569,17 +570,13 @@ export function useExercise(exerciseId: number) {
 }
 export function useExerciseHistory(
   exerciseId: number,
-  params?: {
-    limit?: number;
-    start_date?: string;
-    end_date?: string;
-  },
+  params?: ExerciseHistoryParams,
   options?: {
     enabled?: boolean;
   }
 ) {
   return useQuery({
-    queryKey: ['exercises', exerciseId, 'history', params],
+    queryKey: queryKeys.exercises.history(exerciseId, params),
     queryFn: async () => {
       const response = await exercisesApi.getExerciseHistory(exerciseId, params);
       return response.data;
@@ -594,7 +591,7 @@ export function useExerciseHistory(
 
 export function useMuscleGroups(bodyRegion?: 'upper' | 'lower' | 'core') {
   return useQuery({
-    queryKey: ['muscle-groups', bodyRegion],
+    queryKey: queryKeys.taxonomy.muscleGroups(bodyRegion),
     queryFn: async () => {
       const response = await muscleGroupsApi.getMuscleGroups(bodyRegion);
       return response.data;
@@ -609,7 +606,7 @@ export function useMuscleGroups(bodyRegion?: 'upper' | 'lower' | 'core') {
 
 export function useCategories(type?: 'workout') {
   return useQuery({
-    queryKey: ['categories', type],
+    queryKey: queryKeys.taxonomy.categories(type),
     queryFn: async () => {
       const response = await categoriesApi.getCategories(type);
       return response.data;
@@ -624,7 +621,7 @@ export function useCategories(type?: 'workout') {
 
 export function useEquipmentTypes() {
   return useQuery({
-    queryKey: ['equipment-types'],
+    queryKey: queryKeys.taxonomy.equipmentTypes(),
     queryFn: async () => {
       const response = await classificationsApi.getEquipmentTypes();
       return response.data;
@@ -635,7 +632,7 @@ export function useEquipmentTypes() {
 
 export function useTargetRegions() {
   return useQuery({
-    queryKey: ['target-regions'],
+    queryKey: queryKeys.taxonomy.targetRegions(),
     queryFn: async () => {
       const response = await classificationsApi.getTargetRegions();
       return response.data;
@@ -646,7 +643,7 @@ export function useTargetRegions() {
 
 export function useMovementPatterns() {
   return useQuery({
-    queryKey: ['movement-patterns'],
+    queryKey: queryKeys.taxonomy.movementPatterns(),
     queryFn: async () => {
       const response = await classificationsApi.getMovementPatterns();
       return response.data;
@@ -657,7 +654,7 @@ export function useMovementPatterns() {
 
 export function useAngles() {
   return useQuery({
-    queryKey: ['angles'],
+    queryKey: queryKeys.taxonomy.angles(),
     queryFn: async () => {
       const response = await classificationsApi.getAngles();
       return response.data;
@@ -672,7 +669,7 @@ export function useAngles() {
 
 export function useWeeklyPlanner() {
   return useQuery({
-    queryKey: ['planner', 'weekly'],
+    queryKey: queryKeys.planner.weekly(),
     queryFn: async () => {
       const response = await plannerApi.getWeeklyPlanner();
       return response.data;
@@ -692,10 +689,10 @@ export function useAssignTemplate() {
     }) => plannerApi.assignTemplate(templateId, dayOfWeek),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['templates']
+        queryKey: queryKeys.templates.all()
       });
     }
   });
@@ -706,10 +703,10 @@ export function useUnassignTemplate() {
     mutationFn: plannerApi.unassignTemplate,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['planner']
+        queryKey: queryKeys.planner.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['templates']
+        queryKey: queryKeys.templates.all()
       });
     }
   });
@@ -721,7 +718,7 @@ export function useUnassignTemplate() {
 
 export function useCalendar(startDate: string, endDate: string) {
   return useQuery({
-    queryKey: ['sessions', 'calendar', startDate, endDate],
+    queryKey: queryKeys.sessions.calendar(startDate, endDate),
     queryFn: async () => {
       const response = await sessionsApi.getCalendar(startDate, endDate);
       return response.data;
@@ -731,7 +728,7 @@ export function useCalendar(startDate: string, endDate: string) {
 }
 export function useTodayWorkout() {
   return useQuery({
-    queryKey: ['sessions', 'today'],
+    queryKey: queryKeys.sessions.today(),
     queryFn: async () => {
       const response = await sessionsApi.getTodayWorkout();
       return response.data;
@@ -747,14 +744,14 @@ export function useStartSession() {
     mutationFn: (templateId?: number) => sessionsApi.startSession(templateId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['sessions']
+        queryKey: queryKeys.sessions.all()
       });
     }
   });
 }
 export function useSession(sessionId: number) {
   return useQuery({
-    queryKey: ['sessions', sessionId],
+    queryKey: queryKeys.sessions.detail(sessionId),
     queryFn: async () => {
       const response = await sessionsApi.getSession(sessionId);
       return response.data;
@@ -771,16 +768,16 @@ export function useCompleteSession() {
     }) => sessionsApi.completeSession(sessionId, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['sessions']
+        queryKey: queryKeys.sessions.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['fitness-metrics']
+        queryKey: queryKeys.fitnessMetrics.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['exercises']
+        queryKey: queryKeys.exercises.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -790,14 +787,12 @@ export function useCancelSession() {
   return useMutation({
     mutationFn: sessionsApi.cancelSession,
     onSuccess: () => {
+      // sessions.all() covers today's workout and every calendar range.
       queryClient.invalidateQueries({
-        queryKey: ['sessions']
+        queryKey: queryKeys.sessions.all()
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions', 'today']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['programs']
+        queryKey: queryKeys.programs.all()
       });
     }
   });
@@ -831,11 +826,11 @@ export function useDeleteSet() {
     onMutate: async (variables) => {
       // Cancel ongoing queries to prevent race conditions
       await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
 
       // Snapshot previous data for rollback
-      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
 
       // Find exercise_id before we modify the cache (needed for history invalidation)
       let exerciseId: number | null = null;
@@ -851,7 +846,7 @@ export function useDeleteSet() {
       }
 
       // Optimistically update cache - remove the set log AND decrease target_sets
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) => {
         if (!old?.exercises) return old;
 
         const updatedExercises = old.exercises.map((exDetail: any) => {
@@ -899,19 +894,19 @@ export function useDeleteSet() {
     onError: (error, variables, context) => {
       // Rollback on error
       if (context?.previousData) {
-        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
       }
       console.error('Failed to delete set:', error);
     },
     onSuccess: (_, variables, context) => {
       // Refetch to sync with server
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
       // Invalidate exercise history if we found the exercise_id
       if (context?.exerciseId) {
         queryClient.invalidateQueries({
-          queryKey: ['exercises', context.exerciseId, 'history']
+          queryKey: queryKeys.exercises.histories(context.exerciseId)
         });
       }
     }
@@ -931,7 +926,7 @@ export function useAddSessionExercise() {
     }) => sessionsApi.addExercise(sessionId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
     }
   });
@@ -951,14 +946,14 @@ export function useUpdateSessionExercise() {
     onMutate: async (variables) => {
       // Cancel ongoing queries to prevent race conditions
       await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
 
       // Snapshot previous data for rollback
-      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
 
       // Optimistically update cache
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) => {
         if (!old?.exercises) return old;
 
         // Find and update the specific exercise
@@ -987,14 +982,14 @@ export function useUpdateSessionExercise() {
     onError: (error, variables, context) => {
       // Rollback on error
       if (context?.previousData) {
-        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
       }
       console.error('Failed to update session exercise:', error);
     },
     onSuccess: (_, variables) => {
       // Refetch to sync with server
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
     }
   });
@@ -1012,7 +1007,7 @@ export function useSwapSessionExercise() {
       data: SwapSessionExerciseInput;
     }) => sessionsApi.swapSessionExercise(sessionId, exerciseId, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['sessions', variables.sessionId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.detail(variables.sessionId) });
     }
   });
 }
@@ -1032,12 +1027,12 @@ export function useRemoveSessionExercise() {
     // it once the refetch lands — which reads as the list flickering.
     onMutate: async (variables) => {
       await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
 
-      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
 
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
+      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) => {
         if (!old?.exercises) return old;
         return {
           ...old,
@@ -1051,13 +1046,13 @@ export function useRemoveSessionExercise() {
     },
     onError: (error, variables, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
       }
       console.error('Failed to remove session exercise:', error);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
     }
   });
@@ -1074,7 +1069,7 @@ export function useReorderSessionExercises() {
     }) => sessionsApi.reorderSessionExercises(sessionId, exerciseIds),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
     }
   });
@@ -1087,8 +1082,8 @@ export function useGenerateDraftSession() {
     mutationFn: (data: GenerateWorkoutInput) => sessionsApi.generateDraftSession(data),
     onSuccess: (response) => {
       // Cache the draft session data (not the full response with message)
-      queryClient.setQueryData(['sessions', response.data.id], response.data);
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.setQueryData(queryKeys.sessions.detail(response.data.id), response.data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all() });
     }
   });
 }
@@ -1098,8 +1093,8 @@ export function useConfirmDraftSession() {
   return useMutation({
     mutationFn: (sessionId: number) => sessionsApi.confirmDraftSession(sessionId),
     onSuccess: (_, sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['sessions', sessionId] });
-      queryClient.invalidateQueries({ queryKey: ['sessions', 'today'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.detail(sessionId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.today() });
     }
   });
 }
@@ -1111,8 +1106,8 @@ export function useRegenerateDraftSession() {
       sessionsApi.regenerateDraftSession(sessionId, data),
     onSuccess: (response) => {
       // Cache new draft data and invalidate old one
-      queryClient.setQueryData(['sessions', response.data.id], response.data);
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.setQueryData(queryKeys.sessions.detail(response.data.id), response.data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all() });
     }
   });
 }

@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { sessionsApi } from '../api';
+import { queryKeys } from '../queryKeys';
 import type { LogSetInput, SetLogResource, UpdateSetInput } from '../types/api';
 
 export interface LogSetVariables {
@@ -112,11 +113,11 @@ export function logSetMutationOptions(queryClient: QueryClient) {
     onMutate: async (variables: LogSetVariables): Promise<LogSetContext> => {
       // Cancel ongoing queries to prevent race conditions
       await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
 
       const provisionalId = nextProvisionalSetLogId();
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) =>
+      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) =>
         appendProvisionalSetLog(old, variables.sessionId, variables.data, provisionalId)
       );
 
@@ -130,7 +131,7 @@ export function logSetMutationOptions(queryClient: QueryClient) {
       // request can predate a second log that is still in flight — restoring it
       // would retract a set that is about to succeed.
       if (context) {
-        queryClient.setQueryData(['sessions', variables.sessionId], (old: any) =>
+        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) =>
           removeProvisionalSetLog(old, context.provisionalId)
         );
       }
@@ -140,10 +141,10 @@ export function logSetMutationOptions(queryClient: QueryClient) {
     onSuccess: (_data: unknown, variables: LogSetVariables) => {
       // Refetch to swap the provisional row for the server's, with its real id
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
       queryClient.invalidateQueries({
-        queryKey: ['exercises', variables.data.exercise_id, 'history']
+        queryKey: queryKeys.exercises.histories(variables.data.exercise_id)
       });
     }
   };
@@ -205,15 +206,15 @@ export function updateSetMutationOptions(queryClient: QueryClient) {
     onMutate: async (variables: UpdateSetVariables): Promise<UpdateSetContext> => {
       // Cancel ongoing queries to prevent race conditions
       await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
 
-      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+      const previousData = queryClient.getQueryData(queryKeys.sessions.detail(variables.sessionId));
       // Captured now, like useDeleteSet does: the patch below rewrites the row,
       // and re-reading the cache in onSuccess is what made the lookup miss before.
       const exerciseId = exerciseIdOfSetLog(previousData, variables.setLogId);
 
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) =>
+      queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), (old: any) =>
         patchSetLog(old, variables.setLogId, variables.data)
       );
 
@@ -223,7 +224,7 @@ export function updateSetMutationOptions(queryClient: QueryClient) {
     onError: (error: Error, variables: UpdateSetVariables, context: UpdateSetContext | undefined) => {
       // Rollback on error
       if (context?.previousData) {
-        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+        queryClient.setQueryData(queryKeys.sessions.detail(variables.sessionId), context.previousData);
       }
       console.error('Failed to update set:', error);
     },
@@ -231,17 +232,17 @@ export function updateSetMutationOptions(queryClient: QueryClient) {
     onSuccess: (_data: unknown, variables: UpdateSetVariables, context: UpdateSetContext | undefined) => {
       // Refetch to sync with server
       queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
+        queryKey: queryKeys.sessions.detail(variables.sessionId)
       });
       if (context?.exerciseId != null) {
         queryClient.invalidateQueries({
-          queryKey: ['exercises', context.exerciseId, 'history']
+          queryKey: queryKeys.exercises.histories(context.exerciseId)
         });
       } else {
         // The edited set was not in the cached session, so no exercise can be
         // named. Not reachable when the session screen is the caller.
         queryClient.invalidateQueries({
-          queryKey: ['exercises']
+          queryKey: queryKeys.exercises.all()
         });
       }
     }

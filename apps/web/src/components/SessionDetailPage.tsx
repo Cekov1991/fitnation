@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
-import { useSession, useCompleteSession, useTemplate, useWeightUnit } from '@fit-nation/shared';
+import { useSession, useCompleteSession, useTemplate, useWeightUnit, queryKeys } from '@fit-nation/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
@@ -111,8 +111,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
         notes: notes.trim() || undefined,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['sessions', 'calendar'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all() });
 
       setNotes('');
       setShowNotesInput(false);

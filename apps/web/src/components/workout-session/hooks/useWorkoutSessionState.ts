@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, type WeightUnit, queryKeys } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
@@ -135,7 +135,7 @@ export function useWorkoutSessionState({
       exercises.forEach((exercise) => {
         if (exercise.exerciseId) {
           queryClient.prefetchQuery({
-            queryKey: ['exercises', exercise.exerciseId, 'history', { limit: 10 }],
+            queryKey: queryKeys.exercises.history(exercise.exerciseId, { limit: 10 }),
             queryFn: async () => {
               const response = await exercisesApi.getExerciseHistory(exercise.exerciseId, { limit: 10 });
               return response.data;
@@ -493,7 +493,7 @@ export function useWorkoutSessionState({
   const handleCancelWorkoutConfirm = async () => {
     try {
       await cancelSession.mutateAsync(sessionId);
-      queryClient.setQueryData(['sessions', 'today'], (old: any) => {
+      queryClient.setQueryData(queryKeys.sessions.today(), (old: any) => {
         if (!old) {
           return { template: null, session: null };
         }

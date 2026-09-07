@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, RefreshCw } from 'lucide-react';
-import { useProfile, useRegeneratePlan, useUpdateProfile } from '@fit-nation/shared';
+import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys } from '@fit-nation/shared';
 import type { FitnessGoal, ProgramResource, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
 import { PlanGeneratingOverlay } from '../ui';
 import { RegeneratePlanModal } from './RegeneratePlanModal';
@@ -93,7 +93,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
       await regeneratePlan.mutateAsync(params);
       // Refetch the new plan data before hiding the overlay so the UI is
       // already updated when the loading screen fades out.
-      await queryClient.refetchQueries({ queryKey: ['programs'] });
+      await queryClient.refetchQueries({ queryKey: queryKeys.programs.all() });
       await delayPromise;
     } catch (error) {
       await delayPromise;

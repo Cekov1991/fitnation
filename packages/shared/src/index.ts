@@ -32,5 +32,8 @@ export * from './utils/workoutHelpers'
 export * from './utils/repRange'
 export * from './utils/calendarWeek'
 
+// Query keys — every React Query key is built here (0028)
+export { queryKeys, type QueryKeys, type ExerciseHistoryParams, type BodyRegion } from './queryKeys'
+
 // Units — the single owner of everything that follows from a Unit System
 export * from './units'
