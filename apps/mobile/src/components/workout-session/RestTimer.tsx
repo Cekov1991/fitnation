@@ -111,23 +111,27 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
     []
   )
 
-  const notifyAdjust = useCallback(() => {
-    onAdjustRef.current?.(Math.max(0, Math.ceil((endTimeSV.value - Date.now()) / 1000)))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Takes the new end explicitly: a shared value written from the JS thread is
+  // applied on the UI thread later, so reading it straight back here would
+  // still return the previous end and leave the OS alert one tap behind.
+  const notifyAdjust = useCallback((newEnd: number) => {
+    onAdjustRef.current?.(Math.max(0, Math.ceil((newEnd - Date.now()) / 1000)))
   }, [])
 
   const addTime = useCallback((extra: number) => {
-    endTimeSV.value = endTimeSV.value + extra * 1000
+    const newEnd = endTimeSV.value + extra * 1000
+    endTimeSV.value = newEnd
     remainingSV.value = remainingSV.value + extra
     totalSV.value = totalSV.value + extra
-    notifyAdjust()
+    notifyAdjust(newEnd)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const subTime = useCallback((extra: number) => {
-    endTimeSV.value = endTimeSV.value - extra * 1000
+    const newEnd = endTimeSV.value - extra * 1000
+    endTimeSV.value = newEnd
     remainingSV.value = Math.max(1, remainingSV.value - extra)
-    notifyAdjust()
+    notifyAdjust(newEnd)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
