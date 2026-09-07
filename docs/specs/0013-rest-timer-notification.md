@@ -1,7 +1,7 @@
 # Spec: The rest timer reaches you when the screen is off
 
 Status: ready-for-agent
-Origin: notifications design session, 2026-09-02 (phase 0 in the original brainstorm); Android approach decided 2026-09-07.
+Origin: notifications design session, 2026-09-02 (phase 0 in the original brainstorm); Android approach and the launch check decided 2026-09-07.
 Scope: `apps/mobile` only. No server, no `packages/shared`.
 
 ## Problem Statement
@@ -58,6 +58,9 @@ fallback for the case where the service is killed anyway.
 | R7 | The Android service shows an **ongoing notification with an OS-rendered countdown** (`usesChronometer` + `chronometerCountDown`) while resting, replaced by the R2 alert at zero. No per-second updates from JS. |
 | R8 | A native **local Expo module** in `apps/mobile/modules/rest-timer/` — no Notifee. One display library (`expo-notifications`) keeps channels and tap handling in one place; the module only starts/stops a service. |
 | R9 | While the session screen is in the **foreground**, the finish alert is suppressed (the ring hits zero and the haptic fires as today). Suppression is by `data.kind === 'rest-timer'` in the existing foreground handler. |
+| R10 | **Launch check.** Once per cold start, after auth resolves and only while the user is on `Tabs`, the app checks OS notification permission. `granted` → nothing. Otherwise the existing `NotificationPermissionSheet` is shown, at most **once every 7 days**. This supersedes 0012's M3 "never re-prompted": "Not now" now means "not for a week". |
+| R11 | When permission is **`denied`** (the OS will never prompt again), the same sheet is shown on the same cadence with **Open Settings** in place of **Turn on**, since Settings is the only way back. |
+| R12 | The cadence is one SecureStore timestamp, `pushPromptLastShownAt`, written whenever the sheet is shown from anywhere (onboarding included). It replaces the `pushPromptDismissed` boolean. |
 
 ## Behaviour
 
@@ -74,6 +77,46 @@ fallback for the case where the service is killed anyway.
 Copy per R2; the exercise name is `currentExercise.session_exercise.exercise.name`
 (`WorkoutSessionScreen.tsx:170`) at rest start. If a rest starts with no current
 exercise (should not happen), body falls back to **Back to your workout**.
+
+## Launch check
+
+Why here: `shouldShowPermissionSheet` (`src/lib/pushPrompt.ts`) is only ever
+evaluated from `OnboardingScreen.tsx:181`, and "Not now" is remembered
+forever. Two groups are therefore never asked: everyone who finished onboarding
+before #55 shipped, and anyone who dismissed once. The rest timer is the first
+feature that is *worse* without permission, so this is the moment to fix that.
+
+| OS permission at launch | last shown | Result |
+|---|---|---|
+| `granted` | — | nothing |
+| `undetermined` | never, or > 7 days ago | sheet, **Turn on** → OS prompt |
+| `undetermined` | ≤ 7 days ago | nothing |
+| `denied` | never, or > 7 days ago | sheet, **Open Settings** → `Linking.openSettings()` |
+| `denied` | ≤ 7 days ago | nothing |
+
+Rules:
+- Runs once per cold start, from `AppNavigator` (or a small hook mounted
+  there), only when the initial route is `Tabs` — never during
+  `EmailVerification` or `Onboarding`, which keeps its own moment. Wait for
+  the splash overlay to be gone (`RootNavigator` hides it once auth resolves)
+  so the sheet does not fight the launch animation.
+- Never in the same launch as the onboarding sheet: onboarding writes
+  `pushPromptLastShownAt`, so the 7-day gate already prevents it.
+- Showing the sheet writes `pushPromptLastShownAt = now`, whatever the user
+  picks. Granting makes the question moot; the heartbeat registers the Device
+  (`grantPushPermission`).
+- Copy is the existing sheet's. In the `denied` variant the body gains one
+  sentence: **Notifications are off for Fit Nation in your phone's settings.**
+  (the same line Profile shows) and the primary button reads **Open Settings**.
+- No count cap. A user who wants it off says so in Settings, and the sheet's
+  week-long silence is the cost of one tap.
+
+`shouldShowPermissionSheet(status, lastShownAt: number | null, now: number):
+boolean` replaces the `(status, dismissed)` signature; `PUSH_PROMPT_DISMISSED_KEY`
+is removed and `OnboardingScreen.tsx:181-183` moves to the new gate. A
+`pushPromptDismissed = '1'` left over from #55 is read once as "shown 7 days
+ago is unknown — treat as never" and the key deleted; a one-line migration in
+the same helper.
 
 ## Structure
 
@@ -100,6 +143,19 @@ Implementation:
   failure here must never break the in-app timer.
 - `content.data = { kind: 'rest-timer' }`, `sound: 'default'`, Android
   `channelId: 'rest-timer'`.
+
+### `src/components/ui/NotificationPermissionSheet.tsx` — one new prop
+
+`variant: 'ask' | 'settings'` (default `'ask'`). `'settings'` swaps the primary
+action to **Open Settings** and appends the denied sentence to the body.
+Onboarding keeps `'ask'`; the launch check picks by permission status.
+
+### `src/hooks/useLaunchPermissionCheck.ts`
+
+Mounted once in `AppNavigator`. Reads permission + `pushPromptLastShownAt`,
+decides via `shouldShowPermissionSheet`, and exposes `{ visible, variant,
+onClose }` for the sheet rendered in `AppNavigator` above the stack. Best
+effort: any SecureStore or permission error → don't show.
 
 ### `src/lib/notifications.ts` — additions
 
@@ -196,9 +252,21 @@ generated projects.
   toasted; any other notification still toasts (existing behaviour).
 - `ANDROID_CHANNELS` contains exactly `default`, `rest-timer`, `reminders`,
   `progress` — the ids are a contract with the back-end.
-- Manual, recorded in the PR: iOS locked-phone rest fires on time; Android
+- `shouldShowPermissionSheet(status, lastShownAt, now)`: `granted` → false
+  always; `undetermined`/`denied` with null → true; with 6 days ago → false;
+  with 8 days ago → true; the legacy `'1'` flag reads as null.
+- Launch check decides `variant` from status (`undetermined` → `ask`,
+  `denied` → `settings`) and writes the timestamp when shown.
+- Manual, recorded in the PR: a pre-#55 account that never saw the sheet
+  sees it on first launch; "Not now" then relaunch shows nothing; iOS
+  locked-phone rest fires on time; Android
   ongoing countdown visible in the shade, alert on time with the screen
   locked, skip clears both; foreground completion shows no OS alert.
+
+## Supersedes
+
+0012 **M3** ("Not now is remembered and never re-prompted") — replaced by R10–R12.
+Add a one-line note under M3 in 0012 pointing here.
 
 ## Out of scope
 
@@ -208,11 +276,14 @@ seconds are chosen; web.
 
 ## Order of work
 
-1. `lib/notifications.ts` channels + handler suppression; `lib/restTimerAlert.ts`
+1. Launch check: `pushPrompt.ts` new gate + migration, sheet `variant`,
+   `useLaunchPermissionCheck` in `AppNavigator`, onboarding moved to the new
+   gate. Tests. Ship-able on its own.
+2. `lib/notifications.ts` channels + handler suppression; `lib/restTimerAlert.ts`
    with the iOS path; wiring in the screen. Tests. Ship-able on its own — iOS
    is fully solved at this point and Android gets the fallback-alarm behaviour.
-2. `modules/rest-timer` native module + config plugin; Android path in
+3. `modules/rest-timer` native module + config plugin; Android path in
    `restTimerAlert`. Dev build, real-device test.
-3. Human steps; release.
+4. Human steps; release.
 
 One branch, `feat/mobile/rest-timer-alert`, one PR.

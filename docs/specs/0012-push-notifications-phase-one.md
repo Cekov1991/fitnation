@@ -28,7 +28,7 @@ in code and copy.
 |---|---|
 | M1 | **Expo Push Service.** `getExpoPushTokenAsync({ projectId })`, never `getDevicePushTokenAsync`. |
 | M2 | Register with **`PUT /devices`** after auth resolves and on foreground, throttled (see *Heartbeat*). **No unregister call on logout** — the server ends the Device when the Sanctum token is revoked (`POST /logout` already does this). |
-| M3 | Permission is asked **once, after onboarding completes**, behind an explainer sheet. "Not now" is remembered and never re-prompted; the Profile toggle is the way back. |
+| M3 | Permission is asked **once, after onboarding completes**, behind an explainer sheet. "Not now" is remembered and never re-prompted; the Profile toggle is the way back. **Superseded by 0013 R10–R12** (2026-09-07): a launch check re-shows the sheet at most every 7 days, with Open Settings when denied. |
 | M4 | Foreground notifications are shown as the app's own **toast** (`src/lib/toast.ts`), not the OS banner. |
 | M5 | Deep links use the custom scheme **`fitnation://`** only. Universal links are phase two. |
 | M6 | One Android channel, id **`default`**, name "Notifications". |
