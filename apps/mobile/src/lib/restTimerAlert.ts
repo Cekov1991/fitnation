@@ -13,7 +13,6 @@
 // OS kills the service anyway.
 //
 // Everything is best effort: a failure here must never break the in-app timer.
-import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import { RestTimer } from '../../modules/rest-timer'
 import {
@@ -42,7 +41,10 @@ let generation = 0
 export const ANDROID_FALLBACK_GRACE_MS = 5_000
 
 // Null on iOS, web, and an Android binary built before the module existed.
-const service = Platform.OS === 'android' ? RestTimer : null
+const service = RestTimer
+// True while the service has been told about the current rest, so an adjust
+// still reaches it when the fallback alarm itself failed to schedule.
+let serviceArmed = false
 // R3: if permission is undetermined when a rest first starts, ask then — once.
 // On Android a refusal keeps `canAskAgain`, so without this the OS prompt
 // would come back on every rest.
@@ -72,11 +74,10 @@ async function cancelScheduled(): Promise<void> {
 // iOS, the delayed fallback on Android) and, on Android, the service. Bails if
 // the rest was cancelled or superseded (generation moved on) while the OS call
 // was in flight — cancelling the fresh request so nothing is left orphaned.
-async function armCurrent(gen: number, mode: 'start' | 'update'): Promise<void> {
-  if (gen !== generation || endAt <= Date.now()) return
-  let fallbackId: string | null = null
+async function scheduleFallback(gen: number, at: number): Promise<string | null> {
+  let id: string | null = null
   try {
-    fallbackId = await Notifications.scheduleNotificationAsync({
+    id = await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Rest over',
         body: `Back to ${exerciseLabel ?? 'your workout'}`,
@@ -85,7 +86,7 @@ async function armCurrent(gen: number, mode: 'start' | 'update'): Promise<void> 
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: service ? endAt + ANDROID_FALLBACK_GRACE_MS : endAt,
+        date: at,
         channelId: REST_TIMER_CHANNEL_ID,
       },
     })
@@ -93,18 +94,29 @@ async function armCurrent(gen: number, mode: 'start' | 'update'): Promise<void> 
     warn(e)
   }
   if (gen !== generation) {
-    if (fallbackId !== null) await Notifications.cancelScheduledNotificationAsync(fallbackId)
-    return
+    if (id !== null) await Notifications.cancelScheduledNotificationAsync(id)
+    return null
   }
-  scheduledId = fallbackId
-  if (!service) return
-  // Independent of the fallback: a refused service start still leaves the
-  // alarm armed, and a failed alarm still gets the service.
+  scheduledId = id
+  return id
+}
+
+async function armCurrent(gen: number, mode: 'start' | 'update'): Promise<void> {
+  if (gen !== generation || endAt <= Date.now()) return
+  const fallbackId = await scheduleFallback(gen, service ? endAt + ANDROID_FALLBACK_GRACE_MS : endAt)
+  if (gen !== generation || !service) return
+  // Independent of the fallback: a failed alarm still gets the service, and a
+  // refused service start leaves the alarm — moved back to the exact second,
+  // since nothing will fire ahead of it now.
   try {
     if (mode === 'start') service.start(endAt, exerciseLabel ?? '', fallbackId)
-    else service.update(endAt, fallbackId)
+    else service.update(endAt, exerciseLabel ?? '', fallbackId)
+    serviceArmed = true
   } catch (e) {
     warn(e)
+    serviceArmed = false
+    await cancelScheduled()
+    await scheduleFallback(gen, endAt)
   }
 }
 
@@ -131,7 +143,7 @@ export async function adjustRestAlert(seconds: number): Promise<void> {
   const gen = generation
   try {
     endAt = Date.now() + seconds * 1000
-    if (scheduledId === null) return
+    if (scheduledId === null && !serviceArmed) return
     await cancelScheduled()
     // At zero the in-app timer completes on its own next frame and cancels via
     // handleRestFinished; an alert "now" would only double up the haptic.
@@ -145,8 +157,9 @@ export async function adjustRestAlert(seconds: number): Promise<void> {
 export async function cancelRestAlert(): Promise<void> {
   generation++
   exerciseLabel = null
-  // Stopping an idle service is a no-op, so no bookkeeping about whether it
-  // was started: skip, finish and leave all just stop it.
+  serviceArmed = false
+  // Stopping an idle service is a no-op, so skip, finish and leave all just
+  // stop it rather than asking whether it was ever started.
   try {
     service?.stop()
   } catch (e) {

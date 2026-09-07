@@ -65,6 +65,7 @@ describe('addRestTimerService', () => {
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_SPECIAL_USE',
       'android.permission.POST_NOTIFICATIONS',
+      'android.permission.WAKE_LOCK',
     ])
   })
 })

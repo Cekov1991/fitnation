@@ -275,7 +275,7 @@ describe('Android foreground service (R6–R8)', () => {
     vi.setSystemTime(NOW + 10_000)
     await adjustRestAlert(95)
 
-    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 95_000, 'req-2')
+    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 95_000, 'Squat', 'req-2')
     expect(scheduled(1).trigger.date).toBe(NOW + 10_000 + 95_000 + ANDROID_FALLBACK_GRACE_MS)
     expect(service.start).toHaveBeenCalledTimes(1)
   })
@@ -304,7 +304,8 @@ describe('Android foreground service (R6–R8)', () => {
     expect(service.start).not.toHaveBeenCalled()
   })
 
-  it('a throwing native call leaves the fallback armed and does not reject', async () => {
+  it('a refused service start moves the fallback back to the exact second and does not reject', async () => {
+    notifications.scheduleNotificationAsync.mockResolvedValueOnce('req-1').mockResolvedValueOnce('req-2')
     const service = withService()
     service.start.mockImplementation(() => {
       throw new Error('ForegroundServiceStartNotAllowed')
@@ -312,9 +313,39 @@ describe('Android foreground service (R6–R8)', () => {
     const { startRestAlert, cancelRestAlert } = await load()
     await expect(startRestAlert({ seconds: 60, exerciseName: 'Squat' })).resolves.toBeUndefined()
     expect(console.warn).toHaveBeenCalledWith('[rest-timer]', expect.any(Error))
-    expect(notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1)
-    await cancelRestAlert()
+    // The +5 s fallback is replaced by one at the exact end: nothing else will fire.
     expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
+    expect(scheduled(1).trigger.date).toBe(NOW + 60_000)
+    await cancelRestAlert()
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-2')
+  })
+
+  it('a throwing update or stop does not reject', async () => {
+    const service = withService()
+    service.update.mockImplementation(() => {
+      throw new Error('update')
+    })
+    service.stop.mockImplementation(() => {
+      throw new Error('stop')
+    })
+    const { startRestAlert, adjustRestAlert, cancelRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await expect(adjustRestAlert(70)).resolves.toBeUndefined()
+    await expect(cancelRestAlert()).resolves.toBeUndefined()
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalled()
+  })
+
+  it('±15 s still reaches the service when the fallback alarm failed to schedule', async () => {
+    notifications.scheduleNotificationAsync
+      .mockRejectedValueOnce(new Error('no scheduler'))
+      .mockResolvedValueOnce('req-2')
+    const service = withService()
+    const { startRestAlert, adjustRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    expect(service.start).toHaveBeenCalledWith(NOW + 60_000, 'Squat', null)
+    vi.setSystemTime(NOW + 10_000)
+    await adjustRestAlert(65)
+    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 65_000, 'Squat', 'req-2')
   })
 
   it('a skip during the permission prompt never starts the service', async () => {
@@ -340,17 +371,17 @@ describe('Android foreground service (R6–R8)', () => {
     expect(scheduled().trigger.date).toBe(NOW + 60_000)
   })
 
-  it('on iOS the native module is never touched', async () => {
-    const service = { start: vi.fn(), update: vi.fn(), stop: vi.fn() }
-    native.RestTimer = service
+  // modules/rest-timer/index.ts exports null off Android, so iOS never sees a
+  // service; the fallback is then the exact-time alert.
+  it('on iOS (module null) the fallback is exact and nothing native is involved', async () => {
     platform.OS = 'ios'
+    native.RestTimer = null
     const { startRestAlert, adjustRestAlert, cancelRestAlert } = await load()
     await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
-    await adjustRestAlert(30)
-    await cancelRestAlert()
-    expect(service.start).not.toHaveBeenCalled()
-    expect(service.update).not.toHaveBeenCalled()
-    expect(service.stop).not.toHaveBeenCalled()
     expect(scheduled().trigger.date).toBe(NOW + 60_000)
+    await adjustRestAlert(30)
+    expect(scheduled(1).trigger.date).toBe(NOW + 30_000)
+    await cancelRestAlert()
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledTimes(2)
   })
 })

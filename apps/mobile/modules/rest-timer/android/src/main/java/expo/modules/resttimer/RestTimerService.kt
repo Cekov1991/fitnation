@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -25,26 +26,34 @@ import expo.modules.notifications.service.NotificationsService
  *
  * While resting it shows an ongoing notification whose countdown the OS renders
  * (chronometer, no per-second updates from JS). At `endAt` it posts the "Rest
- * over" alert and stops. `update` re-posts the countdown and re-arms the alert;
- * `stopService` removes everything without an alert.
+ * over" alert and stops. An update re-posts the countdown and re-arms the
+ * alert; ACTION_STOP removes everything without an alert.
+ *
+ * The finish is a `Handler` delay, which counts uptime — time the CPU is awake.
+ * A locked phone suspends the CPU within seconds, so a partial wake lock is
+ * held for the rest: that is what makes "live code fires on the second" true.
  */
 class RestTimerService : Service() {
   private val handler = Handler(Looper.getMainLooper())
   private var endAt = 0L
   private var label = ""
   private var fallbackId: String? = null
+  private var wakeLock: PowerManager.WakeLock? = null
   private val onRestOver = Runnable { finishRest() }
 
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    if (intent == null) {
+    if (intent?.action == ACTION_STOP) {
+      // Routed through the service (not Context.stopService) so a stop that
+      // lands right after a start still runs after that start's
+      // startForeground — stopping first would crash the app on Android 8–13.
       stopSelf()
       return START_NOT_STICKY
     }
-    endAt = intent.getLongExtra(EXTRA_END_AT, endAt)
-    intent.getStringExtra(EXTRA_LABEL)?.let { label = it }
-    if (intent.hasExtra(EXTRA_FALLBACK_ID)) fallbackId = intent.getStringExtra(EXTRA_FALLBACK_ID)
+    endAt = intent?.getLongExtra(EXTRA_END_AT, endAt) ?: endAt
+    intent?.getStringExtra(EXTRA_LABEL)?.let { label = it }
+    if (intent?.hasExtra(EXTRA_FALLBACK_ID) == true) fallbackId = intent.getStringExtra(EXTRA_FALLBACK_ID)
 
     ensureChannel()
     try {
@@ -62,20 +71,23 @@ class RestTimerService : Service() {
       return START_NOT_STICKY
     }
 
+    val remaining = (endAt - System.currentTimeMillis()).coerceAtLeast(0)
+    holdWakeLock(remaining + FALLBACK_GRACE_MS)
     handler.removeCallbacks(onRestOver)
-    handler.postDelayed(onRestOver, (endAt - System.currentTimeMillis()).coerceAtLeast(0))
+    handler.postDelayed(onRestOver, remaining)
     return START_NOT_STICKY
   }
 
   override fun onDestroy() {
     handler.removeCallbacks(onRestOver)
+    releaseWakeLock()
     stopForeground(STOP_FOREGROUND_REMOVE)
     super.onDestroy()
   }
 
   private fun finishRest() {
-    // The fallback alarm is scheduled a few seconds after us; cancel it so the
-    // user gets one alert, not two. If we never got here, it still fires.
+    // The fallback alarm is scheduled FALLBACK_GRACE_MS after us; cancel it so
+    // the user gets one alert, not two. If we never got here, it still fires.
     fallbackId?.let {
       try {
         NotificationsService.removeScheduledNotification(this, it)
@@ -83,17 +95,21 @@ class RestTimerService : Service() {
         Log.w(TAG, "could not cancel fallback $it", e)
       }
     }
-    // R9: with the session screen visible the ring hits zero and the haptic
-    // fires; an OS alert on top would be noise.
-    if (!isAppVisible()) postAlert()
+    val late = System.currentTimeMillis() - endAt
+    when {
+      // We slept through it and the fallback has already alerted.
+      late > FALLBACK_GRACE_MS -> Log.w(TAG, "rest over ${late}ms late; fallback alerted")
+      // R9: with the session screen visible the ring hits zero and the haptic
+      // fires; an OS alert on top would be noise.
+      isAppVisible() -> Unit
+      else -> postAlert()
+    }
     stopForeground(STOP_FOREGROUND_REMOVE)
     stopSelf()
   }
 
   private fun ongoingNotification(): Notification =
-    NotificationCompat.Builder(this, CHANNEL_ID)
-      .setSmallIcon(smallIcon())
-      .setColor(accentColor())
+    baseNotification()
       .setContentTitle("Resting")
       .apply { if (label.isNotEmpty()) setSubText(label) }
       .setUsesChronometer(true)
@@ -102,33 +118,50 @@ class RestTimerService : Service() {
       .setShowWhen(true)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
+      // No sound, vibration or heads-up peek for the countdown itself, even
+      // though it sits on the high-importance rest-timer channel.
       .setSilent(true)
       .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
       // Android 12+ otherwise delays a foreground-service notification by ~10 s.
       .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-      .setContentIntent(launchIntent())
       .build()
 
   private fun postAlert() {
-    val body = if (label.isNotEmpty()) "Back to $label" else "Back to your workout"
-    val alert = NotificationCompat.Builder(this, CHANNEL_ID)
-      .setSmallIcon(smallIcon())
-      .setColor(accentColor())
+    // Copy per R2; mirrors the fallback built in lib/restTimerAlert.ts.
+    val alert = baseNotification()
       .setContentTitle("Rest over")
-      .setContentText(body)
+      .setContentText(if (label.isNotEmpty()) "Back to $label" else "Back to your workout")
       .setAutoCancel(true)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
       .setDefaults(NotificationCompat.DEFAULT_ALL)
       .setCategory(NotificationCompat.CATEGORY_ALARM)
-      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-      .setContentIntent(launchIntent())
       .build()
     try {
       NotificationManagerCompat.from(this).notify(ALERT_ID, alert)
     } catch (e: SecurityException) {
       Log.w(TAG, "POST_NOTIFICATIONS not granted", e)
     }
+  }
+
+  private fun baseNotification(): NotificationCompat.Builder =
+    NotificationCompat.Builder(this, CHANNEL_ID)
+      .setSmallIcon(smallIcon())
+      .setColor(accentColor())
+      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+      .setContentIntent(launchIntent())
+
+  private fun holdWakeLock(millis: Long) {
+    releaseWakeLock()
+    val power = getSystemService(PowerManager::class.java) ?: return
+    wakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "fitnation:rest-timer").apply {
+      setReferenceCounted(false)
+      acquire(millis + 1_000)
+    }
+  }
+
+  private fun releaseWakeLock() {
+    wakeLock?.let { if (it.isHeld) it.release() }
+    wakeLock = null
   }
 
   // JS creates this channel through expo-notifications before starting us
@@ -184,6 +217,10 @@ class RestTimerService : Service() {
     private const val TAG = "rest-timer"
     // Contract with lib/notifications.ts ANDROID_CHANNELS (R5).
     const val CHANNEL_ID = "rest-timer"
+    // Contract with lib/restTimerAlert.ts ANDROID_FALLBACK_GRACE_MS: how far
+    // after `endAt` the JS-scheduled fallback alarm sits.
+    const val FALLBACK_GRACE_MS = 5_000L
+    private const val ACTION_STOP = "expo.modules.resttimer.STOP"
     private const val ONGOING_ID = 0x5E57
     private const val ALERT_ID = 0x5E58
     private const val EXTRA_END_AT = "endAt"
@@ -192,11 +229,14 @@ class RestTimerService : Service() {
     private const val EXPO_ICON_META = "expo.modules.notifications.default_notification_icon"
     private const val EXPO_COLOR_META = "expo.modules.notifications.default_notification_color"
 
-    fun intent(context: Context, endAtMillis: Long, label: String?, fallbackId: String?): Intent =
+    fun armIntent(context: Context, endAtMillis: Long, label: String, fallbackId: String?): Intent =
       Intent(context, RestTimerService::class.java).apply {
         putExtra(EXTRA_END_AT, endAtMillis)
-        if (label != null) putExtra(EXTRA_LABEL, label)
+        putExtra(EXTRA_LABEL, label)
         putExtra(EXTRA_FALLBACK_ID, fallbackId)
       }
+
+    fun stopIntent(context: Context): Intent =
+      Intent(context, RestTimerService::class.java).setAction(ACTION_STOP)
   }
 }
