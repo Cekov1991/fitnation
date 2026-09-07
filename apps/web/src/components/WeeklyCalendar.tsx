@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2, Circle } from 'lucide-react';
-import { useCalendar } from '@fit-nation/shared';
+import { useCalendar, formatDuration, formatDate } from '@fit-nation/shared';
 import { WEEKDAY_LABELS } from '../constants';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { formatCalendarDateKey, formatWeekRangeLabel } from '@fit-nation/shared';
@@ -30,19 +30,6 @@ export interface WeeklyCalendarProps {
   onSelectDate: (dateKey: string) => void;
   onWeekShift: (direction: 'prev' | 'next') => void;
   onSessionClick?: (sessionId: number) => void;
-}
-
-function formatDayHeading(dateKey: string): string {
-  const d = new Date(`${dateKey}T12:00:00`);
-  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
-}
-
-function formatDuration(minutes: number | null): string {
-  if (minutes == null || minutes <= 0) return '';
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export function WeeklyCalendar({
@@ -224,7 +211,7 @@ export function WeeklyCalendar({
 
       <div className="mt-8 border-t pt-6" style={{ borderColor: 'var(--color-border-subtle)' }}>
         <h3 className="mb-4 text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
-          {formatDayHeading(selectedDateKey)}
+          {formatDate(selectedDateKey, 'weekday')}
         </h3>
         {selectedSessions.length === 0 ? (
           <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>

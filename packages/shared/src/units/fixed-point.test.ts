@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { formatWeight } from './format';
 import { sanitizeDecimalText, parseDecimalText, BOUNDS } from './index';
 import { createProfileSchema } from '../schemas/profile';
 import type { UnitSystem } from '../types/api';
@@ -57,9 +58,8 @@ describe('the front-end transforms nothing between read and write', () => {
   // formatter rounded to 1dp and its output was the value of an editable input,
   // so a metric weight was nudged on every save.
   it('a display formatter must not be used on a writable value', () => {
-    const displayRound = (w: number) => Math.round(w * 10) / 10;
     const weight = 82.55;
-    expect(displayRound(weight)).not.toBe(weight);
+    expect(Number(formatWeight(weight))).not.toBe(weight);
     // ...which is precisely why the input holds String(weight) instead.
     expect(throughWebNumberInput(weight)).toBe(weight);
   });

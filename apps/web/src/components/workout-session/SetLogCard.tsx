@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { Timer } from 'lucide-react';
-import { formatWeight } from './utils';
-import { formatRepRange, inputStep, useUnitSystem, type WeightUnit } from '@fit-nation/shared';
+import { formatRepRange, inputStep, useUnitSystem, type WeightUnit, formatWeight } from '@fit-nation/shared';
 
 interface SetLogCardProps {
   weight: number | null;

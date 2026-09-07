@@ -16,7 +16,7 @@ import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
 import { ArrowLeft, Maximize2, X } from 'lucide-react-native'
 import * as ScreenOrientation from 'expo-screen-orientation'
-import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, withAlpha } from '@fit-nation/shared'
+import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, withAlpha, formatDate, formatSignedPercent } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -26,18 +26,6 @@ import type { AppScreenProps } from '../../navigation/types'
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 // Helper: "Jan 15" from ISO date string
-function formatDateForDisplay(dateString: string): string {
-  const date = new Date(dateString)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${months[date.getMonth()]} ${date.getDate()}`
-}
-
-// Helper: "+12%" or "-5%"
-function formatProgress(percentage: number): string {
-  const sign = percentage >= 0 ? '+' : ''
-  return `${sign}${percentage.toFixed(0)}%`
-}
-
 function ExerciseVideoPlayer({ uri }: { uri: string }) {
   const player = useVideoPlayer(uri, p => {
     p.loop = true
@@ -159,7 +147,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
   // Derived once, in packages/shared (0031 #5); this screen only formats.
   const view = useMemo(() => ({ allowWeightLogging, chartMode }), [allowWeightLogging, chartMode])
   const chartData = useMemo(
-    () => chartPoints(historyData, view).map(p => ({ value: p.value, label: formatDateForDisplay(p.date) })),
+    () => chartPoints(historyData, view).map(p => ({ value: p.value, label: formatDate(p.date) })),
     [historyData, view]
   )
   const unit = allowWeightLogging ? weightUnit : 'reps'
@@ -578,7 +566,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                         Progress
                       </Text>
                       <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primary }}>
-                        {formatProgress(progressPercentage)}
+                        {formatSignedPercent(progressPercentage)}
                       </Text>
                     </View>
                   </View>
@@ -638,7 +626,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                               <Text
                                 style={{ fontSize: 14, fontWeight: '500', color: colors.textPrimary }}
                               >
-                                {formatDateForDisplay(session.date)}
+                                {formatDate(session.date)}
                               </Text>
                               <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
                                 {allowWeightLogging

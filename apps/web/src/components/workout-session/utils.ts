@@ -6,13 +6,6 @@ import type { Exercise, ExerciseCompletionStatus, Set } from './types';
  * Format weight for display - shows whole numbers without decimals,
  * decimals only when needed (e.g., 7.5)
  */
-export function formatWeight(weight: number): string {
-  if (weight === 0) return '0';
-  // Round to 1 decimal place to avoid floating point issues
-  const rounded = Math.round(weight * 10) / 10;
-  return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
-}
-
 export function mapSessionToExercises(sessionData: SessionDetailResponse['data'] | undefined): Exercise[] {
   if (!sessionData?.exercises) return [];
   

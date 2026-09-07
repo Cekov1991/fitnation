@@ -31,6 +31,8 @@ import {
   bestValue,
   progressPercentage as progressPercentageOf,
   recentSessions as recentSessionsOf,
+  formatDate,
+  formatSignedPercent,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -42,12 +44,6 @@ import type { AppScreenProps } from '../../navigation/types'
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 // Format ISO date (YYYY-MM-DD) → "Jan 15"
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${months[date.getMonth()]} ${date.getDate()}`
-}
-
 // Isolated player sub-component — only mounts when a real URL exists,
 // so useVideoPlayer receives a valid source at mount (its setup callback
 // runs exactly once, never with null/undefined).
@@ -236,7 +232,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
   // Derived once, in packages/shared (0031 #5); this screen only formats.
   const view = useMemo(() => ({ allowWeightLogging, chartMode }), [allowWeightLogging, chartMode])
   const chartData = useMemo(
-    () => chartPoints(historyData, view).map(p => ({ value: p.value, label: p.date.slice(5) })), // MM-DD
+    () => chartPoints(historyData, view).map(p => ({ value: p.value, label: formatDate(p.date) })),
     [historyData, view]
   )
   const progressPercentage = useMemo(() => progressPercentageOf(historyData, view), [historyData, view])
@@ -251,8 +247,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     return value == null ? '—' : `${value} ${unit}`
   }, [historyData, view, unit])
 
-  const progressSign = progressPercentage >= 0 ? '+' : ''
-  const progressStat = `${progressSign}${progressPercentage.toFixed(0)}%`
+  const progressStat = formatSignedPercent(progressPercentage)
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>

@@ -16,6 +16,7 @@ import {
   formatRepRange,
   sanitizeDecimalText,
   withAlpha,
+  formatWeight,
 } from '@fit-nation/shared'
 import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -279,7 +280,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                 <Text style={{ color: colors.textMuted }}> × </Text>
                 <Text style={{ color: colors.primary }}>{item.reps} reps</Text>
                 <Text style={{ color: colors.textMuted }}> × </Text>
-                <Text style={{ color: colors.primary }}>{item.weight} {weightUnit}</Text>
+                <Text style={{ color: colors.primary }}>{formatWeight(Number(item.weight))} {weightUnit}</Text>
               </Text>
             </View>
 

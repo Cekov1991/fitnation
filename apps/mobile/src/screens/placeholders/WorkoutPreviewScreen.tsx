@@ -21,6 +21,7 @@ import {
   formatRepRange,
   sanitizeDecimalText,
   withAlpha,
+  formatWeight,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { showToast } from '../../lib/toast'
@@ -441,7 +442,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         {se.target_weight && se.target_weight > 0 ? (
                           <>
                             <Text style={{ color: colors.textMuted }}> × </Text>
-                            <Text style={{ color: colors.primary }}>{se.target_weight} {weightUnit}</Text>
+                            <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
                           </>
                         ) : null}
                       </Text>

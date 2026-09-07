@@ -124,3 +124,6 @@ export function parseDecimalText(text: string): number | null {
   const n = Number.parseFloat(text);
   return Number.isFinite(n) ? n : null;
 }
+
+// Display formatting for these values — one implementation each (0027).
+export * from './format';

@@ -19,6 +19,7 @@ import {
   queryKeys,
   removeSet,
   withAlpha,
+  formatWeight,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -492,7 +493,7 @@ export function ExercisePage({
                     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                       {allowWeightLogging && (
                         <>
-                          <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.weight}</Text>
+                          <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.weight == null ? '' : formatWeight(prev.weight)}</Text>
                           <Text style={{ fontSize: 14, color: colors.textMuted }}>{weightUnit}</Text>
                           <Text style={{ fontSize: 14, color: colors.textMuted, marginHorizontal: 2 }}>×</Text>
                         </>
@@ -502,7 +503,7 @@ export function ExercisePage({
                     </View>
                     {allowWeightLogging && (
                       <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted }}>{setVolume} {weightUnit}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted }}>{formatWeight(setVolume)} {weightUnit}</Text>
                         <Text style={{ fontSize: 10, color: colors.textMuted }}>volume</Text>
                       </View>
                     )}
@@ -522,7 +523,7 @@ export function ExercisePage({
                   }}
                 >
                   <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary }}>Volume</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primary }}>{totalVolume} {weightUnit}</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primary }}>{formatWeight(totalVolume)} {weightUnit}</Text>
                 </View>
               )}
             </View>

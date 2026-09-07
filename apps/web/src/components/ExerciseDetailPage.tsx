@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, historyMetric, currentValue, bestValue, recentSessions as recentSessionsOf, progressPercentage as progressPercentageOf } from '@fit-nation/shared';
+import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, historyMetric, currentValue, bestValue, recentSessions as recentSessionsOf, progressPercentage as progressPercentageOf, formatDate, formatSignedPercent } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
@@ -18,18 +18,6 @@ interface ExerciseDetailPageProps {
 }
 
 // Helper function to format ISO date string (YYYY-MM-DD) to display format (e.g., "Jan 15")
-function formatDateForDisplay(dateString: string): string {
-  const date = new Date(dateString);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[date.getMonth()]} ${date.getDate()}`;
-}
-
-// Helper function to format progress percentage with +/- sign
-function formatProgress(percentage: number): string {
-  const sign = percentage >= 0 ? '+' : '';
-  return `${sign}${percentage.toFixed(0)}%`;
-}
-
 export function ExerciseDetailPage({
   exerciseName,
   onBack,
@@ -77,7 +65,7 @@ export function ExerciseDetailPage({
   const chartData = useMemo(() => {
     if (!historyData?.performance_data) return [];
     return historyData.performance_data.map((point: PerformanceDataPoint) => ({
-      date: formatDateForDisplay(point.date),
+      date: formatDate(point.date),
       weight: point.weight,
       bestSetReps: point.best_set_reps,
       reps: point.reps,
@@ -543,7 +531,7 @@ export function ExerciseDetailPage({
                       >
                         <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Progress</p>
                         <p className="text-lg font-bold" style={{ color: 'var(--color-primary)' }}>
-                          {formatProgress(progressPercentage)}
+                          {formatSignedPercent(progressPercentage)}
                         </p>
                       </div>
                     </div>
@@ -616,7 +604,7 @@ export function ExerciseDetailPage({
                             >
                               <div>
                                 <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                                  {formatDateForDisplay(session.date)}
+                                  {formatDate(session.date)}
                                 </p>
                                 <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                                   {allowWeightLogging 

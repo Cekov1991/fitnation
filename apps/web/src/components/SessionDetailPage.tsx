@@ -1,34 +1,17 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Clock, CheckCircle2, Circle, Dumbbell, Play, Check, TrendingUp, ChevronRight } from 'lucide-react';
-import { useSession, useCompleteSession, useTemplate, useWeightUnit, queryKeys, sessionTotals } from '@fit-nation/shared';
+import { useSession, useCompleteSession, useTemplate, useWeightUnit, queryKeys, sessionTotals, formatDate, formatDuration, formatWeight } from '@fit-nation/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
 import { SessionDetailPageSkeleton } from './SessionDetailPageSkeleton';
 import { useWorkoutTimer } from './workout-session/hooks/useWorkoutTimer';
-import { formatWeight } from './workout-session/utils';
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared';
 
 interface SessionDetailPageProps {
   sessionId: number;
   onBack: () => void;
-}
-
-function formatDateForDisplay(dateString: string): string {
-  const date = new Date(dateString);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-}
-
-function formatDuration(minutes: number | null): string {
-  if (!minutes) return 'N/A';
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (hours > 0) {
-    return `${hours}h ${mins}m`;
-  }
-  return `${mins}m`;
 }
 
 function calculateDuration(performedAt: string, completedAt: string | null): number | null {
@@ -63,7 +46,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
       ? calculateDuration(sessionData.performed_at ?? '', sessionData.completed_at ?? '') || null
       : null;
 
-  const formattedDuration = duration ? formatDuration(duration) : 'N/A';
+  const formattedDuration = formatDuration(duration) || 'N/A';
 
   // The shared read model's totals — the same numbers the summary screen shows.
   const { hasWeighted: hasWeightedExercises, weightedVolume: totalVolume, bodyweightReps: totalBodyweightReps } = sessionTotals(sessionData);
@@ -156,7 +139,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                     })()}
                   </h2>
                   <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                    {sessionData.performed_at ? formatDateForDisplay(sessionData.performed_at) : 'Unknown date'}
+                    {sessionData.performed_at ? formatDate(sessionData.performed_at, 'long') : 'Unknown date'}
                   </p>
                 </div>
                 <div

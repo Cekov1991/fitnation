@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { LineChart } from 'react-native-gifted-charts'
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react-native'
-import { useFitnessMetrics, useProfile, useWeightUnit, withAlpha, getWeeklyGoalMessage } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit, withAlpha, getWeeklyGoalMessage, formatVolume, formatVolumeFull, signPrefix } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -12,15 +12,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
 interface WeeklyProgressModalProps {
   visible: boolean
   onClose: () => void
-}
-
-function formatVolume(volume: number): string {
-  if (volume >= 1000) return `${(volume / 1000).toFixed(1)}k`
-  return volume.toString()
-}
-
-function formatVolumeFull(volume: number): string {
-  return volume.toLocaleString()
 }
 
 function minutesToHours(minutes: number): string {
@@ -289,7 +280,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               className="text-sm font-bold"
               style={{ color: volumeDifference >= 0 ? '#4ade80' : '#f87171' }}
             >
-              {volumeDifference >= 0 ? '+' : ''}
+              {signPrefix(volumeDifference)}
               {formatVolumeFull(volumeDifference)} {weightUnit} ({volumeDifferencePercent >= 0 ? '+' : ''}
               {Math.round(volumeDifferencePercent)}%)
             </Text>

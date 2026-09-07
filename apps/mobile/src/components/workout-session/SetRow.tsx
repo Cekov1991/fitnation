@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, type ViewStyle } from 'react-native'
+import { formatWeight } from '@fit-nation/shared'
 import { MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import type { AppColors } from '../../constants/theme'
@@ -29,10 +30,6 @@ interface CompletedSetRowProps {
   /** Required so a missed call site is a compile error. */
   weightUnit: WeightUnit
   onOpenMenu: () => void
-}
-
-function formatWeight(w: number) {
-  return Number.isInteger(w) ? w.toString() : w.toFixed(1)
 }
 
 export function CompletedSetRow({

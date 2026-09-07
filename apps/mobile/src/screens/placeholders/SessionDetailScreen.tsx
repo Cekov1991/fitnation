@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { ArrowLeft, Clock, Dumbbell, TrendingUp, CheckCircle2, Circle, ChevronRight } from 'lucide-react-native'
-import { useSession, useWeightUnit, sessionTotals, withAlpha } from '@fit-nation/shared'
+import { useSession, useWeightUnit, sessionTotals, withAlpha, formatDate, formatDuration, formatWeight, minutesBetween } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -11,28 +11,6 @@ import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
 
 type Props = AppScreenProps<'SessionDetail'>
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
-}
-
-function formatDuration(minutes: number | null): string {
-  if (!minutes) return 'N/A'
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return h > 0 ? `${h}h ${m}m` : `${m}m`
-}
-
-function calcDuration(performedAt: string | null, completedAt: string | null): number | null {
-  if (!performedAt || !completedAt) return null
-  return Math.floor((new Date(completedAt).getTime() - new Date(performedAt).getTime()) / 60000)
-}
-
-function formatWeight(weight: number): string {
-  return Number.isInteger(weight) ? weight.toString() : weight.toFixed(1)
-}
 
 export function SessionDetailScreen({ route, navigation }: Props) {
   const { sessionId } = route.params
@@ -66,7 +44,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
   }
 
   const exercises: SessionExerciseDetail[] = (sessionData as any).exercises ?? []
-  const duration = calcDuration(sessionData.performed_at, sessionData.completed_at)
+  const duration = minutesBetween(sessionData.performed_at, sessionData.completed_at)
 
   const { hasWeighted, weightedVolume: totalVolume, bodyweightReps: totalBodyweightReps } = sessionTotals({ exercises })
 
@@ -106,7 +84,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                 Workout Session
               </Text>
               <Text className="text-sm" style={{ color: colors.textSecondary }}>
-                {sessionData.performed_at ? formatDate(sessionData.performed_at) : 'Unknown date'}
+                {sessionData.performed_at ? formatDate(sessionData.performed_at, 'long') : 'Unknown date'}
               </Text>
             </View>
             <View
@@ -137,7 +115,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
             >
               <Clock size={16} color={colors.primary} style={{ marginBottom: 4 }} />
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
-                {formatDuration(duration)}
+                {formatDuration(duration) || 'N/A'}
               </Text>
               <Text className="text-xs" style={{ color: colors.textSecondary }}>Duration</Text>
             </View>
