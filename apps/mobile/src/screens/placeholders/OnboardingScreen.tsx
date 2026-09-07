@@ -5,7 +5,6 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
-import * as SecureStore from 'expo-secure-store'
 import { useMutation } from '@tanstack/react-query'
 // unitSystem here is form state, not the saved profile, so the pure label
 // helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
@@ -23,7 +22,7 @@ import { onboardingReducer } from '../Onboarding/onboardingReducer'
 import { PlanGeneratingContent } from '../../components/ui/PlanGeneratingOverlay'
 import { NotificationPermissionSheet } from '../../components/ui/NotificationPermissionSheet'
 import { getPermissionStatus } from '../../lib/notifications'
-import { PUSH_PROMPT_DISMISSED_KEY, shouldShowPermissionSheet } from '../../lib/pushPrompt'
+import { readPushPromptLastShownAt, shouldShowPermissionSheet } from '../../lib/pushPrompt'
 import type { AppScreenProps } from '../../navigation/types'
 
 const localLogo = require('../../../assets/logo.png')
@@ -176,11 +175,11 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
     // set ⇒ a returning user regenerating a plan, who was already asked once.
     if (user?.onboarding_completed_at) return false
     try {
-      const [status, dismissed] = await Promise.all([
+      const [status, lastShownAt] = await Promise.all([
         getPermissionStatus(),
-        SecureStore.getItemAsync(PUSH_PROMPT_DISMISSED_KEY),
+        readPushPromptLastShownAt(),
       ])
-      return shouldShowPermissionSheet(status, dismissed === '1')
+      return shouldShowPermissionSheet(status, lastShownAt, Date.now())
     } catch {
       return false
     }

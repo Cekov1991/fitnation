@@ -64,7 +64,7 @@ export function RootNavigator() {
           auth stack at users who turn out to be logged in. */}
       {!isLoading && (
         <NavigationContainer linking={linking} theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-          {user ? <AppNavigator /> : <AuthNavigator />}
+          {user ? <AppNavigator launchReady={!showOverlay} /> : <AuthNavigator />}
         </NavigationContainer>
       )}
 
