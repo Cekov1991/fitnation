@@ -1,38 +1,61 @@
-// M3: the one-time explainer shown after onboarding, before the OS prompt.
-// "Not now" is remembered and never re-prompted; the Profile toggle is the
-// way back. Styled like ConfirmDialog.
-import { useState } from 'react'
-import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator } from 'react-native'
-import * as SecureStore from 'expo-secure-store'
+// The permission explainer shown before the OS prompt — after onboarding and,
+// since 0013 R10–R12, from the launch check at most once every 7 days. Showing
+// it stamps `pushPromptLastShownAt`, whatever the user picks. Styled like
+// ConfirmDialog.
+import { useEffect, useState } from 'react'
+import {
+  Modal, View, Text, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator, Linking,
+} from 'react-native'
 import { Bell } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { grantPushPermission } from '../../lib/notifications'
-import { PUSH_PROMPT_DISMISSED_KEY } from '../../lib/pushPrompt'
+import {
+  NOTIFICATIONS_OFF_IN_SETTINGS_COPY,
+  markPushPromptShown,
+  type PermissionSheetVariant,
+} from '../../lib/pushPrompt'
 
 interface NotificationPermissionSheetProps {
   visible: boolean
+  // 'ask' (default): "Turn on" fires the OS prompt. 'settings': permission is
+  // denied and the OS will never prompt again, so "Open Settings" is the way back (R11).
+  variant?: PermissionSheetVariant
   // Called after either choice has been handled.
   onClose: () => void
 }
 
-export function NotificationPermissionSheet({ visible, onClose }: NotificationPermissionSheetProps) {
+const BODY = "We'll only nudge you when you've gone quiet — no spam, no marketing."
+const DENIED_BODY = `${BODY} ${NOTIFICATIONS_OFF_IN_SETTINGS_COPY}`
+
+export function NotificationPermissionSheet({
+  visible,
+  variant = 'ask',
+  onClose,
+}: NotificationPermissionSheetProps) {
   const { colors } = useTheme()
   const [busy, setBusy] = useState(false)
 
-  const handleTurnOn = async () => {
+  // R12: the 7-day clock starts the moment the sheet appears, from any caller.
+  useEffect(() => {
+    if (visible) markPushPromptShown()
+  }, [visible])
+
+  const handlePrimary = async () => {
     if (busy) return
     setBusy(true)
     try {
-      await grantPushPermission()
+      if (variant === 'settings') await Linking.openSettings()
+      else await grantPushPermission()
+    } catch (e) {
+      console.warn('[push]', e)
     } finally {
       setBusy(false)
       onClose()
     }
   }
 
-  const handleNotNow = async () => {
+  const handleNotNow = () => {
     if (busy) return
-    await SecureStore.setItemAsync(PUSH_PROMPT_DISMISSED_KEY, '1').catch(() => {})
     onClose()
   }
 
@@ -55,13 +78,13 @@ export function NotificationPermissionSheet({ visible, onClose }: NotificationPe
             </View>
             <Text style={[styles.title, { color: colors.textPrimary }]}>Stay on track</Text>
             <Text style={[styles.message, { color: colors.textSecondary }]}>
-              We'll only nudge you when you've gone quiet — no spam, no marketing.
+              {variant === 'settings' ? DENIED_BODY : BODY}
             </Text>
           </View>
 
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
-              onPress={handleTurnOn}
+              onPress={handlePrimary}
               disabled={busy}
               activeOpacity={0.75}
               style={[styles.confirmButton, { backgroundColor: colors.primary, opacity: busy ? 0.7 : 1 }]}
@@ -69,7 +92,9 @@ export function NotificationPermissionSheet({ visible, onClose }: NotificationPe
               {busy ? (
                 <ActivityIndicator color={colors.textButton} size="small" />
               ) : (
-                <Text style={[styles.confirmLabel, { color: colors.textButton }]}>Turn on</Text>
+                <Text style={[styles.confirmLabel, { color: colors.textButton }]}>
+                  {variant === 'settings' ? 'Open Settings' : 'Turn on'}
+                </Text>
               )}
             </TouchableOpacity>
 

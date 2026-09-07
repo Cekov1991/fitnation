@@ -14,9 +14,28 @@ import { requestDeviceRegistration } from './deviceRegistration'
 
 export type PermissionStatus = 'granted' | 'denied' | 'undetermined'
 
-// M6: one Android channel. Keep in sync with the expo-notifications plugin's
+// Android channels (0013 R5). The ids are the contract with the back-end: the
+// server sends `channelId`, and Android drops a notification whose channel does
+// not exist. `default` must stay in sync with the expo-notifications plugin's
 // `defaultChannel` in app.json.
-export const ANDROID_CHANNEL_ID = 'default'
+export const ANDROID_CHANNELS = {
+  default: { name: 'Notifications', importance: Notifications.AndroidImportance.DEFAULT },
+  'rest-timer': {
+    name: 'Rest timer',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: 'default',
+    vibrationPattern: [0, 250, 250, 250],
+  },
+  reminders: { name: 'Workout reminders', importance: Notifications.AndroidImportance.DEFAULT },
+  progress: { name: 'Progress', importance: Notifications.AndroidImportance.DEFAULT },
+} as const satisfies Record<string, Notifications.NotificationChannelInput>
+
+export type AndroidChannelId = keyof typeof ANDROID_CHANNELS
+
+export const REST_TIMER_CHANNEL_ID = 'rest-timer' satisfies AndroidChannelId
+
+// Local notifications tagged with this `data.kind` belong to the rest timer.
+export const REST_TIMER_KIND = 'rest-timer'
 
 function toStatus(perm: Notifications.NotificationPermissionsStatus): PermissionStatus {
   if (perm.granted) return 'granted'
@@ -26,9 +45,15 @@ function toStatus(perm: Notifications.NotificationPermissionsStatus): Permission
   return 'denied'
 }
 
+// Throws when the OS read fails, for callers that must tell "denied" apart
+// from "unknown" (the launch check must not show Open Settings on an error).
+export async function readPermissionStatus(): Promise<PermissionStatus> {
+  return toStatus(await Notifications.getPermissionsAsync())
+}
+
 export async function getPermissionStatus(): Promise<PermissionStatus> {
   try {
-    return toStatus(await Notifications.getPermissionsAsync())
+    return await readPermissionStatus()
   } catch (e) {
     console.warn('[push]', e)
     return 'denied'
@@ -75,13 +100,16 @@ export async function getPushToken(): Promise<string | null> {
   }
 }
 
-export async function ensureAndroidChannel(): Promise<void> {
+// Idempotent: Android updates an existing channel in place (importance can
+// only be lowered by the user, never raised by us).
+export async function ensureAndroidChannels(): Promise<void> {
   if (Platform.OS !== 'android') return
   try {
-    await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-      name: 'Notifications',
-      importance: Notifications.AndroidImportance.DEFAULT,
-    })
+    await Promise.all(
+      Object.entries(ANDROID_CHANNELS).map(([id, channel]) =>
+        Notifications.setNotificationChannelAsync(id, channel),
+      ),
+    )
   } catch (e) {
     console.warn('[push]', e)
   }
@@ -89,10 +117,21 @@ export async function ensureAndroidChannel(): Promise<void> {
 
 // M4: a foreground notification becomes the app's own toast instead of the OS
 // banner. It still lands in the tray/list. Call once at module load.
+//
+// 0013 R9: a rest-timer alert arriving in the foreground is dropped entirely —
+// the session screen is showing the ring hit zero and fired the haptic.
 export function configureForegroundHandler(): void {
   Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
-      const { title, body } = notification.request.content
+      const { title, body, data } = notification.request.content
+      if (data?.kind === REST_TIMER_KIND) {
+        return {
+          shouldShowBanner: false,
+          shouldShowList: false,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+        }
+      }
       const text = [title, body].filter(Boolean).join(' — ')
       if (text) showToast(text, 'info')
       return {

@@ -30,6 +30,7 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ExerciseOptionsMenu } from '../../components/workout-session/ExerciseOptionsMenu'
 import { showToast } from '../../lib/toast'
+import { startRestAlert, adjustRestAlert, cancelRestAlert } from '../../lib/restTimerAlert'
 import type { AppScreenProps } from '../../navigation/types'
 import type { CompleteSessionResponse, SessionExerciseDetail } from '@fit-nation/shared'
 
@@ -109,6 +110,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     try {
       await cancelSession.mutateAsync(numericSessionId)
       isCleanExitRef.current = true
+      cancelRestAlert()
       navigation.dispatch(action)
     } catch (error) {
       console.error('Failed to cancel session:', error)
@@ -178,13 +180,37 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     setCurrentIndex(idx)
   }, [])
 
+  // Read through a ref so handleStartRest keeps a stable identity for ExercisePage.
+  const currentExerciseNameRef = useRef<string | null>(null)
+  currentExerciseNameRef.current = currentExercise?.session_exercise.exercise?.name ?? null
+
+  // 0013 R1: the OS-side alert is scheduled at rest start and cancelled on
+  // every way a rest ends, so the phone interrupts the user even when locked.
   const handleStartRest = useCallback((seconds: number) => {
     setRestSeconds(seconds)
     setRestRunId(id => id + 1)
+    startRestAlert({ seconds, exerciseName: currentExerciseNameRef.current })
   }, [])
 
-  const handleRestFinished = useCallback(() => {
+  // Skip: the user is looking at the screen, so the OS alert is unwanted.
+  const handleRestSkipped = useCallback(() => {
     setRestSeconds(0)
+    cancelRestAlert()
+  }, [])
+
+  // Zero: the ring has hit zero and the haptic fires, so in the foreground the
+  // OS alert would be a duplicate. In the background the JS clock can still
+  // reach zero (Android keeps the process around) — there the alert is the
+  // whole point, so leave it to the OS side.
+  const handleRestCompleted = useCallback(() => {
+    setRestSeconds(0)
+    if (AppState.currentState === 'active') cancelRestAlert()
+  }, [])
+
+  // Leaving the screen by any path — including an unmount we did not
+  // orchestrate — must not leave an alert armed.
+  useEffect(() => () => {
+    cancelRestAlert()
   }, [])
 
   const draft = (draftKey != null && drafts[draftKey]) || EMPTY_DRAFT
@@ -300,6 +326,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       const result: CompleteSessionResponse = await completeSession.mutateAsync({ sessionId: numericSessionId })
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       isCleanExitRef.current = true
+      cancelRestAlert()
       navigation.replace('WorkoutSummary', {
         sessionId,
         newPrs: result.new_prs ?? [],
@@ -321,6 +348,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     try {
       await cancelSession.mutateAsync(numericSessionId)
       isCleanExitRef.current = true
+      cancelRestAlert()
       navigation.goBack()
     } catch (error) {
       console.error('Failed to cancel session:', error)
@@ -432,8 +460,9 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             <RestTimer
               key={restRunId}
               seconds={restSeconds}
-              onComplete={handleRestFinished}
-              onSkip={handleRestFinished}
+              onComplete={handleRestCompleted}
+              onSkip={handleRestSkipped}
+              onAdjust={adjustRestAlert}
             />
           </View>
         )}

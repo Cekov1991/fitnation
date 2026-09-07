@@ -1,5 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
+import { useLaunchPermissionCheck } from '../hooks/useLaunchPermissionCheck'
+import { NotificationPermissionSheet } from '../components/ui/NotificationPermissionSheet'
 import { TabNavigator } from './TabNavigator'
 import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
@@ -26,7 +28,12 @@ import type { AppStackParamList } from './types'
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
-export function AppNavigator() {
+interface AppNavigatorProps {
+  // RootNavigator flips this once its splash overlay has faded out.
+  launchReady: boolean
+}
+
+export function AppNavigator({ launchReady }: AppNavigatorProps) {
   const { user } = useAuth()
   const needsVerification = !user?.email_verified_at
   const needsOnboarding = !user?.onboarding_completed_at
@@ -35,7 +42,12 @@ export function AppNavigator() {
     ? 'EmailVerification'
     : needsOnboarding ? 'Onboarding' : 'Tabs'
 
+  // 0013 R10: the permission explainer, at most weekly, only on a launch that
+  // lands on Tabs — EmailVerification and Onboarding keep their own moments.
+  const launchPrompt = useLaunchPermissionCheck({ initialRoute: initialRouteName, ready: launchReady })
+
   return (
+    <>
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName={initialRouteName}
@@ -99,5 +111,11 @@ export function AppNavigator() {
       <Stack.Screen name="RoutineWorkoutDetail" component={RoutineWorkoutDetailScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
+    <NotificationPermissionSheet
+      visible={launchPrompt.visible}
+      variant={launchPrompt.variant}
+      onClose={launchPrompt.onClose}
+    />
+    </>
   )
 }
