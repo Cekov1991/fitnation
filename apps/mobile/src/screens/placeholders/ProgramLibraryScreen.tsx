@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useProgramLibrary, useCloneProgram, useUpdateProgram, useDeleteProgram, startLibraryProgram } from '@fit-nation/shared'
+import { useProgramLibrary, useCloneProgram, useUpdateProgram, useDeleteProgram, startLibraryProgram, withAlpha } from '@fit-nation/shared'
 import type { LibraryProgramResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -170,20 +170,20 @@ export function ProgramLibraryScreen({ navigation }: Props) {
                   <View className="flex-row gap-2 mb-4 flex-wrap">
                     <View
                       className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full"
-                      style={{ backgroundColor: `${colors.primary}33` }}
+                      style={{ backgroundColor: withAlpha(colors.primary, 0.2) }}
                     >
-                      <Calendar size={14} color="#fff" />
-                      <Text className="text-xs font-bold" style={{ color: '#fff' }}>
+                      <Calendar size={14} color={colors.textButton} />
+                      <Text className="text-xs font-bold" style={{ color: colors.textButton }}>
                         {program.duration_weeks} WEEKS
                       </Text>
                     </View>
                     {program.workout_templates && (
                       <View
                         className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full"
-                        style={{ backgroundColor: `${colors.primary}33` }}
+                        style={{ backgroundColor: withAlpha(colors.primary, 0.2) }}
                       >
-                        <Dumbbell size={14} color="#fff" />
-                        <Text className="text-xs font-bold" style={{ color: '#fff' }}>
+                        <Dumbbell size={14} color={colors.textButton} />
+                        <Text className="text-xs font-bold" style={{ color: colors.textButton }}>
                           {program.workout_templates.length} WORKOUTS
                         </Text>
                       </View>

@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { LineChart } from 'react-native-gifted-charts'
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react-native'
-import { useFitnessMetrics, useProfile, useWeightUnit } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -74,12 +74,12 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
   const trendBg = isPositive
     ? 'rgba(16,185,129,0.2)'
     : isNeutral
-      ? `${colors.primary}33`
+      ? withAlpha(colors.primary, 0.2)
       : 'rgba(239,68,68,0.2)'
   const trendBorder = isPositive
     ? 'rgba(16,185,129,0.3)'
     : isNeutral
-      ? `${colors.primary}4D`
+      ? withAlpha(colors.primary, 0.302)
       : 'rgba(239,68,68,0.3)'
   const trendLabel = isPositive ? 'IMPROVING' : isNeutral ? 'STEADY' : 'DECLINING'
 
@@ -164,7 +164,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
         <View
           className="rounded-xl px-4 py-3 items-center mb-4"
           style={{
-            backgroundColor: `${colors.primary}1A`,
+            backgroundColor: withAlpha(colors.primary, 0.102),
             borderWidth: 1,
             borderColor: colors.borderSubtle,
           }}
@@ -189,7 +189,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               color={colors.primary}
               thickness={2}
               dataPointsColor={colors.primary}
-              startFillColor={`${colors.primary}40`}
+              startFillColor={withAlpha(colors.primary, 0.251)}
               endFillColor="transparent"
               areaChart
               hideRules
@@ -252,7 +252,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
                 key={day.label}
                 className="flex-row items-center justify-between px-3 py-3 rounded-lg"
                 style={{
-                  backgroundColor: day.workouts > 0 ? `${colors.primary}1A` : colors.bgSurface,
+                  backgroundColor: day.workouts > 0 ? withAlpha(colors.primary, 0.102) : colors.bgSurface,
                 }}
               >
                 <Text className="text-sm font-medium" style={{ color: colors.textSecondary }}>

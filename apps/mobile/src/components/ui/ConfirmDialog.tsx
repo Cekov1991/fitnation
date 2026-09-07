@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { AlertTriangle, Info } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -31,7 +32,7 @@ export function ConfirmDialog({
   }
 
   const iconColor = destructive ? colors.error : colors.primary
-  const iconBg = destructive ? `${colors.error}18` : `${colors.primary}18`
+  const iconBg = destructive ? withAlpha(colors.error, 0.094) : withAlpha(colors.primary, 0.094)
   const Icon = destructive ? AlertTriangle : Info
 
   return (
@@ -78,7 +79,7 @@ export function ConfirmDialog({
                 },
               ]}
             >
-              <Text style={[styles.confirmLabel, { color: '#FFFFFF' }]}>
+              <Text style={[styles.confirmLabel, { color: colors.textButton }]}>
                 {confirmLabel}
               </Text>
             </TouchableOpacity>

@@ -19,6 +19,7 @@ import {
   useCancelSession,
   useRemoveSessionExercise,
   isExerciseComplete,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExercisePage } from '../../components/workout-session/ExercisePage'
@@ -402,7 +403,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
         {/* Header */}
         <View
           className="flex-row items-center justify-between px-6 py-3"
-          style={{ borderBottomWidth: 1, borderBottomColor: `${colors.textMuted}20` }}
+          style={{ borderBottomWidth: 1, borderBottomColor: withAlpha(colors.textMuted, 0.125) }}
         >
           <TouchableOpacity
             onPress={handleCancel}

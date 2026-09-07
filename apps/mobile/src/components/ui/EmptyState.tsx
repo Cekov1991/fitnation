@@ -48,7 +48,7 @@ export function EmptyState({ title, description, action }: EmptyStateProps) {
             backgroundColor: colors.primary,
           }}
         >
-          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>{action.label}</Text>
+          <Text style={{ color: colors.textButton, fontWeight: '600', fontSize: 15 }}>{action.label}</Text>
         </TouchableOpacity>
       )}
     </View>

@@ -18,6 +18,7 @@ import {
   isExerciseComplete,
   queryKeys,
   removeSet,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -397,8 +398,8 @@ export function ExercisePage({
               padding: 16,
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: `${colors.primary}50`,
-              backgroundColor: `${colors.primary}15`,
+              borderColor: withAlpha(colors.primary, 0.314),
+              backgroundColor: withAlpha(colors.primary, 0.082),
               opacity: anyLoading ? 0.5 : 1,
             }}
           >

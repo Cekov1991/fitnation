@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, Pressable, ActivityIndicator, StyleSheet } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { X, Eye, RefreshCw, Trash2 } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -57,7 +58,7 @@ export function ExerciseOptionsMenu({
                   title="View Exercise"
                   subtitle="See instructions and video"
                   icon={<Eye size={20} color={colors.primary} />}
-                  iconBg={`${colors.primary}25`}
+                  iconBg={withAlpha(colors.primary, 0.145)}
                   borderColor={colors.border}
                   bgColor={colors.bgElevated}
                   onPress={onView}
@@ -66,7 +67,7 @@ export function ExerciseOptionsMenu({
                   title="Swap Exercise"
                   subtitle="Replace with another exercise"
                   icon={<RefreshCw size={20} color={colors.secondary} />}
-                  iconBg={`${colors.secondary}25`}
+                  iconBg={withAlpha(colors.secondary, 0.145)}
                   borderColor={colors.border}
                   bgColor={colors.bgElevated}
                   onPress={onSwap}
@@ -76,9 +77,9 @@ export function ExerciseOptionsMenu({
                     title={isRemoveLoading ? 'Removing...' : 'Remove Exercise'}
                     subtitle="Delete from workout"
                     icon={<Trash2 size={20} color={colors.error} />}
-                    iconBg={`${colors.error}25`}
-                    borderColor={`${colors.error}30`}
-                    bgColor={`${colors.error}0D`}
+                    iconBg={withAlpha(colors.error, 0.145)}
+                    borderColor={withAlpha(colors.error, 0.188)}
+                    bgColor={withAlpha(colors.error, 0.051)}
                     onPress={onRemove}
                     isDanger
                     isLoading={isRemoveLoading}
@@ -144,7 +145,7 @@ function MenuButton({
         <Text style={[styles.actionLabel, { color: isDanger ? colors.error : colors.textPrimary }]}>
           {title}
         </Text>
-        <Text style={[styles.actionDesc, { color: isDanger ? `${colors.error}B3` : colors.textSecondary }]}>
+        <Text style={[styles.actionDesc, { color: isDanger ? withAlpha(colors.error, 0.702) : colors.textSecondary }]}>
           {subtitle}
         </Text>
       </View>

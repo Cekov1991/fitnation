@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { countCompletedSlots, isExerciseComplete } from '@fit-nation/shared'
+import { countCompletedSlots, isExerciseComplete, withAlpha } from '@fit-nation/shared'
 import { FlatList, View, Text, TouchableOpacity, useWindowDimensions } from 'react-native'
 import { Image } from 'expo-image'
 import { Check, MoreVertical, Plus } from 'lucide-react-native'
@@ -150,7 +150,7 @@ function ExerciseNavTabsComponent({
       const progress = target > 0 ? Math.min(1, logged / target) : 0
 
       const onSurface = isActive ? colors.textButton : colors.textPrimary
-      const onSurfaceMuted = isActive ? `${colors.textButton}D9` : colors.textMuted
+      const onSurfaceMuted = isActive ? withAlpha(colors.textButton, 0.851) : colors.textMuted
 
       const cardContent = (
         <View
@@ -169,7 +169,7 @@ function ExerciseNavTabsComponent({
               height: THUMB,
               borderRadius: 12,
               overflow: 'hidden',
-              backgroundColor: isActive ? `${colors.textButton}26` : colors.bgElevated,
+              backgroundColor: isActive ? withAlpha(colors.textButton, 0.149) : colors.bgElevated,
             }}
           >
             {imageUri ? (
@@ -205,7 +205,7 @@ function ExerciseNavTabsComponent({
                   style={{
                     width: 18,
                     height: 18,
-                    backgroundColor: isActive ? `${colors.textButton}40` : `${colors.success}25`,
+                    backgroundColor: isActive ? withAlpha(colors.textButton, 0.251) : withAlpha(colors.success, 0.145),
                   }}
                 >
                   <Check size={12} color={isActive ? colors.textButton : colors.success} />
@@ -219,7 +219,7 @@ function ExerciseNavTabsComponent({
                 height: 4,
                 borderRadius: 2,
                 overflow: 'hidden',
-                backgroundColor: isActive ? `${colors.textButton}40` : colors.borderSubtle,
+                backgroundColor: isActive ? withAlpha(colors.textButton, 0.251) : colors.borderSubtle,
               }}
             >
               <View
@@ -254,7 +254,7 @@ function ExerciseNavTabsComponent({
               borderRadius: MENU_BTN / 2,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: isActive ? `${colors.textButton}33` : colors.bgElevated,
+              backgroundColor: isActive ? withAlpha(colors.textButton, 0.2) : colors.bgElevated,
             }}
           >
             <MoreVertical size={16} color={isActive ? colors.textButton : colors.textSecondary} />
@@ -277,9 +277,9 @@ function ExerciseNavTabsComponent({
               style={{
                 flex: 1,
                 borderRadius: 16,
-                backgroundColor: isComplete ? `${colors.success}10` : colors.bgSurface,
+                backgroundColor: isComplete ? withAlpha(colors.success, 0.063) : colors.bgSurface,
                 borderWidth: 1,
-                borderColor: isComplete ? `${colors.success}30` : colors.borderSubtle,
+                borderColor: isComplete ? withAlpha(colors.success, 0.188) : colors.borderSubtle,
               }}
             >
               {cardContent}

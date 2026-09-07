@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useBrowsableRoutine, useStartSession, useTodayWorkout } from '@fit-nation/shared'
+import { useBrowsableRoutine, useStartSession, useTodayWorkout, withAlpha } from '@fit-nation/shared'
 import type { WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -125,7 +125,7 @@ export function RoutineDetailScreen({ route, navigation }: Props) {
                   <View className="flex-row gap-2 mt-4">
                     <View
                       className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full"
-                      style={{ backgroundColor: `${colors.primary}33` }}
+                      style={{ backgroundColor: withAlpha(colors.primary, 0.2) }}
                     >
                       <Dumbbell size={14} color="#fff" />
                       <Text className="text-xs font-bold text-white">

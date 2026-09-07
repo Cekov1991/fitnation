@@ -9,6 +9,7 @@ import {
   useEquipmentTypes,
   useGenerateDraftSession,
   useProfile,
+  withAlpha,
 } from '@fit-nation/shared'
 import type { EquipmentTypeResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -136,8 +137,8 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                     paddingHorizontal: 20,
                     paddingVertical: 14,
                     flexBasis: '47%',
-                    backgroundColor: isSelected ? `${colors.primary}15` : colors.bgSurface,
-                    borderColor: isSelected ? colors.primary : `${colors.textMuted}40`,
+                    backgroundColor: isSelected ? withAlpha(colors.primary, 0.082) : colors.bgSurface,
+                    borderColor: isSelected ? colors.primary : withAlpha(colors.textMuted, 0.251),
                   }}
                   activeOpacity={0.7}
                 >
@@ -173,7 +174,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                   className="px-4 py-2 rounded-full border"
                   style={{
                     backgroundColor: isSelected ? colors.primary : colors.bgSurface,
-                    borderColor: isSelected ? colors.primary : `${colors.textMuted}40`,
+                    borderColor: isSelected ? colors.primary : withAlpha(colors.textMuted, 0.251),
                   }}
                   activeOpacity={0.7}
                 >
@@ -205,7 +206,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                     className="px-3 py-2 rounded-xl border"
                     style={{
                       backgroundColor: isSelected ? colors.primary : colors.bgSurface,
-                      borderColor: isSelected ? colors.primary : `${colors.textMuted}40`,
+                      borderColor: isSelected ? colors.primary : withAlpha(colors.textMuted, 0.251),
                     }}
                     activeOpacity={0.7}
                   >
@@ -237,7 +238,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                   className="px-3 py-2 rounded-xl border"
                   style={{
                     backgroundColor: isSelected ? colors.primary : colors.bgSurface,
-                    borderColor: isSelected ? colors.primary : `${colors.textMuted}40`,
+                    borderColor: isSelected ? colors.primary : withAlpha(colors.textMuted, 0.251),
                   }}
                   activeOpacity={0.7}
                 >
@@ -267,8 +268,8 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
             style={{ paddingVertical: 18, alignItems: 'center', justifyContent: 'center' }}
           >
             <View className="flex-row items-center gap-2">
-              <Sparkles size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 17, fontWeight: '700' }}>
+              <Sparkles size={20} color={colors.textButton} />
+              <Text style={{ color: colors.textButton, fontSize: 17, fontWeight: '700' }}>
                 {generateDraft.isPending ? 'GENERATING...' : 'GENERATE WORKOUT'}
               </Text>
             </View>

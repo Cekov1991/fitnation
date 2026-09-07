@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
+import { withAlpha } from '@fit-nation/shared'
 import { AppState, AppStateStatus, Text, TextInput, View, TouchableOpacity } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import {
@@ -166,7 +167,7 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
                 cx={SIZE / 2}
                 cy={SIZE / 2}
                 r={RADIUS}
-                stroke={`${colors.textButton}40`}
+                stroke={withAlpha(colors.textButton, 0.251)}
                 strokeWidth={STROKE}
                 fill="none"
               />
@@ -191,7 +192,7 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
               style={{
                 fontSize: 10,
                 fontWeight: '700',
-                color: `${colors.textButton}BF`,
+                color: withAlpha(colors.textButton, 0.749),
                 letterSpacing: 1.2,
               }}
             >
@@ -225,7 +226,7 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
               borderRadius: 10,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.textButton}2E`,
+              backgroundColor: withAlpha(colors.textButton, 0.18),
             }}
           >
             <Text style={{ color: colors.textButton, fontSize: 11, fontWeight: '700' }}>-15s</Text>
@@ -239,7 +240,7 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
               borderRadius: 10,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.textButton}2E`,
+              backgroundColor: withAlpha(colors.textButton, 0.18),
             }}
           >
             <Text style={{ color: colors.textButton, fontSize: 11, fontWeight: '700' }}>+15s</Text>
@@ -253,7 +254,7 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
               borderRadius: 10,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.textButton}2E`,
+              backgroundColor: withAlpha(colors.textButton, 0.18),
               marginLeft: 4,
             }}
           >

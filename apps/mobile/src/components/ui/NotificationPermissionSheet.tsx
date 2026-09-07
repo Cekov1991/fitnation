@@ -3,6 +3,7 @@
 // it stamps `pushPromptLastShownAt`, whatever the user picks. Styled like
 // ConfirmDialog.
 import { useEffect, useState } from 'react'
+import { withAlpha } from '@fit-nation/shared'
 import {
   Modal, View, Text, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator, Linking,
 } from 'react-native'
@@ -73,7 +74,7 @@ export function NotificationPermissionSheet({
           style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}
         >
           <View style={styles.headerSection}>
-            <View style={[styles.iconWrap, { backgroundColor: `${colors.primary}18` }]}>
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(colors.primary, 0.094) }]}>
               <Bell size={22} color={colors.primary} />
             </View>
             <Text style={[styles.title, { color: colors.textPrimary }]}>Stay on track</Text>

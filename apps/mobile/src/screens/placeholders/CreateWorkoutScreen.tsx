@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { usePlans, useCreateTemplate } from '@fit-nation/shared'
+import { usePlans, useCreateTemplate, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
@@ -135,7 +135,7 @@ export function CreateWorkoutScreen({ navigation, route }: Props) {
                         style={{
                           backgroundColor:
                             (selectedPlanId ?? activePlan?.id) === p.id
-                              ? `${colors.primary}18`
+                              ? withAlpha(colors.primary, 0.094)
                               : 'transparent',
                         }}
                       >

@@ -8,7 +8,7 @@ import { Image } from 'expo-image'
 import { useMutation } from '@tanstack/react-query'
 // unitSystem here is form state, not the saved profile, so the pure label
 // helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
-import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS, submitOnboarding } from '@fit-nation/shared'
+import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS, submitOnboarding, withAlpha } from '@fit-nation/shared'
 import type { UpdateProfileInput, UnitSystem } from '@fit-nation/shared'
 import {
   Dumbbell, ArrowRight, ArrowLeft,
@@ -213,7 +213,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
             <View className="w-full rounded-2xl p-6" style={{ backgroundColor: colors.bgSurface }}>
               {/* Icon */}
               <View className="items-center mb-4">
-                <View className="p-3 rounded-full" style={{ backgroundColor: `${colors.success}33` }}>
+                <View className="p-3 rounded-full" style={{ backgroundColor: withAlpha(colors.success, 0.2) }}>
                   <CheckCircle size={32} color={colors.success} />
                 </View>
               </View>
@@ -267,10 +267,10 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                 className="w-full py-4 rounded-xl flex-row items-center justify-center gap-2"
                 style={{ backgroundColor: colors.primary }}
               >
-                <Text className="text-base font-bold" style={{ color: '#fff' }}>
+                <Text className="text-base font-bold" style={{ color: colors.textButton }}>
                   Go to Dashboard
                 </Text>
-                <ArrowRight size={18} color="#fff" />
+                <ArrowRight size={18} color={colors.textButton} />
               </TouchableOpacity>
             </View>
           </View>
@@ -297,7 +297,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
         {phase === 'error' && (
           <View className="items-center gap-4 w-full">
-            <View className="p-4 rounded-full" style={{ backgroundColor: `${colors.error}1A` }}>
+            <View className="p-4 rounded-full" style={{ backgroundColor: withAlpha(colors.error, 0.102) }}>
               <AlertCircle size={40} color={colors.error} />
             </View>
             <Text className="text-xl font-bold text-center" style={{ color: colors.textPrimary }}>
@@ -311,8 +311,8 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
               style={{ backgroundColor: colors.primary }}
               onPress={() => submitMutation.mutate()}
             >
-              <Text className="text-base font-semibold" style={{ color: '#fff' }}>Try Again</Text>
-              <ArrowRight size={18} color="#fff" />
+              <Text className="text-base font-semibold" style={{ color: colors.textButton }}>Try Again</Text>
+              <ArrowRight size={18} color={colors.textButton} />
             </TouchableOpacity>
           </View>
         )}
@@ -383,8 +383,8 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                 className="w-full py-4 rounded-xl flex-row items-center justify-center gap-2"
                 style={{ backgroundColor: colors.primary }}
               >
-                <Text className="text-lg font-bold" style={{ color: '#fff' }}>Get Started</Text>
-                <ArrowRight size={20} color="#fff" />
+                <Text className="text-lg font-bold" style={{ color: colors.textButton }}>Get Started</Text>
+                <ArrowRight size={20} color={colors.textButton} />
               </TouchableOpacity>
             </View>
           )}
@@ -539,7 +539,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                       onPress={() => set({ fitness_goal: value })}
                       className="w-full p-4 rounded-xl flex-row items-center gap-4"
                       style={{
-                        backgroundColor: isSelected ? `${colors.primary}1A` : colors.bgSurface,
+                        backgroundColor: isSelected ? withAlpha(colors.primary, 0.102) : colors.bgSurface,
                         borderWidth: 2,
                         borderColor: isSelected ? colors.primary : colors.bgElevated,
                       }}
@@ -665,7 +665,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                         onPress={() => set({ workout_duration_minutes: opt.value })}
                         className="px-4 py-2 rounded-lg"
                         style={{
-                          backgroundColor: isSelected ? `${colors.primary}33` : colors.bgSurface,
+                          backgroundColor: isSelected ? withAlpha(colors.primary, 0.2) : colors.bgSurface,
                           borderWidth: 1.5,
                           borderColor: isSelected ? colors.primary : 'transparent',
                         }}

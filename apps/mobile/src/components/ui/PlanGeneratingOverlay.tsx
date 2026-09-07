@@ -1,4 +1,5 @@
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { Image } from 'expo-image'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -40,7 +41,7 @@ export function PlanGeneratingOverlay({ visible, ...contentProps }: PlanGenerati
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
-      <View style={[styles.backdrop, { backgroundColor: `${colors.bgBase}E6` }]}>
+      <View style={[styles.backdrop, { backgroundColor: withAlpha(colors.bgBase, 0.902) }]}>
         <PlanGeneratingContent {...contentProps} />
       </View>
     </Modal>

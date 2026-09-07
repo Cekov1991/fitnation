@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
-import { resetPasswordSchema, type ResetPasswordFormData, authApi } from '@fit-nation/shared'
+import { resetPasswordSchema, type ResetPasswordFormData, authApi, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
@@ -126,7 +126,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
               width: 64,
               height: 64,
               borderRadius: 32,
-              backgroundColor: `${colors.primary}20`,
+              backgroundColor: withAlpha(colors.primary, 0.125),
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 16,
@@ -181,7 +181,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             {error && (
               <View
                 className="flex-row items-center gap-3 p-4 rounded-xl mb-4"
-                style={{ backgroundColor: `${colors.error}18`, borderWidth: 1, borderColor: `${colors.error}30` }}
+                style={{ backgroundColor: withAlpha(colors.error, 0.094), borderWidth: 1, borderColor: withAlpha(colors.error, 0.188) }}
               >
                 <AlertCircle color={colors.error} size={18} />
                 <Text className="text-sm flex-1" style={{ color: colors.error }}>{error}</Text>

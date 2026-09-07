@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { withAlpha } from '@fit-nation/shared'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CheckCircle2, Clock } from 'lucide-react-native'
@@ -80,7 +81,7 @@ export function WorkoutTemplateSelector({
                 : showNextOutline
                 ? colors.bgSurface
                 : isCompleted
-                ? `${colors.success}26`
+                ? withAlpha(colors.success, 0.149)
                 : colors.bgSurface,
               // borderWidth: showNextOutline ? 2 : 0,
               // borderColor: showNextOutline ? colors.primary : 'transparent',

@@ -1,4 +1,5 @@
 import { TouchableOpacity, View, Text } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { Image } from 'expo-image'
 import { Dumbbell } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -31,7 +32,7 @@ export function ExerciseCard({ exercise, onPress, rightAction }: ExerciseCardPro
       ) : (
         <View
           className="items-center justify-center rounded-xl"
-          style={{ width: 56, height: 56, backgroundColor: `${colors.primary}18` }}
+          style={{ width: 56, height: 56, backgroundColor: withAlpha(colors.primary, 0.094) }}
         >
           <Dumbbell size={22} color={colors.primary} />
         </View>

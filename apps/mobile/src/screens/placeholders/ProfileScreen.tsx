@@ -43,6 +43,7 @@ import {
   parseDecimalText,
   setPushEnabled,
   deleteAccountAndSignOut,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -599,7 +600,7 @@ export function ProfileScreen() {
                         style={{
                           backgroundColor:
                             value === opt.value
-                              ? `${colors.primary}20`
+                              ? withAlpha(colors.primary, 0.125)
                               : colors.bgSurface,
                           borderWidth: 1,
                           borderColor:
@@ -642,7 +643,7 @@ export function ProfileScreen() {
                         className="flex-1 py-3 rounded-xl items-center"
                         style={{
                           backgroundColor:
-                            value === opt.value ? `${colors.primary}20` : colors.bgSurface,
+                            value === opt.value ? withAlpha(colors.primary, 0.125) : colors.bgSurface,
                           borderWidth: 1,
                           borderColor: value === opt.value ? colors.primary : colors.bgElevated,
                         }}
@@ -724,7 +725,7 @@ export function ProfileScreen() {
                         style={{
                           backgroundColor:
                             value === opt.value
-                              ? `${colors.primary}20`
+                              ? withAlpha(colors.primary, 0.125)
                               : colors.bgSurface,
                           borderWidth: 1,
                           borderColor:
@@ -763,7 +764,7 @@ export function ProfileScreen() {
             }}
           >
             {isSubmitting ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={colors.textButton} size="small" />
             ) : (
               <Text
                 className="font-bold text-lg"
@@ -828,7 +829,7 @@ export function ProfileScreen() {
             style={{
               backgroundColor: 'transparent',
               borderWidth: 2,
-              borderColor: `${colors.error}40`,
+              borderColor: withAlpha(colors.error, 0.251),
             }}
           >
             <LogOut size={20} color={colors.error} />
@@ -844,11 +845,11 @@ export function ProfileScreen() {
             style={{
               backgroundColor: 'transparent',
               borderWidth: 1,
-              borderColor: `${colors.error}28`,
+              borderColor: withAlpha(colors.error, 0.157),
             }}
           >
-            <Trash2 size={16} color={`${colors.error}99`} />
-            <Text className="font-semibold text-sm" style={{ color: `${colors.error}99` }}>
+            <Trash2 size={16} color={withAlpha(colors.error, 0.6)} />
+            <Text className="font-semibold text-sm" style={{ color: withAlpha(colors.error, 0.6) }}>
               DELETE ACCOUNT
             </Text>
           </TouchableOpacity>

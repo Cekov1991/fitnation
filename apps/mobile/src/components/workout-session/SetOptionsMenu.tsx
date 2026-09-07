@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, Pressable, ActivityIndicator, StyleSheet } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { X, Edit2, Trash2 } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -58,7 +59,7 @@ export function SetOptionsMenu({
                     title="Edit Set"
                     subtitle="Modify weight and reps"
                     icon={<Edit2 size={20} color={colors.primary} />}
-                    iconBg={`${colors.primary}26`}
+                    iconBg={withAlpha(colors.primary, 0.149)}
                     borderColor={colors.border}
                     bgColor={colors.bgElevated}
                     onPress={onEditSet}
@@ -69,9 +70,9 @@ export function SetOptionsMenu({
                     title={isRemoveLoading ? 'Removing...' : 'Remove Set'}
                     subtitle="Delete this set"
                     icon={<Trash2 size={20} color={colors.error} />}
-                    iconBg={`${colors.error}25`}
-                    borderColor={`${colors.error}30`}
-                    bgColor={`${colors.error}0D`}
+                    iconBg={withAlpha(colors.error, 0.145)}
+                    borderColor={withAlpha(colors.error, 0.188)}
+                    bgColor={withAlpha(colors.error, 0.051)}
                     onPress={onRemoveSet}
                     isDanger
                     isLoading={isRemoveLoading}
@@ -142,7 +143,7 @@ function MenuButton({
         <Text style={[styles.actionLabel, { color: isDanger ? colors.error : colors.textPrimary }]}>
           {title}
         </Text>
-        <Text style={[styles.actionDesc, { color: isDanger ? `${colors.error}B3` : colors.textSecondary }]}>
+        <Text style={[styles.actionDesc, { color: isDanger ? withAlpha(colors.error, 0.702) : colors.textSecondary }]}>
           {subtitle}
         </Text>
       </View>

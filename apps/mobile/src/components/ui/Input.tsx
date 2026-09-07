@@ -1,4 +1,5 @@
 import { useState, useRef, type ReactNode } from 'react'
+import { withAlpha } from '@fit-nation/shared'
 import { TextInput, View, Text, type TextInputProps } from 'react-native'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -22,7 +23,7 @@ export function Input({ label, error, leftIcon, rightElement, readOnly, inputRef
     ? colors.error
     : isFocused
     ? colors.primary
-    : `${colors.textMuted}40`
+    : withAlpha(colors.textMuted, 0.251)
 
   return (
     <View className="mb-5">
@@ -60,7 +61,7 @@ export function Input({ label, error, leftIcon, rightElement, readOnly, inputRef
             },
             props.style,
           ]}
-          placeholderTextColor={`${colors.textMuted}99`}
+          placeholderTextColor={withAlpha(colors.textMuted, 0.6)}
           underlineColorAndroid="transparent"
           editable={!readOnly}
           onFocus={(e) => {

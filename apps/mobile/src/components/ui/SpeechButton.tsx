@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { withAlpha } from '@fit-nation/shared'
 import { TouchableOpacity } from 'react-native'
 import * as Speech from 'expo-speech'
 import { Volume2, VolumeX } from 'lucide-react-native'
@@ -60,8 +61,8 @@ export function SpeechButton({ text, size = 20 }: SpeechButtonProps) {
         padding: 6,
         borderRadius: 999,
         backgroundColor: isSpeaking
-          ? `${colors.primary}20`
-          : `${colors.textPrimary}0D`,
+          ? withAlpha(colors.primary, 0.125)
+          : withAlpha(colors.textPrimary, 0.051),
         opacity: text ? 1 : 0.3,
       }}
     >

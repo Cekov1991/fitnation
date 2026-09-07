@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { withAlpha } from '@fit-nation/shared'
 import {
   Modal,
   View,
@@ -78,7 +79,7 @@ export function DeleteAccountDialog({
         >
           {/* Icon + heading */}
           <View style={styles.headerSection}>
-            <View style={[styles.iconWrap, { backgroundColor: `${colors.error}18` }]}>
+            <View style={[styles.iconWrap, { backgroundColor: withAlpha(colors.error, 0.094) }]}>
               <AlertTriangle size={22} color={colors.error} />
             </View>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
@@ -162,7 +163,7 @@ export function DeleteAccountDialog({
               ]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={colors.textButton} />
               ) : (
                 <Text style={styles.deleteLabel}>Delete My Account</Text>
               )}
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
   deleteLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#fff',
   },
   cancelButton: {
     paddingVertical: 10,

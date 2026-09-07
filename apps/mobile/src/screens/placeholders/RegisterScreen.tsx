@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as SecureStore from 'expo-secure-store'
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
-import { registerSchema, type RegisterFormData, authApi, AUTH_TOKEN_KEY } from '@fit-nation/shared'
+import { registerSchema, type RegisterFormData, authApi, AUTH_TOKEN_KEY, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
@@ -69,7 +69,7 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
             {error && (
               <View
                 className="flex-row items-center gap-3 p-4 rounded-xl mb-4"
-                style={{ backgroundColor: `${colors.error}18`, borderWidth: 1, borderColor: `${colors.error}30` }}
+                style={{ backgroundColor: withAlpha(colors.error, 0.094), borderWidth: 1, borderColor: withAlpha(colors.error, 0.188) }}
               >
                 <AlertCircle color={colors.error} size={18} />
                 <Text className="text-sm flex-1" style={{ color: colors.error }}>{error}</Text>

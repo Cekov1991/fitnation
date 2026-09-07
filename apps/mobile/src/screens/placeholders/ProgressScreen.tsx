@@ -23,6 +23,7 @@ import {
   getWeekStartMonday,
   formatWeekRangeLabel,
   addDaysToCalendarDateKey,
+  withAlpha,
 } from '@fit-nation/shared'
 import type { WorkoutSessionCalendarResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -77,7 +78,7 @@ function MetricCardItem({ title, value, subtitle, icon: Icon, onPress }: MetricC
       <View className="flex-row items-start justify-between mb-4">
         <View
           className="p-2 rounded-xl"
-          style={{ backgroundColor: `${colors.primary}1A` }}
+          style={{ backgroundColor: withAlpha(colors.primary, 0.102) }}
         >
           <Icon size={20} color={colors.primary} />
         </View>
@@ -331,10 +332,10 @@ export function ProgressScreen() {
                         className="w-10 h-10 rounded-full items-center justify-center"
                         style={{
                           backgroundColor: isSelected
-                            ? `${colors.primary}20`
+                            ? withAlpha(colors.primary, 0.125)
                             : hasSession
                             ? item.isCompleted
-                              ? `${colors.primary}15`
+                              ? withAlpha(colors.primary, 0.082)
                               : `#fbbf2415`
                             : colors.bgElevated,
                           borderWidth: isSelected ? 2 : 0,
@@ -384,7 +385,7 @@ export function ProgressScreen() {
                       className="w-10 h-10 rounded-xl items-center justify-center"
                       style={{
                         backgroundColor: session.completed
-                          ? `${colors.primary}22`
+                          ? withAlpha(colors.primary, 0.133)
                           : `#fbbf2422`,
                       }}
                     >
