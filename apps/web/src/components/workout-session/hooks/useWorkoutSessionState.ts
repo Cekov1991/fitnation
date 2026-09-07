@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
@@ -97,6 +97,7 @@ interface UseWorkoutSessionStateReturn {
   // Loading states (for UI)
   isCancelLoading: boolean;
   isAddExerciseLoading: boolean;
+  isSwapExerciseLoading: boolean;
   isRemoveExerciseLoading: boolean;
   isRemoveSetLoading: boolean;
   isCompleteLoading: boolean;
@@ -120,7 +121,7 @@ export function useWorkoutSessionState({
   const addSessionExercise = useAddSessionExercise();
   const removeSessionExercise = useRemoveSessionExercise();
   const updateSessionExercise = useUpdateSessionExercise();
-  const reorderSessionExercises = useReorderSessionExercises();
+  const swapSessionExercise = useSwapSessionExercise();
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
   
@@ -408,50 +409,26 @@ export function useWorkoutSessionState({
         isAddingExercise.current = false;
       }
     } else if (exercisePickerMode === 'swap') {
-      // Replace current exercise in place: remove, add at same position, reorder if needed, stay on same index
-      if (currentExercise) {
-        const swapIndex = currentExerciseIndex;
-        try {
-          await removeSessionExercise.mutateAsync({
-            sessionId,
-            exerciseId: currentExercise.sessionExerciseId
-          });
-          await addSessionExercise.mutateAsync({
-            sessionId,
-            data: {
-              exercise_id: exercise.id,
-              order: swapIndex,
-              target_sets: currentExercise.targetSets,
-              min_target_reps: currentExercise.minTargetReps,
-              max_target_reps: currentExercise.maxTargetReps,
-              target_weight: currentExercise.suggestedWeight
-            }
-          });
-          setShowExercisePicker(false);
-          setShowExerciseMenu(false);
-
-          // Refetch session; if backend appended the new exercise, reorder so it's at swapIndex
-          await queryClient.refetchQueries({ queryKey: ['sessions', sessionId] });
-          const session = queryClient.getQueryData<{ exercises?: Array<{ session_exercise: { id: number; exercise_id: number } }> }>(['sessions', sessionId]);
-          const sessionExercises = session?.exercises ?? [];
-          const newEntry = sessionExercises.find((ex) => ex.session_exercise.exercise_id === exercise.id);
-          const newSessionExerciseId = newEntry?.session_exercise.id;
-          const currentOrder = sessionExercises.map((ex) => ex.session_exercise.id);
-
-          if (newSessionExerciseId != null && currentOrder.length > 1) {
-            const newIndex = currentOrder.indexOf(newSessionExerciseId);
-            if (newIndex !== -1 && newIndex !== swapIndex) {
-              const reorderIds = [...currentOrder];
-              reorderIds.splice(newIndex, 1);
-              reorderIds.splice(swapIndex, 0, newSessionExerciseId);
-              await reorderSessionExercises.mutateAsync({ sessionId, exerciseIds: reorderIds });
-            }
-          }
-
-          setCurrentExerciseIndex(swapIndex);
-        } catch (error) {
-          console.error('Failed to swap exercise:', error);
-        }
+      if (!currentExercise) return;
+      // PATCH .../exercises/{sessionExercise}/swap changes exercise_id on the
+      // existing row and nothing else, so logged sets, targets and the row's
+      // position survive by construction — the index we are on stays valid.
+      //
+      // This replaced a remove + add + refetch + reorder sequence with no
+      // rollback: a failure after the remove lost the exercise and its logged
+      // sets outright (0014). Both picker wrappers made the same move earlier.
+      try {
+        await swapSessionExercise.mutateAsync({
+          sessionId,
+          exerciseId: currentExercise.sessionExerciseId,
+          data: { exercise_id: exercise.id }
+        });
+        setShowExercisePicker(false);
+        setShowExerciseMenu(false);
+      } catch (error) {
+        // The session is untouched on failure and the picker stays open. Telling
+        // the user is blocked on apps/web having a toast at all (0031 #1).
+        console.error('Failed to swap exercise:', error);
       }
     }
   };
@@ -603,7 +580,8 @@ export function useWorkoutSessionState({
     // Loading states
     isCancelLoading: cancelSession.isPending,
     isAddExerciseLoading: addSessionExercise.isPending,
-    isRemoveExerciseLoading: removeSessionExercise.isPending && !addSessionExercise.isPending,
+    isSwapExerciseLoading: swapSessionExercise.isPending,
+    isRemoveExerciseLoading: removeSessionExercise.isPending,
     isRemoveSetLoading: deleteSet.isPending || updateSessionExercise.isPending,
     isCompleteLoading: completeSession.isPending,
   };
