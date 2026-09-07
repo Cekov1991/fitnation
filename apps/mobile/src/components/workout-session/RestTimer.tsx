@@ -114,8 +114,10 @@ export function RestTimer({ seconds, onComplete, onSkip, onAdjust }: RestTimerPr
   // Takes the new end explicitly: a shared value written from the JS thread is
   // applied on the UI thread later, so reading it straight back here would
   // still return the previous end and leave the OS alert one tap behind.
+  // Fractional seconds on purpose: rounding up would put the OS alert up to a
+  // second after this clock, and the two must agree on when zero is.
   const notifyAdjust = useCallback((newEnd: number) => {
-    onAdjustRef.current?.(Math.max(0, Math.ceil((newEnd - Date.now()) / 1000)))
+    onAdjustRef.current?.(Math.max(0, (newEnd - Date.now()) / 1000))
   }, [])
 
   const addTime = useCallback((extra: number) => {

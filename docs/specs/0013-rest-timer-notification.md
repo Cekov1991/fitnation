@@ -42,8 +42,14 @@ Two platforms, two mechanisms, one behaviour. Both were chosen over the obvious
   rest becomes 2–3 API calls plus a cancellation race. Server scheduling stays
   where minutes of tolerance are fine — nudges and reminders.
 
-A scheduled local notification is kept on Android too, as a belt-and-braces
-fallback for the case where the service is killed anyway.
+~~A scheduled local notification is kept on Android too, as a belt-and-braces
+fallback for the case where the service is killed anyway.~~ **Dropped
+2026-09-07 during implementation.** The service posts the alert itself, so a
+parallel alarm either doubles it or has to be cancelled from native code
+through expo-notifications internals; neither was worth it. On Android the
+service is the only owner of the rest end. The local notification is used
+there only when the OS refuses to start the service, or in a binary built
+before the module existed.
 
 ## Decisions (settled — do not reopen)
 
@@ -66,11 +72,11 @@ fallback for the case where the service is killed anyway.
 
 | Moment | iOS | Android |
 |---|---|---|
-| Rest starts (`handleStartRest`, `WorkoutSessionScreen.tsx:180`) | schedule local notification at `now + seconds` | start foreground service with `endAt`, label; **also** schedule the same local notification as fallback |
-| ±15 s (`RestTimer.tsx` `addTime`/`subTime`) | cancel + reschedule | `update(endAt)` on the service; cancel + reschedule fallback |
-| Skip / rest completes in foreground (`handleRestFinished`, `:186`) | cancel | stop service; cancel fallback |
-| Session finish / cancel / leave | cancel | stop service; cancel fallback |
-| App killed mid-rest | notification still fires (OS-held) | service keeps running (that is the point); if the OS kills it anyway, the fallback alarm is the last resort |
+| Rest starts (`handleStartRest`, `WorkoutSessionScreen.tsx:180`) | schedule local notification at `now + seconds` | start foreground service with `endAt`, label |
+| ±15 s (`RestTimer.tsx` `addTime`/`subTime`) | cancel + reschedule | `update(endAt)` on the service |
+| Skip / rest completes in foreground (`handleRestFinished`, `:186`) | cancel | stop service |
+| Session finish / cancel / leave | cancel | stop service |
+| App killed mid-rest | notification still fires (OS-held) | service keeps running (that is the point); if the OS kills it anyway there is no alert — measured in the step-4 device test |
 | Alert fires while session screen visible | suppressed (R9) | suppressed (R9); ongoing notification already gone because the JS timer completed first |
 | Alert tapped | opens the app; no navigation change — the session screen is already the top of the stack | same |
 

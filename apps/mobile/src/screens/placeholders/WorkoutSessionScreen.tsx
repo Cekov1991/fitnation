@@ -192,11 +192,19 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
     startRestAlert({ seconds, exerciseName: currentExerciseNameRef.current })
   }, [])
 
-  // Serves both onComplete (foreground zero — the alert would be a duplicate)
-  // and onSkip.
-  const handleRestFinished = useCallback(() => {
+  // Skip: the user is looking at the screen, so the OS alert is unwanted.
+  const handleRestSkipped = useCallback(() => {
     setRestSeconds(0)
     cancelRestAlert()
+  }, [])
+
+  // Zero: the ring has hit zero and the haptic fires, so in the foreground the
+  // OS alert would be a duplicate. In the background the JS clock can still
+  // reach zero (Android keeps the process around) — there the alert is the
+  // whole point, so leave it to the OS side.
+  const handleRestCompleted = useCallback(() => {
+    setRestSeconds(0)
+    if (AppState.currentState === 'active') cancelRestAlert()
   }, [])
 
   // Leaving the screen by any path — including an unmount we did not
@@ -452,8 +460,8 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             <RestTimer
               key={restRunId}
               seconds={restSeconds}
-              onComplete={handleRestFinished}
-              onSkip={handleRestFinished}
+              onComplete={handleRestCompleted}
+              onSkip={handleRestSkipped}
               onAdjust={adjustRestAlert}
             />
           </View>
