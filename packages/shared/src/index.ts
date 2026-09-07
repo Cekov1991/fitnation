@@ -32,6 +32,9 @@ export * from './utils/workoutHelpers'
 export * from './utils/repRange'
 export * from './utils/calendarWeek'
 
+// Partner visual identity — one resolution of tenant, colours and alpha (0029)
+export * from './partner/visualIdentity'
+
 // Named orchestrations for the multi-write invariants (0026)
 export * from './orchestrations'
 

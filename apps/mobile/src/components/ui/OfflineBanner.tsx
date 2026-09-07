@@ -2,10 +2,12 @@ import { Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNetInfo } from '@react-native-community/netinfo'
 import Animated, { SlideInUp, SlideOutUp } from 'react-native-reanimated'
+import { useTheme } from '../../context/ThemeContext'
 
 export function OfflineBanner() {
   const netInfo = useNetInfo()
   const insets = useSafeAreaInsets()
+  const { colors } = useTheme()
 
   if (netInfo.isConnected !== false) return null
 
@@ -19,12 +21,12 @@ export function OfflineBanner() {
         left: 0,
         right: 0,
         zIndex: 9999,
-        backgroundColor: '#EF4444',
+        backgroundColor: colors.error,
         paddingHorizontal: 16,
         paddingVertical: 8,
       }}
     >
-      <Text style={{ color: '#fff', fontSize: 13, textAlign: 'center', fontWeight: '500' }}>
+      <Text style={{ color: colors.textButton, fontSize: 13, textAlign: 'center', fontWeight: '500' }}>
         No internet connection
       </Text>
     </Animated.View>

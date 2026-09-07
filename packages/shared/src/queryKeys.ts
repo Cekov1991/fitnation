@@ -38,6 +38,7 @@ const templatesRoot = ['templates'] as const;
 const routinesRoot = ['routines'] as const;
 const sessionsRoot = ['sessions'] as const;
 const exercisesRoot = ['exercises'] as const;
+const partnersRoot = ['partners'] as const;
 
 export const queryKeys = {
   profile: {
@@ -86,6 +87,11 @@ export const queryKeys = {
       [...exercisesRoot, exerciseId, 'history', params] as const,
     /** Every cached history for the exercise — the prefix of `history()`. */
     histories: (exerciseId: number) => [...exercisesRoot, exerciseId, 'history'] as const,
+  },
+  partners: {
+    all: () => partnersRoot,
+    /** Public branding for the Partner a host name resolves to. */
+    branding: (slug: string) => [...partnersRoot, 'branding', slug] as const,
   },
   taxonomy: {
     muscleGroups: (bodyRegion?: BodyRegion) => ['muscle-groups', bodyRegion] as const,

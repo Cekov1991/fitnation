@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi } from '../api';
+import { authApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi, partnersApi } from '../api';
 import { getAuthStorage, AUTH_TOKEN_KEY } from '../auth';
 import type {
   CreatePlanInput,
@@ -19,6 +19,7 @@ import type {
   RegenerateWorkoutInput,
   RegeneratePlanInput,
   CompleteSessionResponse,
+  PartnerVisualIdentityResource,
 } from '../types/api';
 import { logSetMutationOptions, updateSetMutationOptions, deleteSetMutationOptions } from './setLogMutations';
 import { updateSessionExerciseMutationOptions, removeSessionExerciseMutationOptions } from './sessionExerciseMutations';
@@ -913,5 +914,37 @@ export function useRegenerateDraftSession() {
       queryClient.setQueryData(queryKeys.sessions.detail(response.data.id), response.data);
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all() });
     }
+  });
+}
+
+// ============================================================================
+// PARTNER BRANDING — public, keyed by the slug a host name resolves to
+// ============================================================================
+
+export interface PartnerBrandingResponse {
+  name: string;
+  slug: string;
+  visual_identity: PartnerVisualIdentityResource | null;
+}
+
+/**
+ * The branding for the Partner a white-label host name names, for signed-out
+ * screens. A public endpoint, so unlike every other query here it is gated on
+ * having a slug, not on being authenticated. Cached for the session: a host
+ * name does not change its Partner while a tab is open.
+ */
+export function usePartnerBranding(slug: string | null) {
+  return useQuery({
+    queryKey: queryKeys.partners.branding(slug ?? ''),
+    queryFn: async (): Promise<PartnerBrandingResponse> => {
+      const response = await partnersApi.getBrandingBySlug(slug as string);
+      return {
+        name: response.data.name,
+        slug: response.data.slug,
+        visual_identity: response.data.visual_identity ?? null,
+      };
+    },
+    enabled: !!slug,
+    staleTime: Infinity,
   });
 }
