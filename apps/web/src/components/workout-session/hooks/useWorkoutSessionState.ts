@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, persistedSetLogId, sessionTotals, type SessionTotals, type WeightUnit, queryKeys } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, persistedSetLogId, removeSet, sessionTotals, type SessionTotals, type WeightUnit, queryKeys } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
@@ -341,33 +341,29 @@ export function useWorkoutSessionState({
       return;
     }
 
-    try {
-      const setLogId = persistedSetLogId(set.setLogId);
-      if (set.completed && setLogId) {
-        // Remove the logged set; target_sets is the next request's to change.
-        await deleteSet.mutateAsync({
-          sessionId,
-          setLogId
-        });
-        // Also decrease target_sets to fully remove the set slot
-        await updateSessionExercise.mutateAsync({
-          sessionId,
-          exerciseId: currentExercise.sessionExerciseId,
-          data: { target_sets: currentExercise.targetSets - 1 }
-        });
-      } else {
-        // Remove unlogged set by decreasing target_sets
-        await updateSessionExercise.mutateAsync({
-          sessionId,
-          exerciseId: currentExercise.sessionExerciseId,
-          data: { target_sets: currentExercise.targetSets - 1 }
-        });
+    // One owner for the two writes and their compensation (0026 / 0006).
+    const outcome = await removeSet(
+      {
+        deleteSet: vars => deleteSet.mutateAsync(vars),
+        updateSessionExercise: vars => updateSessionExercise.mutateAsync(vars),
+        resyncSession: id => queryClient.invalidateQueries({ queryKey: queryKeys.sessions.detail(id) })
+      },
+      {
+        sessionId,
+        sessionExerciseId: currentExercise.sessionExerciseId,
+        setLogId: set.completed ? persistedSetLogId(set.setLogId) : null,
+        targetSets: currentExercise.targetSets
       }
-      setShowSetMenu(false);
-      setSelectedSetId(null);
-    } catch (error) {
-      console.error('Failed to remove set:', error);
-      showToast("Couldn't change the number of sets.", 'error');
+    );
+    // Closed either way: on failure the row count is simply unchanged, which the list shows.
+    setShowSetMenu(false);
+    setSelectedSetId(null);
+    if (!outcome.ok) {
+      console.error('Failed to remove set:', outcome.error);
+      showToast(
+        outcome.failed === 'delete' ? "Couldn't remove that set." : "Couldn't change the number of sets.",
+        'error'
+      );
     }
   };
 

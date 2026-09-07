@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useProgramLibrary, useCloneProgram, useUpdateProgram } from '@fit-nation/shared'
+import { useProgramLibrary, useCloneProgram, useUpdateProgram, useDeleteProgram, startLibraryProgram } from '@fit-nation/shared'
 import type { LibraryProgramResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -18,25 +18,37 @@ export function ProgramLibraryScreen({ navigation }: Props) {
   const { data: libraryPrograms = [], isLoading, isError, refetch } = useProgramLibrary()
   const cloneProgram = useCloneProgram()
   const updateProgram = useUpdateProgram()
+  const deleteProgram = useDeleteProgram()
   const [confirmProgram, setConfirmProgram] = useState<LibraryProgramResource | null>(null)
   const [isCloning, setIsCloning] = useState(false)
 
   async function handleStartProgram() {
     if (!confirmProgram) return
     setIsCloning(true)
-    try {
-      const result = await cloneProgram.mutateAsync(confirmProgram.id)
-      const clonedId = (result as any)?.data?.id
-      if (clonedId != null) {
-        await updateProgram.mutateAsync({ programId: clonedId, data: { is_active: true } })
-        setConfirmProgram(null)
-        navigation.goBack()
-      }
-    } catch (e: any) {
-      showToast(e?.message || 'Failed to start program', 'error')
-    } finally {
-      setIsCloning(false)
+    // Clone then activate as one named action (0026): a clone left inactive by a
+    // failed activate is removed again, and a clone with no id is not "done".
+    const outcome = await startLibraryProgram(
+      {
+        cloneProgram: async id => ((await cloneProgram.mutateAsync(id)) as any)?.data,
+        activateProgram: id => updateProgram.mutateAsync({ programId: id, data: { is_active: true } }),
+        deleteProgram: id => deleteProgram.mutateAsync(id),
+      },
+      { programId: confirmProgram.id }
+    )
+    setIsCloning(false)
+    if (outcome.ok) {
+      setConfirmProgram(null)
+      navigation.goBack()
+      return
     }
+    showToast(
+      outcome.failed === 'clone'
+        ? "Couldn't add that program."
+        : outcome.compensated
+          ? "Couldn't activate the program, so it was not added."
+          : 'The program was added but not activated — activate it from your programs.',
+      'error'
+    )
   }
 
   return (

@@ -8,7 +8,7 @@ import { Image } from 'expo-image'
 import { useMutation } from '@tanstack/react-query'
 // unitSystem here is form state, not the saved profile, so the pure label
 // helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
-import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS } from '@fit-nation/shared'
+import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS, submitOnboarding } from '@fit-nation/shared'
 import type { UpdateProfileInput, UnitSystem } from '@fit-nation/shared'
 import {
   Dumbbell, ArrowRight, ArrowLeft,
@@ -119,19 +119,27 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
     Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start()
   }, [step])
 
+  // The profile save and the finish are one named action (0026): a retry after
+  // a failed finish re-runs only the finish, not the profile PUT.
+  const profileSavedRef = useRef(false)
   const submitMutation = useMutation({
     mutationFn: async () => {
-      setPhase('saving-profile')
       setErrorMsg(null)
       const { currentStep: _, ...profileData } = state
-      await profileApi.updateProfile(profileData)
-      setPhase('generating-plan')
-      // First-time users complete onboarding (one-shot); returning users regenerate
-      if (user?.onboarding_completed_at) {
-        await plansApi.regeneratePlan()
-      } else {
-        await onboardingApi.completeOnboarding()
+      const outcome = await submitOnboarding(
+        {
+          saveProfile: profile => profileApi.updateProfile(profile),
+          // First-time users complete onboarding (one-shot); returning users regenerate
+          finish: () => (user?.onboarding_completed_at ? plansApi.regeneratePlan() : onboardingApi.completeOnboarding()),
+          onStep: step => setPhase(step === 'profile' ? 'saving-profile' : 'generating-plan'),
+        },
+        { profile: profileData, profileSaved: profileSavedRef.current }
+      )
+      if (!outcome.ok) {
+        profileSavedRef.current = outcome.failed === 'finish'
+        throw outcome.error instanceof Error ? outcome.error : new Error('Something went wrong. Please try again.')
       }
+      profileSavedRef.current = false
     },
     onSuccess: () => setPhase('plan-success'),
     onError: (err: Error) => {

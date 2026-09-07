@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useSlideTransition, useModalTransition } from '../../utils/animations';
 import { OnboardingFormData } from '@fit-nation/shared';
-import { useUpdateProfile, useCompleteOnboarding } from '@fit-nation/shared';
+import { useUpdateProfile, useCompleteOnboarding, submitOnboarding } from '@fit-nation/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { useBranding } from '../../hooks/useBranding';
 import { PlanGeneratingOverlay } from '../ui';
@@ -43,62 +43,66 @@ export function CompleteStep({ formData }: CompleteStepProps) {
     advanced: 'Advanced',
   };
 
-  // Phase 1: Save profile
-  const saveProfile = async () => {
-    setPhase('saving-profile');
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  // One named action for the two writes (0026). The finish is awaited — it
+  // used to be fired and forgotten, so its failure could never be caught here;
+  // a retry after a failed finish does not re-PUT the profile; and a failure
+  // shows at once instead of after the ten-second spinner minimum.
+  const run = async (skipProfile: boolean) => {
     setError(null);
-
-    try {
-      await updateProfile.mutateAsync({
-        name: formData.name,
-        fitness_goal: formData.fitness_goal,
-        age: formData.age ?? undefined,
-        gender: formData.gender,
-        // unit_system must travel with height/weight: the API converts those
-        // values from the unit system named in this same request.
-        unit_system: formData.unit_system,
-        height: formData.height ?? undefined,
-        weight: formData.weight ?? undefined,
-        training_experience: formData.training_experience,
-        training_days_per_week: formData.training_days_per_week,
-        workout_duration_minutes: formData.workout_duration_minutes,
-      });
-
-      // Move to phase 2: Generate plan
-      setPhase('generating-plan');
-      generatePlan();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save your profile. Please try again.');
-      setPhase('error');
-    }
-  };
-
-  // Phase 2: Generate personalized plan
-  const generatePlan = async () => {
-    // Always wait at least PLAN_GENERATION_MIN_DELAY_MS so the spinner feels substantial
     const delayPromise = sleep(PLAN_GENERATION_MIN_DELAY_MS);
-
-    try {
-      await completeOnboarding.mutateAsync(undefined);
-      // Wait for the minimum delay before showing the result
-      await delayPromise;
-      // DON'T refetchUser here — that would update onboarding_completed_at
-      // and AuthGuard would immediately redirect away from /onboarding
-      // Show success modal - user must click to continue
-      setPhase('plan-success');
-    } catch (err: any) {
-      // Always wait for the minimum delay, even on errors
-      await delayPromise;
-      // Handle 409 Conflict (already completed) as success
-      const errorMessage = err?.message || '';
-      if (errorMessage.includes('already been completed') || errorMessage.includes('status: 409')) {
-        setPhase('plan-success');
-        return;
+    const outcome = await submitOnboarding(
+      {
+        saveProfile: profile => updateProfile.mutateAsync(profile),
+        finish: async () => {
+          try {
+            await completeOnboarding.mutateAsync(undefined);
+          } catch (err: any) {
+            // 409 Conflict (already completed) is success.
+            const message = err?.message || '';
+            if (message.includes('already been completed') || message.includes('status: 409')) return;
+            throw err;
+          }
+        },
+        onStep: step => setPhase(step === 'profile' ? 'saving-profile' : 'generating-plan'),
+      },
+      {
+        profile: {
+          name: formData.name,
+          fitness_goal: formData.fitness_goal,
+          age: formData.age ?? undefined,
+          gender: formData.gender,
+          // unit_system must travel with height/weight: the API converts those
+          // values from the unit system named in this same request.
+          unit_system: formData.unit_system,
+          height: formData.height ?? undefined,
+          weight: formData.weight ?? undefined,
+          training_experience: formData.training_experience,
+          training_days_per_week: formData.training_days_per_week,
+          workout_duration_minutes: formData.workout_duration_minutes,
+        },
+        profileSaved: skipProfile,
       }
-      // Other errors
-      setError(errorMessage || 'Failed to generate your personalized plan. Please try again.');
+    );
+    if (!outcome.ok) {
+      setProfileSaved(outcome.failed === 'finish');
+      const message = (outcome.error as { message?: string } | undefined)?.message;
+      setError(
+        message ||
+          (outcome.failed === 'profile'
+            ? 'Failed to save your profile. Please try again.'
+            : 'Failed to generate your personalized plan. Please try again.')
+      );
       setPhase('error');
+      return;
     }
+    // Wait for the minimum delay before showing the result, so the spinner feels substantial
+    await delayPromise;
+    // DON'T refetchUser here — that would update onboarding_completed_at
+    // and AuthGuard would immediately redirect away from /onboarding
+    // Show success modal - user must click to continue
+    setPhase('plan-success');
   };
 
   // Handle success modal dismissal — refetch user so AuthGuard redirects to dashboard
@@ -109,14 +113,11 @@ export function CompleteStep({ formData }: CompleteStepProps) {
 
   // Auto-start on mount
   useEffect(() => {
-    saveProfile();
+    run(false);
   }, []);
 
   const handleRetry = () => {
-    if (phase === 'error') {
-      // Retry from the beginning
-      saveProfile();
-    }
+    if (phase === 'error') run(profileSaved);
   };
 
   const { backdrop, panel } = useModalTransition();

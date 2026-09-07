@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
@@ -15,6 +16,8 @@ import {
   buildSlots,
   exerciseTargets,
   isExerciseComplete,
+  queryKeys,
+  removeSet,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -63,6 +66,7 @@ export function ExercisePage({
   // Computed once here and passed down; the set cards/rows stay presentational.
   const weightUnit = useWeightUnit()
   const logSet = useLogSet()
+  const queryClient = useQueryClient()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
   const updateSessionExercise = useUpdateSessionExercise()
@@ -254,27 +258,37 @@ export function ExercisePage({
       showToast('Remove the exercise instead of the last set.', 'error')
       return
     }
-    try {
-      if (activeSlot.kind === 'completed') {
-        const logId = persistedSetLogId(activeSlot.setLogId)
-        if (logId == null) return
-        await deleteSet.mutateAsync({ sessionId, setLogId: logId })
-      }
-      await updateSessionExercise.mutateAsync({
-        sessionId,
-        exerciseId: session_exercise.id,
-        data: { target_sets: targetSets - 1 },
-      })
-    } catch (err) {
-      console.error('Remove set failed:', err)
-      showToast("Couldn't change the number of sets.", 'error')
-    } finally {
-      // Closed either way: the menu is a native Modal, and a toast raised
-      // underneath one is invisible. On failure the row count is simply
-      // unchanged, which the reopened list shows plainly enough.
+    // The menu already refuses a provisional row; this is the guard for anything else.
+    if (activeSlot.kind === 'completed' && persistedSetLogId(activeSlot.setLogId) == null) {
       setSetMenuSetNumber(null)
+      return
     }
-  }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
+    // One owner for the two writes and their compensation (0026 / 0006).
+    const outcome = await removeSet(
+      {
+        deleteSet: vars => deleteSet.mutateAsync(vars),
+        updateSessionExercise: vars => updateSessionExercise.mutateAsync(vars),
+        resyncSession: id => queryClient.invalidateQueries({ queryKey: queryKeys.sessions.detail(id) }),
+      },
+      {
+        sessionId,
+        sessionExerciseId: session_exercise.id,
+        setLogId: activeSlot.kind === 'completed' ? persistedSetLogId(activeSlot.setLogId) : null,
+        targetSets,
+      }
+    )
+    // Closed either way: the menu is a native Modal, and a toast raised
+    // underneath one is invisible. On failure the row count is simply
+    // unchanged, which the reopened list shows plainly enough.
+    setSetMenuSetNumber(null)
+    if (!outcome.ok) {
+      console.error('Remove set failed:', outcome.error)
+      showToast(
+        outcome.failed === 'delete' ? "Couldn't remove that set." : "Couldn't change the number of sets.",
+        'error'
+      )
+    }
+  }, [activeSlot, deleteSet, updateSessionExercise, queryClient, sessionId, session_exercise.id, targetSets])
 
   const content = (
     <ScrollView

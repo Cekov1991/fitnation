@@ -41,6 +41,8 @@ import {
   type UnitSystem,
   sanitizeDecimalText,
   parseDecimalText,
+  setPushEnabled,
+  deleteAccountAndSignOut,
 } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -247,23 +249,31 @@ export function ProfileScreen() {
     }
   }
 
-  // Optimistic flip; a failure reverts and toasts globally via MutationCache.
+  // Permission grant then setting save, as one named action (0026). The flip is
+  // optimistic while the save runs and reverts if it fails; the failed save
+  // itself toasts globally via MutationCache. A refused permission leaves
+  // push_enabled untouched — the denied line shows.
   const handlePushToggle = async (next: boolean) => {
     if (updateNotificationSettings.isPending) return
-    if (next && pushPermission.status === 'undetermined') {
-      // The user dismissed the onboarding sheet; the OS has never been asked.
-      const granted = await grantPushPermission()
-      await pushPermission.refresh()
-      if (!granted) return // leave push_enabled untouched; the denied line shows
-    }
-    setOptimisticPush(next)
-    try {
-      await updateNotificationSettings.mutateAsync({ push_enabled: next })
-    } catch {
-      // reverted below
-    } finally {
-      setOptimisticPush(null)
-    }
+    await setPushEnabled(
+      {
+        requestPermission: async () => {
+          // The user dismissed the onboarding sheet; the OS has never been asked.
+          const granted = await grantPushPermission()
+          await pushPermission.refresh()
+          return granted
+        },
+        updateSetting: async enabled => {
+          setOptimisticPush(enabled)
+          try {
+            await updateNotificationSettings.mutateAsync({ push_enabled: enabled })
+          } finally {
+            setOptimisticPush(null)
+          }
+        },
+      },
+      { enabled: next, permissionUndetermined: pushPermission.status === 'undetermined' }
+    )
   }
 
   // Grant from the "Allow" line (push_enabled already on, OS never asked).
@@ -865,8 +875,15 @@ export function ProfileScreen() {
         requiresPassword={user?.has_password ?? true}
         onClose={() => setDeleteVisible(false)}
         onConfirm={async (password) => {
-          await deleteAccount.mutateAsync(password)
-          await logout()
+          // Delete then sign out as one named action (0026): a sign-out that
+          // throws after the delete is retried, and never shown as an error
+          // for an account that no longer exists.
+          const outcome = await deleteAccountAndSignOut(
+            { deleteAccount: pw => deleteAccount.mutateAsync(pw), signOut: () => logout() },
+            { password }
+          )
+          if (!outcome.ok && outcome.failed === 'delete') throw outcome.error
+          if (!outcome.ok) showToast('Your account was deleted. Restart the app to finish signing out.', 'error')
         }}
       />
     </SafeAreaView>

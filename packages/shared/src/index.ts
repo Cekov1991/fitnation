@@ -32,6 +32,9 @@ export * from './utils/workoutHelpers'
 export * from './utils/repRange'
 export * from './utils/calendarWeek'
 
+// Named orchestrations for the multi-write invariants (0026)
+export * from './orchestrations'
+
 // Workout Session read model — slots, completion, totals, the weight rule (0023)
 export * from './session/readModel'
 
