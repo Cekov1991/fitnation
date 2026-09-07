@@ -19,6 +19,18 @@ const perms = vi.hoisted(() => ({
 }))
 vi.mock('./notifications', () => perms)
 
+// The Android foreground service (modules/rest-timer). Null = iOS/web/old binary.
+const native = vi.hoisted(() => ({
+  RestTimer: null as null | { start: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> },
+}))
+vi.mock('../../modules/rest-timer', () => native)
+
+function withService() {
+  native.RestTimer = { start: vi.fn(), update: vi.fn(), stop: vi.fn() }
+  platform.OS = 'android'
+  return native.RestTimer
+}
+
 const NOW = 1_800_000_000_000
 
 // Module-level state (the scheduled id, "asked this launch") must start fresh
@@ -39,6 +51,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(NOW)
   platform.OS = 'ios'
+  native.RestTimer = null
   notifications.scheduleNotificationAsync.mockClear().mockResolvedValue('req-1')
   notifications.cancelScheduledNotificationAsync.mockClear()
   perms.getPermissionStatus.mockClear().mockResolvedValue('granted')
@@ -231,5 +244,113 @@ describe('cancelRestAlert', () => {
     await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
     await expect(cancelRestAlert()).resolves.toBeUndefined()
     expect(console.warn).toHaveBeenCalledWith('[rest-timer]', expect.any(Error))
+  })
+})
+
+describe('Android foreground service (R6–R8)', () => {
+  it('starts the service at rest start and keeps a later fallback alarm', async () => {
+    const service = withService()
+    const { startRestAlert, ANDROID_FALLBACK_GRACE_MS } = await load()
+    await startRestAlert({ seconds: 90, exerciseName: 'Bench Press' })
+
+    expect(service.start).toHaveBeenCalledWith(NOW + 90_000, 'Bench Press', 'req-1')
+    // The service posts the alert on the second and cancels the fallback; the
+    // fallback is deliberately a little later so the two never collide.
+    expect(scheduled().trigger.date).toBe(NOW + 90_000 + ANDROID_FALLBACK_GRACE_MS)
+    expect(ANDROID_FALLBACK_GRACE_MS).toBeGreaterThan(0)
+  })
+
+  it('passes an empty label when there is no current exercise', async () => {
+    const service = withService()
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: null })
+    expect(service.start).toHaveBeenCalledWith(NOW + 60_000, '', 'req-1')
+  })
+
+  it('moves the service and the fallback together on ±15 s', async () => {
+    notifications.scheduleNotificationAsync.mockResolvedValueOnce('req-1').mockResolvedValueOnce('req-2')
+    const service = withService()
+    const { startRestAlert, adjustRestAlert, ANDROID_FALLBACK_GRACE_MS } = await load()
+    await startRestAlert({ seconds: 90, exerciseName: 'Squat' })
+    vi.setSystemTime(NOW + 10_000)
+    await adjustRestAlert(95)
+
+    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 95_000, 'req-2')
+    expect(scheduled(1).trigger.date).toBe(NOW + 10_000 + 95_000 + ANDROID_FALLBACK_GRACE_MS)
+    expect(service.start).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops the service and cancels the fallback on skip / finish / leave', async () => {
+    const service = withService()
+    const { startRestAlert, cancelRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await cancelRestAlert()
+    expect(service.stop).toHaveBeenCalledTimes(1)
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
+  })
+
+  it('stops the service even when nothing was scheduled (permission refused mid-way)', async () => {
+    const service = withService()
+    const { cancelRestAlert } = await load()
+    await cancelRestAlert()
+    expect(service.stop).toHaveBeenCalledTimes(1)
+  })
+
+  it('never starts the service without notification permission', async () => {
+    perms.getPermissionStatus.mockResolvedValue('denied')
+    const service = withService()
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    expect(service.start).not.toHaveBeenCalled()
+  })
+
+  it('a throwing native call leaves the fallback armed and does not reject', async () => {
+    const service = withService()
+    service.start.mockImplementation(() => {
+      throw new Error('ForegroundServiceStartNotAllowed')
+    })
+    const { startRestAlert, cancelRestAlert } = await load()
+    await expect(startRestAlert({ seconds: 60, exerciseName: 'Squat' })).resolves.toBeUndefined()
+    expect(console.warn).toHaveBeenCalledWith('[rest-timer]', expect.any(Error))
+    expect(notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1)
+    await cancelRestAlert()
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
+  })
+
+  it('a skip during the permission prompt never starts the service', async () => {
+    perms.getPermissionStatus.mockResolvedValue('undetermined')
+    let release!: (granted: boolean) => void
+    perms.grantPushPermission.mockImplementation(() => new Promise<boolean>((r) => (release = r)))
+    const service = withService()
+    const { startRestAlert, cancelRestAlert } = await load()
+    const start = startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await vi.waitFor(() => expect(perms.grantPushPermission).toHaveBeenCalled())
+    await cancelRestAlert()
+    release(true)
+    await start
+    expect(service.start).not.toHaveBeenCalled()
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  })
+
+  it('on Android without the native module (old binary) behaves like iOS: exact fallback, no service', async () => {
+    platform.OS = 'android'
+    native.RestTimer = null
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    expect(scheduled().trigger.date).toBe(NOW + 60_000)
+  })
+
+  it('on iOS the native module is never touched', async () => {
+    const service = { start: vi.fn(), update: vi.fn(), stop: vi.fn() }
+    native.RestTimer = service
+    platform.OS = 'ios'
+    const { startRestAlert, adjustRestAlert, cancelRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await adjustRestAlert(30)
+    await cancelRestAlert()
+    expect(service.start).not.toHaveBeenCalled()
+    expect(service.update).not.toHaveBeenCalled()
+    expect(service.stop).not.toHaveBeenCalled()
+    expect(scheduled().trigger.date).toBe(NOW + 60_000)
   })
 })
