@@ -10,7 +10,6 @@ import type {
   AddTemplateExerciseInput,
   UpdateTemplateExerciseInput,
   SwapTemplateExerciseInput,
-  UpdateSetInput,
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
   SwapSessionExerciseInput,
@@ -22,7 +21,7 @@ import type {
   RegeneratePlanInput,
   CompleteSessionResponse,
 } from '../types/api';
-import { logSetMutationOptions } from './setLogMutations';
+import { logSetMutationOptions, updateSetMutationOptions } from './setLogMutations';
 
 // ============================================================================
 // AUTHENTICATION HELPER
@@ -817,93 +816,7 @@ export function useLogSet() {
 }
 export function useUpdateSet() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      setLogId,
-      data
-    }: {
-      sessionId: number;
-      setLogId: number;
-      data: UpdateSetInput;
-    }) => sessionsApi.updateSet(sessionId, setLogId, data),
-    onMutate: async (variables) => {
-      // Cancel ongoing queries to prevent race conditions
-      await queryClient.cancelQueries({
-        queryKey: ['sessions', variables.sessionId]
-      });
-
-      // Snapshot previous data for rollback
-      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
-
-      // Optimistically update cache
-      // Note: useSession returns response.data directly, so cache stores data without wrapper
-      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) => {
-        if (!old?.exercises) return old;
-
-        // Find and update the specific set log
-        const updatedExercises = old.exercises.map((exDetail: any) => {
-          if (exDetail.logged_sets?.length > 0) {
-            const updatedLoggedSets = exDetail.logged_sets.map((setLog: any) => {
-              if (setLog.id === variables.setLogId) {
-                // Update weight, reps, and updated_at
-                return {
-                  ...setLog,
-                  weight: variables.data.weight,
-                  reps: variables.data.reps,
-                  updated_at: new Date().toISOString()
-                };
-              }
-              return setLog;
-            });
-
-            return {
-              ...exDetail,
-              logged_sets: updatedLoggedSets
-            };
-          }
-          return exDetail;
-        });
-
-        return {
-          ...old,
-          exercises: updatedExercises
-        };
-      });
-
-      return { previousData };
-    },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousData) {
-        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
-      }
-      console.error('Failed to update set:', error);
-    },
-    onSuccess: (_, variables) => {
-      // Refetch to sync with server
-      queryClient.invalidateQueries({
-        queryKey: ['sessions', variables.sessionId]
-      });
-      // Get exercise_id from the cached session data
-      const sessionData = queryClient.getQueryData<{ data: any }>(['sessions', variables.sessionId]);
-      if (sessionData?.data) {
-        // Find the set log in the session to get its exercise_id
-        const allSetLogs = sessionData.data.exercises?.flatMap((ex: any) => ex.logged_sets || []) || [];
-        const setLog = allSetLogs.find((log: any) => log.id === variables.setLogId);
-        if (setLog?.exercise_id) {
-          queryClient.invalidateQueries({
-            queryKey: ['exercises', setLog.exercise_id, 'history']
-          });
-        }
-      } else {
-        // Fallback: invalidate all exercise histories if we can't find the specific one
-        queryClient.invalidateQueries({
-          queryKey: ['exercises']
-        });
-      }
-    }
-  });
+  return useMutation(updateSetMutationOptions(queryClient));
 }
 export function useDeleteSet() {
   const queryClient = useQueryClient();

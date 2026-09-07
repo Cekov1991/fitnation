@@ -3,7 +3,8 @@ import { QueryClient } from '@tanstack/react-query';
 import {
   isProvisionalSetLogId,
   nextProvisionalSetLogId,
-  logSetMutationOptions
+  logSetMutationOptions,
+  updateSetMutationOptions
 } from './setLogMutations';
 import type { SetLogResource } from '../types/api';
 
@@ -225,5 +226,72 @@ describe('logSetMutationOptions onError', () => {
     options.onError(new Error('offline'), variables, context);
 
     expect(queryClient.getQueryData(['sessions', 10])).toBeUndefined();
+  });
+});
+
+describe('updateSetMutationOptions', () => {
+  // Spec 0013: editing one set used to read the cached session through the
+  // wrong shape (`.data.exercises`), miss every time, and fall back to
+  // invalidating the entire exercise catalog.
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const variables = { sessionId: 10, setLogId: 1, data: { weight: 70, reps: 6 } };
+  const invalidatedKeys = (spy: ReturnType<typeof vi.spyOn>) =>
+    spy.mock.calls.map(([filters]: any[]) => filters?.queryKey);
+
+  it('patches the edited set in place and leaves the rest alone', async () => {
+    const queryClient = seeded();
+    await updateSetMutationOptions(queryClient).onMutate(variables);
+
+    const exercises = cachedExercises(queryClient);
+    expect(exercises[0].logged_sets[0]).toMatchObject({ id: 1, weight: 70, reps: 6 });
+    expect(exercises[1].logged_sets).toEqual([]);
+  });
+
+  it("names the edited set's exercise from the shape useSession caches", async () => {
+    const queryClient = seeded();
+    const context = await updateSetMutationOptions(queryClient).onMutate(variables);
+
+    expect(context.exerciseId).toBe(55);
+  });
+
+  it("invalidates that exercise's history, not the catalog", async () => {
+    const queryClient = seeded();
+    const options = updateSetMutationOptions(queryClient);
+    const context = await options.onMutate(variables);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    options.onSuccess(undefined, variables, context);
+
+    const keys = invalidatedKeys(invalidate);
+    expect(keys).toContainEqual(['exercises', 55, 'history']);
+    expect(keys).not.toContainEqual(['exercises']);
+  });
+
+  it('falls back to the catalog only when the set is not cached', async () => {
+    const queryClient = new QueryClient();
+    const options = updateSetMutationOptions(queryClient);
+    const context = await options.onMutate(variables);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    options.onSuccess(undefined, variables, context);
+
+    expect(invalidatedKeys(invalidate)).toContainEqual(['exercises']);
+  });
+
+  it('restores the snapshot on error', async () => {
+    const queryClient = seeded();
+    const options = updateSetMutationOptions(queryClient);
+    const before = queryClient.getQueryData(['sessions', 10]);
+    const context = await options.onMutate(variables);
+
+    options.onError(new Error('offline'), variables, context);
+
+    expect(queryClient.getQueryData(['sessions', 10])).toEqual(before);
   });
 });

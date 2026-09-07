@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { sessionsApi } from '../api';
-import type { LogSetInput, SetLogResource } from '../types/api';
+import type { LogSetInput, SetLogResource, UpdateSetInput } from '../types/api';
 
 export interface LogSetVariables {
   sessionId: number;
@@ -145,6 +145,105 @@ export function logSetMutationOptions(queryClient: QueryClient) {
       queryClient.invalidateQueries({
         queryKey: ['exercises', variables.data.exercise_id, 'history']
       });
+    }
+  };
+}
+
+export interface UpdateSetVariables {
+  sessionId: number;
+  setLogId: number;
+  data: UpdateSetInput;
+}
+
+export interface UpdateSetContext {
+  /** The cached session before the patch, restored wholesale by `onError`. */
+  previousData: unknown;
+  /**
+   * Which exercise the edited set belongs to, read before the patch so
+   * `onSuccess` can invalidate that one history rather than the catalog.
+   * `null` when the session or the row is not cached.
+   */
+  exerciseId: number | null;
+}
+
+/**
+ * The exercise a cached set log belongs to. `cached` is what `useSession`
+ * stores — `response.data`, with `exercises` at the top level.
+ */
+export function exerciseIdOfSetLog(cached: any, setLogId: number): number | null {
+  for (const exDetail of cached?.exercises ?? []) {
+    const setLog = exDetail.logged_sets?.find((log: any) => log.id === setLogId);
+    if (setLog) return setLog.exercise_id ?? null;
+  }
+  return null;
+}
+
+/** Write the edit into the one cached row that carries `setLogId`. */
+function patchSetLog(old: any, setLogId: number, data: UpdateSetInput): any {
+  if (!old?.exercises) return old;
+  return {
+    ...old,
+    exercises: old.exercises.map((exDetail: any) => {
+      if (!exDetail.logged_sets?.some((setLog: any) => setLog.id === setLogId)) return exDetail;
+      return {
+        ...exDetail,
+        logged_sets: exDetail.logged_sets.map((setLog: any) =>
+          setLog.id === setLogId
+            ? { ...setLog, weight: data.weight, reps: data.reps, updated_at: new Date().toISOString() }
+            : setLog
+        )
+      };
+    })
+  };
+}
+
+export function updateSetMutationOptions(queryClient: QueryClient) {
+  return {
+    mutationFn: ({ sessionId, setLogId, data }: UpdateSetVariables) =>
+      sessionsApi.updateSet(sessionId, setLogId, data),
+
+    onMutate: async (variables: UpdateSetVariables): Promise<UpdateSetContext> => {
+      // Cancel ongoing queries to prevent race conditions
+      await queryClient.cancelQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+
+      const previousData = queryClient.getQueryData(['sessions', variables.sessionId]);
+      // Captured now, like useDeleteSet does: the patch below rewrites the row,
+      // and re-reading the cache in onSuccess is what made the lookup miss before.
+      const exerciseId = exerciseIdOfSetLog(previousData, variables.setLogId);
+
+      queryClient.setQueryData(['sessions', variables.sessionId], (old: any) =>
+        patchSetLog(old, variables.setLogId, variables.data)
+      );
+
+      return { previousData, exerciseId };
+    },
+
+    onError: (error: Error, variables: UpdateSetVariables, context: UpdateSetContext | undefined) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['sessions', variables.sessionId], context.previousData);
+      }
+      console.error('Failed to update set:', error);
+    },
+
+    onSuccess: (_data: unknown, variables: UpdateSetVariables, context: UpdateSetContext | undefined) => {
+      // Refetch to sync with server
+      queryClient.invalidateQueries({
+        queryKey: ['sessions', variables.sessionId]
+      });
+      if (context?.exerciseId != null) {
+        queryClient.invalidateQueries({
+          queryKey: ['exercises', context.exerciseId, 'history']
+        });
+      } else {
+        // The edited set was not in the cached session, so no exercise can be
+        // named. Not reachable when the session screen is the caller.
+        queryClient.invalidateQueries({
+          queryKey: ['exercises']
+        });
+      }
     }
   };
 }
