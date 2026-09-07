@@ -107,9 +107,9 @@ describe('storage helpers', () => {
     expect(store.has(LEGACY_PUSH_PROMPT_DISMISSED_KEY)).toBe(false)
   })
 
-  it('a SecureStore failure reads as never shown rather than throwing', async () => {
+  it('a SecureStore failure rejects, so callers decide "don\'t show" rather than reading it as never shown', async () => {
     const SecureStore = await import('expo-secure-store')
     vi.mocked(SecureStore.getItemAsync).mockRejectedValueOnce(new Error('keychain'))
-    expect(await readPushPromptLastShownAt()).toBeNull()
+    await expect(readPushPromptLastShownAt()).rejects.toThrow('keychain')
   })
 })

@@ -17,6 +17,11 @@ export const LEGACY_PUSH_PROMPT_DISMISSED_KEY = 'pushPromptDismissed'
 
 export const PUSH_PROMPT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000
 
+// Shown wherever the app explains a `denied` state: the Profile toggle and the
+// sheet's 'settings' variant.
+export const NOTIFICATIONS_OFF_IN_SETTINGS_COPY =
+  "Notifications are off for Fit Nation in your phone's settings."
+
 // 'ask' → "Turn on" fires the OS prompt. 'settings' → the OS will never prompt
 // again, so the primary action opens the app's Settings page instead.
 export type PermissionSheetVariant = 'ask' | 'settings'
@@ -44,20 +49,17 @@ export function parseLastShownAt(raw: string | null): number | null {
   return Number.isFinite(n) && n > 1 ? n : null
 }
 
-// Best effort: any SecureStore failure reads as "never shown".
+// Rejects on a SecureStore failure — deliberately not "never shown", so callers
+// (launch check, onboarding) fall through to "don't show" rather than nag.
 export async function readPushPromptLastShownAt(): Promise<number | null> {
-  try {
-    const [raw, legacy] = await Promise.all([
-      SecureStore.getItemAsync(PUSH_PROMPT_LAST_SHOWN_KEY),
-      SecureStore.getItemAsync(LEGACY_PUSH_PROMPT_DISMISSED_KEY),
-    ])
-    // Migration from #55: the boolean carried no date, so it cannot feed the
-    // cadence — drop it and let the 7-day clock start from the next showing.
-    if (legacy !== null) SecureStore.deleteItemAsync(LEGACY_PUSH_PROMPT_DISMISSED_KEY).catch(() => {})
-    return parseLastShownAt(raw)
-  } catch {
-    return null
-  }
+  const [raw, legacy] = await Promise.all([
+    SecureStore.getItemAsync(PUSH_PROMPT_LAST_SHOWN_KEY),
+    SecureStore.getItemAsync(LEGACY_PUSH_PROMPT_DISMISSED_KEY),
+  ])
+  // Migration from #55: the boolean carried no date, so it cannot feed the
+  // cadence — drop it and let the 7-day clock start from the next showing.
+  if (legacy !== null) SecureStore.deleteItemAsync(LEGACY_PUSH_PROMPT_DISMISSED_KEY).catch(() => {})
+  return parseLastShownAt(raw)
 }
 
 export async function markPushPromptShown(now: number = Date.now()): Promise<void> {

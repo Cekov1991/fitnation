@@ -32,6 +32,8 @@ export const ANDROID_CHANNELS = {
 
 export type AndroidChannelId = keyof typeof ANDROID_CHANNELS
 
+export const REST_TIMER_CHANNEL_ID = 'rest-timer' satisfies AndroidChannelId
+
 // Local notifications tagged with this `data.kind` belong to the rest timer.
 export const REST_TIMER_KIND = 'rest-timer'
 
@@ -43,9 +45,15 @@ function toStatus(perm: Notifications.NotificationPermissionsStatus): Permission
   return 'denied'
 }
 
+// Throws when the OS read fails, for callers that must tell "denied" apart
+// from "unknown" (the launch check must not show Open Settings on an error).
+export async function readPermissionStatus(): Promise<PermissionStatus> {
+  return toStatus(await Notifications.getPermissionsAsync())
+}
+
 export async function getPermissionStatus(): Promise<PermissionStatus> {
   try {
-    return toStatus(await Notifications.getPermissionsAsync())
+    return await readPermissionStatus()
   } catch (e) {
     console.warn('[push]', e)
     return 'denied'

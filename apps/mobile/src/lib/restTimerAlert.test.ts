@@ -15,6 +15,7 @@ const perms = vi.hoisted(() => ({
   grantPushPermission: vi.fn(async () => true),
   ensureAndroidChannels: vi.fn(async () => {}),
   REST_TIMER_KIND: 'rest-timer',
+  REST_TIMER_CHANNEL_ID: 'rest-timer',
 }))
 vi.mock('./notifications', () => perms)
 
@@ -123,6 +124,58 @@ describe('permission gating (R3)', () => {
     await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
     expect(perms.grantPushPermission).not.toHaveBeenCalled()
     expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  })
+})
+
+describe('a start that is still waiting on the permission check', () => {
+  // A mock whose call is observable (`called`) and whose result the test
+  // releases by hand, standing in for the OS prompt / OS scheduler.
+  function deferred<T>(mock: { mockImplementation: (fn: () => Promise<T>) => unknown }) {
+    let release!: (value: T) => void
+    const called = new Promise<void>((markCalled) => {
+      mock.mockImplementation(() => {
+        markCalled()
+        return new Promise<T>((r) => (release = r))
+      })
+    })
+    return { called, release: (value: T) => release(value) }
+  }
+
+  it('does not schedule if the rest was skipped while the OS prompt was up', async () => {
+    perms.getPermissionStatus.mockResolvedValue('undetermined')
+    const prompt = deferred<boolean>(perms.grantPushPermission)
+    const { startRestAlert, cancelRestAlert } = await load()
+    const start = startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await prompt.called
+    await cancelRestAlert()
+    prompt.release(true)
+    await start
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  })
+
+  it('schedules the adjusted end when ±15 s arrived meanwhile', async () => {
+    perms.getPermissionStatus.mockResolvedValue('undetermined')
+    const prompt = deferred<boolean>(perms.grantPushPermission)
+    const { startRestAlert, adjustRestAlert } = await load()
+    const start = startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await prompt.called
+    vi.setSystemTime(NOW + 5_000)
+    await adjustRestAlert(70)
+    prompt.release(true)
+    await start
+    expect(notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1)
+    expect(scheduled().trigger.date).toBe(NOW + 5_000 + 70_000)
+  })
+
+  it('a cancel that lands while the OS call itself is in flight cancels the fresh request', async () => {
+    const scheduler = deferred<string>(notifications.scheduleNotificationAsync)
+    const { startRestAlert, cancelRestAlert } = await load()
+    const start = startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await scheduler.called
+    await cancelRestAlert()
+    scheduler.release('late-1')
+    await start
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('late-1')
   })
 })
 

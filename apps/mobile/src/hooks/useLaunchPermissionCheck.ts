@@ -1,11 +1,12 @@
 // R10–R11: once per cold start, after auth resolves and only when the app
 // opened straight onto Tabs, check OS notification permission and decide
 // whether the explainer sheet is due (at most once every 7 days). Best
-// effort: any permission or SecureStore error means "don't show".
+// effort: any permission or SecureStore error means "don't show" — both reads
+// reject rather than guess, so the catch below is the whole policy.
 //
 // Mounted once, in AppNavigator, which renders the sheet above the stack.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getPermissionStatus } from '../lib/notifications'
+import { readPermissionStatus } from '../lib/notifications'
 import {
   permissionSheetVariant,
   readPushPromptLastShownAt,
@@ -37,7 +38,7 @@ export function useLaunchPermissionCheck({ initialRoute, ready }: Options) {
     ;(async () => {
       try {
         const [status, lastShownAt] = await Promise.all([
-          getPermissionStatus(),
+          readPermissionStatus(),
           readPushPromptLastShownAt(),
         ])
         if (cancelled) return

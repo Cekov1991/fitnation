@@ -50,6 +50,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
 import { showToast } from '../../lib/toast'
 import { grantPushPermission } from '../../lib/notifications'
+import { NOTIFICATIONS_OFF_IN_SETTINGS_COPY } from '../../lib/pushPrompt'
 import { usePushPermissionStatus } from '../../hooks/usePushPermissionStatus'
 
 const DURATION_OPTIONS = [
@@ -795,7 +796,7 @@ export function ProfileScreen() {
                   switch snaps back and this is the only feedback. */}
               {pushPermission.status === 'denied' && (
                 <PermissionHint
-                  text="Notifications are off for Fit Nation in your phone's settings."
+                  text={NOTIFICATIONS_OFF_IN_SETTINGS_COPY}
                   action="Open Settings"
                   onPress={() => Linking.openSettings()}
                 />

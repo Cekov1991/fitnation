@@ -9,7 +9,11 @@ import {
 import { Bell } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { grantPushPermission } from '../../lib/notifications'
-import { markPushPromptShown, type PermissionSheetVariant } from '../../lib/pushPrompt'
+import {
+  NOTIFICATIONS_OFF_IN_SETTINGS_COPY,
+  markPushPromptShown,
+  type PermissionSheetVariant,
+} from '../../lib/pushPrompt'
 
 interface NotificationPermissionSheetProps {
   visible: boolean
@@ -21,8 +25,7 @@ interface NotificationPermissionSheetProps {
 }
 
 const BODY = "We'll only nudge you when you've gone quiet — no spam, no marketing."
-// Same line Profile shows next to its toggle when permission is denied.
-const DENIED_BODY = `${BODY} Notifications are off for Fit Nation in your phone's settings.`
+const DENIED_BODY = `${BODY} ${NOTIFICATIONS_OFF_IN_SETTINGS_COPY}`
 
 export function NotificationPermissionSheet({
   visible,

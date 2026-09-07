@@ -13,12 +13,23 @@
 //
 // Everything is best effort: a failure here must never break the in-app timer.
 import * as Notifications from 'expo-notifications'
-import { ensureAndroidChannels, getPermissionStatus, grantPushPermission, REST_TIMER_KIND } from './notifications'
+import {
+  ensureAndroidChannels,
+  getPermissionStatus,
+  grantPushPermission,
+  REST_TIMER_CHANNEL_ID,
+  REST_TIMER_KIND,
+} from './notifications'
 
 // Only ever one rest at a time — `restRunId` in the session screen guarantees
 // a start supersedes the previous one.
 let scheduledId: string | null = null
+let endAt = 0
 let exerciseLabel: string | null = null
+// Bumped by every start and cancel. A start awaits the permission check (and
+// possibly the OS prompt) before it can schedule; a skip or a newer start in
+// that window must win, so each async step re-checks it still owns the rest.
+let generation = 0
 // R3: if permission is undetermined when a rest first starts, ask then — once.
 // On Android a refusal keeps `canAskAgain`, so without this the OS prompt
 // would come back on every rest.
@@ -44,8 +55,12 @@ async function cancelScheduled(): Promise<void> {
   if (id !== null) await Notifications.cancelScheduledNotificationAsync(id)
 }
 
-async function scheduleAt(endAt: number): Promise<void> {
-  scheduledId = await Notifications.scheduleNotificationAsync({
+// Schedules for the current `endAt`, unless the rest was cancelled or
+// superseded (generation moved on) while the OS call was in flight — then the
+// fresh request is cancelled straight away so nothing is left orphaned.
+async function scheduleCurrent(gen: number): Promise<void> {
+  if (gen !== generation || endAt <= Date.now()) return
+  const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Rest over',
       body: `Back to ${exerciseLabel ?? 'your workout'}`,
@@ -55,41 +70,52 @@ async function scheduleAt(endAt: number): Promise<void> {
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: endAt,
-      channelId: 'rest-timer',
+      channelId: REST_TIMER_CHANNEL_ID,
     },
   })
+  if (gen !== generation) {
+    await Notifications.cancelScheduledNotificationAsync(id)
+    return
+  }
+  scheduledId = id
 }
 
 export async function startRestAlert(input: { seconds: number; exerciseName: string | null }): Promise<void> {
+  const gen = ++generation
   try {
-    await cancelScheduled()
     exerciseLabel = input.exerciseName
+    endAt = Date.now() + input.seconds * 1000
+    await cancelScheduled()
     if (!(await hasPermission())) return
     // Android drops a notification whose channel does not exist, and the
     // channels are otherwise only created once a Device registers.
     await ensureAndroidChannels()
-    await scheduleAt(Date.now() + input.seconds * 1000)
+    await scheduleCurrent(gen)
   } catch (e) {
     warn(e)
   }
 }
 
-// `seconds` is the new remaining time from now. Nothing scheduled (permission
-// refused, or no rest running) means nothing to move.
+// `seconds` is the new remaining time from now. Always records the new end,
+// so a start still waiting on the permission check schedules the adjusted
+// time; with nothing scheduled there is otherwise nothing to move.
 export async function adjustRestAlert(seconds: number): Promise<void> {
+  const gen = generation
   try {
+    endAt = Date.now() + seconds * 1000
     if (scheduledId === null) return
     await cancelScheduled()
-    // The in-app timer completes on its own next frame and cancels via
+    // At zero the in-app timer completes on its own next frame and cancels via
     // handleRestFinished; an alert "now" would only double up the haptic.
     if (seconds <= 0) return
-    await scheduleAt(Date.now() + seconds * 1000)
+    await scheduleCurrent(gen)
   } catch (e) {
     warn(e)
   }
 }
 
 export async function cancelRestAlert(): Promise<void> {
+  generation++
   try {
     exerciseLabel = null
     await cancelScheduled()

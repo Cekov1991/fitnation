@@ -159,8 +159,9 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
     }
   }
 
-  // M3: ask for push permission once, here, behind an explainer — but only if
-  // the OS has never been asked and the user never said "Not now".
+  // Ask for push permission here, behind an explainer — the contextual moment
+  // (0012 M3, cadence per 0013 R10–R12: not if granted, nor within 7 days of
+  // the sheet last showing). Onboarding always uses the 'ask' variant.
   async function handleGoToDashboard() {
     try { await refreshUser() } catch { /* proceed anyway */ }
     if (await shouldAskForPush()) {
