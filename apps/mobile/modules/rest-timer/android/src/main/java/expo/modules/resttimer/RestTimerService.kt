@@ -19,7 +19,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import expo.modules.notifications.service.NotificationsService
 
 /**
  * Foreground service for one rest (spec 0013 R6, R7).
@@ -37,7 +36,6 @@ class RestTimerService : Service() {
   private val handler = Handler(Looper.getMainLooper())
   private var endAt = 0L
   private var label = ""
-  private var fallbackId: String? = null
   private var wakeLock: PowerManager.WakeLock? = null
   private val onRestOver = Runnable { finishRest() }
 
@@ -54,9 +52,10 @@ class RestTimerService : Service() {
     }
     endAt = intent?.getLongExtra(EXTRA_END_AT, endAt) ?: endAt
     intent?.getStringExtra(EXTRA_LABEL)?.let { label = it }
-    if (intent?.hasExtra(EXTRA_FALLBACK_ID) == true) fallbackId = intent.getStringExtra(EXTRA_FALLBACK_ID)
 
     ensureChannel()
+    // The user is back and resting again: the previous "Rest over" has done its job.
+    NotificationManagerCompat.from(this).cancel(ALERT_ID)
     try {
       val notification = ongoingNotification()
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -65,16 +64,16 @@ class RestTimerService : Service() {
         startForeground(ONGOING_ID, notification)
       }
     } catch (e: Exception) {
-      // Missing permission or a background start the OS refused. The JS side
-      // still has the fallback alarm; nothing more to do here.
+      // Missing permission or a background start the OS refused. Nothing more
+      // to do here; the in-app timer still runs.
       Log.w(TAG, "startForeground failed", e)
       stopSelf()
       return START_NOT_STICKY
     }
 
     val remaining = (endAt - System.currentTimeMillis()).coerceAtLeast(0)
-    Log.i(TAG, "armed: endAt=$endAt remaining=${remaining}ms label='$label' fallback=$fallbackId startId=$startId")
-    holdWakeLock(remaining + FALLBACK_GRACE_MS)
+    Log.i(TAG, "armed: endAt=$endAt remaining=${remaining}ms label='$label' startId=$startId")
+    holdWakeLock(remaining)
     handler.removeCallbacks(onRestOver)
     handler.postDelayed(onRestOver, remaining)
     return START_NOT_STICKY
@@ -89,26 +88,11 @@ class RestTimerService : Service() {
   }
 
   private fun finishRest() {
-    // The fallback alarm is scheduled FALLBACK_GRACE_MS after us; cancel it so
-    // the user gets one alert, not two. If we never got here, it still fires.
-    fallbackId?.let {
-      try {
-        NotificationsService.removeScheduledNotification(this, it)
-      } catch (e: Exception) {
-        Log.w(TAG, "could not cancel fallback $it", e)
-      }
-    }
-    val late = System.currentTimeMillis() - endAt
     val visible = isAppVisible()
-    Log.i(TAG, "rest over: late=${late}ms appVisible=$visible fallback=$fallbackId")
-    when {
-      // We slept through it and the fallback has already alerted.
-      late > FALLBACK_GRACE_MS -> Log.w(TAG, "rest over ${late}ms late; fallback alerted")
-      // R9: with the session screen visible the ring hits zero and the haptic
-      // fires; an OS alert on top would be noise.
-      visible -> Unit
-      else -> postAlert()
-    }
+    Log.i(TAG, "rest over: late=${System.currentTimeMillis() - endAt}ms appVisible=$visible")
+    // R9: with the session screen visible the ring hits zero and the haptic
+    // fires; an OS alert on top would be noise.
+    if (!visible) postAlert()
     stopForeground(STOP_FOREGROUND_REMOVE)
     stopSelf()
   }
@@ -132,7 +116,7 @@ class RestTimerService : Service() {
       .build()
 
   private fun postAlert() {
-    // Copy per R2; mirrors the fallback built in lib/restTimerAlert.ts.
+    // Copy per R2; mirrors the local notification built in lib/restTimerAlert.ts.
     val alert = baseNotification()
       .setContentTitle("Rest over")
       .setContentText(if (label.isNotEmpty()) "Back to $label" else "Back to your workout")
@@ -223,23 +207,18 @@ class RestTimerService : Service() {
     private const val TAG = "rest-timer"
     // Contract with lib/notifications.ts ANDROID_CHANNELS (R5).
     const val CHANNEL_ID = "rest-timer"
-    // Contract with lib/restTimerAlert.ts ANDROID_FALLBACK_GRACE_MS: how far
-    // after `endAt` the JS-scheduled fallback alarm sits.
-    const val FALLBACK_GRACE_MS = 5_000L
     private const val ACTION_STOP = "expo.modules.resttimer.STOP"
     private const val ONGOING_ID = 0x5E57
     private const val ALERT_ID = 0x5E58
     private const val EXTRA_END_AT = "endAt"
     private const val EXTRA_LABEL = "label"
-    private const val EXTRA_FALLBACK_ID = "fallbackId"
     private const val EXPO_ICON_META = "expo.modules.notifications.default_notification_icon"
     private const val EXPO_COLOR_META = "expo.modules.notifications.default_notification_color"
 
-    fun armIntent(context: Context, endAtMillis: Long, label: String, fallbackId: String?): Intent =
+    fun armIntent(context: Context, endAtMillis: Long, label: String): Intent =
       Intent(context, RestTimerService::class.java).apply {
         putExtra(EXTRA_END_AT, endAtMillis)
         putExtra(EXTRA_LABEL, label)
-        putExtra(EXTRA_FALLBACK_ID, fallbackId)
       }
 
     fun stopIntent(context: Context): Intent =

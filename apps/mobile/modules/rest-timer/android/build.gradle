@@ -16,20 +16,4 @@ android {
 
 dependencies {
   implementation 'androidx.core:core-ktx:1.13.1'
-
-  // The service cancels the JS-scheduled fallback alarm through
-  // expo-notifications' NotificationsService. Expo (SDK 54+) consumes
-  // expo-notifications as a prebuilt artifact by default, so there is no
-  // `:expo-notifications` Gradle project unless it is built from source —
-  // depend on whichever form this build has.
-  def notificationsProject = rootProject.findProject(':expo-notifications')
-  if (notificationsProject != null) {
-    implementation notificationsProject
-  } else {
-    def notificationsVersion = providers.exec {
-      workingDir(rootDir)
-      commandLine('node', '--print', "require('expo-notifications/package.json').version")
-    }.standardOutput.asText.get().trim()
-    implementation "host.exp.exponent:expo.modules.notifications:${notificationsVersion}"
-  }
 }
