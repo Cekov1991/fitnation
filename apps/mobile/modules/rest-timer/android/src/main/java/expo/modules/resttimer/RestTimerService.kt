@@ -45,6 +45,7 @@ class RestTimerService : Service() {
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     if (intent?.action == ACTION_STOP) {
+      Log.i(TAG, "stop requested")
       // Routed through the service (not Context.stopService) so a stop that
       // lands right after a start still runs after that start's
       // startForeground — stopping first would crash the app on Android 8–13.
@@ -72,6 +73,7 @@ class RestTimerService : Service() {
     }
 
     val remaining = (endAt - System.currentTimeMillis()).coerceAtLeast(0)
+    Log.i(TAG, "armed: endAt=$endAt remaining=${remaining}ms label='$label' fallback=$fallbackId startId=$startId")
     holdWakeLock(remaining + FALLBACK_GRACE_MS)
     handler.removeCallbacks(onRestOver)
     handler.postDelayed(onRestOver, remaining)
@@ -79,6 +81,7 @@ class RestTimerService : Service() {
   }
 
   override fun onDestroy() {
+    Log.i(TAG, "destroyed")
     handler.removeCallbacks(onRestOver)
     releaseWakeLock()
     stopForeground(STOP_FOREGROUND_REMOVE)
@@ -96,12 +99,14 @@ class RestTimerService : Service() {
       }
     }
     val late = System.currentTimeMillis() - endAt
+    val visible = isAppVisible()
+    Log.i(TAG, "rest over: late=${late}ms appVisible=$visible fallback=$fallbackId")
     when {
       // We slept through it and the fallback has already alerted.
       late > FALLBACK_GRACE_MS -> Log.w(TAG, "rest over ${late}ms late; fallback alerted")
       // R9: with the session screen visible the ring hits zero and the haptic
       // fires; an OS alert on top would be noise.
-      isAppVisible() -> Unit
+      visible -> Unit
       else -> postAlert()
     }
     stopForeground(STOP_FOREGROUND_REMOVE)
@@ -138,6 +143,7 @@ class RestTimerService : Service() {
       .build()
     try {
       NotificationManagerCompat.from(this).notify(ALERT_ID, alert)
+      Log.i(TAG, "alert posted")
     } catch (e: SecurityException) {
       Log.w(TAG, "POST_NOTIFICATIONS not granted", e)
     }
