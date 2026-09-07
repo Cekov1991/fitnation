@@ -241,8 +241,10 @@ describe('updateSetMutationOptions', () => {
   });
 
   const variables = { sessionId: 10, setLogId: 1, data: { weight: 70, reps: 6 } };
-  const invalidatedKeys = (spy: ReturnType<typeof vi.spyOn>) =>
-    spy.mock.calls.map(([filters]: any[]) => filters?.queryKey);
+  // Loosely typed on purpose: the spy's generic signature is React Query's, and
+  // all the assertions need is the queryKey of each call.
+  const invalidatedKeys = (spy: { mock: { calls: unknown[][] } }) =>
+    spy.mock.calls.map(([filters]) => (filters as { queryKey?: unknown } | undefined)?.queryKey);
 
   it('patches the edited set in place and leaves the rest alone', async () => {
     const queryClient = seeded();
