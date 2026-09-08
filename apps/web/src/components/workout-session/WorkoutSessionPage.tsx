@@ -15,7 +15,6 @@ import { showToast } from '../../lib/toast';
 
 interface WorkoutSessionPageProps {
   sessionId: number;
-  workoutName: string;
   onBack: () => void;
   onFinish: () => void;
   onViewExerciseDetail: (
@@ -119,7 +118,6 @@ export function WorkoutSessionPage({
           onCancelEdit={state.handleCancelEdit}
           onViewExerciseDetail={onViewExerciseDetail}
           onOpenExerciseMenu={() => dialogs.setShowExerciseMenu(true)}
-          isAddSetLoading={false}
           isLogSetLoading={state.isLoggingSet}
           weightUnit={state.weightUnit}
         />

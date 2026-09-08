@@ -41,10 +41,11 @@ Create a Vercel project pointing at this repo with:
 | Build Command    | `pnpm build`                                          |
 | Output Directory | `dist/client`                                         |
 
-There is deliberately no `vercel.json` here. The one at `front-end/` is the SPA
-rewrite for `apps/web`; it does not apply (Vercel reads `vercel.json` from the
-Root Directory only) and must not be copied in — it would rewrite every URL to
-`/index.html` and return 200 for pages that should 404.
+There is deliberately no `vercel.json` here. The only one in the repo is
+`apps/web/vercel.json`, the SPA rewrite for `apps/web`; it does not apply here
+(Vercel reads `vercel.json` from the Root Directory only) and must not be copied
+in — it would rewrite every URL to `/index.html` and return 200 for pages that
+should 404.
 
 To check a build the way Vercel serves it:
 

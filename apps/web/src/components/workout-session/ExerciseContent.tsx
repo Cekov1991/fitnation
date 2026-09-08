@@ -32,7 +32,6 @@ interface ExerciseContentProps {
     options?: { initialActiveTab?: 'guidance' | 'performance' }
   ) => void;
   onOpenExerciseMenu: () => void;
-  isAddSetLoading: boolean;
   isLogSetLoading?: boolean;
   weightUnit: WeightUnit;
 }
@@ -56,7 +55,6 @@ export function ExerciseContent({
   onCancelEdit,
   onViewExerciseDetail,
   onOpenExerciseMenu,
-  isAddSetLoading,
   isLogSetLoading = false,
   weightUnit,
 }: ExerciseContentProps) {
@@ -168,7 +166,6 @@ export function ExerciseContent({
               goalWeight={currentExercise.suggestedWeight}
               totalRepsPrevious={currentExercise.totalRepsPrevious}
               totalRepsTarget={currentExercise.totalRepsTarget}
-              isAddSetLoading={isAddSetLoading}
               isLogSetLoading={isLogSetLoading}
               weightUnit={weightUnit}
             />

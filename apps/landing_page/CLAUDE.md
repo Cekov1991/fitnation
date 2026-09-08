@@ -212,10 +212,11 @@ Vercel project, git repo root is `front-end/`:
 | Build Command    | `pnpm build`        |
 | Output Directory | `dist/client`       |
 
-No `vercel.json` here, and it must stay that way — the SPA-rewrite `vercel.json`
-at `front-end/` is for `apps/web` and would rewrite every URL to `/index.html`,
-returning 200 for pages that should 404. It does not apply, because Vercel reads
-`vercel.json` from the Root Directory only. Do not copy it in.
+No `vercel.json` here, and it must stay that way — the SPA-rewrite
+`apps/web/vercel.json` is for `apps/web` and would rewrite every URL to
+`/index.html`, returning 200 for pages that should 404. It does not apply,
+because Vercel reads `vercel.json` from the Root Directory only. Do not copy it
+in.
 
 ## Restoring SSR, if it is ever needed
 
