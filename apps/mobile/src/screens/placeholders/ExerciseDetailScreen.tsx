@@ -26,6 +26,11 @@ import {
   useWeightUnit,
   allowsWeightLogging,
   withAlpha,
+  chartPoints,
+  currentValue,
+  bestValue,
+  progressPercentage as progressPercentageOf,
+  recentSessions as recentSessionsOf,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -228,50 +233,23 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     [exercise]
   )
 
-  const chartData = useMemo(() => {
-    if (!historyData?.performance_data) return []
-    return historyData.performance_data.map(point => ({
-      value: allowWeightLogging
-        ? (chartMode === 'weight' ? point.weight : point.volume)
-        : point.best_set_reps,
-      label: point.date.slice(5), // MM-DD
-    }))
-  }, [historyData, allowWeightLogging, chartMode])
-
-  const progressPercentage = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0
-    const data = historyData.performance_data
-    const getValue = (p: typeof data[0]) =>
-      allowWeightLogging
-        ? (chartMode === 'weight' ? p.weight : p.volume)
-        : p.best_set_reps
-    const first = getValue(data[0])
-    const last = getValue(data[data.length - 1])
-    if (first === 0) return 0
-    return ((last - first) / first) * 100
-  }, [historyData, allowWeightLogging, chartMode])
-
-  const recentSessions = useMemo(() => {
-    if (!historyData?.performance_data) return []
-    return [...historyData.performance_data].reverse().slice(0, 3)
-  }, [historyData])
-
+  // Derived once, in packages/shared (0031 #5); this screen only formats.
+  const view = useMemo(() => ({ allowWeightLogging, chartMode }), [allowWeightLogging, chartMode])
+  const chartData = useMemo(
+    () => chartPoints(historyData, view).map(p => ({ value: p.value, label: p.date.slice(5) })), // MM-DD
+    [historyData, view]
+  )
+  const progressPercentage = useMemo(() => progressPercentageOf(historyData, view), [historyData, view])
+  const recentSessions = useMemo(() => recentSessionsOf(historyData), [historyData])
+  const unit = allowWeightLogging ? weightUnit : 'reps'
   const currentStat = useMemo(() => {
-    if (!historyData?.performance_data?.length) return '—'
-    const latest = historyData.performance_data[historyData.performance_data.length - 1]
-    if (!allowWeightLogging) return `${historyData.stats.current_best_set_reps} reps`
-    return chartMode === 'weight'
-      ? `${historyData.stats.current_weight} ${weightUnit}`
-      : `${latest.volume} ${weightUnit}`
-  }, [historyData, allowWeightLogging, chartMode, weightUnit])
-
+    const value = currentValue(historyData, view)
+    return value == null ? '—' : `${value} ${unit}`
+  }, [historyData, view, unit])
   const bestStat = useMemo(() => {
-    if (!historyData?.performance_data?.length) return '—'
-    if (!allowWeightLogging) return `${historyData.stats.best_set_reps} reps`
-    return chartMode === 'weight'
-      ? `${historyData.stats.best_weight} ${weightUnit}`
-      : `${Math.max(...historyData.performance_data.map(p => p.volume))} ${weightUnit}`
-  }, [historyData, allowWeightLogging, chartMode, weightUnit])
+    const value = bestValue(historyData, view)
+    return value == null ? '—' : `${value} ${unit}`
+  }, [historyData, view, unit])
 
   const progressSign = progressPercentage >= 0 ? '+' : ''
   const progressStat = `${progressSign}${progressPercentage.toFixed(0)}%`

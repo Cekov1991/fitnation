@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { chartPoints, currentValue, bestValue, progressPercentage as progressPercentageOf, recentSessions as recentSessionsOf } from '@fit-nation/shared'
 import {
   AppState,
   AppStateStatus,
@@ -155,50 +156,24 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
     { enabled: activeTab === 'performance' && !!exercise?.id }
   )
 
-  const chartData = useMemo(() => {
-    if (!historyData?.performance_data) return []
-    return historyData.performance_data.map((p: any) => ({
-      value: allowWeightLogging
-        ? (chartMode === 'weight' ? p.weight : p.volume)
-        : p.best_set_reps,
-      label: formatDateForDisplay(p.date),
-    }))
-  }, [historyData, allowWeightLogging, chartMode])
-
-  const currentValue = useMemo(() => {
-    if (!historyData?.performance_data?.length) return '—'
-    if (!allowWeightLogging) return `${historyData.stats?.current_best_set_reps ?? 0} reps`
-    return chartMode === 'weight'
-      ? `${historyData.stats.current_weight} ${weightUnit}`
-      : `${historyData.performance_data[historyData.performance_data.length - 1].volume} ${weightUnit}`
-  }, [historyData, allowWeightLogging, chartMode, weightUnit])
-
-  const bestValue = useMemo(() => {
-    if (!historyData?.performance_data?.length) return '—'
-    if (!allowWeightLogging) return `${historyData.stats?.best_set_reps ?? 0} reps`
-    return chartMode === 'weight'
-      ? `${historyData.stats.best_weight} ${weightUnit}`
-      : `${Math.max(...historyData.performance_data.map((p: any) => p.volume))} ${weightUnit}`
-  }, [historyData, allowWeightLogging, chartMode, weightUnit])
-
-  const progressPercentage = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0
-    const data = historyData.performance_data
-    const getValue = (p: any) =>
-      allowWeightLogging
-        ? (chartMode === 'weight' ? p.weight : p.volume)
-        : p.best_set_reps
-    const first = getValue(data[0])
-    const last = getValue(data[data.length - 1])
-    if (first === 0) return 0
-    return ((last - first) / first) * 100
-  }, [historyData, allowWeightLogging, chartMode])
-
+  // Derived once, in packages/shared (0031 #5); this screen only formats.
+  const view = useMemo(() => ({ allowWeightLogging, chartMode }), [allowWeightLogging, chartMode])
+  const chartData = useMemo(
+    () => chartPoints(historyData, view).map(p => ({ value: p.value, label: formatDateForDisplay(p.date) })),
+    [historyData, view]
+  )
+  const unit = allowWeightLogging ? weightUnit : 'reps'
+  const currentStat = useMemo(() => {
+    const value = currentValue(historyData, view)
+    return value == null ? '—' : `${value} ${unit}`
+  }, [historyData, view, unit])
+  const bestStat = useMemo(() => {
+    const value = bestValue(historyData, view)
+    return value == null ? '—' : `${value} ${unit}`
+  }, [historyData, view, unit])
+  const progressPercentage = useMemo(() => progressPercentageOf(historyData, view), [historyData, view])
   // Recent sessions: last 3, most recent first
-  const recentSessions = useMemo(() => {
-    if (!historyData?.performance_data) return []
-    return [...historyData.performance_data].reverse().slice(0, 3)
-  }, [historyData])
+  const recentSessions = useMemo(() => recentSessionsOf(historyData), [historyData])
 
   const primaryMuscles = useMemo(
     () => exercise?.muscle_groups?.filter((m: any) => m.is_primary).map((m: any) => m.name) ?? [],
@@ -571,7 +546,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                         Current
                       </Text>
                       <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>
-                        {currentValue}
+                        {currentStat}
                       </Text>
                     </View>
                     <View
@@ -587,7 +562,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                         Best
                       </Text>
                       <Text style={{ fontSize: 18, fontWeight: '700', color: colors.success }}>
-                        {bestValue}
+                        {bestStat}
                       </Text>
                     </View>
                     <View

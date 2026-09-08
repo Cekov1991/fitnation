@@ -42,6 +42,9 @@ export * from './partner/visualIdentity'
 // Named orchestrations for the multi-write invariants (0026)
 export * from './orchestrations'
 
+// Exercise history, as the detail screens derive it (0031 #5)
+export * from './exercises/historyView'
+
 // Workout Session read model — slots, completion, totals, the weight rule (0023)
 export * from './session/readModel'
 export { getWeeklyGoalMessage } from './session/weeklyGoal'
