@@ -26,23 +26,6 @@ import { updateSessionExerciseMutationOptions, removeSessionExerciseMutationOpti
 import { queryKeys, type ExerciseHistoryParams } from '../queryKeys';
 
 // ============================================================================
-// AUTHENTICATION HELPER
-// ============================================================================
-
-function isAuthenticated(): boolean {
-  try {
-    const storage = getAuthStorage()
-    const result = storage.getItem(AUTH_TOKEN_KEY)
-    // Async storage (e.g. SecureStore on mobile): token presence is managed
-    // by navigation guards in AuthContext; assume authenticated if storage is set.
-    if (result instanceof Promise) return true
-    return !!result
-  } catch {
-    return false
-  }
-}
-
-// ============================================================================
 // PROFILE HOOKS
 // ============================================================================
 
@@ -53,7 +36,6 @@ export function useProfile() {
       const response = await profileApi.getProfile();
       return response.user;
     },
-    enabled: isAuthenticated()
   });
 }
 export function useUpdateProfile() {
@@ -144,7 +126,6 @@ export function useFitnessMetrics() {
       const response = await metricsApi.getFitnessMetrics();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -159,7 +140,6 @@ export function usePlans() {
       const response = await plansApi.getPlans();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 export function usePlan(planId: number) {
@@ -169,7 +149,7 @@ export function usePlan(planId: number) {
       const response = await plansApi.getPlan(planId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!planId
+    enabled: !!planId
   });
 }
 export function useCreatePlan() {
@@ -240,7 +220,6 @@ export function usePrograms() {
       const response = await programsApi.getActiveProgram();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -251,7 +230,7 @@ export function useProgram(programId: number) {
       const response = await programsApi.getProgram(programId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!programId
+    enabled: !!programId
   });
 }
 
@@ -262,7 +241,6 @@ export function useProgramLibrary() {
       const response = await programsApi.getProgramLibrary();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -318,7 +296,7 @@ export function useNextWorkout(programId: number) {
       const response = await programsApi.getNextWorkout(programId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!programId
+    enabled: !!programId
   });
 }
 
@@ -333,7 +311,6 @@ export function useBrowsableRoutines() {
       const response = await routinesApi.getRoutines();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -344,7 +321,7 @@ export function useBrowsableRoutine(routineId: number) {
       const response = await routinesApi.getRoutine(routineId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!routineId
+    enabled: !!routineId
   });
 }
 
@@ -359,7 +336,6 @@ export function useTemplates() {
       const response = await templatesApi.getTemplates();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 export function useTemplate(templateId: number) {
@@ -369,7 +345,7 @@ export function useTemplate(templateId: number) {
       const response = await templatesApi.getTemplate(templateId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!templateId
+    enabled: !!templateId
   });
 }
 export function useCreateTemplate() {
@@ -556,7 +532,6 @@ export function useExercises(search?: string) {
       const response = await exercisesApi.getExercises(search ? { search } : undefined);
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 export function useExercise(exerciseId: number) {
@@ -566,7 +541,7 @@ export function useExercise(exerciseId: number) {
       const response = await exercisesApi.getExercise(exerciseId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!exerciseId
+    enabled: !!exerciseId
   });
 }
 export function useExerciseHistory(
@@ -582,7 +557,7 @@ export function useExerciseHistory(
       const response = await exercisesApi.getExerciseHistory(exerciseId, params);
       return response.data;
     },
-    enabled: (options?.enabled ?? true) && isAuthenticated() && !!exerciseId
+    enabled: (options?.enabled ?? true) && !!exerciseId
   });
 }
 
@@ -597,7 +572,6 @@ export function useMuscleGroups(bodyRegion?: 'upper' | 'lower' | 'core') {
       const response = await muscleGroupsApi.getMuscleGroups(bodyRegion);
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -612,7 +586,6 @@ export function useCategories(type?: 'workout') {
       const response = await categoriesApi.getCategories(type);
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -627,7 +600,6 @@ export function useEquipmentTypes() {
       const response = await classificationsApi.getEquipmentTypes();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -638,7 +610,6 @@ export function useTargetRegions() {
       const response = await classificationsApi.getTargetRegions();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -649,7 +620,6 @@ export function useMovementPatterns() {
       const response = await classificationsApi.getMovementPatterns();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -660,7 +630,6 @@ export function useAngles() {
       const response = await classificationsApi.getAngles();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 
@@ -675,7 +644,6 @@ export function useWeeklyPlanner() {
       const response = await plannerApi.getWeeklyPlanner();
       return response.data;
     },
-    enabled: isAuthenticated()
   });
 }
 export function useAssignTemplate() {
@@ -724,7 +692,7 @@ export function useCalendar(startDate: string, endDate: string) {
       const response = await sessionsApi.getCalendar(startDate, endDate);
       return response.data;
     },
-    enabled: isAuthenticated() && !!startDate && !!endDate
+    enabled: !!startDate && !!endDate
   });
 }
 export function useTodayWorkout() {
@@ -734,7 +702,6 @@ export function useTodayWorkout() {
       const response = await sessionsApi.getTodayWorkout();
       return response.data;
     },
-    enabled: isAuthenticated(),
     refetchOnMount: true,
     staleTime: 0 // Always consider stale to ensure fresh data when navigating back
   });
@@ -757,7 +724,7 @@ export function useSession(sessionId: number) {
       const response = await sessionsApi.getSession(sessionId);
       return response.data;
     },
-    enabled: isAuthenticated() && !!sessionId
+    enabled: !!sessionId
   });
 }
 export function useCompleteSession() {
