@@ -6,7 +6,7 @@ export default defineConfig({
     // and the decimal-text helpers. None of it needs a DOM, so no environment
     // is configured — adding one is a decision for whoever first tests a
     // component or a hook.
-    include: ['packages/**/*.test.ts', 'apps/**/*.test.ts'],
+    include: ['packages/**/*.test.ts', 'apps/**/*.test.ts', 'scripts/**/*.test.ts'],
     environment: 'node',
   },
 });

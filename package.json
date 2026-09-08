@@ -12,7 +12,9 @@
     "legal:check": "pnpm --filter @fit-nation/legal check",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm --filter web exec tsc --noEmit && pnpm --filter mobile exec tsc --noEmit && pnpm --filter landing typecheck"
+    "typecheck": "pnpm -r --no-bail typecheck",
+    "typecheck:ci": "node scripts/typecheck-ratchet.mjs",
+    "typecheck:baseline": "node scripts/typecheck-ratchet.mjs --update"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -20,6 +22,7 @@
     ]
   },
   "devDependencies": {
+    "typescript": "5.9.3",
     "vitest": "^3.2.7"
   }
 }

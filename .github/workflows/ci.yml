@@ -1,0 +1,43 @@
+# Spec 0022. The guards this repo already had — vitest, the legal drift check,
+# tsc — ran only when someone remembered. Now they run on every PR and every
+# push to main.
+#
+# Typecheck is a ratchet, not a gate: main carries pre-existing type errors, so
+# each workspace is held to the count in typecheck-baseline.json and fails only
+# on a NEW error. Lower the baseline as errors are fixed (`pnpm typecheck:baseline`).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version comes from package.json#packageManager.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Legal documents match their markdown
+        run: pnpm legal:check
+
+      - name: Typecheck (no new errors)
+        run: pnpm typecheck:ci
