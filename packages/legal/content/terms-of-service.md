@@ -1,6 +1,11 @@
 ---
 title: Terms of Service
 lastUpdated: August 23, 2026
+path: /terms
+canonicalUrl: https://joinfitnation.com/terms
+description: The terms that govern your use of the Fit Nation platform, including health disclaimers and acceptable use.
+contactEmail: support@fitnation.mk
+copyrightHolder: Stefan Cekov
 ---
 
 Welcome to Fit Nation. By accessing or using our website and mobile application ("Platform"), you agree to be bound by these Terms of Service ("Terms"). Please read them carefully. If you do not agree to these Terms, do not use the Platform.

@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { siblingOf } from "@fit-nation/legal";
 import type { LegalBlock, LegalDocument, LegalSpan } from "@fit-nation/legal";
 
 import { SiteFooter } from "@/components/landing/final-cta";
@@ -69,6 +70,9 @@ function Blocks({ blocks }: { blocks: LegalBlock[] }) {
 }
 
 export function LegalPage({ doc }: { doc: LegalDocument }) {
+  // Contact, copyright and the sibling link come from the document (0021), so
+  // this page and the web app's cannot disagree about them.
+  const sibling = siblingOf(doc);
   return (
     <div className="min-h-[100dvh] bg-background font-sans text-muted-foreground">
       <header className="sticky top-0 z-30 border-b border-navy/[0.08] bg-background/80 backdrop-blur">
@@ -128,6 +132,23 @@ export function LegalPage({ doc }: { doc: LegalDocument }) {
               </section>
             ))}
           </div>
+
+          <footer className="mt-16 border-t border-navy/[0.08] pt-8 text-sm">
+            <p>
+              Questions? Contact us at{" "}
+              <a href={`mailto:${doc.contactEmail}`} className="text-primary underline underline-offset-4">
+                {doc.contactEmail}
+              </a>
+            </p>
+            <p className="mt-2">
+              © {new Date().getFullYear()} {doc.copyrightHolder}. All rights reserved.
+            </p>
+            <p className="mt-4">
+              <a href={sibling.path} className="text-primary underline underline-offset-4">
+                {sibling.title}
+              </a>
+            </p>
+          </footer>
         </main>
       </div>
 

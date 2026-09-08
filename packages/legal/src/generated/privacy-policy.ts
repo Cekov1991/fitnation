@@ -8,6 +8,11 @@ export const privacyPolicy: LegalDocument = {
   "slug": "privacy-policy",
   "title": "Privacy Policy",
   "lastUpdated": "August 23, 2026",
+  "path": "/privacy",
+  "canonicalUrl": "https://joinfitnation.com/privacy",
+  "description": "How Fit Nation collects, uses, stores and protects your personal and training data.",
+  "contactEmail": "support@fitnation.mk",
+  "copyrightHolder": "Stefan Cekov",
   "lead": [
     {
       "kind": "p",

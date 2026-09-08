@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { siblingOf } from '@fit-nation/legal';
 import type { LegalBlock, LegalDocument, LegalSpan } from '@fit-nation/legal';
 
 // Renders a legal document from the shared source in packages/legal.
@@ -63,14 +64,10 @@ function Blocks({ blocks }: { blocks: LegalBlock[] }) {
   );
 }
 
-export function LegalDocumentPage({
-  doc,
-  alsoSee,
-}: {
-  doc: LegalDocument;
-  /** The sibling legal document, linked from the footer. */
-  alsoSee: { to: string; label: string };
-}) {
+export function LegalDocumentPage({ doc }: { doc: LegalDocument }) {
+  // Contact, copyright and the sibling link come from the document (0021), so
+  // this page and the marketing site's cannot disagree about them.
+  const sibling = siblingOf(doc);
   return (
     <div
       className="min-h-screen"
@@ -173,14 +170,14 @@ export function LegalDocumentPage({
           >
             <p>
               Questions? Contact us at{' '}
-              <a href="mailto:support@fitnation.mk" style={{ color: 'var(--color-primary)' }}>
-                support@fitnation.mk
+              <a href={`mailto:${doc.contactEmail}`} style={{ color: 'var(--color-primary)' }}>
+                {doc.contactEmail}
               </a>
             </p>
-            <p className="mt-2">© {new Date().getFullYear()} Stefan Cekov. All rights reserved.</p>
+            <p className="mt-2">© {new Date().getFullYear()} {doc.copyrightHolder}. All rights reserved.</p>
             <div className="mt-4 flex gap-4">
-              <Link to={alsoSee.to} style={{ color: 'var(--color-primary)' }}>
-                {alsoSee.label}
+              <Link to={sibling.path} style={{ color: 'var(--color-primary)' }}>
+                {sibling.title}
               </Link>
               <Link to="/support" style={{ color: 'var(--color-primary)' }}>
                 Support
