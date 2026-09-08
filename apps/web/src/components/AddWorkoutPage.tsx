@@ -24,6 +24,7 @@ interface AddWorkoutPageProps {
     description: string;
     daysOfWeek: string[];
   }) => void;
+  /** Unused since the day picker went (0020, 1/3); kept because the route wrapper passes it. */
   onSwap?: (data: {
     currentWorkoutDay: string;
     targetDay: string;
@@ -38,15 +39,10 @@ export function AddWorkoutPage({
   initialData,
   onBack,
   onSubmit,
-  onSwap,
   isLoading = false
 }: AddWorkoutPageProps) {
   const { data: plans = [] } = usePlans();
   const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
-  const [swapConfirmation, setSwapConfirmation] = useState<{
-    targetDay: string;
-    existingWorkout: { name: string; id: number };
-  } | null>(null);
 
   const availablePlans = useMemo(() => {
     return plans.map((plan: { name: string }) => plan.name);
@@ -103,25 +99,6 @@ export function AddWorkoutPage({
       setValue('plan', planName || activePlanName || availablePlans[0] || '');
     }
   }, [activePlanName, availablePlans, planName, selectedPlan, setValue]);
-
-  const handleSwapConfirm = () => {
-    if (!swapConfirmation || !onSwap) return;
-    
-    const currentDay = selectedDays[0] || '';
-    onSwap({
-      currentWorkoutDay: currentDay,
-      targetDay: swapConfirmation.targetDay,
-      targetWorkoutId: swapConfirmation.existingWorkout.id
-    });
-    
-    // Update local state to show the new day
-    setValue('daysOfWeek', [swapConfirmation.targetDay]);
-    setSwapConfirmation(null);
-  };
-  
-  const handleSwapCancel = () => {
-    setSwapConfirmation(null);
-  };
 
   const handleFormSubmit = (data: WorkoutFormData) => {
     onSubmit?.({
@@ -324,61 +301,6 @@ export function AddWorkoutPage({
         </div>
       </div>
       
-      {/* Swap Confirmation Modal */}
-      {swapConfirmation && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-          onClick={handleSwapCancel}
-        >
-          <div 
-            className="w-full max-w-sm rounded-2xl p-6 shadow-2xl"
-            style={{ backgroundColor: 'var(--color-bg-modal)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 
-              className="text-lg font-bold mb-3"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Swap Workouts?
-            </h3>
-            <p 
-              className="text-sm mb-6"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <strong>{swapConfirmation.targetDay}</strong> is assigned to "{swapConfirmation.existingWorkout.name}".
-              {selectedDays[0] ? (
-                <> Swap with "{initialData?.name || 'this workout'}"?</>
-              ) : (
-                <> Move "{initialData?.name || 'this workout'}" to {swapConfirmation.targetDay} and unassign "{swapConfirmation.existingWorkout.name}"?</>
-              )}
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleSwapCancel}
-                className="flex-1 py-3 rounded-xl font-semibold border transition-colors"
-                style={{ 
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-secondary)'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSwapConfirm}
-                className="flex-1 py-3 rounded-xl font-semibold text-white transition-colors"
-                style={{ 
-                  background: 'linear-gradient(to right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))'
-                }}
-              >
-                Swap
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
