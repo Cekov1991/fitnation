@@ -14,7 +14,7 @@ import {
 } from '@fit-nation/shared';
 import type { UnitSystem } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { createProfileSchema, ProfileFormData } from '@fit-nation/shared';
+import { createProfileSchema, ProfileFormData, failureOf, firstFieldError } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 import { ProfilePageSkeleton } from './ProfilePageSkeleton';
 
@@ -138,12 +138,9 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     try {
       await deleteAccount.mutateAsync(requiresPassword ? deletePassword : undefined);
       onLogout();
-    } catch (err: any) {
-      const msg =
-        err?.errors?.password?.[0] ||
-        err?.message ||
-        'Something went wrong. Please try again.';
-      setDeleteError(msg);
+    } catch (err) {
+      const failure = failureOf(err);
+      setDeleteError(firstFieldError(failure, 'password') ?? failure.message);
     }
   };
 

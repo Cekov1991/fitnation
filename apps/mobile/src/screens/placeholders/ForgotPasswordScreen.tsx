@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Mail, AlertCircle, ArrowLeft } from 'lucide-react-native'
-import { forgotPasswordSchema, type ForgotPasswordFormData, authApi, withAlpha } from '@fit-nation/shared'
+import { forgotPasswordSchema, type ForgotPasswordFormData, authApi, withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
@@ -31,12 +31,12 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
     try {
       await authApi.forgotPassword(data.email)
       setSuccess(true)
-    } catch (e: unknown) {
-      const err = e as { status?: number; errors?: { email?: string | string[] }; message?: string }
-      // Only surface validation errors (422 with email errors); everything else shows generic success
-      if (err?.status === 422 && err?.errors?.email) {
-        const first = Array.isArray(err.errors.email) ? err.errors.email[0] : err.errors.email
-        setError(first || err.message || 'Invalid email')
+    } catch (e) {
+      // Only surface a validation failure on the email; everything else shows generic success
+      const failure = failureOf(e)
+      const emailError = firstFieldError(failure, 'email')
+      if (failure.kind === 'validation' && emailError) {
+        setError(emailError)
         return
       }
       // Avoid email enumeration — show success for all other errors

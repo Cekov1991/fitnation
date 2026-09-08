@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory } from 'react-router-dom';
 import { Mail, AlertCircle, ArrowLeft } from 'lucide-react';
-import { authApi } from '@fit-nation/shared';
+import { authApi, failureOf, firstFieldError } from '@fit-nation/shared';
 import { useBranding } from '../hooks/useBranding';
 import { forgotPasswordSchema, ForgotPasswordFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
@@ -32,11 +32,11 @@ export function ForgotPasswordPage() {
     try {
       await authApi.forgotPassword(data.email);
       setSuccess(true);
-    } catch (err: any) {
-      // 422 with validation errors (email required / invalid format): show them
-      if (err.status === 422 && err.errors?.email) {
-        const first = Array.isArray(err.errors.email) ? err.errors.email[0] : err.errors.email;
-        setError(first || err.message);
+    } catch (err) {
+      // A validation failure on the email (required / invalid format): show it
+      const failure = failureOf(err);
+      if (failure.kind === 'validation' && firstFieldError(failure, 'email')) {
+        setError(firstFieldError(failure, 'email') || failure.message);
         return;
       }
       // Any other response (including 422 "user not found"): show generic success to avoid enumeration

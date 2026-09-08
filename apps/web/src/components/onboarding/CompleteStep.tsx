@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useSlideTransition, useModalTransition } from '../../utils/animations';
-import { OnboardingFormData } from '@fit-nation/shared';
+import { OnboardingFormData, failureOf } from '@fit-nation/shared';
 import { useUpdateProfile, useCompleteOnboarding, submitOnboarding } from '@fit-nation/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { useBranding } from '../../hooks/useBranding';
@@ -58,10 +58,10 @@ export function CompleteStep({ formData }: CompleteStepProps) {
         finish: async () => {
           try {
             await completeOnboarding.mutateAsync(undefined);
-          } catch (err: any) {
-            // 409 Conflict (already completed) is success.
-            const message = err?.message || '';
-            if (message.includes('already been completed') || message.includes('status: 409')) return;
+          } catch (err) {
+            // 409 Conflict (already completed) is success — read off the status, not the prose.
+            const failure = failureOf(err);
+            if (failure.kind === 'http' && failure.status === 409) return;
             throw err;
           }
         },

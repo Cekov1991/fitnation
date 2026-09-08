@@ -19,7 +19,7 @@ import type {
   RegenerateWorkoutInput,
   RegeneratePlanInput,
   CompleteSessionResponse,
-  PartnerVisualIdentityResource,
+  PartnerBrandingResource,
 } from '../types/api';
 import { logSetMutationOptions, updateSetMutationOptions, deleteSetMutationOptions } from './setLogMutations';
 import { updateSessionExerciseMutationOptions, removeSessionExerciseMutationOptions } from './sessionExerciseMutations';
@@ -921,12 +921,6 @@ export function useRegenerateDraftSession() {
 // PARTNER BRANDING — public, keyed by the slug a host name resolves to
 // ============================================================================
 
-export interface PartnerBrandingResponse {
-  name: string;
-  slug: string;
-  visual_identity: PartnerVisualIdentityResource | null;
-}
-
 /**
  * The branding for the Partner a white-label host name names, for signed-out
  * screens. A public endpoint, so unlike every other query here it is gated on
@@ -936,13 +930,9 @@ export interface PartnerBrandingResponse {
 export function usePartnerBranding(slug: string | null) {
   return useQuery({
     queryKey: queryKeys.partners.branding(slug ?? ''),
-    queryFn: async (): Promise<PartnerBrandingResponse> => {
+    queryFn: async (): Promise<PartnerBrandingResource> => {
       const response = await partnersApi.getBrandingBySlug(slug as string);
-      return {
-        name: response.data.name,
-        slug: response.data.slug,
-        visual_identity: response.data.visual_identity ?? null,
-      };
+      return response.data;
     },
     enabled: !!slug,
     staleTime: Infinity,

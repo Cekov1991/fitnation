@@ -73,8 +73,8 @@ export default function EditWorkoutPageWrapper() {
 
       // Find the target workout to get its name (required by backend)
       const targetWorkout = plans
-        .flatMap((p: { workout_templates?: { id: number; name: string }[] }) => p.workout_templates || [])
-        .find((t: { id: number }) => t.id === data.targetWorkoutId);
+        .flatMap(p => p.workout_templates || [])
+        .find(t => t.id === data.targetWorkoutId);
 
       if (!targetWorkout) {
         console.error('Target workout not found');

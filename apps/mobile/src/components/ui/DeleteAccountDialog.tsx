@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { withAlpha } from '@fit-nation/shared'
+import { withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import {
   Modal,
   View,
@@ -50,12 +50,9 @@ export function DeleteAccountDialog({
     setIsLoading(true)
     try {
       await onConfirm(requiresPassword ? password : undefined)
-    } catch (err: any) {
-      const msg =
-        err?.errors?.password?.[0] ||
-        err?.message ||
-        'Something went wrong. Please try again.'
-      setError(msg)
+    } catch (err) {
+      const failure = failureOf(err)
+      setError(firstFieldError(failure, 'password') ?? failure.message)
       setIsLoading(false)
     }
   }

@@ -221,7 +221,7 @@ export function CustomPlansView({
     if (!currentWorkout?.templateId) return;
     try {
       const response = await startSession.mutateAsync(currentWorkout.templateId);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         onContinueSession(session.id);
       }
@@ -543,7 +543,7 @@ export function CustomPlansView({
           onDelete={handleDeleteWorkoutClick} 
           isStartLoading={startSession.isPending} 
           isDeleteLoading={deleteTemplate.isPending}
-          hasActiveSession={hasActiveSession}
+          hasActiveSession={hasActiveSession ?? undefined}
           isCurrentWorkoutActive={currentWorkout?.templateId ? !!getActiveSessionForTemplate(currentWorkout.templateId) : false}
         />
       )}

@@ -60,7 +60,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
   const duration = isIncomplete
     ? Math.floor(elapsedSeconds / 60)
     : sessionData
-      ? calculateDuration(sessionData.performed_at, sessionData.completed_at) || null
+      ? calculateDuration(sessionData.performed_at ?? '', sessionData.completed_at ?? '') || null
       : null;
 
   const formattedDuration = duration ? formatDuration(duration) : 'N/A';
@@ -156,7 +156,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
                     })()}
                   </h2>
                   <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                    {formatDateForDisplay(sessionData.performed_at)}
+                    {sessionData.performed_at ? formatDateForDisplay(sessionData.performed_at) : 'Unknown date'}
                   </p>
                 </div>
                 <div

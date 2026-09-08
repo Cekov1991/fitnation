@@ -57,7 +57,7 @@ export function DashboardPage() {
   const handleStartBlankSession = async () => {
     try {
       const response = await startSession.mutateAsync(undefined);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         history.push(`/session/${session.id}`);
       }
@@ -69,7 +69,7 @@ export function DashboardPage() {
   const handleSelectTemplate = async (templateId: number | null, _templateName: string) => {
     try {
       const response = await startSession.mutateAsync(templateId || undefined);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         history.push(`/session/${session.id}`);
       }

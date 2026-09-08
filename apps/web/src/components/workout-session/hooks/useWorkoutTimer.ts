@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function useWorkoutTimer(performedAt: string | undefined) {
+export function useWorkoutTimer(performedAt: string | null | undefined) {
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {

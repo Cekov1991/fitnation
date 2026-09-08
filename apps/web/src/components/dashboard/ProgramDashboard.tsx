@@ -164,7 +164,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
 
     try {
       const response = await startSession.mutateAsync(templateId);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         if (!session.performed_at) {
           history.push(`/generate-workout/preview/${session.id}`);

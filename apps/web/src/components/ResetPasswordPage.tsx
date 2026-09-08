@@ -3,7 +3,7 @@ import { useForm, type FieldErrors, type UseFormRegister, type UseFormHandleSubm
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { authApi } from '@fit-nation/shared';
+import { authApi, failureOf, firstFieldError } from '@fit-nation/shared';
 import { useBranding } from '../hooks/useBranding';
 import { resetPasswordSchema, ResetPasswordFormData } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
@@ -349,26 +349,16 @@ export function ResetPasswordPage() {
         password_confirmation: data.password_confirmation,
       });
       setSuccess(true);
-    } catch (err: any) {
-      const msg = err.message || 'Something went wrong.';
-      const isInvalidToken =
-        err.status === 422 &&
-        (msg.toLowerCase().includes('token') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('expired'));
-      if (isInvalidToken) {
+    } catch (err) {
+      const failure = failureOf(err);
+      const passwordError = firstFieldError(failure, 'password') ?? firstFieldError(failure, 'password_confirmation');
+      // A validation failure that is not about the password is about the link:
+      // the token or the email it was issued for. No message parsing needed.
+      if (failure.kind === 'validation' && !passwordError) {
         setError('This password reset link is invalid or has expired.');
         setIsInvalidOrExpiredLink(true);
       } else {
-        if (err.errors?.password) {
-          const first = Array.isArray(err.errors.password) ? err.errors.password[0] : err.errors.password;
-          setError(first);
-        } else if (err.errors?.password_confirmation) {
-          const first = Array.isArray(err.errors.password_confirmation)
-            ? err.errors.password_confirmation[0]
-            : err.errors.password_confirmation;
-          setError(first);
-        } else {
-          setError(msg);
-        }
+        setError(passwordError ?? failure.message);
       }
     }
   };

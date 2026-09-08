@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { failureOf } from '@fit-nation/shared';
 import { useHistory } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -63,8 +64,8 @@ export function EmailVerificationPage() {
     try {
       await resendVerification();
       setResendCooldown(RESEND_COOLDOWN_S);
-    } catch (e: any) {
-      if (e?.status === 422) {
+    } catch (e) {
+      if (failureOf(e).kind === 'validation') {
         // Already verified — refresh and let the useEffect redirect
         try { await refetchUser(); } catch { /* ignore */ }
       } else {

@@ -32,6 +32,9 @@ export * from './utils/workoutHelpers'
 export * from './utils/repRange'
 export * from './utils/calendarWeek'
 
+// The typed HTTP seam — one request function, one failure type (0025)
+export { request, ApiFailure, isApiFailure, failureOf, firstFieldError, type ApiFailureKind } from './http'
+
 // Partner visual identity — one resolution of tenant, colours and alpha (0029)
 export * from './partner/visualIdentity'
 
