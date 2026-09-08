@@ -13,23 +13,24 @@ convention and keep `# Spec:`.
 - `needs-decision` — the fix depends on a call nobody has made yet; the spec says
   what the options are
 - `blocked` — waiting on another spec, named in the file
+- `done` — landed on `main` (2026-09-08 unless noted)
 
 ## Open
 
 | # | Spec | Status | Scope |
 |---|---|---|---|
-| 0001 | Unit System remediation on the front-end | ready-for-agent | web, mobile, shared |
-| 0002 | Surface mutation failures in the workout session UI | ready-for-agent | mobile |
-| 0003 | Optimistic set logging | ready-for-agent | shared |
+| 0001 | Unit System remediation on the front-end | done | web, mobile, shared |
+| 0002 | Surface mutation failures in the workout session UI | done | mobile |
+| 0003 | Optimistic set logging | done | shared |
 | 0004 | Pause and resume a workout instead of destroying it | needs-decision | mobile, back-end |
-| 0005 | Set logs above `target_sets` are invisible | needs-decision | mobile |
+| 0005 | Set logs above `target_sets` are invisible | done (folded into 0023) | mobile |
 | 0006 | Set removal splits a client-owned invariant across two requests | ready-for-agent | mobile, shared |
 | 0007 | The default-target auto-patch never clears or retries | ready-for-agent | mobile |
 | 0008 | A blank set log silently substitutes defaults | ready-for-agent | mobile |
 | 0009 | Finish flow — warn on incomplete sets, and use the notes field | ready-for-agent | mobile |
 | 0010 | RPE and to-failure capture | needs-decision | back-end, shared, mobile |
 | 0011 | Web parity for the workout session simplification | blocked | web |
-| 0012 | Push notifications, phase one | ready-for-agent | mobile, shared |
+| 0012 | Push notifications, phase one | done | mobile, shared |
 
 ## From the monorepo depth review, 2026-09-03
 
@@ -38,25 +39,26 @@ a dependency order.
 
 | # | Type | Spec | Status | Scope |
 |---|---|---|---|---|
-| 0013 | Bug | Every set edit invalidates the whole exercise catalog | ready-for-agent | shared |
-| 0014 | Bug | The live session still runs the five-step exercise swap | ready-for-agent | web |
-| 0015 | Bug | The bodyweight rule has four owners and they disagree about TRX | needs-decision | mobile, web, shared |
-| 0016 | Bug | The `isAuthenticated` query gate is a no-op on mobile | needs-decision | shared, mobile, web |
-| 0017 | Bug | Partner branding survives logout | ready-for-agent | mobile |
-| 0018 | Bug | Two query keys are invalidated and never registered | ready-for-agent | shared |
-| 0019 | Bug | The Partner slug is stored under two different keys | ready-for-agent | web, shared |
-| 0020 | Architecture | Delete the dead tree | ready-for-agent | web, landing, root |
-| 0021 | Bug | The two legal renderers produce different documents | needs-decision | legal, web, landing, mobile |
-| 0022 | Architecture | No CI — the guards that exist are never run | ready-for-agent | root |
-| 0023 | Architecture | A Workout Session read model in `packages/shared` | needs-decision | shared, mobile, web |
-| 0024 | Architecture | One owner for optimistic Session cache patching | ready-for-agent | shared |
-| 0025 | Architecture | A typed HTTP seam | ready-for-agent | shared, web, mobile |
-| 0026 | Architecture | Named orchestrations for the multi-write invariants | ready-for-agent | shared, mobile, web |
-| 0027 | Architecture | Display formatting belongs to the Unit System module | ready-for-agent | shared, mobile, web |
-| 0028 | Architecture | A query key registry | ready-for-agent | shared, web |
-| 0029 | Architecture | The Partner visual identity seam | ready-for-agent | mobile, web, shared |
-| 0030 | Architecture | Split the web session hook's 52-member interface | blocked | web |
-| 0031 | Architecture | Findings from the depth review not yet specced | needs-decision | various |
+| 0013 | Bug | Every set edit invalidates the whole exercise catalog | done | shared |
+| 0014 | Bug | The live session still runs the five-step exercise swap | done | web |
+| 0015 | Bug | The bodyweight rule has four owners and they disagree about TRX | done (folded into 0023) | mobile, web, shared |
+| 0016 | Bug | The `isAuthenticated` query gate is a no-op on mobile | done | shared, mobile, web |
+| 0017 | Bug | Partner branding survives logout | done | mobile |
+| 0018 | Bug | Two query keys are invalidated and never registered | done | shared |
+| 0019 | Bug | The Partner slug is stored under two different keys | done | web, shared |
+| 0020 | Architecture | Delete the dead tree | done | web, landing, root |
+| 0021 | Bug | The two legal renderers produce different documents | done | legal, web, landing, mobile |
+| 0022 | Architecture | No CI — the guards that exist are never run | done | root |
+| 0023 | Architecture | A Workout Session read model in `packages/shared` | done | shared, mobile, web |
+| 0024 | Architecture | One owner for optimistic Session cache patching | done | shared |
+| 0025 | Architecture | A typed HTTP seam | done | shared, web, mobile |
+| 0026 | Architecture | Named orchestrations for the multi-write invariants | done | shared, mobile, web |
+| 0027 | Architecture | Display formatting belongs to the Unit System module | done | shared, mobile, web |
+| 0028 | Architecture | A query key registry | done | shared, web |
+| 0029 | Architecture | The Partner visual identity seam | done | mobile, web, shared |
+| 0030 | Architecture | Split the web session hook's 52-member interface | done | web |
+| 0031 | Architecture | Findings from the depth review not yet specced | done (#4, #6, #10 left open by decision) | various |
+| 0032 | Architecture | A toast mechanism for `apps/web` | done | web |
 
 ### Suggested order
 
