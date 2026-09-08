@@ -14,6 +14,12 @@
   /* Default branding colors (used when no partner branding is set) */
   --color-primary: #00B4C5;      /* Fit Nation teal */
   --color-secondary: #F97316;    /* Fit Nation orange */
+
+  /* Semantic colours — never a Partner's to override: "this set failed" reads
+     the same under every brand. */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
   
   /* Theme Colors - Dark (default) */
   --color-bg-base: #0a0a0a;

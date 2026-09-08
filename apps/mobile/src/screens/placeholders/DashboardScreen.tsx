@@ -32,6 +32,7 @@ import {
   useStartSession,
   useTodayWorkout,
   useUpdateProfile,
+  withAlpha,
 } from '@fit-nation/shared'
 import type {
   FitnessGoal,
@@ -835,7 +836,7 @@ export function DashboardScreen() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginBottom: 16,
-                        backgroundColor: `${colors.primary}1A`,
+                        backgroundColor: withAlpha(colors.primary, 0.102),
                       }}
                     >
                       <Dumbbell size={18} color={colors.primary} />

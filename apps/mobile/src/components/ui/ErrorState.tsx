@@ -34,7 +34,7 @@ export function ErrorState({ message = 'Something went wrong', onRetry }: ErrorS
             backgroundColor: colors.primary,
           }}
         >
-          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 15 }}>Try Again</Text>
+          <Text style={{ color: colors.textButton, fontWeight: '600', fontSize: 15 }}>Try Again</Text>
         </TouchableOpacity>
       )}
     </View>

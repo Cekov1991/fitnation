@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { planSchema, usePlan, useUpdatePlan, useDeletePlan } from '@fit-nation/shared'
+import { planSchema, usePlan, useUpdatePlan, useDeletePlan, withAlpha } from '@fit-nation/shared'
 import type { PlanFormData } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
@@ -158,7 +158,7 @@ export function EditPlanScreen({ route, navigation }: Props) {
             <TouchableOpacity
               onPress={() => setDeleteVisible(true)}
               className="flex-row items-center justify-center gap-2 mt-4 py-4 rounded-2xl"
-              style={{ backgroundColor: `${colors.error}15` }}
+              style={{ backgroundColor: withAlpha(colors.error, 0.082) }}
             >
               <Trash2 size={18} color={colors.error} />
               <Text className="font-semibold" style={{ color: colors.error }}>

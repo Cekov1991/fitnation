@@ -37,7 +37,7 @@ export default function CreateWorkoutPageWrapper() {
         day_of_week: dayOfWeek !== undefined && dayOfWeek !== -1 ? dayOfWeek : undefined
       });
 
-      const templateId = response?.data?.id || response?.id;
+      const templateId = response.data.id;
 
       if (templateId) {
         // Navigate to manage exercises for the new workout

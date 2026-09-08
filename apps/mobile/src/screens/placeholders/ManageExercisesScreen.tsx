@@ -15,6 +15,7 @@ import {
   useWeightUnit,
   formatRepRange,
   sanitizeDecimalText,
+  withAlpha,
 } from '@fit-nation/shared'
 import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -201,7 +202,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                   backgroundColor: colors.secondary,
                 }}
               >
-                <ArrowUpDown size={20} color="#fff" />
+                <ArrowUpDown size={20} color={colors.textButton} />
               </TouchableOpacity>
               {/* Edit */}
               <TouchableOpacity
@@ -218,7 +219,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                   backgroundColor: colors.primary,
                 }}
               >
-                <Edit2 size={20} color="#fff" />
+                <Edit2 size={20} color={colors.textButton} />
               </TouchableOpacity>
               {/* Delete */}
               <TouchableOpacity
@@ -234,7 +235,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                   backgroundColor: colors.error,
                 }}
               >
-                <Trash2 size={20} color="#fff" />
+                <Trash2 size={20} color={colors.textButton} />
               </TouchableOpacity>
             </View>
           )}
@@ -245,7 +246,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
             style={{
               backgroundColor: isActive ? colors.bgElevated : colors.bgSurface,
               borderWidth: 1,
-              borderColor: isActive ? `${colors.primary}40` : 'transparent',
+              borderColor: isActive ? withAlpha(colors.primary, 0.251) : 'transparent',
             }}
           >
             {/* Exercise image — tap to open details */}
@@ -377,13 +378,13 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
           className="flex-row items-center justify-center gap-3 py-5 rounded-2xl"
           style={{
             borderWidth: 2,
-            borderColor: `${colors.primary}50`,
-            backgroundColor: `${colors.primary}10`,
+            borderColor: withAlpha(colors.primary, 0.314),
+            backgroundColor: withAlpha(colors.primary, 0.063),
           }}
         >
           <View
             className="p-1.5 rounded-lg"
-            style={{ backgroundColor: `${colors.primary}20` }}
+            style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
           >
             <Plus size={18} color={colors.primary} />
           </View>
@@ -402,7 +403,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
         >
           <View
             className="p-1.5 rounded-lg"
-            style={{ backgroundColor: `${colors.textButton}20` }}
+            style={{ backgroundColor: withAlpha(colors.textButton, 0.125) }}
           >
             <Play size={18} color={colors.textButton} fill={colors.textButton} />
           </View>
@@ -486,7 +487,7 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
                         style={{ backgroundColor: colors.primary, opacity: updateExercise.isPending ? 0.7 : 1 }}
                         activeOpacity={0.8}
                       >
-                        <Text style={{ color: '#fff', fontWeight: '700' }}>
+                        <Text style={{ color: colors.textButton, fontWeight: '700' }}>
                           {updateExercise.isPending ? 'Saving...' : 'Save'}
                         </Text>
                       </TouchableOpacity>

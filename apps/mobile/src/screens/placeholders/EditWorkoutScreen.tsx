@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useTemplate, useUpdateTemplate, useDeleteTemplate } from '@fit-nation/shared'
+import { useTemplate, useUpdateTemplate, useDeleteTemplate, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
@@ -125,7 +125,7 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
             <TouchableOpacity
               onPress={() => navigation.navigate('ManageExercises', { templateId })}
               className="flex-row items-center justify-center gap-2 mt-4 py-4 rounded-2xl"
-              style={{ backgroundColor: `${colors.primary}15` }}
+              style={{ backgroundColor: withAlpha(colors.primary, 0.082) }}
             >
               <Settings2 size={18} color={colors.primary} />
               <Text className="font-semibold" style={{ color: colors.primary }}>
@@ -137,7 +137,7 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
             <TouchableOpacity
               onPress={() => setDeleteVisible(true)}
               className="flex-row items-center justify-center gap-2 mt-3 py-4 rounded-2xl"
-              style={{ backgroundColor: `${colors.error}15` }}
+              style={{ backgroundColor: withAlpha(colors.error, 0.082) }}
             >
               <Trash2 size={18} color={colors.error} />
               <Text className="font-semibold" style={{ color: colors.error }}>

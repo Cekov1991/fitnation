@@ -26,7 +26,7 @@ export function BrowsableRoutineDetailView({ routine, onBack }: BrowsableRoutine
 
     try {
       const response = await startSession.mutateAsync(templateId);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         history.push(`/session/${session.id}`);
       }

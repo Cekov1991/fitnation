@@ -3,7 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Award, CheckCircle2, Clock, Dumbbell, Target, TrendingUp, Trophy } from 'lucide-react-native'
-import { useSession, useWeightUnit } from '@fit-nation/shared'
+import { useSession, useWeightUnit, sessionTotals } from '@fit-nation/shared'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -34,27 +34,7 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
   const duration = formatDuration(sessionData?.performed_at ?? null, sessionData?.completed_at ?? null)
 
-  const stats = useMemo(() => {
-    let totalSets = 0
-    let weightedVolume = 0
-    let bodyweightReps = 0
-    let hasWeighted = false
-    let hasBodyweight = false
-
-    exercises.forEach((exercise) => {
-      const loggedSets = exercise.logged_sets ?? []
-      totalSets += loggedSets.length
-      if (exercise.session_exercise.progression_mode === 'double_progression') {
-        hasWeighted = true
-        weightedVolume += loggedSets.reduce((sum: number, set: SetLogResource) => sum + set.weight * set.reps, 0)
-      } else {
-        hasBodyweight = true
-        bodyweightReps += loggedSets.reduce((sum: number, set: SetLogResource) => sum + set.reps, 0)
-      }
-    })
-
-    return { totalSets, weightedVolume, bodyweightReps, hasWeighted, hasBodyweight }
-  }, [exercises])
+  const stats = useMemo(() => sessionTotals({ exercises }), [exercises])
 
   const visiblePrs = newPrs.filter((pr) => !(pr.pr_type === 'weight' && pr.new_best === 0))
 

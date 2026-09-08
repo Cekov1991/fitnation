@@ -391,6 +391,8 @@ export interface FitnessMetrics {
     level: StrengthLevel;
     recent_gain: number;
     gain_period: 'last_30_days';
+    /** Score per tracked muscle group — the server always sends it; the type never said so. */
+    muscle_groups: Record<string, number>;
   };
   strength_balance: {
     percentage: number;
@@ -636,6 +638,8 @@ export interface EquipmentTypeResource {
   code: string;
   name: string;
   display_order: number;
+  /** Server-owned: whether an exercise on this equipment takes a logged weight (back-end issue 021). */
+  supports_added_weight: boolean;
 }
 
 export interface TargetRegionResource {
@@ -700,13 +704,26 @@ export interface GeneratedSessionResource extends WorkoutSessionResource {
 }
 
 // ============================================
-// ERROR TYPES
+// RESPONSE SHAPES the API layer is typed against (0025)
 // ============================================
 
-export interface ValidationError {
-  message: string;
-  errors: Record<string, string[]>;
+/** Public branding for the Partner a host name resolves to. */
+export interface PartnerBrandingResource {
+  name: string;
+  slug: string;
+  visual_identity: PartnerVisualIdentityResource | null;
 }
-export interface ApiError {
+
+export interface CompleteOnboardingResponse {
+  message: string;
+  data: CustomPlanResource;
+}
+
+/** A write that echoes the row and a message, e.g. logging a set. */
+export interface DataMessageResponse<T> {
+  data: T;
   message: string;
 }
+
+// Errors are thrown as `ApiFailure` from ./http — a class, so a catch block can
+// branch on its `kind` instead of sniffing an `any`.

@@ -1,4 +1,5 @@
 import { TouchableOpacity, Text, View } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import type React from 'react'
 
@@ -18,7 +19,7 @@ export function OptionCard({ label, description, selected, onPress, icon }: Opti
       onPress={onPress}
       className="w-full p-4 rounded-xl flex-row items-center gap-4"
       style={{
-        backgroundColor: selected ? `${colors.primary}1A` : colors.bgSurface,
+        backgroundColor: selected ? withAlpha(colors.primary, 0.102) : colors.bgSurface,
         borderWidth: 2,
         borderColor: selected ? colors.primary : colors.bgElevated,
       }}

@@ -15,7 +15,7 @@ import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
 import { ArrowLeft, Maximize2, X } from 'lucide-react-native'
 import * as ScreenOrientation from 'expo-screen-orientation'
-import { useExercises, useExerciseHistory, useWeightUnit } from '@fit-nation/shared'
+import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -147,7 +147,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
     [exercises, exerciseId]
   )
 
-  const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT'
+  const allowWeightLogging = allowsWeightLogging(exercise)
 
   const { data: historyData, isLoading: isLoadingHistory } = useExerciseHistory(
     exercise?.id ?? 0,
@@ -225,7 +225,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
             paddingVertical: 16,
             gap: 12,
             borderBottomWidth: 1,
-            borderBottomColor: `${colors.textMuted}20`,
+            borderBottomColor: withAlpha(colors.textMuted, 0.125),
           }}
         >
           <TouchableOpacity
@@ -233,7 +233,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
             style={{
               padding: 8,
               borderRadius: 999,
-              backgroundColor: `${colors.textPrimary}0D`,
+              backgroundColor: withAlpha(colors.textPrimary, 0.051),
             }}
             activeOpacity={0.7}
           >
@@ -363,7 +363,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                             paddingVertical: 6,
                             borderRadius: 999,
                             borderWidth: 1,
-                            borderColor: `${colors.textPrimary}30`,
+                            borderColor: withAlpha(colors.textPrimary, 0.188),
                           }}
                         >
                           <Text
@@ -407,7 +407,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                             paddingVertical: 6,
                             borderRadius: 999,
                             borderWidth: 1,
-                            borderColor: `${colors.textPrimary}30`,
+                            borderColor: withAlpha(colors.textPrimary, 0.188),
                           }}
                         >
                           <Text
@@ -618,13 +618,13 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                         color={colors.primary}
                         thickness={2}
                         dataPointsColor={colors.primary}
-                        startFillColor={`${colors.primary}40`}
-                        endFillColor={`${colors.primary}00`}
+                        startFillColor={withAlpha(colors.primary, 0.251)}
+                        endFillColor={withAlpha(colors.primary, 0)}
                         areaChart
                         hideRules
                         hideDataPoints={chartData.length > 10}
-                        xAxisColor={`${colors.textMuted}40`}
-                        yAxisColor={`${colors.textMuted}40`}
+                        xAxisColor={withAlpha(colors.textMuted, 0.251)}
+                        yAxisColor={withAlpha(colors.textMuted, 0.251)}
                         yAxisTextStyle={{ color: colors.textMuted, fontSize: 10 }}
                         xAxisLabelTextStyle={{ color: colors.textMuted, fontSize: 9 }}
                         noOfSections={4}

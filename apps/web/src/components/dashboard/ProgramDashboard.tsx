@@ -6,7 +6,7 @@ import { WorkoutTemplateSelector } from './WorkoutTemplateSelector';
 import { ProgramControls } from './ProgramControls';
 import { WorkoutCard } from '../WorkoutCard';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout } from '@fit-nation/shared';
+import { usePrograms, useRegeneratePlan, useStartSession, useTodayWorkout, queryKeys } from '@fit-nation/shared';
 import { PlanGeneratingOverlay } from '../ui';
 import { ProgramDashboardContentSkeleton } from './ProgramDashboardSkeleton';
 import type { ProgramResource, WorkoutTemplateResource } from '@fit-nation/shared';
@@ -164,7 +164,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
 
     try {
       const response = await startSession.mutateAsync(templateId);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         if (!session.performed_at) {
           history.push(`/generate-workout/preview/${session.id}`);
@@ -181,7 +181,7 @@ export function ProgramDashboard({ onStartWorkout }: ProgramDashboardProps) {
     setIsGenerating(true);
     try {
       await regeneratePlan.mutateAsync();
-      await queryClient.refetchQueries({ queryKey: ['programs'] });
+      await queryClient.refetchQueries({ queryKey: queryKeys.programs.all() });
     } catch (error) {
       console.error('Failed to generate plan:', error);
     } finally {

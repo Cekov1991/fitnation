@@ -5,10 +5,12 @@ import { useModalTransition, useSlideTransition } from '../../utils/animations';
 import { formatWeight } from './utils';
 import type { Exercise } from './types';
 import type { NewPrResource } from '@fit-nation/shared';
-import type { WeightUnit } from '@fit-nation/shared';
+import type { SessionTotals, WeightUnit } from '@fit-nation/shared';
 
 interface WorkoutSummaryScreenProps {
   exercises: Exercise[];
+  /** From the shared read model — the same numbers the detail screen shows. */
+  totals: SessionTotals;
   formattedDuration: string;
   onDone: () => void;
   newPrs?: NewPrResource[];
@@ -25,29 +27,17 @@ interface SummaryStats {
   hasBodyweightExercises: boolean;
 }
 
-function calculateStats(exercises: Exercise[], formattedDuration: string): SummaryStats {
-  const weightedExercises = exercises.filter(ex => ex.progressionMode === 'double_progression');
-  const bodyweightExercises = exercises.filter(ex => ex.progressionMode === 'total_reps');
-
-  const allCompletedSets = exercises.flatMap(ex => ex.sets.filter(s => s.completed));
-  const totalSets = allCompletedSets.length;
-
-  const weightedVolume = weightedExercises
-    .flatMap(ex => ex.sets.filter(s => s.completed))
-    .reduce((sum, set) => sum + set.weight * set.reps, 0);
-
-  const bodyweightReps = bodyweightExercises
-    .flatMap(ex => ex.sets.filter(s => s.completed))
-    .reduce((sum, set) => sum + set.reps, 0);
-
+// One base for every total — the shared read model's — so this screen and the
+// detail screen report the same numbers, including a set logged above target.
+function calculateStats(totals: SessionTotals, formattedDuration: string): SummaryStats {
   return {
     duration: formattedDuration,
-    exercisesCount: exercises.length,
-    totalSets,
-    weightedVolume,
-    bodyweightReps,
-    hasWeightedExercises: weightedExercises.length > 0,
-    hasBodyweightExercises: bodyweightExercises.length > 0,
+    exercisesCount: totals.exercisesCount,
+    totalSets: totals.totalSets,
+    weightedVolume: totals.weightedVolume,
+    bodyweightReps: totals.bodyweightReps,
+    hasWeightedExercises: totals.hasWeighted,
+    hasBodyweightExercises: totals.hasBodyweight,
   };
 }
 
@@ -66,6 +56,7 @@ function getBestWeightedSet(exercise: Exercise): { weight: number; reps: number 
 
 export function WorkoutSummaryScreen({
   exercises,
+  totals,
   formattedDuration,
   onDone,
   newPrs = [],
@@ -73,7 +64,7 @@ export function WorkoutSummaryScreen({
 }: WorkoutSummaryScreenProps) {
   const { panel } = useModalTransition();
   const slideTransition = useSlideTransition('up');
-  const stats = useMemo(() => calculateStats(exercises, formattedDuration), [exercises, formattedDuration]);
+  const stats = useMemo(() => calculateStats(totals, formattedDuration), [totals, formattedDuration]);
 
   return (
     <AnimatePresence>

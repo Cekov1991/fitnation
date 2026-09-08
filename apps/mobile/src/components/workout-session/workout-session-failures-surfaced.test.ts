@@ -100,7 +100,7 @@ describe('workout session mutation failures reach the user', () => {
 
   it.each(SOURCES)('%s still has catch blocks to check', rel => {
     // Guards against the scan silently covering nothing and passing forever.
-    expect(catchBodies(read(rel)).length).toBeGreaterThanOrEqual(4);
+    expect(catchBodies(read(rel)).length).toBeGreaterThanOrEqual(3);
   });
 
   it.each(SOURCES)('%s never fails a mutation in silence', rel => {

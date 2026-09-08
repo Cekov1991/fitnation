@@ -18,13 +18,14 @@ import {
   useCompleteSession,
   useCancelSession,
   useRemoveSessionExercise,
+  isExerciseComplete,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExercisePage } from '../../components/workout-session/ExercisePage'
 import { ExerciseNavTabs } from '../../components/workout-session/ExerciseNavTabs'
 import { SessionClock } from '../../components/workout-session/SessionClock'
 import { RestTimer } from '../../components/workout-session/RestTimer'
-import { isExerciseComplete } from '../../components/workout-session/progress'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -402,7 +403,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
         {/* Header */}
         <View
           className="flex-row items-center justify-between px-6 py-3"
-          style={{ borderBottomWidth: 1, borderBottomColor: `${colors.textMuted}20` }}
+          style={{ borderBottomWidth: 1, borderBottomColor: withAlpha(colors.textMuted, 0.125) }}
         >
           <TouchableOpacity
             onPress={handleCancel}

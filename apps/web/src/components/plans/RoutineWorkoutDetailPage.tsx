@@ -46,7 +46,7 @@ export function RoutineWorkoutDetailPage({ routineId, workoutId, onBack }: Routi
 
     try {
       const response = await startSession.mutateAsync(workoutId);
-      const session = response.data?.session || response.data;
+      const session = response.data;
       if (session?.id) {
         history.push(`/session/${session.id}`);
       }

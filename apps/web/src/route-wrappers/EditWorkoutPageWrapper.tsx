@@ -1,6 +1,7 @@
 import { useHistory, useLocation, useParams } from 'react-router-dom';
+import { showToast } from '../lib/toast';
 import { AddWorkoutPage } from '../components/AddWorkoutPage';
-import { usePlans, useTemplate, useUpdateTemplate } from '@fit-nation/shared';
+import { usePlans, useTemplate, useUpdateTemplate, swapWorkoutDays } from '@fit-nation/shared';
 import { dayNameToIndex, type DayName } from '../constants';
 
 // Edit workout page wrapper
@@ -72,33 +73,43 @@ export default function EditWorkoutPageWrapper() {
 
       // Find the target workout to get its name (required by backend)
       const targetWorkout = plans
-        .flatMap((p: { workout_templates?: { id: number; name: string }[] }) => p.workout_templates || [])
-        .find((t: { id: number }) => t.id === data.targetWorkoutId);
+        .flatMap(p => p.workout_templates || [])
+        .find(t => t.id === data.targetWorkoutId);
 
       if (!targetWorkout) {
         console.error('Target workout not found');
         return;
       }
 
-      // Update the target workout to take the current workout's day (or unassign if no current day)
-      await updateTemplate.mutateAsync({
-        templateId: data.targetWorkoutId,
-        data: {
-          name: targetWorkout.name,
-          day_of_week: currentDayIndex !== null && currentDayIndex !== -1 ? currentDayIndex : undefined
+      // Two PATCHes as one named action (0026): if the second fails the first is
+      // undone, so two workouts never end up on the same day.
+      const outcome = await swapWorkoutDays(
+        { updateTemplate: vars => updateTemplate.mutateAsync(vars) },
+        {
+          current: {
+            templateId: id,
+            name: initialData?.name || template?.name || '',
+            dayOfWeek: currentDayIndex !== null && currentDayIndex !== -1 ? currentDayIndex : undefined
+          },
+          target: {
+            templateId: data.targetWorkoutId,
+            name: targetWorkout.name,
+            dayOfWeek: targetDayIndex !== -1 ? targetDayIndex : undefined
+          }
         }
-      });
-
-      // Update the current workout to take the target day
-      await updateTemplate.mutateAsync({
-        templateId: id,
-        data: {
-          name: initialData?.name || template?.name || '',
-          day_of_week: targetDayIndex !== -1 ? targetDayIndex : undefined
-        }
-      });
+      );
+      if (!outcome.ok) {
+        console.error('Failed to swap workouts:', outcome.error);
+        showToast(
+          outcome.compensated
+            ? "Couldn't swap the workouts. Nothing was changed."
+            : "Couldn't finish the swap — both workouts may be on the same day. Check your plan.",
+          'error'
+        );
+      }
     } catch (error) {
       console.error('Failed to swap workouts:', error);
+      showToast("Couldn't swap the workouts.", 'error');
     }
   };
 

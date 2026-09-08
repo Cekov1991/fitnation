@@ -9,6 +9,7 @@ import {
   useEquipmentTypes,
   useAddTemplateExercise,
   useSwapTemplateExercise,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
@@ -197,7 +198,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
                       onPress={() => handleSwap(item)}
                       disabled={actionId === item.id}
                       className="ml-2 p-2 rounded-full"
-                      style={{ backgroundColor: `${colors.primary}20`, opacity: actionId === item.id ? 0.5 : 1 }}
+                      style={{ backgroundColor: withAlpha(colors.primary, 0.125), opacity: actionId === item.id ? 0.5 : 1 }}
                       activeOpacity={0.7}
                     >
                       {actionId === item.id
@@ -227,7 +228,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
                         }
                       }}
                       className="ml-2 p-2 rounded-full"
-                      style={{ backgroundColor: `${colors.primary}20`, opacity: actionId === item.id ? 0.5 : 1 }}
+                      style={{ backgroundColor: withAlpha(colors.primary, 0.125), opacity: actionId === item.id ? 0.5 : 1 }}
                       activeOpacity={0.7}
                     >
                       {actionId === item.id
@@ -240,7 +241,7 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
                   <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     className="ml-2 p-2 rounded-full"
-                    style={{ backgroundColor: `${colors.primary}20` }}
+                    style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
                     activeOpacity={0.7}
                   >
                     <Plus size={18} color={colors.primary} />

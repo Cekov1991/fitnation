@@ -1,17 +1,25 @@
-import React, { useEffect, createContext, useContext, ReactNode, useState, useCallback } from 'react';
+import { useEffect, createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react';
 import { useAuth } from './useAuth';
-import { partnersApi } from '@fit-nation/shared';
+import { usePartnerBranding, resolvePartnerIdentity, partnerBrandColors, type ColorScheme } from '@fit-nation/shared';
 import { getPartnerSlugFromSubdomain } from '../utils/subdomain';
 import { updatePWAManifest } from '../utils/pwa';
-import type { PartnerVisualIdentityResource } from '@fit-nation/shared';
 
 export type Theme = 'light' | 'dark' | 'system';
+
+export interface BrandColors {
+  primary: string;
+  secondary: string;
+}
 
 interface BrandingContextType {
   logo: string | null;
   partnerName: string | null;
   hasBranding: boolean;
+  /** The brand colours in effect — the same values written to the CSS variables. */
+  colors: BrandColors;
   theme: Theme;
+  /** `theme` with 'system' resolved. */
+  effectiveTheme: ColorScheme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   partnerSlug: string | null;
@@ -21,174 +29,83 @@ interface BrandingContextType {
 const BrandingContext = createContext<BrandingContextType | undefined>(undefined);
 
 // Default colors (must match index.css)
-const DEFAULT_PRIMARY = '#00B4C5';   // Fit Nation teal
-const DEFAULT_SECONDARY = '#F97316'; // Fit Nation orange
+const DEFAULT_COLORS: BrandColors = {
+  primary: '#00B4C5',   // Fit Nation teal
+  secondary: '#F97316', // Fit Nation orange
+};
 
 // Theme storage key
 const THEME_STORAGE_KEY = 'fit-nation-theme';
 
-// Get system theme preference
-const getSystemTheme = (): 'light' | 'dark' => {
+const LIGHT_QUERY = '(prefers-color-scheme: light)';
+
+const getSystemTheme = (): ColorScheme => {
   if (typeof window === 'undefined') return 'dark';
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return window.matchMedia(LIGHT_QUERY).matches ? 'light' : 'dark';
 };
 
-// Get effective theme (resolves 'system' to actual theme)
-const getEffectiveTheme = (theme: Theme): 'light' | 'dark' => {
-  return theme === 'system' ? getSystemTheme() : theme;
-};
-
+/**
+ * The resolved visual identity for this session (0029): one answer for which
+ * Partner — the signed-in user's, else the host name's — and the colours for
+ * the active theme, exposed on the context and written to the CSS variables
+ * from the same object, so a component's dependency on a brand colour can be
+ * visible to the compiler instead of living only in a `var(--color-primary)`.
+ */
 export function BrandingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  
+
   // Initialize theme from localStorage or default to 'system'
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'system';
     const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
     return stored && ['light', 'dark', 'system'].includes(stored) ? stored : 'system';
   });
-  
-  // Track effective theme to trigger color updates
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() => 
-    getEffectiveTheme(theme)
-  );
 
-  // --- Subdomain-based branding (for unauthenticated routes) ---
-  const [subdomainBranding, setSubdomainBranding] = useState<{
-    name: string;
-    slug: string;
-    visual_identity: PartnerVisualIdentityResource | null;
-  } | null>(null);
-  const [subdomainLoading, setSubdomainLoading] = useState(false);
-
-  const detectedSlug = getPartnerSlugFromSubdomain();
-
-  // TODO: Remove debug logs after verifying subdomain branding works
-  console.log('[Branding] detectedSlug:', detectedSlug);
-
-  // Fetch partner branding on mount if subdomain is detected
+  // The OS preference, kept current; the effective theme derives from it and
+  // `theme` in render, so it is never a render behind.
+  const [systemTheme, setSystemTheme] = useState<ColorScheme>(getSystemTheme);
   useEffect(() => {
-    console.log('[Branding] useEffect fired, detectedSlug:', detectedSlug);
-    if (!detectedSlug) return;
-
-    let cancelled = false;
-    setSubdomainLoading(true);
-
-    partnersApi.getBrandingBySlug(detectedSlug)
-      .then((response) => {
-        console.log('[Branding] API response:', response);
-        if (!cancelled) {
-          // Transform backend response: map 'identity' to 'visual_identity' to match frontend expectations
-          const branding = {
-            name: response.data.name,
-            slug: response.data.slug,
-            visual_identity: response.data.visual_identity || null,
-          };
-          console.log('[Branding] Setting subdomainBranding:', branding);
-          setSubdomainBranding(branding);
-        }
-      })
-      .catch((err) => {
-        console.warn('[Branding] Failed to load partner branding for subdomain:', detectedSlug, err);
-        if (!cancelled) setSubdomainBranding(null);
-      })
-      .finally(() => {
-        if (!cancelled) setSubdomainLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [detectedSlug]);
-
-  // --- Resolve which branding to use ---
-  // Authenticated: use user's partner branding (existing behavior)
-  // Unauthenticated: use subdomain branding
-  const visualIdentity: PartnerVisualIdentityResource | null =
-    user
-      ? (user.partner?.visual_identity || null)
-      : (subdomainBranding?.visual_identity || null);
-
-  const logo = user
-    ? (user.partner?.visual_identity?.logo || null)
-    : (subdomainBranding?.visual_identity?.logo || null);
-
-  const partnerName = user
-    ? (user.partner?.name || null)
-    : (subdomainBranding?.name || null);
-
-  const partnerSlug = user
-    ? (user.partner?.slug || null)
-    : (subdomainBranding?.slug || detectedSlug);
-
-  const hasBranding = !!visualIdentity;
-
-  // Apply theme to document and update effective theme
-  useEffect(() => {
-    const root = document.documentElement;
-    const currentEffectiveTheme = getEffectiveTheme(theme);
-    root.setAttribute('data-theme', currentEffectiveTheme);
-    setEffectiveTheme(currentEffectiveTheme);
-  }, [theme]);
-
-  // Listen to system theme changes when theme is 'system'
-  useEffect(() => {
-    if (theme !== 'system') return;
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-    const handleChange = () => {
-      const root = document.documentElement;
-      const newEffectiveTheme = getSystemTheme();
-      root.setAttribute('data-theme', newEffectiveTheme);
-      setEffectiveTheme(newEffectiveTheme);
-    };
-    
-    // Modern browsers
+    const mediaQuery = window.matchMedia(LIGHT_QUERY);
+    const handleChange = () => setSystemTheme(getSystemTheme());
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
-    // Fallback for older browsers
-    else if (mediaQuery.addListener) {
-      mediaQuery.addListener(handleChange);
-      return () => mediaQuery.removeListener(handleChange);
-    }
-  }, [theme]);
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+  const effectiveTheme: ColorScheme = theme === 'system' ? systemTheme : theme;
 
-  // Apply CSS variables when branding is available (from user or subdomain)
-  console.log('[Branding] Render - visualIdentity:', visualIdentity, 'hasBranding:', hasBranding, 'effectiveTheme:', effectiveTheme);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
+  }, [effectiveTheme]);
+
+  // --- Which Partner ---------------------------------------------------------
+  // Signed out on a white-label host, the host name names the Partner; its
+  // public branding is fetched through React Query like every other read.
+  const detectedSlug = getPartnerSlugFromSubdomain();
+  const subdomainBranding = usePartnerBranding(user ? null : detectedSlug);
+  const identity = useMemo(
+    () => resolvePartnerIdentity(user, subdomainBranding.data ?? null, detectedSlug),
+    [user, subdomainBranding.data, detectedSlug]
+  );
+
+  const colors = useMemo<BrandColors>(
+    () => ({ ...DEFAULT_COLORS, ...partnerBrandColors(identity.visualIdentity, effectiveTheme) }),
+    [identity.visualIdentity, effectiveTheme]
+  );
+
+  // The CSS variables are written from the same object the context exposes.
   useEffect(() => {
     const root = document.documentElement;
-    console.log('[Branding] CSS effect - visualIdentity:', visualIdentity);
-    
-    if (visualIdentity) {
-      // Apply partner branding colors based on effective theme
-      // Use dark variants in dark theme, fallback to regular colors if dark variants aren't available
-      const primaryColor = effectiveTheme === 'dark' 
-        ? (visualIdentity.primary_color_dark || visualIdentity.primary_color)
-        : visualIdentity.primary_color;
-      
-      const secondaryColor = effectiveTheme === 'dark'
-        ? (visualIdentity.secondary_color_dark || visualIdentity.secondary_color)
-        : visualIdentity.secondary_color;
-      
-      root.style.setProperty('--color-primary', primaryColor || DEFAULT_PRIMARY);
-      root.style.setProperty('--color-secondary', secondaryColor || DEFAULT_SECONDARY);
-    } else {
-      // Reset to defaults when no branding is available
-      root.style.setProperty('--color-primary', DEFAULT_PRIMARY);
-      root.style.setProperty('--color-secondary', DEFAULT_SECONDARY);
-    }
-  }, [visualIdentity, effectiveTheme]);
+    root.style.setProperty('--color-primary', colors.primary);
+    root.style.setProperty('--color-secondary', colors.secondary);
+  }, [colors]);
 
-  // Update PWA manifest based on partner slug
   useEffect(() => {
-    if (partnerSlug) {
-      updatePWAManifest(partnerSlug);
-    } else {
-      updatePWAManifest(null);
-    }
-  }, [partnerSlug]);
+    updatePWAManifest(identity.slug);
+  }, [identity.slug]);
 
-  // Theme management functions
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     if (typeof window !== 'undefined') {
@@ -197,27 +114,26 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    const effectiveTheme = getEffectiveTheme(theme);
-    const newTheme: Theme = effectiveTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-  }, [theme, setTheme]);
+    setTheme(effectiveTheme === 'light' ? 'dark' : 'light');
+  }, [effectiveTheme, setTheme]);
 
-  return (
-    <BrandingContext.Provider
-      value={{
-        logo,
-        partnerName,
-        hasBranding,
-        theme,
-        setTheme,
-        toggleTheme,
-        partnerSlug,
-        subdomainLoading,
-      }}
-    >
-      {children}
-    </BrandingContext.Provider>
+  const value = useMemo<BrandingContextType>(
+    () => ({
+      logo: identity.logo,
+      partnerName: identity.name,
+      hasBranding: identity.visualIdentity != null,
+      colors,
+      theme,
+      effectiveTheme,
+      setTheme,
+      toggleTheme,
+      partnerSlug: identity.slug,
+      subdomainLoading: subdomainBranding.isLoading,
+    }),
+    [identity, colors, theme, effectiveTheme, setTheme, toggleTheme, subdomainBranding.isLoading]
   );
+
+  return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
 }
 
 export function useBranding() {

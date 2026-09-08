@@ -21,7 +21,7 @@ export * from './schemas/setsReps'
 
 // Hooks
 export * from './hooks/useApi'
-export { isProvisionalSetLogId } from './hooks/setLogMutations'
+export { isProvisionalSetLogId, persistedSetLogId, type PersistedSetLogId } from './hooks/setLogMutations'
 export * from './hooks/useUnits'
 
 // Constants
@@ -31,6 +31,21 @@ export * from './constants/trainingStyles'
 export * from './utils/workoutHelpers'
 export * from './utils/repRange'
 export * from './utils/calendarWeek'
+
+// The typed HTTP seam — one request function, one failure type (0025)
+export { request, ApiFailure, isApiFailure, failureOf, firstFieldError, type ApiFailureKind } from './http'
+
+// Partner visual identity — one resolution of tenant, colours and alpha (0029)
+export * from './partner/visualIdentity'
+
+// Named orchestrations for the multi-write invariants (0026)
+export * from './orchestrations'
+
+// Workout Session read model — slots, completion, totals, the weight rule (0023)
+export * from './session/readModel'
+
+// Query keys — every React Query key is built here (0028)
+export { queryKeys, type QueryKeys, type ExerciseHistoryParams, type BodyRegion } from './queryKeys'
 
 // Units — the single owner of everything that follows from a Unit System
 export * from './units'

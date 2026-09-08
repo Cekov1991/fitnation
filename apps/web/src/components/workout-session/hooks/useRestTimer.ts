@@ -1,77 +1,43 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { idleRestTimer, restJustCompleted, restTimerReducer, type RestTimerState } from './restTimerReducer';
 
-interface UseRestTimerProps {
-  restSeconds: number | null;
-  isActive: boolean;
-}
-
-interface UseRestTimerReturn {
-  timeRemaining: number;
+export interface RestTimerHandle extends RestTimerState {
   formattedTime: string;
-  isComplete: boolean;
-  reset: (newSeconds: number) => void;
+  /** Start (or restart) a rest; a null or zero duration is ignored. */
+  start: (seconds: number | null | undefined) => void;
+  dismiss: () => void;
   addTime: (seconds: number) => void;
   subtractTime: (seconds: number) => void;
 }
 
-export function useRestTimer({ restSeconds, isActive }: UseRestTimerProps): UseRestTimerReturn {
-  const [timeRemaining, setTimeRemaining] = useState(restSeconds ?? 0);
-  const [isComplete, setIsComplete] = useState(false);
-  const intervalRef = useRef<number | null>(null);
+/**
+ * The one owner of the rest timer (0030): its state, its countdown, and what
+ * happens when it runs out. The duration is captured at `start`, so switching
+ * exercises mid-rest does not change the rest that is running.
+ */
+export function useRestTimer({ onComplete }: { onComplete?: () => void } = {}): RestTimerHandle {
+  const [state, dispatch] = useReducer(restTimerReducer, idleRestTimer);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const previous = useRef(state);
 
-  // Reset timer when restSeconds changes (new set logged)
   useEffect(() => {
-    if (restSeconds !== null && isActive) {
-      setTimeRemaining(restSeconds);
-      setIsComplete(false);
-    }
-  }, [restSeconds, isActive]);
+    if (restJustCompleted(previous.current, state)) onCompleteRef.current?.();
+    previous.current = state;
+  }, [state]);
 
-  // Countdown effect - only depends on isActive, not timeRemaining
   useEffect(() => {
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    if (!state.isActive) return;
+    const id = window.setInterval(() => dispatch({ type: 'tick' }), 1000);
+    return () => window.clearInterval(id);
+  }, [state.isActive]);
 
-    if (!isActive) return;
-
-    intervalRef.current = window.setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          setIsComplete(true);
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [isActive]);
-
-  const reset = useCallback((newSeconds: number) => {
-    setTimeRemaining(newSeconds);
-    setIsComplete(false);
+  const start = useCallback((seconds: number | null | undefined) => {
+    if (seconds && seconds > 0) dispatch({ type: 'start', seconds });
   }, []);
-
-  const addTime = useCallback((seconds: number) => {
-    setTimeRemaining((prev) => prev + seconds);
-    setIsComplete(false);
-  }, []);
-
-  const subtractTime = useCallback((seconds: number) => {
-    setTimeRemaining((prev) => Math.max(0, prev - seconds));
-  }, []);
+  const dismiss = useCallback(() => dispatch({ type: 'dismiss' }), []);
+  const addTime = useCallback((seconds: number) => dispatch({ type: 'add', seconds }), []);
+  const subtractTime = useCallback((seconds: number) => dispatch({ type: 'subtract', seconds }), []);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -79,12 +45,5 @@ export function useRestTimer({ restSeconds, isActive }: UseRestTimerProps): UseR
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  return {
-    timeRemaining,
-    formattedTime: formatTime(timeRemaining),
-    isComplete,
-    reset,
-    addTime,
-    subtractTime
-  };
+  return { ...state, formattedTime: formatTime(state.timeRemaining), start, dismiss, addTime, subtractTime };
 }

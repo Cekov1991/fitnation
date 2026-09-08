@@ -1,7 +1,6 @@
 // Fit Nation API Service Layer
 
-import { getConfig } from './config'
-import { getAuthStorage, AUTH_TOKEN_KEY, notifyUnauthorized } from './auth'
+import { request } from './http'
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -28,74 +27,41 @@ import type {
   RegisterDeviceInput,
   DeviceResource,
   UpdateNotificationSettingsInput,
+  DataResponse,
+  ListResponse,
+  DataMessageResponse,
+  PartnerBrandingResource,
+  CompleteOnboardingResponse,
+  ExerciseResource,
+  ExerciseHistoryResponse,
+  MuscleGroupResource,
+  CategoryResource,
+  EquipmentTypeResource,
+  TargetRegionResource,
+  MovementPatternResource,
+  AngleResource,
+  FitnessMetricsResponse,
+  CustomPlanResource,
+  ProgramResource,
+  LibraryProgramResource,
+  RoutinePlanResource,
+  WorkoutTemplateResource,
+  WeeklyPlannerResponse,
+  CalendarResponse,
+  TodayWorkoutResponse,
+  WorkoutSessionResource,
+  GeneratedSessionResource,
+  SessionDetailResponse,
+  CompleteSessionResponse,
+  SetLogResource,
+  WorkoutSessionExerciseResource,
 } from './types/api';
 
-const getBaseUrl = () => getConfig().baseUrl
-
-// Helper for public endpoints (no auth) - throws on non-OK with { message, errors?, status }
-async function fetchPublic(url: string, options: RequestInit = {}) {
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-  const response = await fetch(`${getBaseUrl()}${url}`, {
-    ...options,
-    headers,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const err: any = new Error(data.message || 'An error occurred');
-    err.status = response.status;
-    err.errors = data.errors;
-    throw err;
-  }
-  return data;
-}
-
-// Helper function for making authenticated requests
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const storage = getAuthStorage()
-  const tokenResult = storage.getItem(AUTH_TOKEN_KEY)
-  const token = tokenResult instanceof Promise ? await tokenResult : tokenResult
-
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    ...(token && {
-      Authorization: `Bearer ${token}`
-    })
-  };
-
-  // Only add Content-Type for non-FormData requests
-  if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  }
-  const response = await fetch(`${getBaseUrl()}${url}`, {
-    ...options,
-    headers: {
-      ...headers,
-      ...options.headers
-    }
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({ message: 'An error occurred' }));
-    const err: any = new Error(data.message || `HTTP error! status: ${response.status}`);
-    err.status = response.status;
-    err.errors = data.errors;
-    // Token was present but the server rejected it (user deleted, token revoked,
-    // session expired). Clear local credentials and notify the app so it can
-    // bounce the user back to the login screen.
-    if (response.status === 401 && token) {
-      try { await storage.removeItem(AUTH_TOKEN_KEY); } catch {}
-      await notifyUnauthorized();
-    }
-    throw err;
-  }
-  if (response.status === 204 || response.headers.get('content-length') === '0') {
-    return undefined;
-  }
-  return response.json();
-}
+// The choice of authentication is visible at every call site (0025). `authed`
+// sends the stored bearer token and treats a rejected one as a sign-out;
+// `unauthenticated` sends nothing, so a stale token can never bounce a login.
+const authed = <T>(url: string, init: RequestInit = {}) => request<T>(url, { ...init, auth: 'bearer' })
+const unauthenticated = <T>(url: string, init: RequestInit = {}) => request<T>(url, { ...init, auth: 'none' })
 
 // ============================================================================
 // AUTHENTICATION
@@ -103,25 +69,25 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 export const authApi = {
   validateInvitation: async (token: string): Promise<ValidateInvitationResponse> => {
-    return fetchWithAuth(`/invitations/${token}`);
+    return unauthenticated<ValidateInvitationResponse>(`/invitations/${token}`);
   },
   register: async (data: {
     email: string;
     password: string;
     partner_id: number;
   }): Promise<AuthResponse> => {
-    return fetchWithAuth('/register', {
+    return unauthenticated<AuthResponse>('/register', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
   resendVerificationEmail: async (): Promise<MessageResponse> => {
-    return fetchWithAuth('/email/verification-notification', {
+    return authed<MessageResponse>('/email/verification-notification', {
       method: 'POST',
     });
   },
   login: async (email: string, password: string): Promise<AuthResponse> => {
-    return fetchWithAuth('/login', {
+    return unauthenticated<AuthResponse>('/login', {
       method: 'POST',
       body: JSON.stringify({
         email,
@@ -135,27 +101,27 @@ export const authApi = {
     name?: string;
     partner_id?: number;
   }): Promise<AuthResponse> => {
-    return fetchPublic('/auth/social', {
+    return unauthenticated<AuthResponse>('/auth/social', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
   logout: async (): Promise<MessageResponse> => {
-    return fetchWithAuth('/logout', {
+    return authed<MessageResponse>('/logout', {
       method: 'POST'
     });
   },
   deleteAccount: async (password?: string): Promise<void> => {
-    await fetchWithAuth('/user', {
+    await authed<unknown>('/user', {
       method: 'DELETE',
       body: JSON.stringify({ password }),
     });
   },
   getCurrentUser: async (): Promise<{ user: UserResource }> => {
-    return fetchWithAuth('/user');
+    return authed<{ user: UserResource }>('/user');
   },
   forgotPassword: async (email: string): Promise<MessageResponse> => {
-    return fetchPublic('/forgot-password', {
+    return unauthenticated<MessageResponse>('/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
@@ -166,7 +132,7 @@ export const authApi = {
     password: string;
     password_confirmation: string;
   }): Promise<MessageResponse> => {
-    return fetchPublic('/reset-password', {
+    return unauthenticated<MessageResponse>('/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -179,10 +145,10 @@ export const authApi = {
 
 export const partnersApi = {
   getActivePartners: async (): Promise<ActivePartnersResponse> => {
-    return fetchPublic('/partners');
+    return unauthenticated<ActivePartnersResponse>('/partners');
   },
-  getBrandingBySlug: async (slug: string) => {
-    return fetchPublic(`/partners/${slug}/branding`);
+  getBrandingBySlug: async (slug: string): Promise<DataResponse<PartnerBrandingResource>> => {
+    return unauthenticated<DataResponse<PartnerBrandingResource>>(`/partners/${slug}/branding`);
   },
 };
 
@@ -192,7 +158,7 @@ export const partnersApi = {
 
 export const profileApi = {
   getProfile: async (): Promise<{ user: UserResource }> => {
-    return fetchWithAuth('/profile');
+    return authed<{ user: UserResource }>('/profile');
   },
   updateProfile: async (data: UpdateProfileInput): Promise<{ user: UserResource }> => {
     // Use FormData if profile_photo is included
@@ -203,18 +169,18 @@ export const profileApi = {
           formData.append(key, value instanceof File ? value : String(value));
         }
       });
-      return fetchWithAuth('/profile', {
+      return authed<{ user: UserResource }>('/profile', {
         method: 'POST',
         body: formData
       });
     }
-    return fetchWithAuth('/profile', {
+    return authed<{ user: UserResource }>('/profile', {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
   deleteProfilePhoto: async (): Promise<{ user: UserResource }> => {
-    return fetchWithAuth('/profile/photo', {
+    return authed<{ user: UserResource }>('/profile/photo', {
       method: 'DELETE'
     });
   }
@@ -225,8 +191,8 @@ export const profileApi = {
 // ============================================================================
 
 export const onboardingApi = {
-  completeOnboarding: async (planName?: string) => {
-    return fetchWithAuth('/onboarding/complete', {
+  completeOnboarding: async (planName?: string): Promise<CompleteOnboardingResponse> => {
+    return authed<CompleteOnboardingResponse>('/onboarding/complete', {
       method: 'POST',
       body: JSON.stringify(planName ? { plan_name: planName } : {})
     });
@@ -240,8 +206,8 @@ export const onboardingApi = {
 export const devicesApi = {
   // Idempotent for the calling session: the server upserts the Device bound to
   // this bearer token. Requires a bearer token (400 for cookie sessions).
-  register: async (data: RegisterDeviceInput): Promise<{ data: DeviceResource }> => {
-    return fetchWithAuth('/devices', {
+  register: async (data: RegisterDeviceInput): Promise<DataResponse<DeviceResource>> => {
+    return unauthenticated<DataResponse<DeviceResource>>('/devices', {
       method: 'PUT',
       body: JSON.stringify(data)
     });
@@ -250,7 +216,7 @@ export const devicesApi = {
 
 export const notificationSettingsApi = {
   update: async (data: UpdateNotificationSettingsInput): Promise<{ user: UserResource }> => {
-    return fetchWithAuth('/notification-settings', {
+    return authed<{ user: UserResource }>('/notification-settings', {
       method: 'PATCH',
       body: JSON.stringify(data)
     });
@@ -262,12 +228,12 @@ export const notificationSettingsApi = {
 // ============================================================================
 
 export const exercisesApi = {
-  getExercises: async (params?: { search?: string }) => {
+  getExercises: async (params?: { search?: string }): Promise<ListResponse<ExerciseResource>> => {
     const qs = params?.search ? `?search=${encodeURIComponent(params.search)}` : ''
-    return fetchWithAuth(`/exercises${qs}`);
+    return authed<ListResponse<ExerciseResource>>(`/exercises${qs}`);
   },
-  getExercise: async (exerciseId: number) => {
-    return fetchWithAuth(`/exercises/${exerciseId}`);
+  getExercise: async (exerciseId: number): Promise<DataResponse<ExerciseResource>> => {
+    return authed<DataResponse<ExerciseResource>>(`/exercises/${exerciseId}`);
   },
   getExerciseHistory: async (
     exerciseId: number,
@@ -276,7 +242,7 @@ export const exercisesApi = {
       start_date?: string;
       end_date?: string;
     }
-  ) => {
+  ): Promise<ExerciseHistoryResponse> => {
     const queryParams = new URLSearchParams();
     if (params?.limit !== undefined) {
       queryParams.append('limit', params.limit.toString());
@@ -289,7 +255,7 @@ export const exercisesApi = {
     }
     const queryString = queryParams.toString();
     const url = `/exercises/${exerciseId}/history${queryString ? `?${queryString}` : ''}`;
-    return fetchWithAuth(url);
+    return authed<ExerciseHistoryResponse>(url);
   },
   createExercise: async (data: {
     name: string;
@@ -297,8 +263,8 @@ export const exercisesApi = {
     category_id: number;
     image?: string;
     default_rest_sec?: number;
-  }) => {
-    return fetchWithAuth('/exercises', {
+  }): Promise<DataResponse<ExerciseResource>> => {
+    return authed<DataResponse<ExerciseResource>>('/exercises', {
       method: 'POST',
       body: JSON.stringify(data)
     });
@@ -310,20 +276,20 @@ export const exercisesApi = {
     default_rest_sec?: number;
     image?: File;
     video?: File;
-  }) => {
+  }): Promise<DataResponse<ExerciseResource>> => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined) {
         formData.append(key, value instanceof File ? value : String(value));
       }
     });
-    return fetchWithAuth(`/exercises/${exerciseId}`, {
+    return authed<DataResponse<ExerciseResource>>(`/exercises/${exerciseId}`, {
       method: 'POST',
       body: formData
     });
   },
-  deleteExercise: async (exerciseId: number) => {
-    return fetchWithAuth(`/exercises/${exerciseId}`, {
+  deleteExercise: async (exerciseId: number): Promise<void> => {
+    await authed<unknown>(`/exercises/${exerciseId}`, {
       method: 'DELETE'
     });
   }
@@ -334,12 +300,12 @@ export const exercisesApi = {
 // ============================================================================
 
 export const muscleGroupsApi = {
-  getMuscleGroups: async (bodyRegion?: 'upper' | 'lower' | 'core') => {
+  getMuscleGroups: async (bodyRegion?: 'upper' | 'lower' | 'core'): Promise<ListResponse<MuscleGroupResource>> => {
     const query = bodyRegion ? `?body_region=${bodyRegion}` : '';
-    return fetchWithAuth(`/muscle-groups${query}`);
+    return authed<ListResponse<MuscleGroupResource>>(`/muscle-groups${query}`);
   },
-  getMuscleGroup: async (muscleGroupId: number) => {
-    return fetchWithAuth(`/muscle-groups/${muscleGroupId}`);
+  getMuscleGroup: async (muscleGroupId: number): Promise<DataResponse<MuscleGroupResource>> => {
+    return authed<DataResponse<MuscleGroupResource>>(`/muscle-groups/${muscleGroupId}`);
   }
 };
 
@@ -348,12 +314,12 @@ export const muscleGroupsApi = {
 // ============================================================================
 
 export const categoriesApi = {
-  getCategories: async (type?: 'workout') => {
+  getCategories: async (type?: 'workout'): Promise<ListResponse<CategoryResource>> => {
     const query = type ? `?type=${type}` : '';
-    return fetchWithAuth(`/categories${query}`);
+    return authed<ListResponse<CategoryResource>>(`/categories${query}`);
   },
-  getCategory: async (categoryId: number) => {
-    return fetchWithAuth(`/categories/${categoryId}`);
+  getCategory: async (categoryId: number): Promise<DataResponse<CategoryResource>> => {
+    return authed<DataResponse<CategoryResource>>(`/categories/${categoryId}`);
   }
 };
 
@@ -362,17 +328,17 @@ export const categoriesApi = {
 // ============================================================================
 
 export const classificationsApi = {
-  getEquipmentTypes: async () => {
-    return fetchWithAuth('/equipment-types');
+  getEquipmentTypes: async (): Promise<ListResponse<EquipmentTypeResource>> => {
+    return authed<ListResponse<EquipmentTypeResource>>('/equipment-types');
   },
-  getTargetRegions: async () => {
-    return fetchWithAuth('/target-regions');
+  getTargetRegions: async (): Promise<ListResponse<TargetRegionResource>> => {
+    return authed<ListResponse<TargetRegionResource>>('/target-regions');
   },
-  getMovementPatterns: async () => {
-    return fetchWithAuth('/movement-patterns');
+  getMovementPatterns: async (): Promise<ListResponse<MovementPatternResource>> => {
+    return authed<ListResponse<MovementPatternResource>>('/movement-patterns');
   },
-  getAngles: async () => {
-    return fetchWithAuth('/angles');
+  getAngles: async (): Promise<ListResponse<AngleResource>> => {
+    return authed<ListResponse<AngleResource>>('/angles');
   }
 };
 
@@ -381,8 +347,8 @@ export const classificationsApi = {
 // ============================================================================
 
 export const metricsApi = {
-  getFitnessMetrics: async () => {
-    return fetchWithAuth('/user/fitness-metrics');
+  getFitnessMetrics: async (): Promise<FitnessMetricsResponse> => {
+    return authed<FitnessMetricsResponse>('/user/fitness-metrics');
   }
 };
 
@@ -391,31 +357,31 @@ export const metricsApi = {
 // ============================================================================
 
 export const plansApi = {
-  getPlans: async () => {
-    return fetchWithAuth('/custom-plans');
+  getPlans: async (): Promise<ListResponse<CustomPlanResource>> => {
+    return authed<ListResponse<CustomPlanResource>>('/custom-plans');
   },
-  getPlan: async (planId: number) => {
-    return fetchWithAuth(`/custom-plans/${planId}`);
+  getPlan: async (planId: number): Promise<DataResponse<CustomPlanResource>> => {
+    return authed<DataResponse<CustomPlanResource>>(`/custom-plans/${planId}`);
   },
-  createPlan: async (data: CreatePlanInput) => {
-    return fetchWithAuth('/custom-plans', {
+  createPlan: async (data: CreatePlanInput): Promise<DataResponse<CustomPlanResource>> => {
+    return authed<DataResponse<CustomPlanResource>>('/custom-plans', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updatePlan: async (planId: number, data: UpdatePlanInput) => {
-    return fetchWithAuth(`/custom-plans/${planId}`, {
+  updatePlan: async (planId: number, data: UpdatePlanInput): Promise<DataResponse<CustomPlanResource>> => {
+    return authed<DataResponse<CustomPlanResource>>(`/custom-plans/${planId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
-  deletePlan: async (planId: number) => {
-    return fetchWithAuth(`/custom-plans/${planId}`, {
+  deletePlan: async (planId: number): Promise<void> => {
+    await authed<unknown>(`/custom-plans/${planId}`, {
       method: 'DELETE'
     });
   },
-  regeneratePlan: async (data?: RegeneratePlanInput) => {
-    return fetchWithAuth('/plans/regenerate', {
+  regeneratePlan: async (data?: RegeneratePlanInput): Promise<DataResponse<ProgramResource>> => {
+    return authed<DataResponse<ProgramResource>>('/plans/regenerate', {
       method: 'POST',
       body: JSON.stringify(data ?? {})
     });
@@ -427,36 +393,37 @@ export const plansApi = {
 // ============================================================================
 
 export const programsApi = {
-  getActiveProgram: async () => {
-    return fetchWithAuth('/programs/active');
+  // One-element list: the server wraps the active program in an array.
+  getActiveProgram: async (): Promise<ListResponse<ProgramResource>> => {
+    return authed<ListResponse<ProgramResource>>('/programs/active');
   },
-  getPrograms: async () => {
-    return fetchWithAuth('/programs');
+  getPrograms: async (): Promise<ListResponse<ProgramResource>> => {
+    return authed<ListResponse<ProgramResource>>('/programs');
   },
-  getProgramLibrary: async () => {
-    return fetchWithAuth('/programs/library');
+  getProgramLibrary: async (): Promise<ListResponse<LibraryProgramResource>> => {
+    return authed<ListResponse<LibraryProgramResource>>('/programs/library');
   },
-  getProgram: async (programId: number) => {
-    return fetchWithAuth(`/programs/${programId}`);
+  getProgram: async (programId: number): Promise<DataResponse<ProgramResource>> => {
+    return authed<DataResponse<ProgramResource>>(`/programs/${programId}`);
   },
-  cloneProgram: async (programId: number) => {
-    return fetchWithAuth(`/programs/${programId}/clone`, {
+  cloneProgram: async (programId: number): Promise<DataResponse<ProgramResource>> => {
+    return authed<DataResponse<ProgramResource>>(`/programs/${programId}/clone`, {
       method: 'POST'
     });
   },
-  updateProgram: async (programId: number, data: UpdateProgramInput) => {
-    return fetchWithAuth(`/programs/${programId}`, {
+  updateProgram: async (programId: number, data: UpdateProgramInput): Promise<DataResponse<ProgramResource>> => {
+    return authed<DataResponse<ProgramResource>>(`/programs/${programId}`, {
       method: 'PATCH',
       body: JSON.stringify(data)
     });
   },
-  deleteProgram: async (programId: number) => {
-    return fetchWithAuth(`/programs/${programId}`, {
+  deleteProgram: async (programId: number): Promise<void> => {
+    await authed<unknown>(`/programs/${programId}`, {
       method: 'DELETE'
     });
   },
-  getNextWorkout: async (programId: number) => {
-    return fetchWithAuth(`/programs/${programId}/next-workout`);
+  getNextWorkout: async (programId: number): Promise<DataResponse<WorkoutTemplateResource | null>> => {
+    return authed<DataResponse<WorkoutTemplateResource | null>>(`/programs/${programId}/next-workout`);
   }
 };
 
@@ -465,11 +432,11 @@ export const programsApi = {
 // ============================================================================
 
 export const routinesApi = {
-  getRoutines: async () => {
-    return fetchWithAuth('/routines');
+  getRoutines: async (): Promise<ListResponse<RoutinePlanResource>> => {
+    return authed<ListResponse<RoutinePlanResource>>('/routines');
   },
-  getRoutine: async (routineId: number) => {
-    return fetchWithAuth(`/routines/${routineId}`);
+  getRoutine: async (routineId: number): Promise<DataResponse<RoutinePlanResource>> => {
+    return authed<DataResponse<RoutinePlanResource>>(`/routines/${routineId}`);
   }
 };
 
@@ -478,55 +445,55 @@ export const routinesApi = {
 // ============================================================================
 
 export const templatesApi = {
-  getTemplates: async () => {
-    return fetchWithAuth('/workout-templates');
+  getTemplates: async (): Promise<ListResponse<WorkoutTemplateResource>> => {
+    return authed<ListResponse<WorkoutTemplateResource>>('/workout-templates');
   },
-  getTemplate: async (templateId: number) => {
-    return fetchWithAuth(`/workout-templates/${templateId}`);
+  getTemplate: async (templateId: number): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>(`/workout-templates/${templateId}`);
   },
-  createTemplate: async (data: CreateTemplateInput) => {
-    return fetchWithAuth('/workout-templates', {
+  createTemplate: async (data: CreateTemplateInput): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>('/workout-templates', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateTemplate: async (templateId: number, data: UpdateTemplateInput) => {
-    return fetchWithAuth(`/workout-templates/${templateId}`, {
+  updateTemplate: async (templateId: number, data: UpdateTemplateInput): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>(`/workout-templates/${templateId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
-  deleteTemplate: async (templateId: number) => {
-    return fetchWithAuth(`/workout-templates/${templateId}`, {
+  deleteTemplate: async (templateId: number): Promise<void> => {
+    await authed<unknown>(`/workout-templates/${templateId}`, {
       method: 'DELETE'
     });
   },
   // Template Exercise Management
-  addExercise: async (templateId: number, data: AddTemplateExerciseInput) => {
-    return fetchWithAuth(`/workout-templates/${templateId}/exercises`, {
+  addExercise: async (templateId: number, data: AddTemplateExerciseInput): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>(`/workout-templates/${templateId}/exercises`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateExercise: async (templateId: number, pivotId: number, data: UpdateTemplateExerciseInput) => {
-    return fetchWithAuth(`/workout-templates/${templateId}/exercises/${pivotId}`, {
+  updateExercise: async (templateId: number, pivotId: number, data: UpdateTemplateExerciseInput): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>(`/workout-templates/${templateId}/exercises/${pivotId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
-  swapExercise: async (templateId: number, pivotId: number, data: SwapTemplateExerciseInput) => {
-    return fetchWithAuth(`/workout-templates/${templateId}/exercises/${pivotId}/swap`, {
+  swapExercise: async (templateId: number, pivotId: number, data: SwapTemplateExerciseInput): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>(`/workout-templates/${templateId}/exercises/${pivotId}/swap`, {
       method: 'PATCH',
       body: JSON.stringify(data)
     });
   },
-  removeExercise: async (templateId: number, pivotId: number) => {
-    return fetchWithAuth(`/workout-templates/${templateId}/exercises/${pivotId}`, {
+  removeExercise: async (templateId: number, pivotId: number): Promise<void> => {
+    await authed<unknown>(`/workout-templates/${templateId}/exercises/${pivotId}`, {
       method: 'DELETE'
     });
   },
-  reorderExercises: async (templateId: number, order: number[]) => {
-    return fetchWithAuth(`/workout-templates/${templateId}/order`, {
+  reorderExercises: async (templateId: number, order: number[]): Promise<DataResponse<WorkoutTemplateResource>> => {
+    return authed<DataResponse<WorkoutTemplateResource>>(`/workout-templates/${templateId}/order`, {
       method: 'POST',
       body: JSON.stringify({
         order
@@ -540,11 +507,11 @@ export const templatesApi = {
 // ============================================================================
 
 export const plannerApi = {
-  getWeeklyPlanner: async () => {
-    return fetchWithAuth('/planner/weekly');
+  getWeeklyPlanner: async (): Promise<WeeklyPlannerResponse> => {
+    return authed<WeeklyPlannerResponse>('/planner/weekly');
   },
-  assignTemplate: async (templateId: number, dayOfWeek: number) => {
-    return fetchWithAuth('/planner/assign', {
+  assignTemplate: async (templateId: number, dayOfWeek: number): Promise<MessageResponse> => {
+    return authed<MessageResponse>('/planner/assign', {
       method: 'POST',
       body: JSON.stringify({
         template_id: templateId,
@@ -552,8 +519,8 @@ export const plannerApi = {
       })
     });
   },
-  unassignTemplate: async (templateId: number) => {
-    return fetchWithAuth('/planner/unassign', {
+  unassignTemplate: async (templateId: number): Promise<MessageResponse> => {
+    return authed<MessageResponse>('/planner/unassign', {
       method: 'POST',
       body: JSON.stringify({
         template_id: templateId
@@ -567,97 +534,97 @@ export const plannerApi = {
 // ============================================================================
 
 export const sessionsApi = {
-  getCalendar: async (startDate: string, endDate: string) => {
-    return fetchWithAuth(`/workout-sessions/calendar?start_date=${startDate}&end_date=${endDate}`);
+  getCalendar: async (startDate: string, endDate: string): Promise<CalendarResponse> => {
+    return authed<CalendarResponse>(`/workout-sessions/calendar?start_date=${startDate}&end_date=${endDate}`);
   },
-  getTodayWorkout: async () => {
-    return fetchWithAuth('/workout-sessions/today');
+  getTodayWorkout: async (): Promise<TodayWorkoutResponse> => {
+    return authed<TodayWorkoutResponse>('/workout-sessions/today');
   },
-  startSession: async (templateId?: number) => {
-    return fetchWithAuth('/workout-sessions/start', {
+  startSession: async (templateId?: number): Promise<DataResponse<WorkoutSessionResource>> => {
+    return authed<DataResponse<WorkoutSessionResource>>('/workout-sessions/start', {
       method: 'POST',
       body: JSON.stringify(templateId ? {
         template_id: templateId
       } : {})
     });
   },
-  generateDraftSession: async (data: GenerateWorkoutInput) => {
-    return fetchWithAuth('/workout-sessions/generate', {
+  generateDraftSession: async (data: GenerateWorkoutInput): Promise<DataResponse<GeneratedSessionResource>> => {
+    return authed<DataResponse<GeneratedSessionResource>>('/workout-sessions/generate', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  confirmDraftSession: async (sessionId: number) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/confirm`, {
+  confirmDraftSession: async (sessionId: number): Promise<DataResponse<WorkoutSessionResource>> => {
+    return authed<DataResponse<WorkoutSessionResource>>(`/workout-sessions/${sessionId}/confirm`, {
       method: 'POST'
     });
   },
-  regenerateDraftSession: async (sessionId: number, data: RegenerateWorkoutInput) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/regenerate`, {
+  regenerateDraftSession: async (sessionId: number, data: RegenerateWorkoutInput): Promise<DataResponse<GeneratedSessionResource>> => {
+    return authed<DataResponse<GeneratedSessionResource>>(`/workout-sessions/${sessionId}/regenerate`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  getSession: async (sessionId: number) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}`);
+  getSession: async (sessionId: number): Promise<SessionDetailResponse> => {
+    return authed<SessionDetailResponse>(`/workout-sessions/${sessionId}`);
   },
-  completeSession: async (sessionId: number, notes?: string) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/complete`, {
+  completeSession: async (sessionId: number, notes?: string): Promise<CompleteSessionResponse> => {
+    return authed<CompleteSessionResponse>(`/workout-sessions/${sessionId}/complete`, {
       method: 'POST',
       body: JSON.stringify(notes ? {
         notes
       } : {})
     });
   },
-  cancelSession: async (sessionId: number) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/cancel`, {
+  cancelSession: async (sessionId: number): Promise<void> => {
+    await authed<unknown>(`/workout-sessions/${sessionId}/cancel`, {
       method: 'DELETE'
     });
   },
   // Set Logging
-  logSet: async (sessionId: number, data: LogSetInput) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/sets`, {
+  logSet: async (sessionId: number, data: LogSetInput): Promise<DataMessageResponse<SetLogResource>> => {
+    return authed<DataMessageResponse<SetLogResource>>(`/workout-sessions/${sessionId}/sets`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateSet: async (sessionId: number, setLogId: number, data: UpdateSetInput) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/sets/${setLogId}`, {
+  updateSet: async (sessionId: number, setLogId: number, data: UpdateSetInput): Promise<DataMessageResponse<SetLogResource>> => {
+    return authed<DataMessageResponse<SetLogResource>>(`/workout-sessions/${sessionId}/sets/${setLogId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
-  deleteSet: async (sessionId: number, setLogId: number) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/sets/${setLogId}`, {
+  deleteSet: async (sessionId: number, setLogId: number): Promise<void> => {
+    await authed<unknown>(`/workout-sessions/${sessionId}/sets/${setLogId}`, {
       method: 'DELETE'
     });
   },
   // Session Exercise Management
-  addExercise: async (sessionId: number, data: AddSessionExerciseInput) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/exercises`, {
+  addExercise: async (sessionId: number, data: AddSessionExerciseInput): Promise<DataResponse<WorkoutSessionExerciseResource>> => {
+    return authed<DataResponse<WorkoutSessionExerciseResource>>(`/workout-sessions/${sessionId}/exercises`, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
-  updateSessionExercise: async (sessionId: number, exerciseId: number, data: UpdateSessionExerciseInput) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/${exerciseId}`, {
+  updateSessionExercise: async (sessionId: number, exerciseId: number, data: UpdateSessionExerciseInput): Promise<DataResponse<WorkoutSessionExerciseResource>> => {
+    return authed<DataResponse<WorkoutSessionExerciseResource>>(`/workout-sessions/${sessionId}/exercises/${exerciseId}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
   },
-  swapSessionExercise: async (sessionId: number, exerciseId: number, data: SwapSessionExerciseInput) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/${exerciseId}/swap`, {
+  swapSessionExercise: async (sessionId: number, exerciseId: number, data: SwapSessionExerciseInput): Promise<DataResponse<WorkoutSessionExerciseResource>> => {
+    return authed<DataResponse<WorkoutSessionExerciseResource>>(`/workout-sessions/${sessionId}/exercises/${exerciseId}/swap`, {
       method: 'PATCH',
       body: JSON.stringify(data)
     });
   },
-  removeSessionExercise: async (sessionId: number, exerciseId: number) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/${exerciseId}`, {
+  removeSessionExercise: async (sessionId: number, exerciseId: number): Promise<void> => {
+    await authed<unknown>(`/workout-sessions/${sessionId}/exercises/${exerciseId}`, {
       method: 'DELETE'
     });
   },
-  reorderSessionExercises: async (sessionId: number, exerciseIds: number[]) => {
-    return fetchWithAuth(`/workout-sessions/${sessionId}/exercises/reorder`, {
+  reorderSessionExercises: async (sessionId: number, exerciseIds: number[]): Promise<DataResponse<WorkoutSessionResource>> => {
+    return authed<DataResponse<WorkoutSessionResource>>(`/workout-sessions/${sessionId}/exercises/reorder`, {
       method: 'POST',
       body: JSON.stringify({
         exercise_ids: exerciseIds

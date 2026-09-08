@@ -22,6 +22,7 @@ import {
   useUpdateProgram,
   useDeleteProgram,
   useStartSession,
+  withAlpha,
 } from '@fit-nation/shared'
 import type {
   PlanResource,
@@ -262,7 +263,7 @@ export function PlansScreen() {
       style={[styles.workoutRow, { backgroundColor: colors.bgElevated }]}
     >
       <View style={styles.workoutRowLeft}>
-        <View style={[styles.workoutIcon, { backgroundColor: `${colors.primary}18` }]}>
+        <View style={[styles.workoutIcon, { backgroundColor: withAlpha(colors.primary, 0.094) }]}>
           <Dumbbell size={15} color={colors.primary} />
         </View>
         <Text
@@ -336,7 +337,7 @@ export function PlansScreen() {
               </View>
             ) : null}
             {isActive && (
-              <View style={[styles.activeBadge, { backgroundColor: `${colors.success}20` }]}>
+              <View style={[styles.activeBadge, { backgroundColor: withAlpha(colors.success, 0.125) }]}>
                 <Text style={[styles.activeBadgeText, { color: colors.success }]}>ACTIVE</Text>
               </View>
             )}
@@ -371,7 +372,7 @@ export function PlansScreen() {
           {effectiveTab === 'customPlans' && (
             <TouchableOpacity
               onPress={() => navigation.navigate('CreatePlan')}
-              style={[styles.addBtn, { backgroundColor: `${colors.primary}22` }]}
+              style={[styles.addBtn, { backgroundColor: withAlpha(colors.primary, 0.133) }]}
             >
               <Plus size={22} color={colors.primary} />
             </TouchableOpacity>
@@ -441,7 +442,7 @@ export function PlansScreen() {
                         <View
                           style={[
                             styles.activeBadge,
-                            { backgroundColor: `${colors.success}20` },
+                            { backgroundColor: withAlpha(colors.success, 0.125) },
                           ]}
                         >
                           <Text style={[styles.activeBadgeText, { color: colors.success }]}>
@@ -698,7 +699,7 @@ export function PlansScreen() {
                     end={{ x: 1, y: 0 }}
                     style={styles.browseLibraryGradient}
                   >
-                    <Plus size={20} color="#fff" />
+                    <Plus size={20} color={colors.textButton} />
                     <Text style={styles.browseLibraryText}>BROWSE LIBRARY</Text>
                   </LinearGradient>
                 </TouchableOpacity>

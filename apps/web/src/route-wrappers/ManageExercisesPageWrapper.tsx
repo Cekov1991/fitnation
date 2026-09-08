@@ -51,7 +51,7 @@ export default function ManageExercisesPageWrapper() {
     <EditWorkoutPage
       templateId={parseInt(templateId)}
       workoutName={workoutName}
-      workoutDescription={workoutDescription}
+      workoutDescription={workoutDescription ?? undefined}
       onBack={handleBack}
       onAddExercise={handleAddExercise}
       onSwapExercise={handleSwapExercise}

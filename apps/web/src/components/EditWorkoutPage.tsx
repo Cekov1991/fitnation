@@ -28,7 +28,6 @@ interface Exercise {
   primaryMuscle: string;
   muscleGroupIds: number[];
   imageUrl: string;
-  muscleGroupImageUrl: string;
 }
 
 // Separate component for draggable exercise item to use its own useDragControls hook

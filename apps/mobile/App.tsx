@@ -86,13 +86,13 @@ export default function App() {
         <KeyboardProvider>
           <SafeAreaProvider>
             <QueryClientProvider client={queryClient}>
-              <ThemeProvider>
-                <AuthProvider>
+              <AuthProvider>
+                <ThemeProvider>
                   <OfflineBanner />
                   <RootNavigator />
                   <ToastHost />
-                </AuthProvider>
-              </ThemeProvider>
+                </ThemeProvider>
+              </AuthProvider>
             </QueryClientProvider>
           </SafeAreaProvider>
         </KeyboardProvider>

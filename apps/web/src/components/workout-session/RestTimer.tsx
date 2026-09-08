@@ -1,33 +1,16 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Timer } from 'lucide-react';
-import { useRestTimer } from './hooks/useRestTimer';
+import type { RestTimerHandle } from './hooks/useRestTimer';
 import { useSlideTransition } from '../../utils/animations';
 
 interface RestTimerProps {
-  restSeconds: number | null;
-  isActive: boolean;
-  onDismiss: () => void;
+  /** The one rest timer, owned by the page (useRestTimer). This only renders it. */
+  timer: RestTimerHandle;
 }
 
-export function RestTimer({ restSeconds, isActive, onDismiss }: RestTimerProps) {
-  const { formattedTime, timeRemaining, addTime, subtractTime } = useRestTimer({ restSeconds, isActive });
-  const [totalSeconds, setTotalSeconds] = useState(restSeconds ?? 0);
+export function RestTimer({ timer }: RestTimerProps) {
+  const { formattedTime, timeRemaining, totalSeconds, isActive, addTime, subtractTime, dismiss } = timer;
   const slideTransition = useSlideTransition('down');
-
-  // Track the max time (for progress calculation)
-  useEffect(() => {
-    if (restSeconds !== null && isActive) {
-      setTotalSeconds(restSeconds);
-    }
-  }, [restSeconds, isActive]);
-
-  // Update total when time is added
-  useEffect(() => {
-    if (timeRemaining > totalSeconds) {
-      setTotalSeconds(timeRemaining);
-    }
-  }, [timeRemaining, totalSeconds]);
 
   if (!isActive) return null;
 
@@ -128,7 +111,7 @@ export function RestTimer({ restSeconds, isActive, onDismiss }: RestTimerProps) 
 
           {/* Dismiss button */}
           <button
-            onClick={onDismiss}
+            onClick={dismiss}
             className="w-8 h-8 rounded-lg flex items-center justify-center ml-1 active:opacity-70"
             style={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.15)',

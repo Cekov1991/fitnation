@@ -5,9 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
-import { useTheme } from './ThemeContext'
 import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
-import { partnerColorOverrides } from '../lib/partnerTheme'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -47,7 +45,6 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const { setColors, resetColors } = useTheme()
   const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
 
@@ -62,16 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       queryClient.clear()
       clearLastDeviceRegistration()
-      resetColors()
     })
     return () => setOnUnauthorized(null)
-  }, [queryClient, resetColors])
-
-  // Replaces the theme's overrides outright, so a plain account clears whatever
-  // the previous Partner painted instead of inheriting it.
-  function applyPartnerColors(currentUser: UserResource) {
-    setColors(partnerColorOverrides(currentUser))
-  }
+  }, [queryClient])
 
   useEffect(() => {
     async function loadUser() {
@@ -79,7 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY)
         if (token) {
           const { user: currentUser } = await authApi.getCurrentUser()
-          applyPartnerColors(currentUser)
           setUser(currentUser)
         }
       } catch {
@@ -102,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!token) return
         try {
           const { user: currentUser } = await authApi.getCurrentUser()
-          applyPartnerColors(currentUser)
           setUser(currentUser)
         } catch {
           // silent — token may have been revoked; auth guard will handle the next protected request
@@ -119,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Re-fetch after the token is stored — the login response may omit fields
     // like onboarding_completed_at that the navigation logic depends on.
     const { user: fullUser } = await authApi.getCurrentUser()
-    applyPartnerColors(fullUser)
     setUser(fullUser)
   }
 
@@ -127,7 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await authApi.socialLogin({ provider, token, name })
     await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
     const { user: fullUser } = await authApi.getCurrentUser()
-    applyPartnerColors(fullUser)
     setUser(fullUser)
   }
 
@@ -149,15 +135,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Sign out from Google so the account picker appears on next social login
     try { await GoogleSignin.signOut() } catch {}
     queryClient.clear()
-    // The Partner's colours go with the session: the next account on this
-    // phone starts from the default palette, no cold start needed.
-    resetColors()
     setUser(null)
   }
 
   async function refreshUser() {
     const { user: currentUser } = await authApi.getCurrentUser()
-    applyPartnerColors(currentUser)
     setUser(currentUser)
   }
 

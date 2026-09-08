@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { TrendingUp } from 'lucide-react-native'
-import { useFitnessMetrics } from '@fit-nation/shared'
+import { useFitnessMetrics, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -80,7 +80,7 @@ export function StrengthScoreModal({ visible, onClose }: StrengthScoreModalProps
         <View className="flex-row items-center justify-between mb-4">
           <View
             className="w-16 h-16 rounded-full items-center justify-center"
-            style={{ backgroundColor: `${colors.primary}33` }}
+            style={{ backgroundColor: withAlpha(colors.primary, 0.2) }}
           >
             <TrendingUp size={32} color={colors.primary} />
           </View>

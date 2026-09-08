@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
+import { withAlpha } from '@fit-nation/shared'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { X, type LucideIcon } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -66,8 +67,8 @@ export function ActionSheet({
                   const iconBg = action.iconColor
                     ? `${action.iconColor}22`
                     : action.destructive
-                      ? `${colors.error}22`
-                      : `${colors.primary}22`
+                      ? withAlpha(colors.error, 0.133)
+                      : withAlpha(colors.primary, 0.133)
                   const iconColor = action.iconColor
                     ? action.iconColor
                     : action.destructive

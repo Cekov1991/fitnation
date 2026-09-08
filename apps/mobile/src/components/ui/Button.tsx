@@ -33,9 +33,9 @@ export function Button({ label, loading, variant = 'primary', style, ...props }:
           style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center' }}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.textButton} />
           ) : (
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{label}</Text>
+            <Text style={{ color: colors.textButton, fontSize: 16, fontWeight: '700' }}>{label}</Text>
           )}
         </LinearGradient>
       ) : (

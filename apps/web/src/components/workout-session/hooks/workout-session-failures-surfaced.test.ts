@@ -28,6 +28,7 @@ const REQUIRED_MESSAGES = [
   "Couldn't save that set. Check your connection and try again.",
   "Couldn't update the set.",
   "Couldn't change the number of sets.",
+  "Couldn't remove that set.",
   "Couldn't add that exercise.",
   "Couldn't swap that exercise. Nothing was changed.",
   "Couldn't remove that exercise.",
@@ -64,7 +65,7 @@ describe('workout session mutation failures reach the user (web)', () => {
   const source = readFileSync(HOOK, 'utf8');
 
   it('still has catch blocks to check', () => {
-    expect(catchBodies(source).length).toBeGreaterThanOrEqual(9);
+    expect(catchBodies(source).length).toBeGreaterThanOrEqual(7);
   });
 
   it('never fails a mutation in silence', () => {

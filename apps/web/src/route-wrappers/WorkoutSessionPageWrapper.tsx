@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { WorkoutSessionPage } from '../components/workout-session';
-import { useTodayWorkout } from '@fit-nation/shared';
+import { useTodayWorkout, queryKeys } from '@fit-nation/shared';
 
 // Workout session page wrapper (no BottomNav for full-screen workout experience)
 export default function WorkoutSessionPageWrapper() {
@@ -25,7 +25,7 @@ export default function WorkoutSessionPageWrapper() {
 
   const refreshPrograms = async () => {
     try {
-      await queryClient.refetchQueries({ queryKey: ['programs'], type: 'all' });
+      await queryClient.refetchQueries({ queryKey: queryKeys.programs.all(), type: 'all' });
     } catch (error) {
       console.error('Failed to refetch programs:', error);
     }

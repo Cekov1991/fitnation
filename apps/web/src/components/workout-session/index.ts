@@ -8,7 +8,6 @@ export { ExerciseOptionsMenu } from './ExerciseOptionsMenu';
 export { SetOptionsMenu } from './SetOptionsMenu';
 export { RestTimer } from './RestTimer';
 export { ExerciseContent } from './ExerciseContent';
-export { WorkoutDialogs } from './WorkoutDialogs';
 export { FinishWorkoutButton } from './FinishWorkoutButton';
 export { WorkoutSummaryScreen } from './WorkoutSummaryScreen';
 export { useWorkoutTimer } from './hooks/useWorkoutTimer';

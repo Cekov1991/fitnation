@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { WeightUnit } from '@fit-nation/shared'
-import { sanitizeDecimalText } from '@fit-nation/shared'
+import { sanitizeDecimalText, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 
 interface SetEditCardProps {
@@ -49,7 +49,7 @@ export function SetEditCard({
         style={{
           fontSize: 13,
           fontWeight: '700',
-          color: `${colors.textButton}E6`,
+          color: withAlpha(colors.textButton, 0.902),
           marginBottom: 16,
         }}
       >
@@ -63,7 +63,7 @@ export function SetEditCard({
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: `${colors.textButton}E6`,
+                color: withAlpha(colors.textButton, 0.902),
                 marginBottom: 8,
               }}
             >
@@ -76,9 +76,9 @@ export function SetEditCard({
                 borderRadius: 12,
                 paddingHorizontal: 14,
                 paddingVertical: 10,
-                backgroundColor: `${colors.textButton}1F`,
+                backgroundColor: withAlpha(colors.textButton, 0.122),
                 borderWidth: 2,
-                borderColor: `${colors.textButton}33`,
+                borderColor: withAlpha(colors.textButton, 0.2),
               }}
             >
               <TextInput
@@ -87,11 +87,11 @@ export function SetEditCard({
                 // See SetLogCard: normalise the locale decimal separator.
                 onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
                 keyboardType="decimal-pad"
-                placeholderTextColor={`${colors.textButton}80`}
+                placeholderTextColor={withAlpha(colors.textButton, 0.502)}
               />
               <Text
                 style={{
-                  color: `${colors.textButton}D9`,
+                  color: withAlpha(colors.textButton, 0.851),
                   fontSize: 13,
                   fontWeight: '600',
                   marginLeft: 4,
@@ -108,7 +108,7 @@ export function SetEditCard({
             style={{
               fontSize: 11,
               fontWeight: '600',
-              color: `${colors.textButton}E6`,
+              color: withAlpha(colors.textButton, 0.902),
               marginBottom: 8,
             }}
           >
@@ -121,9 +121,9 @@ export function SetEditCard({
               borderRadius: 12,
               paddingHorizontal: 14,
               paddingVertical: 10,
-              backgroundColor: `${colors.textButton}1F`,
+              backgroundColor: withAlpha(colors.textButton, 0.122),
               borderWidth: 2,
-              borderColor: `${colors.textButton}33`,
+              borderColor: withAlpha(colors.textButton, 0.2),
             }}
           >
             <TextInput
@@ -131,11 +131,11 @@ export function SetEditCard({
               value={reps}
               onChangeText={onRepsChange}
               keyboardType="number-pad"
-              placeholderTextColor={`${colors.textButton}80`}
+              placeholderTextColor={withAlpha(colors.textButton, 0.502)}
             />
             <Text
               style={{
-                color: `${colors.textButton}D9`,
+                color: withAlpha(colors.textButton, 0.851),
                 fontSize: 13,
                 fontWeight: '600',
                 marginLeft: 4,
@@ -156,7 +156,7 @@ export function SetEditCard({
             paddingVertical: 16,
             borderRadius: 18,
             alignItems: 'center',
-            backgroundColor: `${colors.textButton}33`,
+            backgroundColor: withAlpha(colors.textButton, 0.2),
           }}
         >
           <Text style={{ color: colors.textButton, fontSize: 16, fontWeight: '700' }}>Cancel</Text>

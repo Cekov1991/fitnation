@@ -1,6 +1,9 @@
 export interface Set {
   id: string;
   setLogId?: number;
+  setNumber: number;
+  /** Logged past the target — shown like any other set (0005). */
+  aboveTarget?: boolean;
   reps: number;
   weight: number;
   completed: boolean;

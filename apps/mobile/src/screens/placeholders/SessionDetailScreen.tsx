@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { ArrowLeft, Clock, Dumbbell, TrendingUp, CheckCircle2, Circle, ChevronRight } from 'lucide-react-native'
-import { useSession, useWeightUnit } from '@fit-nation/shared'
+import { useSession, useWeightUnit, sessionTotals, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -59,7 +59,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
       <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
         <Text style={{ color: colors.textSecondary }}>Failed to load session</Text>
         <TouchableOpacity onPress={() => refetch()} className="mt-4 px-6 py-3 rounded-xl" style={{ backgroundColor: colors.primary }}>
-          <Text style={{ color: '#fff', fontWeight: '600' }}>Retry</Text>
+          <Text style={{ color: colors.textButton, fontWeight: '600' }}>Retry</Text>
         </TouchableOpacity>
       </SafeAreaView>
     )
@@ -68,26 +68,14 @@ export function SessionDetailScreen({ route, navigation }: Props) {
   const exercises: SessionExerciseDetail[] = (sessionData as any).exercises ?? []
   const duration = calcDuration(sessionData.performed_at, sessionData.completed_at)
 
-  const hasWeighted = exercises.some(
-    ex => ex.session_exercise.progression_mode === 'double_progression'
-  )
-  const totalVolume = exercises
-    .filter(ex => ex.session_exercise.progression_mode === 'double_progression')
-    .reduce((sum, ex) => {
-      return sum + (ex.logged_sets ?? []).reduce((s: number, set: SetLogResource) => s + set.weight * set.reps, 0)
-    }, 0)
-  const totalBodyweightReps = exercises
-    .filter(ex => ex.session_exercise.progression_mode === 'total_reps')
-    .reduce((sum, ex) => {
-      return sum + (ex.logged_sets ?? []).reduce((s: number, set: SetLogResource) => s + set.reps, 0)
-    }, 0)
+  const { hasWeighted, weightedVolume: totalVolume, bodyweightReps: totalBodyweightReps } = sessionTotals({ exercises })
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       {/* Header */}
       <View
         className="flex-row items-center gap-3 px-4 py-4 border-b"
-        style={{ borderColor: `${colors.textMuted}20` }}
+        style={{ borderColor: withAlpha(colors.textMuted, 0.125) }}
       >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -109,7 +97,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
           className="rounded-2xl p-6 border mt-4 mb-5"
           style={{
             backgroundColor: colors.bgSurface,
-            borderColor: `${colors.textMuted}20`,
+            borderColor: withAlpha(colors.textMuted, 0.125),
           }}
         >
           <View className="flex-row items-start justify-between mb-4">
@@ -145,7 +133,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
           <View className="flex-row gap-3">
             <View
               className="flex-1 rounded-xl p-3 border"
-              style={{ backgroundColor: colors.bgBase, borderColor: `${colors.textMuted}20` }}
+              style={{ backgroundColor: colors.bgBase, borderColor: withAlpha(colors.textMuted, 0.125) }}
             >
               <Clock size={16} color={colors.primary} style={{ marginBottom: 4 }} />
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
@@ -155,7 +143,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
             </View>
             <View
               className="flex-1 rounded-xl p-3 border"
-              style={{ backgroundColor: colors.bgBase, borderColor: `${colors.textMuted}20` }}
+              style={{ backgroundColor: colors.bgBase, borderColor: withAlpha(colors.textMuted, 0.125) }}
             >
               <Dumbbell size={16} color={colors.secondary} style={{ marginBottom: 4 }} />
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
@@ -165,7 +153,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
             </View>
             <View
               className="flex-1 rounded-xl p-3 border"
-              style={{ backgroundColor: colors.bgBase, borderColor: `${colors.textMuted}20` }}
+              style={{ backgroundColor: colors.bgBase, borderColor: withAlpha(colors.textMuted, 0.125) }}
             >
               <TrendingUp size={16} color={colors.primary} style={{ marginBottom: 4 }} />
               <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
@@ -182,7 +170,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         {exercises.length > 0 ? (
           <View
             className="rounded-xl p-4 border"
-            style={{ backgroundColor: colors.bgSurface, borderColor: `${colors.textMuted}20` }}
+            style={{ backgroundColor: colors.bgSurface, borderColor: withAlpha(colors.textMuted, 0.125) }}
           >
             <Text className="text-sm font-bold mb-4" style={{ color: colors.textPrimary }}>
               Exercises
@@ -200,7 +188,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                   <View
                     key={se.id}
                     className="rounded-lg p-4 border"
-                    style={{ backgroundColor: colors.bgElevated, borderColor: `${colors.textMuted}15` }}
+                    style={{ backgroundColor: colors.bgElevated, borderColor: withAlpha(colors.textMuted, 0.082) }}
                   >
                     <TouchableOpacity
                       onPress={() => {
@@ -243,7 +231,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                           <View
                             key={set.id}
                             className="flex-row items-center justify-between p-3 rounded-lg border"
-                            style={{ backgroundColor: colors.bgSurface, borderColor: `${colors.textMuted}15` }}
+                            style={{ backgroundColor: colors.bgSurface, borderColor: withAlpha(colors.textMuted, 0.082) }}
                           >
                             <View className="flex-row items-center gap-4 flex-1">
                               <Text className="text-sm font-bold" style={{ color: colors.textSecondary, minWidth: 40 }}>
@@ -257,7 +245,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                                     </Text>
                                     <Text className="text-xs" style={{ color: colors.textMuted }}>{weightUnit}</Text>
                                   </View>
-                                  <Text style={{ color: `${colors.textMuted}60` }}>×</Text>
+                                  <Text style={{ color: withAlpha(colors.textMuted, 0.376) }}>×</Text>
                                 </>
                               )}
                               <View className="flex-row items-center gap-1">
@@ -280,7 +268,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                         {loggedSets.length > 1 && (
                           <View
                             className="flex-row items-center justify-between mt-2 pt-3 border-t"
-                            style={{ borderColor: `${colors.textMuted}20` }}
+                            style={{ borderColor: withAlpha(colors.textMuted, 0.125) }}
                           >
                             <Text className="text-xs font-semibold" style={{ color: colors.textSecondary }}>
                               {isBodyweight ? 'Total reps' : 'Volume'}
@@ -306,7 +294,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         ) : (
           <View
             className="rounded-xl p-4 border items-center"
-            style={{ backgroundColor: colors.bgSurface, borderColor: `${colors.textMuted}20` }}
+            style={{ backgroundColor: colors.bgSurface, borderColor: withAlpha(colors.textMuted, 0.125) }}
           >
             <Text className="text-sm" style={{ color: colors.textSecondary }}>No exercises in this session</Text>
           </View>
@@ -316,7 +304,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         {sessionData.notes && (
           <View
             className="rounded-xl p-4 border mt-4"
-            style={{ backgroundColor: colors.bgSurface, borderColor: `${colors.textMuted}20` }}
+            style={{ backgroundColor: colors.bgSurface, borderColor: withAlpha(colors.textMuted, 0.125) }}
           >
             <Text className="text-sm font-bold mb-2" style={{ color: colors.textPrimary }}>Notes</Text>
             <Text className="text-sm" style={{ color: colors.textSecondary }}>{sessionData.notes}</Text>

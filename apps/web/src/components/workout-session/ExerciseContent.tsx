@@ -5,6 +5,7 @@ import { useSimpleTransition } from '../../utils/animations';
 import { ExerciseVideoCard } from './ExerciseVideoCard';
 import { ProgressionBanner } from './ProgressionBanner';
 import { RestTimer } from './RestTimer';
+import type { RestTimerHandle } from './hooks/useRestTimer';
 import { SetsList } from './SetsList';
 import type { Exercise, Set } from './types';
 import type { WeightUnit } from '@fit-nation/shared';
@@ -18,9 +19,7 @@ interface ExerciseContentProps {
   editingReps: number | null;
   setEditingWeight: (w: number | null) => void;
   setEditingReps: (r: number | null) => void;
-  isRestTimerActive: boolean;
-  restTimerSeconds: number | null;
-  setIsRestTimerActive: (v: boolean) => void;
+  restTimer: RestTimerHandle;
   onAddExercise: () => void;
   onOpenSetMenu: (setId: string) => void;
   onAddSet: () => Promise<void>;
@@ -47,9 +46,7 @@ export function ExerciseContent({
   editingReps,
   setEditingWeight,
   setEditingReps,
-  isRestTimerActive,
-  restTimerSeconds,
-  setIsRestTimerActive,
+  restTimer,
   onAddExercise,
   onOpenSetMenu,
   onAddSet,
@@ -136,13 +133,7 @@ export function ExerciseContent({
 
         {/* Rest Timer - Outside keyed content to persist across exercise switches */}
         <AnimatePresence>
-          {isRestTimerActive && (
-            <RestTimer
-              restSeconds={restTimerSeconds}
-              isActive={isRestTimerActive}
-              onDismiss={() => setIsRestTimerActive(false)}
-            />
-          )}
+          {restTimer.isActive && <RestTimer timer={restTimer} />}
         </AnimatePresence>
 
         {/* Sets list with inline log/edit cards */}
@@ -169,7 +160,7 @@ export function ExerciseContent({
               onStartTimer={onStartTimer}
               onSaveEdit={onSaveEdit}
               onCancelEdit={onCancelEdit}
-              isRestTimerActive={isRestTimerActive}
+              isRestTimerActive={restTimer.isActive}
               restSeconds={currentExercise.restSeconds}
               allowWeightLogging={currentExercise.allowWeightLogging}
               goalMinReps={currentExercise.minTargetReps}

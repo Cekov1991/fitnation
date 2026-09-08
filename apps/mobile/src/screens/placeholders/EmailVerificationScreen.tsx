@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, ActivityIndicator } from 'react-native'
 import { Image } from 'expo-image'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { authApi } from '@fit-nation/shared'
+import { authApi, failureOf } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../../components/ui/Button'
@@ -89,13 +89,13 @@ export function EmailVerificationScreen({ navigation }: AppScreenProps<'EmailVer
       await authApi.resendVerificationEmail()
       showToast('Verification email sent!', 'success')
       setResendCooldown(RESEND_COOLDOWN_MS / 1_000)
-    } catch (e: unknown) {
-      const err = e as any
-      if (err?.status === 422) {
+    } catch (e) {
+      const failure = failureOf(e)
+      if (failure.kind === 'validation') {
         showToast('Your email is already verified!', 'success')
         try { await refreshUser() } catch { /* will auto-advance via useEffect */ }
       } else {
-        showToast(err?.message || 'Could not resend email. Please try again.', 'error')
+        showToast(failure.message || 'Could not resend email. Please try again.', 'error')
       }
     } finally {
       setResending(false)

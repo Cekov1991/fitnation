@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
@@ -10,6 +11,14 @@ import {
   useUpdateSessionExercise,
   useWeightUnit,
   isProvisionalSetLogId,
+  persistedSetLogId,
+  allowsWeightLogging,
+  buildSlots,
+  exerciseTargets,
+  isExerciseComplete,
+  queryKeys,
+  removeSet,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressionBanner } from './ProgressionBanner'
@@ -17,11 +26,8 @@ import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
 import { SetOptionsMenu } from './SetOptionsMenu'
-import { isExerciseComplete } from './progress'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
-
-const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT', 'TRX']
 
 // Tracks which session_exercise ids have had a background default-patch
 // attempted this app session, so remounts don't re-fire it. Note this page now
@@ -31,9 +37,6 @@ const BODYWEIGHT_EQUIPMENT = ['BODYWEIGHT', 'TRX']
 // docs/specs/0007-default-target-autopatch-never-retries.md.
 const autoFixedSessionExerciseIds = new Set<number>()
 
-const DEFAULT_SETS = 3
-const DEFAULT_MIN_REPS = 8
-const DEFAULT_MAX_REPS = 12
 
 interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
@@ -48,10 +51,6 @@ interface ExercisePageProps {
   onStartRest: (seconds: number) => void
   onNext?: () => void
 }
-
-type SetSlot =
-  | { kind: 'completed'; setNumber: number; logId: number; weight: number; reps: number }
-  | { kind: 'pending'; setNumber: number }
 
 export function ExercisePage({
   exerciseDetail,
@@ -68,6 +67,7 @@ export function ExercisePage({
   // Computed once here and passed down; the set cards/rows stay presentational.
   const weightUnit = useWeightUnit()
   const logSet = useLogSet()
+  const queryClient = useQueryClient()
   const updateSet = useUpdateSet()
   const deleteSet = useDeleteSet()
   const updateSessionExercise = useUpdateSessionExercise()
@@ -82,38 +82,18 @@ export function ExercisePage({
   const exercise = session_exercise.exercise
   // Fall back to sane defaults so the UI is always usable even when the server
   // row has null targets. A background patch (see effect below) persists these.
-  const targetSets = session_exercise.target_sets || DEFAULT_SETS
-  const minReps = session_exercise.min_target_reps || DEFAULT_MIN_REPS
-  const maxReps = session_exercise.max_target_reps || DEFAULT_MAX_REPS
+  const { sets: targetSets, minReps, maxReps } = exerciseTargets(exerciseDetail)
   const progressionMode = session_exercise.progression_mode
   const progressionStatus = session_exercise.progression_status ?? 'no_history'
-  const allowWeightLogging = !BODYWEIGHT_EQUIPMENT.includes(
-    exercise?.equipment_type?.code ?? ''
-  )
+  const allowWeightLogging = allowsWeightLogging(exercise)
 
-  // Build ordered slots (1..targetSets). Completed if a log exists for that set_number.
-  const slots = useMemo<SetSlot[]>(() => {
-    return Array.from({ length: targetSets }, (_, i) => {
-      const n = i + 1
-      const log = logged_sets.find(l => l.set_number === n)
-      if (log) {
-        return {
-          kind: 'completed' as const,
-          setNumber: n,
-          logId: log.id,
-          weight: log.weight,
-          reps: log.reps,
-        }
-      }
-      return { kind: 'pending' as const, setNumber: n }
-    })
-  }, [targetSets, logged_sets])
+  // The read model decides the rows: the target, or further if the user logged past it (0005).
+  const slots = useMemo(() => buildSlots(exerciseDetail), [exerciseDetail])
 
-  const firstPendingSetNumber = slots.find(s => s.kind === 'pending')?.setNumber ?? null
-
-  const prevActiveSet = previous_sets.find(s => s.set_number === (firstPendingSetNumber ?? 1))
-  const defaultWeight = session_exercise.target_weight ?? prevActiveSet?.weight ?? 0
-  const defaultReps = prevActiveSet?.reps ?? (minReps > 0 ? minReps : 0)
+  const firstPending = slots.find(s => s.kind === 'pending')
+  const firstPendingSetNumber = firstPending?.setNumber ?? null
+  const defaultWeight = firstPending?.kind === 'pending' ? firstPending.prefill.weight : (session_exercise.target_weight ?? 0)
+  const defaultReps = firstPending?.kind === 'pending' ? firstPending.prefill.reps : minReps
 
   // logSet is deliberately absent: it is optimistic, so an in-flight log is
   // not a reason to grey out the rest of the page.
@@ -138,9 +118,9 @@ export function ExercisePage({
       sessionId,
       exerciseId: session_exercise.id,
       data: {
-        target_sets: session_exercise.target_sets || DEFAULT_SETS,
-        min_target_reps: session_exercise.min_target_reps || DEFAULT_MIN_REPS,
-        max_target_reps: session_exercise.max_target_reps || DEFAULT_MAX_REPS,
+        target_sets: targetSets,
+        min_target_reps: minReps,
+        max_target_reps: maxReps,
       },
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -226,7 +206,7 @@ export function ExercisePage({
 
   const activeSlot =
     setMenuSetNumber != null ? slots.find(s => s.setNumber === setMenuSetNumber) : null
-  const activeLogId = activeSlot?.kind === 'completed' ? activeSlot.logId : null
+  const activeLogId = activeSlot?.kind === 'completed' ? activeSlot.setLogId : null
   // A row logged optimistically carries a negative id until the server replies.
   // Edit and remove both address the server by that id, so neither is offered
   // for the one request's worth of time in which the row is still provisional.
@@ -238,7 +218,7 @@ export function ExercisePage({
 
   const handleEditFromMenu = () => {
     if (activeSlot?.kind === 'completed') {
-      setEditingLogId(activeSlot.logId)
+      setEditingLogId(activeSlot.setLogId)
       setEditWeight(activeSlot.weight.toString())
       setEditReps(activeSlot.reps.toString())
     }
@@ -248,7 +228,8 @@ export function ExercisePage({
   const handleSaveEdit = useCallback(async () => {
     // The menu already refuses to open an edit on a provisional row; this is
     // the guard for anything that reaches the handler another way.
-    if (editingLogId == null || isProvisionalSetLogId(editingLogId)) return
+    const editingId = persistedSetLogId(editingLogId)
+    if (editingId == null) return
     const weight = allowWeightLogging
       ? parseFloat(editWeight || '0')
       : 0
@@ -258,7 +239,7 @@ export function ExercisePage({
     try {
       await updateSet.mutateAsync({
         sessionId,
-        setLogId: editingLogId,
+        setLogId: editingId,
         data: { weight: isNaN(weight) ? 0 : weight, reps },
       })
       setEditingLogId(null)
@@ -278,26 +259,37 @@ export function ExercisePage({
       showToast('Remove the exercise instead of the last set.', 'error')
       return
     }
-    try {
-      if (activeSlot.kind === 'completed') {
-        if (isProvisionalSetLogId(activeSlot.logId)) return
-        await deleteSet.mutateAsync({ sessionId, setLogId: activeSlot.logId })
-      }
-      await updateSessionExercise.mutateAsync({
-        sessionId,
-        exerciseId: session_exercise.id,
-        data: { target_sets: targetSets - 1 },
-      })
-    } catch (err) {
-      console.error('Remove set failed:', err)
-      showToast("Couldn't change the number of sets.", 'error')
-    } finally {
-      // Closed either way: the menu is a native Modal, and a toast raised
-      // underneath one is invisible. On failure the row count is simply
-      // unchanged, which the reopened list shows plainly enough.
+    // The menu already refuses a provisional row; this is the guard for anything else.
+    if (activeSlot.kind === 'completed' && persistedSetLogId(activeSlot.setLogId) == null) {
       setSetMenuSetNumber(null)
+      return
     }
-  }, [activeSlot, deleteSet, updateSessionExercise, sessionId, session_exercise.id, targetSets])
+    // One owner for the two writes and their compensation (0026 / 0006).
+    const outcome = await removeSet(
+      {
+        deleteSet: vars => deleteSet.mutateAsync(vars),
+        updateSessionExercise: vars => updateSessionExercise.mutateAsync(vars),
+        resyncSession: id => queryClient.invalidateQueries({ queryKey: queryKeys.sessions.detail(id) }),
+      },
+      {
+        sessionId,
+        sessionExerciseId: session_exercise.id,
+        setLogId: activeSlot.kind === 'completed' ? persistedSetLogId(activeSlot.setLogId) : null,
+        targetSets,
+      }
+    )
+    // Closed either way: the menu is a native Modal, and a toast raised
+    // underneath one is invisible. On failure the row count is simply
+    // unchanged, which the reopened list shows plainly enough.
+    setSetMenuSetNumber(null)
+    if (!outcome.ok) {
+      console.error('Remove set failed:', outcome.error)
+      showToast(
+        outcome.failed === 'delete' ? "Couldn't remove that set." : "Couldn't change the number of sets.",
+        'error'
+      )
+    }
+  }, [activeSlot, deleteSet, updateSessionExercise, queryClient, sessionId, session_exercise.id, targetSets])
 
   const content = (
     <ScrollView
@@ -323,10 +315,10 @@ export function ExercisePage({
       <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
         {slots.map(slot => {
           if (slot.kind === 'completed') {
-            if (editingLogId === slot.logId) {
+            if (editingLogId === slot.setLogId) {
               return (
                 <SetEditCard
-                  key={`edit-${slot.logId}`}
+                  key={`edit-${slot.setLogId}`}
                   setNumber={slot.setNumber}
                   weight={editWeight}
                   reps={editReps}
@@ -370,7 +362,7 @@ export function ExercisePage({
                 goalMinReps={minReps}
                 goalMaxReps={maxReps}
                 goalWeight={session_exercise.target_weight}
-                totalRepsPrevious={previous_sets.find(s => s.set_number === slot.setNumber)?.reps ?? null}
+                totalRepsPrevious={slot.previousReps}
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!isRestRunning && !!session_exercise.rest_seconds}
                 weightUnit={weightUnit}
@@ -406,8 +398,8 @@ export function ExercisePage({
               padding: 16,
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: `${colors.primary}50`,
-              backgroundColor: `${colors.primary}15`,
+              borderColor: withAlpha(colors.primary, 0.314),
+              backgroundColor: withAlpha(colors.primary, 0.082),
               opacity: anyLoading ? 0.5 : 1,
             }}
           >

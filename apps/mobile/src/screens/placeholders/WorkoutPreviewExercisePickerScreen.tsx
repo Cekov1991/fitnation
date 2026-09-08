@@ -9,6 +9,7 @@ import {
   useMuscleGroups,
   useAddSessionExercise,
   useSwapSessionExercise,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FilterChips } from '../../components/exercises/FilterChips'
@@ -187,8 +188,8 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
                   className="w-9 h-9 rounded-full items-center justify-center"
                   style={{
                     backgroundColor: isSwap
-                      ? `${colors.primary}20`
-                      : `${colors.primary}20`,
+                      ? withAlpha(colors.primary, 0.125)
+                      : withAlpha(colors.primary, 0.125),
                   }}
                   activeOpacity={0.7}
                 >

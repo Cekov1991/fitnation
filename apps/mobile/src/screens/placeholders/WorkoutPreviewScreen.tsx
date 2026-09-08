@@ -20,6 +20,7 @@ import {
   useWeightUnit,
   formatRepRange,
   sanitizeDecimalText,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { showToast } from '../../lib/toast'
@@ -189,7 +190,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
         <Text style={{ color: colors.textSecondary }}>Session not found</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 px-6 py-3 rounded-xl" style={{ backgroundColor: colors.primary }}>
-          <Text style={{ color: '#fff', fontWeight: '600' }}>Go Back</Text>
+          <Text style={{ color: colors.textButton, fontWeight: '600' }}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     )
@@ -212,8 +213,8 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
         <View
           className="p-4 rounded-xl border mb-6"
           style={{
-            backgroundColor: `${colors.primary}08`,
-            borderColor: `${colors.primary}20`,
+            backgroundColor: withAlpha(colors.primary, 0.031),
+            borderColor: withAlpha(colors.primary, 0.125),
           }}
         >
           <Text className="text-sm" style={{ color: colors.textPrimary }}>
@@ -234,11 +235,11 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       <TouchableOpacity
         onPress={() => navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })}
         className="w-full py-6 border-2 border-dashed rounded-2xl mt-2 items-center justify-center"
-        style={{ borderColor: `${colors.primary}50` }}
+        style={{ borderColor: withAlpha(colors.primary, 0.314) }}
         activeOpacity={0.7}
       >
         <View className="flex-row items-center gap-3">
-          <View className="p-2 rounded-lg" style={{ backgroundColor: `${colors.primary}15` }}>
+          <View className="p-2 rounded-lg" style={{ backgroundColor: withAlpha(colors.primary, 0.082) }}>
             <Plus size={20} color={colors.primary} />
           </View>
           <Text className="text-base font-semibold" style={{ color: colors.primary }}>
@@ -262,8 +263,8 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
             style={{ paddingVertical: 18, alignItems: 'center', justifyContent: 'center' }}
           >
             <View className="flex-row items-center gap-2">
-              <Check size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 17, fontWeight: '700' }}>
+              <Check size={20} color={colors.textButton} />
+              <Text style={{ color: colors.textButton, fontSize: 17, fontWeight: '700' }}>
                 {confirmDraft.isPending ? 'STARTING...' : 'START WORKOUT'}
               </Text>
             </View>
@@ -275,7 +276,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
           disabled={regenerateDraft.isPending}
           className="w-full py-4 rounded-2xl border-2 flex-row items-center justify-center gap-2"
           style={{
-            borderColor: `${colors.textMuted}40`,
+            borderColor: withAlpha(colors.textMuted, 0.251),
             backgroundColor: colors.bgSurface,
             opacity: regenerateDraft.isPending ? 0.7 : 1,
           }}
@@ -296,7 +297,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
           disabled={cancelSession.isPending}
           className="w-full py-4 rounded-2xl border-2 flex-row items-center justify-center gap-2"
           style={{
-            borderColor: `${colors.error}40`,
+            borderColor: withAlpha(colors.error, 0.251),
             backgroundColor: 'transparent',
             opacity: cancelSession.isPending ? 0.6 : 1,
           }}
@@ -363,7 +364,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                           backgroundColor: colors.secondary,
                         }}
                       >
-                        <ArrowUpDown size={20} color="#fff" />
+                        <ArrowUpDown size={20} color={colors.textButton} />
                       </TouchableOpacity>
                       {/* Edit */}
                       <TouchableOpacity
@@ -380,7 +381,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                           backgroundColor: colors.primary,
                         }}
                       >
-                        <Edit2 size={20} color="#fff" />
+                        <Edit2 size={20} color={colors.textButton} />
                       </TouchableOpacity>
                       {/* Delete */}
                       <TouchableOpacity
@@ -396,7 +397,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                           backgroundColor: colors.error,
                         }}
                       >
-                        <Trash2 size={20} color="#fff" />
+                        <Trash2 size={20} color={colors.textButton} />
                       </TouchableOpacity>
                     </View>
                   )}
@@ -407,7 +408,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                     style={{
                       backgroundColor: isActive ? colors.bgElevated : colors.bgSurface,
                       borderWidth: 1,
-                      borderColor: isActive ? `${colors.primary}40` : 'transparent',
+                      borderColor: isActive ? withAlpha(colors.primary, 0.251) : 'transparent',
                       marginBottom: 12,
                     }}
                   >
@@ -550,7 +551,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         style={{ backgroundColor: colors.primary, opacity: updateExercise.isPending ? 0.7 : 1 }}
                         activeOpacity={0.8}
                       >
-                        <Text style={{ color: '#fff', fontWeight: '700' }}>
+                        <Text style={{ color: colors.textButton, fontWeight: '700' }}>
                           {updateExercise.isPending ? 'Saving...' : 'Save'}
                         </Text>
                       </TouchableOpacity>

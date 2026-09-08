@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native'
 import { AlertTriangle } from 'lucide-react-native'
-import { DEFAULT_TRAINING_STYLES, TRAINING_STYLE_OPTIONS, useEquipmentTypes } from '@fit-nation/shared'
+import { DEFAULT_TRAINING_STYLES, TRAINING_STYLE_OPTIONS, useEquipmentTypes, withAlpha } from '@fit-nation/shared'
 import type { EquipmentTypeResource, RegeneratePlanInput } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -160,7 +160,7 @@ export function RegeneratePlanModal({
               <View
                 style={[
                   styles.warningBox,
-                  { backgroundColor: `${colors.warning}26` },
+                  { backgroundColor: withAlpha(colors.warning, 0.149) },
                 ]}
               >
                 <AlertTriangle size={16} color={colors.warning} style={styles.warningIcon} />
@@ -186,7 +186,7 @@ export function RegeneratePlanModal({
               ]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={colors.textButton} />
               ) : (
                 <Text style={styles.confirmLabel}>Refresh Plan</Text>
               )}
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   confirmLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#fff',
   },
   cancelButton: {
     paddingVertical: 10,

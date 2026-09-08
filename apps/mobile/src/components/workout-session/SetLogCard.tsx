@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import type { WeightUnit } from '@fit-nation/shared'
-import { sanitizeDecimalText } from '@fit-nation/shared'
+import { sanitizeDecimalText, withAlpha } from '@fit-nation/shared'
 
 interface SetLogCardProps {
   setNumber: number
@@ -85,7 +85,7 @@ export function SetLogCard({
           style={{
             fontSize: 13,
             fontWeight: '700',
-            color: `${colors.textButton}E6`,
+            color: withAlpha(colors.textButton, 0.902),
           }}
         >
           Set {setNumber}
@@ -101,7 +101,7 @@ export function SetLogCard({
               borderRadius: 14,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.textButton}2E`,
+              backgroundColor: withAlpha(colors.textButton, 0.18),
             }}
           >
             <MoreVertical size={16} color={colors.textButton} />
@@ -116,7 +116,7 @@ export function SetLogCard({
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: `${colors.textButton}E6`,
+                color: withAlpha(colors.textButton, 0.902),
                 marginBottom: 8,
               }}
             >
@@ -129,9 +129,9 @@ export function SetLogCard({
                 borderRadius: 12,
                 paddingHorizontal: 14,
                 paddingVertical: 10,
-                backgroundColor: `${colors.textButton}1F`,
+                backgroundColor: withAlpha(colors.textButton, 0.122),
                 borderWidth: 2,
-                borderColor: `${colors.textButton}33`,
+                borderColor: withAlpha(colors.textButton, 0.2),
               }}
             >
               <TextInput
@@ -148,11 +148,11 @@ export function SetLogCard({
                 onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
                 keyboardType="decimal-pad"
                 placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
-                placeholderTextColor={`${colors.textButton}80`}
+                placeholderTextColor={withAlpha(colors.textButton, 0.502)}
               />
               <Text
                 style={{
-                  color: `${colors.textButton}D9`,
+                  color: withAlpha(colors.textButton, 0.851),
                   fontSize: 13,
                   fontWeight: '600',
                   marginLeft: 4,
@@ -166,7 +166,7 @@ export function SetLogCard({
                 style={{
                   marginTop: 6,
                   fontSize: 11,
-                  color: `${colors.textButton}B3`,
+                  color: withAlpha(colors.textButton, 0.702),
                 }}
               >
                 Suggested: {formatWeight(goalWeight!)} {weightUnit}
@@ -180,7 +180,7 @@ export function SetLogCard({
             style={{
               fontSize: 11,
               fontWeight: '600',
-              color: `${colors.textButton}E6`,
+              color: withAlpha(colors.textButton, 0.902),
               marginBottom: 8,
             }}
           >
@@ -193,9 +193,9 @@ export function SetLogCard({
               borderRadius: 12,
               paddingHorizontal: 14,
               paddingVertical: 10,
-              backgroundColor: `${colors.textButton}1F`,
+              backgroundColor: withAlpha(colors.textButton, 0.122),
               borderWidth: 2,
-              borderColor: `${colors.textButton}33`,
+              borderColor: withAlpha(colors.textButton, 0.2),
             }}
           >
             <TextInput
@@ -210,11 +210,11 @@ export function SetLogCard({
               onChangeText={onRepsChange}
               keyboardType="number-pad"
               placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
-              placeholderTextColor={`${colors.textButton}80`}
+              placeholderTextColor={withAlpha(colors.textButton, 0.502)}
             />
             <Text
               style={{
-                color: `${colors.textButton}D9`,
+                color: withAlpha(colors.textButton, 0.851),
                 fontSize: 13,
                 fontWeight: '600',
                 marginLeft: 4,
@@ -228,7 +228,7 @@ export function SetLogCard({
               style={{
                 marginTop: 6,
                 fontSize: 11,
-                color: `${colors.textButton}B3`,
+                color: withAlpha(colors.textButton, 0.702),
               }}
             >
               {totalRepsPrevious != null
@@ -240,7 +240,7 @@ export function SetLogCard({
               style={{
                 marginTop: 6,
                 fontSize: 11,
-                color: `${colors.textButton}B3`,
+                color: withAlpha(colors.textButton, 0.702),
               }}
             >
               Target: {goalMinReps}-{goalMaxReps} reps
@@ -279,9 +279,9 @@ export function SetLogCard({
               borderRadius: 18,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.textButton}2E`,
+              backgroundColor: withAlpha(colors.textButton, 0.18),
               borderWidth: 2,
-              borderColor: `${colors.textButton}4D`,
+              borderColor: withAlpha(colors.textButton, 0.302),
             }}
           >
             <Timer size={22} color={colors.textButton} />

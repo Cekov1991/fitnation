@@ -24,6 +24,8 @@ import {
   useSwapSessionExercise,
   useSwapTemplateExercise,
   useWeightUnit,
+  allowsWeightLogging,
+  withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from '../../components/ui/GradientText'
@@ -208,7 +210,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     }
   }
 
-  const allowWeightLogging = exercise?.equipment_type?.code !== 'BODYWEIGHT'
+  const allowWeightLogging = allowsWeightLogging(exercise)
 
   const { data: historyData, isLoading: isLoadingHistory } = useExerciseHistory(
     exercise?.id ?? 0,
@@ -304,8 +306,8 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
               className="p-2 rounded-full flex-shrink-0"
               style={{
                 backgroundColor: isSwapAction
-                  ? `${colors.primary}20`
-                  : `${colors.primary}20`,
+                  ? withAlpha(colors.primary, 0.125)
+                  : withAlpha(colors.primary, 0.125),
                 opacity: !exercise || actionPending ? 0.5 : 1,
               }}
               activeOpacity={0.7}
@@ -582,7 +584,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                         color={colors.primary}
                         thickness={2}
                         dataPointsColor={colors.primary}
-                        startFillColor={`${colors.primary}40`}
+                        startFillColor={withAlpha(colors.primary, 0.251)}
                         endFillColor="transparent"
                         areaChart
                         hideRules

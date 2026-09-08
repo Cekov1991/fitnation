@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useProgram } from '@fit-nation/shared'
+import { useProgram, withAlpha } from '@fit-nation/shared'
 import type { ProgramResource, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -150,7 +150,7 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
             <View className="flex-row flex-wrap gap-2">
               <View
                 className="px-3 py-1 rounded-full"
-                style={{ backgroundColor: `${colors.primary}20` }}
+                style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
               >
                 <Text className="text-xs font-bold uppercase" style={{ color: colors.primary }}>
                   {prog.duration_weeks} Weeks
@@ -158,7 +158,7 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
               </View>
               <View
                 className="px-3 py-1 rounded-full"
-                style={{ backgroundColor: `${colors.primary}20` }}
+                style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
               >
                 <Text className="text-xs font-bold uppercase" style={{ color: colors.primary }}>
                   {prog.workout_templates?.length || 0} Workouts
@@ -167,7 +167,7 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
               {prog.is_active && (
                 <View
                   className="px-3 py-1 rounded-full"
-                  style={{ backgroundColor: `${colors.success}20` }}
+                  style={{ backgroundColor: withAlpha(colors.success, 0.125) }}
                 >
                   <Text className="text-xs font-bold uppercase" style={{ color: colors.success }}>
                     Active
@@ -215,9 +215,9 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
                   <View
                     className="flex-1 rounded-2xl p-4"
                     style={{
-                      backgroundColor: week.isActive ? `${colors.primary}12` : colors.bgSurface,
+                      backgroundColor: week.isActive ? withAlpha(colors.primary, 0.071) : colors.bgSurface,
                       borderWidth: 1,
-                      borderColor: week.isActive ? `${colors.primary}40` : 'transparent',
+                      borderColor: week.isActive ? withAlpha(colors.primary, 0.251) : 'transparent',
                     }}
                   >
                     <View className="flex-row items-center justify-between mb-3">
@@ -225,7 +225,7 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
                         Week {week.weekNumber}
                       </Text>
                       {week.isActive && (
-                        <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}20` }}>
+                        <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}>
                           <Text className="text-xs font-bold" style={{ color: colors.primary }}>Current</Text>
                         </View>
                       )}
@@ -241,9 +241,9 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
                             onPress={() => handleWorkoutPress(workout)}
                             className="flex-row items-center justify-between px-3 py-3 rounded-xl"
                             style={{
-                              backgroundColor: isNext ? `${colors.primary}18` : colors.bgElevated,
+                              backgroundColor: isNext ? withAlpha(colors.primary, 0.094) : colors.bgElevated,
                               borderWidth: isNext ? 1 : 0,
-                              borderColor: isNext ? `${colors.primary}40` : 'transparent',
+                              borderColor: isNext ? withAlpha(colors.primary, 0.251) : 'transparent',
                             }}
                           >
                             <View className="flex-1 min-w-0 mr-2">

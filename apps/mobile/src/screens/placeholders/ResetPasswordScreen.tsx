@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
-import { resetPasswordSchema, type ResetPasswordFormData, authApi } from '@fit-nation/shared'
+import { resetPasswordSchema, type ResetPasswordFormData, authApi, withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
@@ -46,25 +46,16 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
         password_confirmation: data.password_confirmation,
       })
       setSuccess(true)
-    } catch (e: unknown) {
-      const err = e as { status?: number; errors?: { password?: string | string[]; password_confirmation?: string | string[] }; message?: string }
-      const msg = err?.message || 'Something went wrong.'
-      const isExpired =
-        err?.status === 422 &&
-        (msg.toLowerCase().includes('token') ||
-          msg.toLowerCase().includes('invalid') ||
-          msg.toLowerCase().includes('expired'))
-      if (isExpired) {
+    } catch (e) {
+      const failure = failureOf(e)
+      const passwordError = firstFieldError(failure, 'password') ?? firstFieldError(failure, 'password_confirmation')
+      // A validation failure that is not about the password is about the link:
+      // the token or the email it was issued for. No message parsing needed.
+      if (failure.kind === 'validation' && !passwordError) {
         setError('This password reset link is invalid or has expired.')
         setIsInvalidLink(true)
-      } else if (err?.errors?.password) {
-        const first = Array.isArray(err.errors.password) ? err.errors.password[0] : err.errors.password
-        setError(first)
-      } else if (err?.errors?.password_confirmation) {
-        const first = Array.isArray(err.errors.password_confirmation) ? err.errors.password_confirmation[0] : err.errors.password_confirmation
-        setError(first)
       } else {
-        setError(msg)
+        setError(passwordError ?? failure.message)
       }
     }
   }
@@ -126,7 +117,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
               width: 64,
               height: 64,
               borderRadius: 32,
-              backgroundColor: `${colors.primary}20`,
+              backgroundColor: withAlpha(colors.primary, 0.125),
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 16,
@@ -181,7 +172,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             {error && (
               <View
                 className="flex-row items-center gap-3 p-4 rounded-xl mb-4"
-                style={{ backgroundColor: `${colors.error}18`, borderWidth: 1, borderColor: `${colors.error}30` }}
+                style={{ backgroundColor: withAlpha(colors.error, 0.094), borderWidth: 1, borderColor: withAlpha(colors.error, 0.188) }}
               >
                 <AlertCircle color={colors.error} size={18} />
                 <Text className="text-sm flex-1" style={{ color: colors.error }}>{error}</Text>

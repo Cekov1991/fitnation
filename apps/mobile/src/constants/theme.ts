@@ -9,8 +9,8 @@ export const lightColors = {
   textSecondary: '#4B5563',  // gray-600
   textMuted: '#9CA3AF',      // gray-400
   // Content sitting on a brand-filled surface (primary, or a primary→secondary
-  // gradient): text, icons, and — suffixed with an alpha hex pair, e.g.
-  // `${colors.textButton}26` — translucent overlays on that fill. Kept separate
+  // gradient): text, icons, and — through withAlpha(colors.textButton, 0.15) —
+  // translucent overlays on that fill. Kept separate
   // from textPrimary because a partner brand colour may need dark content.
   textButton: '#FFFFFF',
 
