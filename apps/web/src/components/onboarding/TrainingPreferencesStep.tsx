@@ -2,16 +2,7 @@ import { motion } from 'framer-motion';
 import { Dumbbell, ArrowRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData } from '@fit-nation/shared';
-
-// Duration options: label -> backend value (always the higher amount)
-const DURATION_OPTIONS = [
-  { label: '20-30 min', value: 30 },
-  { label: '30-45 min', value: 45 },
-  { label: '45-60 min', value: 60 },
-  { label: '60-90 min', value: 90 },
-  { label: '90+ min', value: 120 },
-];
+import { OnboardingFormData, WORKOUT_DURATION_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared';
 
 interface TrainingPreferencesStepProps {
   control: Control<OnboardingFormData>;
@@ -79,9 +70,11 @@ export function TrainingPreferencesStep({
                       e.currentTarget.style.borderColor = 'var(--color-border)';
                     }}
                   >
-                    <option value="beginner">Beginner (0-1 years)</option>
-                    <option value="intermediate">Intermediate (1-3 years)</option>
-                    <option value="advanced">Advanced (3+ years)</option>
+                    {TRAINING_EXPERIENCE_OPTIONS.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label} ({option.detail})
+                      </option>
+                    ))}
                   </select>
                 )}
               />
@@ -105,7 +98,7 @@ export function TrainingPreferencesStep({
               control={control}
               render={({ field }) => (
                 <div className="grid grid-cols-7 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                  {TRAINING_DAYS_OPTIONS.map(({ value: day }) => (
                     <button
                       key={day}
                       type="button"
@@ -151,7 +144,7 @@ export function TrainingPreferencesStep({
               control={control}
               render={({ field }) => (
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                  {DURATION_OPTIONS.map((option) => (
+                  {WORKOUT_DURATION_OPTIONS.map((option) => (
                     <button
                       key={option.value}
                       type="button"

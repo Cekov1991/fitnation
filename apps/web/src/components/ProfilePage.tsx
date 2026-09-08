@@ -14,18 +14,9 @@ import {
 } from '@fit-nation/shared';
 import type { UnitSystem } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { createProfileSchema, ProfileFormData, failureOf, firstFieldError } from '@fit-nation/shared';
+import { createProfileSchema, ProfileFormData, failureOf, firstFieldError, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 import { ProfilePageSkeleton } from './ProfilePageSkeleton';
-
-// Duration options: label -> backend value (always the higher amount)
-const DURATION_OPTIONS = [
-  { label: '20-30 min', value: 30 },
-  { label: '30-45 min', value: 45 },
-  { label: '45-60 min', value: 60 },
-  { label: '60-90 min', value: 90 },
-  { label: '90+ min', value: 120 },
-];
 
 interface ProfilePageProps {
   onLogout: () => void;
@@ -95,12 +86,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
     }
   }, [profile, reset]);
 
-  const goalOptions = useMemo(() => [
-    { value: 'fat_loss', label: 'Fat Loss' },
-    { value: 'muscle_gain', label: 'Muscle Gain' },
-    { value: 'strength', label: 'Strength' },
-    { value: 'general_fitness', label: 'General Fitness' },
-  ], []);
+  const goalOptions = FITNESS_GOAL_OPTIONS;
 
   if (isLoading) {
     return (
@@ -507,9 +493,11 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                           e.currentTarget.style.borderColor = 'var(--color-border)';
                         }}
                       >
-                        <option value="beginner">Beginner (0-1 years)</option>
-                        <option value="intermediate">Intermediate (1-3 years)</option>
-                        <option value="advanced">Advanced (3+ years)</option>
+                        {TRAINING_EXPERIENCE_OPTIONS.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label} ({option.detail})
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: 'var(--color-text-muted)' }} />
                     </div>
@@ -576,7 +564,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                       control={control}
                       render={({ field }) => (
                         <div className="flex gap-2 flex-wrap">
-                          {DURATION_OPTIONS.map((option) => (
+                          {WORKOUT_DURATION_OPTIONS.map((option) => (
                             <button
                               key={option.value}
                               type="button"

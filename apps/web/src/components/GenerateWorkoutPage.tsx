@@ -7,6 +7,7 @@ import {
   useGenerateDraftSession,
   useProfile,
   useEquipmentTypes,
+  WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared';
 import type { EquipmentTypeResource, GenerateWorkoutInput } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
@@ -20,15 +21,6 @@ const PRESETS = {
   lower: { name: 'Lower Body', targetRegions: ['LOWER', 'CORE'] },
   fullBody: { name: 'Full Body', targetRegions: [] }, // Empty means all regions
 };
-
-// Duration options: label -> backend value (always the higher amount)
-const DURATION_OPTIONS = [
-  { label: '20-30 min', value: 30 },
-  { label: '30-45 min', value: 45 },
-  { label: '45-60 min', value: 60 },
-  { label: '60-90 min', value: 90 },
-  { label: '90+ min', value: 120 },
-];
 
 export function GenerateWorkoutPage() {
   const history = useHistory();
@@ -47,8 +39,8 @@ export function GenerateWorkoutPage() {
     if (profile?.profile?.workout_duration_minutes) {
       const profileDuration = profile.profile.workout_duration_minutes;
       // Find the closest duration option (use the one that's >= profile duration, or the highest)
-      const closestOption = DURATION_OPTIONS.find(opt => opt.value >= profileDuration) 
-        || DURATION_OPTIONS[DURATION_OPTIONS.length - 1];
+      const closestOption = WORKOUT_DURATION_OPTIONS.find(opt => opt.value >= profileDuration) 
+        || WORKOUT_DURATION_OPTIONS[WORKOUT_DURATION_OPTIONS.length - 1];
       setSelectedDuration(closestOption.value);
     } else {
       // Default to 45 min if no profile duration
@@ -167,7 +159,7 @@ export function GenerateWorkoutPage() {
                 Duration
               </h2>
               <div className="flex flex-wrap gap-2">
-                {DURATION_OPTIONS.map((option) => (
+                {WORKOUT_DURATION_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setSelectedDuration(option.value)}

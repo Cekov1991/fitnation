@@ -2,31 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, RefreshCw } from 'lucide-react';
-import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys } from '@fit-nation/shared';
+import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys, WORKOUT_DURATION_OPTIONS, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared';
 import type { FitnessGoal, ProgramResource, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
 import { PlanGeneratingOverlay } from '../ui';
 import { RegeneratePlanModal } from './RegeneratePlanModal';
-
-const DURATION_OPTIONS = [
-  { label: '20-30 min', value: 30 },
-  { label: '30-45 min', value: 45 },
-  { label: '45-60 min', value: 60 },
-  { label: '60-90 min', value: 90 },
-  { label: '90+ min', value: 120 },
-];
-
-const GOAL_OPTIONS: Array<{ value: FitnessGoal; label: string }> = [
-  { value: 'fat_loss', label: 'Fat Loss' },
-  { value: 'muscle_gain', label: 'Muscle Gain' },
-  { value: 'strength', label: 'Strength' },
-  { value: 'general_fitness', label: 'General Fitness' },
-];
-
-const EXPERIENCE_OPTIONS: Array<{ value: TrainingExperience; label: string }> = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' },
-];
 
 const MIN_LOADING_DELAY_MS = 1200;
 
@@ -170,7 +149,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           }}
         >
           <option value="" disabled>Goal</option>
-          {GOAL_OPTIONS.map(option => (
+          {FITNESS_GOAL_OPTIONS.map(option => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
@@ -187,7 +166,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           }}
         >
           <option value="" disabled>Experience</option>
-          {EXPERIENCE_OPTIONS.map(option => (
+          {TRAINING_EXPERIENCE_OPTIONS.map(option => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
@@ -204,7 +183,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           }}
         >
           <option value="" disabled>Days/week</option>
-          {[1, 2, 3, 4, 5, 6, 7].map(days => (
+          {TRAINING_DAYS_OPTIONS.map(({ value: days }) => (
             <option key={days} value={days}>{days} day{days > 1 ? 's' : ''}</option>
           ))}
         </select>
@@ -221,7 +200,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           }}
         >
           <option value="" disabled>Duration</option>
-          {DURATION_OPTIONS.map(option => (
+          {WORKOUT_DURATION_OPTIONS.map(option => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>

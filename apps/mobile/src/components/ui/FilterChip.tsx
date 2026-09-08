@@ -15,7 +15,7 @@ interface FilterChipProps<T> {
   /** The label shown inside the chip. */
   label?: string
   /** Options shown in the action sheet. Omit for an icon-only button. */
-  options?: Array<FilterChipOption<T>>
+  options?: ReadonlyArray<FilterChipOption<T>>
   onSelect?: (value: T) => void
   /** Handler used when the chip has no options (icon-only mode). */
   onPress?: () => void

@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useSlideTransition, useModalTransition } from '../../utils/animations';
-import { OnboardingFormData, failureOf } from '@fit-nation/shared';
+import { OnboardingFormData, failureOf, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, labelFor } from '@fit-nation/shared';
 import { useUpdateProfile, useCompleteOnboarding, submitOnboarding } from '@fit-nation/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { useBranding } from '../../hooks/useBranding';
@@ -29,19 +29,6 @@ export function CompleteStep({ formData }: CompleteStepProps) {
   const completeOnboarding = useCompleteOnboarding();
   const [phase, setPhase] = useState<Phase>('saving-profile');
   const [error, setError] = useState<string | null>(null);
-
-  const goalLabels: Record<string, string> = {
-    fat_loss: 'Fat Loss',
-    muscle_gain: 'Muscle Gain',
-    strength: 'Strength',
-    general_fitness: 'General Fitness',
-  };
-
-  const experienceLabels: Record<string, string> = {
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
-    advanced: 'Advanced',
-  };
 
   const [profileSaved, setProfileSaved] = useState(false);
 
@@ -193,13 +180,13 @@ export function CompleteStep({ formData }: CompleteStepProps) {
                     <div className="flex justify-between">
                       <span style={{ color: 'var(--color-text-secondary)' }}>Goal</span>
                       <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                        {goalLabels[formData.fitness_goal]}
+                        {labelFor(FITNESS_GOAL_OPTIONS, formData.fitness_goal)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span style={{ color: 'var(--color-text-secondary)' }}>Experience</span>
                       <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                        {experienceLabels[formData.training_experience]}
+                        {labelFor(TRAINING_EXPERIENCE_OPTIONS, formData.training_experience)}
                       </span>
                     </div>
                     <div className="flex justify-between">

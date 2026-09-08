@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Target, TrendingDown, Dumbbell, HeartPulse } from 'lucide-react';
 import { Control, Controller } from 'react-hook-form';
 import { useSlideTransition } from '../../utils/animations';
-import { OnboardingFormData } from '@fit-nation/shared';
+import { OnboardingFormData, FITNESS_GOAL_OPTIONS } from '@fit-nation/shared';
 
 interface FitnessGoalsStepProps {
   control: Control<OnboardingFormData>;
@@ -21,32 +21,13 @@ export function FitnessGoalsStep({
 }: FitnessGoalsStepProps) {
   const slideProps = useSlideTransition('up');
 
-  const goals = [
-    {
-      id: 'general_fitness',
-      label: 'General Fitness',
-      icon: HeartPulse,
-      desc: 'Stay healthy and active',
-    },
-    {
-      id: 'fat_loss',
-      label: 'Fat Loss',
-      icon: TrendingDown,
-      desc: 'Burn fat and lose weight',
-    },
-    {
-      id: 'muscle_gain',
-      label: 'Muscle Gain',
-      icon: Dumbbell,
-      desc: 'Build strength and mass',
-    },
-    {
-      id: 'strength',
-      label: 'Strength',
-      icon: Target,
-      desc: 'Increase overall strength',
-    },
-  ];
+  const icons = { general_fitness: HeartPulse, fat_loss: TrendingDown, muscle_gain: Dumbbell, strength: Target } as const;
+  const goals = FITNESS_GOAL_OPTIONS.map(option => ({
+    id: option.value,
+    label: option.label,
+    desc: option.description,
+    icon: icons[option.value],
+  }));
 
   return (
     <div className="flex flex-col h-full">

@@ -26,6 +26,7 @@ export * from './hooks/useUnits'
 
 // Constants
 export * from './constants/trainingStyles'
+export * from './constants/profileOptions'
 
 // Utils
 export * from './utils/workoutHelpers'
