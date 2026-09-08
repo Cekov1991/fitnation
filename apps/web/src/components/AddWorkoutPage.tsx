@@ -74,7 +74,6 @@ export function AddWorkoutPage({
   });
 
   const selectedPlan = watch('plan');
-  const selectedDays = watch('daysOfWeek') || [];
 
   // Reset form when initialData changes (e.g., when API returns fresh data)
   // Use JSON.stringify to create a stable dependency for the daysOfWeek array
