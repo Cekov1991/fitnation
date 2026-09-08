@@ -7,6 +7,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useTheme } from './ThemeContext'
 import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
+import { partnerColorOverrides } from '../lib/partnerTheme'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -46,7 +47,7 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const { setColors } = useTheme()
+  const { setColors, resetColors } = useTheme()
   const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
 
@@ -61,20 +62,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       queryClient.clear()
       clearLastDeviceRegistration()
+      resetColors()
     })
     return () => setOnUnauthorized(null)
-  }, [queryClient])
+  }, [queryClient, resetColors])
 
+  // Replaces the theme's overrides outright, so a plain account clears whatever
+  // the previous Partner painted instead of inheriting it.
   function applyPartnerColors(currentUser: UserResource) {
-    const identity = currentUser.partner?.visual_identity
-    if (!identity) return
-    // Mirror web behavior: only override primary/secondary brand colors.
-    // Background, card, text, and border colors stay at their CSS defaults
-    // so the mobile surface palette matches the web light theme.
-    setColors({
-      ...(identity.primary_color ? { primary: identity.primary_color } : {}),
-      ...(identity.secondary_color ? { secondary: identity.secondary_color } : {}),
-    })
+    setColors(partnerColorOverrides(currentUser))
   }
 
   useEffect(() => {
@@ -153,6 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Sign out from Google so the account picker appears on next social login
     try { await GoogleSignin.signOut() } catch {}
     queryClient.clear()
+    // The Partner's colours go with the session: the next account on this
+    // phone starts from the default palette, no cold start needed.
+    resetColors()
     setUser(null)
   }
 

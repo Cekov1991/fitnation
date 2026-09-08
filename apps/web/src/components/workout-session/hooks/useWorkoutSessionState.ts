@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useUpdateSessionExercise, useReorderSessionExercises, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
+import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, type WeightUnit } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
+import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
 import { useExerciseNavigationState } from './useExerciseNavigationState';
 import { mapSessionToExercises } from '../utils';
@@ -97,6 +98,7 @@ interface UseWorkoutSessionStateReturn {
   // Loading states (for UI)
   isCancelLoading: boolean;
   isAddExerciseLoading: boolean;
+  isSwapExerciseLoading: boolean;
   isRemoveExerciseLoading: boolean;
   isRemoveSetLoading: boolean;
   isCompleteLoading: boolean;
@@ -120,7 +122,7 @@ export function useWorkoutSessionState({
   const addSessionExercise = useAddSessionExercise();
   const removeSessionExercise = useRemoveSessionExercise();
   const updateSessionExercise = useUpdateSessionExercise();
-  const reorderSessionExercises = useReorderSessionExercises();
+  const swapSessionExercise = useSwapSessionExercise();
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
   
@@ -243,6 +245,7 @@ export function useWorkoutSessionState({
         }
       } catch (error) {
         console.error('Failed to log set:', error);
+        showToast("Couldn't save that set. Check your connection and try again.", 'error');
       }
     }
   };
@@ -270,6 +273,7 @@ export function useWorkoutSessionState({
           setEditingSetId(null);
         } catch (error) {
           console.error('Failed to update set:', error);
+          showToast("Couldn't update the set.", 'error');
         }
       }
     }
@@ -298,6 +302,7 @@ export function useWorkoutSessionState({
       setShowSummary(true);
     } catch (error) {
       console.error('Failed to complete session:', error);
+      showToast("Couldn't finish the workout. Your sets are saved — try again.", 'error');
     }
   };
 
@@ -316,6 +321,7 @@ export function useWorkoutSessionState({
       });
     } catch (error) {
       console.error('Failed to add set:', error);
+      showToast("Couldn't change the number of sets.", 'error');
     }
   };
 
@@ -327,7 +333,7 @@ export function useWorkoutSessionState({
 
     // Check if it's the last set
     if (currentExercise.sets.length <= 1) {
-      alert('Cannot remove the last set. Remove the exercise instead.');
+      showToast('Remove the exercise instead of the last set.', 'error');
       return;
     }
 
@@ -356,6 +362,7 @@ export function useWorkoutSessionState({
       setSelectedSetId(null);
     } catch (error) {
       console.error('Failed to remove set:', error);
+      showToast("Couldn't change the number of sets.", 'error');
     }
   };
 
@@ -405,53 +412,30 @@ export function useWorkoutSessionState({
         setShowExercisePicker(false);
       } catch (error) {
         console.error('Failed to add exercise:', error);
+        showToast("Couldn't add that exercise.", 'error');
         isAddingExercise.current = false;
       }
     } else if (exercisePickerMode === 'swap') {
-      // Replace current exercise in place: remove, add at same position, reorder if needed, stay on same index
-      if (currentExercise) {
-        const swapIndex = currentExerciseIndex;
-        try {
-          await removeSessionExercise.mutateAsync({
-            sessionId,
-            exerciseId: currentExercise.sessionExerciseId
-          });
-          await addSessionExercise.mutateAsync({
-            sessionId,
-            data: {
-              exercise_id: exercise.id,
-              order: swapIndex,
-              target_sets: currentExercise.targetSets,
-              min_target_reps: currentExercise.minTargetReps,
-              max_target_reps: currentExercise.maxTargetReps,
-              target_weight: currentExercise.suggestedWeight
-            }
-          });
-          setShowExercisePicker(false);
-          setShowExerciseMenu(false);
-
-          // Refetch session; if backend appended the new exercise, reorder so it's at swapIndex
-          await queryClient.refetchQueries({ queryKey: ['sessions', sessionId] });
-          const session = queryClient.getQueryData<{ exercises?: Array<{ session_exercise: { id: number; exercise_id: number } }> }>(['sessions', sessionId]);
-          const sessionExercises = session?.exercises ?? [];
-          const newEntry = sessionExercises.find((ex) => ex.session_exercise.exercise_id === exercise.id);
-          const newSessionExerciseId = newEntry?.session_exercise.id;
-          const currentOrder = sessionExercises.map((ex) => ex.session_exercise.id);
-
-          if (newSessionExerciseId != null && currentOrder.length > 1) {
-            const newIndex = currentOrder.indexOf(newSessionExerciseId);
-            if (newIndex !== -1 && newIndex !== swapIndex) {
-              const reorderIds = [...currentOrder];
-              reorderIds.splice(newIndex, 1);
-              reorderIds.splice(swapIndex, 0, newSessionExerciseId);
-              await reorderSessionExercises.mutateAsync({ sessionId, exerciseIds: reorderIds });
-            }
-          }
-
-          setCurrentExerciseIndex(swapIndex);
-        } catch (error) {
-          console.error('Failed to swap exercise:', error);
-        }
+      if (!currentExercise) return;
+      // PATCH .../exercises/{sessionExercise}/swap changes exercise_id on the
+      // existing row and nothing else, so logged sets, targets and the row's
+      // position survive by construction — the index we are on stays valid.
+      //
+      // This replaced a remove + add + refetch + reorder sequence with no
+      // rollback: a failure after the remove lost the exercise and its logged
+      // sets outright (0014). Both picker wrappers made the same move earlier.
+      try {
+        await swapSessionExercise.mutateAsync({
+          sessionId,
+          exerciseId: currentExercise.sessionExerciseId,
+          data: { exercise_id: exercise.id }
+        });
+        setShowExercisePicker(false);
+        setShowExerciseMenu(false);
+      } catch (error) {
+        // The session is untouched on failure; the picker stays open for a retry.
+        console.error('Failed to swap exercise:', error);
+        showToast("Couldn't swap that exercise. Nothing was changed.", 'error');
       }
     }
   };
@@ -460,7 +444,7 @@ export function useWorkoutSessionState({
     if (!currentExercise) return;
     
     if (exercises.length <= 1) {
-      alert('Cannot remove the last exercise.');
+      showToast('The workout needs at least one exercise.', 'error');
       return;
     }
 
@@ -478,6 +462,7 @@ export function useWorkoutSessionState({
       }
     } catch (error) {
       console.error('Failed to remove exercise:', error);
+      showToast("Couldn't remove that exercise.", 'error');
     }
   };
 
@@ -522,6 +507,7 @@ export function useWorkoutSessionState({
       onBack();
     } catch (error) {
       console.error('Failed to cancel session:', error);
+      showToast("Couldn't cancel the workout.", 'error');
     }
   };
 
@@ -603,7 +589,8 @@ export function useWorkoutSessionState({
     // Loading states
     isCancelLoading: cancelSession.isPending,
     isAddExerciseLoading: addSessionExercise.isPending,
-    isRemoveExerciseLoading: removeSessionExercise.isPending && !addSessionExercise.isPending,
+    isSwapExerciseLoading: swapSessionExercise.isPending,
+    isRemoveExerciseLoading: removeSessionExercise.isPending,
     isRemoveSetLoading: deleteSet.isPending || updateSessionExercise.isPending,
     isCompleteLoading: completeSession.isPending,
   };

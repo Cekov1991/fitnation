@@ -136,12 +136,12 @@ export function WorkoutSessionPage({
         onRemoveSetFromMenu={state.handleRemoveSetFromMenu}
         onCancelWorkoutConfirm={state.handleCancelWorkoutConfirm}
         onFinishWorkoutConfirm={state.handleFinishWorkoutConfirm}
-        isSwapLoading={state.isAddExerciseLoading}
+        isSwapLoading={state.isSwapExerciseLoading}
         isRemoveExerciseLoading={state.isRemoveExerciseLoading}
         isRemoveSetLoading={state.isRemoveSetLoading}
         isCancelLoading={state.isCancelLoading}
         isCompleteLoading={state.isCompleteLoading}
-        isAddExerciseLoading={state.isAddExerciseLoading}
+        isAddExerciseLoading={state.isAddExerciseLoading || state.isSwapExerciseLoading}
         />
 
         <style>{`
