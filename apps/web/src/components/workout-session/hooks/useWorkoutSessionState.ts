@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession, useLogSet, useUpdateSet, useCompleteSession, useCancelSession, useDeleteSet, useAddSessionExercise, useRemoveSessionExercise, useSwapSessionExercise, useUpdateSessionExercise, useWeightUnit, isProvisionalSetLogId, persistedSetLogId, removeSet, sessionTotals, type SessionTotals, type WeightUnit, queryKeys } from '@fit-nation/shared';
 import { exercisesApi } from '@fit-nation/shared';
 import { showToast } from '../../../lib/toast';
 import { useWorkoutTimer } from './useWorkoutTimer';
-import { useExerciseNavigationState } from './useExerciseNavigationState';
+import { useExerciseIndex } from './useExerciseIndex';
+import type { SessionDialogs } from './useSessionDialogs';
+import type { RestTimerHandle } from './useRestTimer';
 import { mapSessionToExercises } from '../utils';
 import type { Exercise, Set } from '../types';
 import type { NewPrResource } from '@fit-nation/shared';
@@ -18,6 +20,9 @@ interface UseWorkoutSessionStateProps {
     options?: { initialActiveTab?: 'guidance' | 'performance' }
   ) => void;
   initialExerciseName?: string | null;
+  /** The page owns the dialogs and the rest timer; the hook drives them. */
+  dialogs: SessionDialogs;
+  restTimer: RestTimerHandle;
 }
 
 interface UseWorkoutSessionStateReturn {
@@ -53,45 +58,22 @@ interface UseWorkoutSessionStateReturn {
 
   // Set management
   handleAddSet: () => Promise<void>;
-  handleOpenSetMenu: (setId: string) => void;
   handleEditSetFromMenu: () => void;
   handleRemoveSetFromMenu: () => void;
 
   // Exercise management
-  handleAddExercise: () => void;
   handleSelectExercise: (exercise: { id: number; name: string; restTime: string; muscleGroups: string[]; imageUrl: string }) => Promise<void>;
   handleRemoveExercise: () => Promise<void>;
-  handleSwapExercise: () => void;
   handleViewExercise: () => void;
   swapMuscleGroupIds: number[];
 
-  // Menus & dialogs state
-  showExerciseMenu: boolean;
-  setShowExerciseMenu: (v: boolean) => void;
-  showSetMenu: boolean;
-  setShowSetMenu: (v: boolean) => void;
+  // Set menu context (the dialogs themselves live in useSessionDialogs)
   selectedSet: Set | null;
-  selectedSetId: string | null;
-  setSelectedSetId: (id: string | null) => void;
   canEditSet: boolean;
   canRemoveSet: boolean;
-  showExercisePicker: boolean;
-  setShowExercisePicker: (v: boolean) => void;
-  exercisePickerMode: 'add' | 'swap';
-  showCancelConfirm: boolean;
-  setShowCancelConfirm: (v: boolean) => void;
-  showFinishConfirm: boolean;
-  setShowFinishConfirm: (v: boolean) => void;
-
-  // Rest timer
-  isRestTimerActive: boolean;
-  restTimerSeconds: number | null;
-  setIsRestTimerActive: (v: boolean) => void;
 
   // Session actions
-  handleFinishWorkout: () => void;
   handleFinishWorkoutConfirm: () => Promise<void>;
-  handleCancelWorkoutClick: () => void;
   handleCancelWorkoutConfirm: () => Promise<void>;
   showSummary: boolean;
   handleSummaryDismiss: () => void;
@@ -111,7 +93,9 @@ export function useWorkoutSessionState({
   onBack,
   onFinish,
   onViewExerciseDetail,
-  initialExerciseName
+  initialExerciseName,
+  dialogs,
+  restTimer
 }: UseWorkoutSessionStateProps): UseWorkoutSessionStateReturn {
   const { data: sessionData, isLoading } = useSession(sessionId);
   const weightUnit = useWeightUnit();
@@ -128,8 +112,9 @@ export function useWorkoutSessionState({
 
   const exercises = useMemo<Exercise[]>(() => mapSessionToExercises(sessionData), [sessionData]);
   
-  // Determine initial exercise index from navigation state (preserves active tab on back navigation)
-  const initialExerciseIndex = useExerciseNavigationState(exercises, initialExerciseName);
+  // One owner for which exercise is on screen: the initial index, following adds and removals, the delayed advance.
+  const exerciseIndex = useExerciseIndex(exercises, initialExerciseName);
+  const currentExerciseIndex = exerciseIndex.index;
 
   // Prefetch exercise history for all exercises when session loads
   useEffect(() => {
@@ -148,18 +133,9 @@ export function useWorkoutSessionState({
     }
   }, [exercises, queryClient]);
 
-  // Initialize state with the calculated index
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(() => initialExerciseIndex);
   const [editingWeight, setEditingWeight] = useState<number | null>(null);
   const [editingReps, setEditingReps] = useState<number | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
-  const [showExerciseMenu, setShowExerciseMenu] = useState(false);
-  const [showSetMenu, setShowSetMenu] = useState(false);
-  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
-  const [showExercisePicker, setShowExercisePicker] = useState(false);
-  const [exercisePickerMode, setExercisePickerMode] = useState<'add' | 'swap'>('add');
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [sessionNewPrs, setSessionNewPrs] = useState<NewPrResource[]>([]);
   
@@ -167,17 +143,12 @@ export function useWorkoutSessionState({
   const { formattedDuration } = useWorkoutTimer(
     showSummary || sessionData?.completed_at ? undefined : sessionData?.performed_at
   );
-  const [isRestTimerActive, setIsRestTimerActive] = useState(false);
-  const [restTimerSeconds, setRestTimerSeconds] = useState<number | null>(null);
-  const isAddingExercise = useRef(false);
-  const previousExercisesLength = useRef(exercises.length);
-  const hasInitializedFromState = useRef(false);
   
   const currentExercise = exercises[currentExerciseIndex];
   const currentSet = currentExercise?.sets.find(s => !s.completed);
   const completedSetsCount = currentExercise?.sets.filter(s => s.completed).length || 0;
-  const selectedSet = selectedSetId && currentExercise
-    ? (currentExercise.sets.find(s => s.id === selectedSetId) ?? null)
+  const selectedSet = dialogs.selectedSetId && currentExercise
+    ? (currentExercise.sets.find(s => s.id === dialogs.selectedSetId) ?? null)
     : null;
   // A set logged optimistically carries a negative id until the server replies.
   // Edit and remove both address the server by that id, so neither is offered
@@ -189,20 +160,6 @@ export function useWorkoutSessionState({
   const allExercisesCompleted = exercises.every(ex => ex.sets.every(s => s.completed));
   const totals = useMemo(() => sessionTotals(sessionData), [sessionData]);
 
-  // Update exercise index when exercises load and we have initialExerciseName from navigation state
-  // This handles the case where exercises load asynchronously after component mount
-  // Only apply once when returning from navigation, not on every render
-  useEffect(() => {
-    if (initialExerciseName && exercises.length > 0 && !hasInitializedFromState.current) {
-      // Only set the index once when we have initialExerciseName and exercises are loaded
-      setCurrentExerciseIndex(initialExerciseIndex);
-      hasInitializedFromState.current = true;
-    } else if (!initialExerciseName) {
-      // Reset the ref when we don't have initialExerciseName (fresh navigation, not returning)
-      hasInitializedFromState.current = false;
-    }
-  }, [exercises.length, initialExerciseName, initialExerciseIndex]);
-
   // Reset editing values when current set changes (use null to show placeholders)
   useEffect(() => {
     if (currentSet && !editingSetId) {
@@ -210,16 +167,6 @@ export function useWorkoutSessionState({
       setEditingReps(null);
     }
   }, [currentSet?.id, editingSetId, currentSet]);
-
-  // Auto-switch to newly added exercise
-  useEffect(() => {
-    if (isAddingExercise.current && exercises.length > previousExercisesLength.current) {
-      // Switch to the last exercise (newly added)
-      setCurrentExerciseIndex(exercises.length - 1);
-      isAddingExercise.current = false;
-    }
-    previousExercisesLength.current = exercises.length;
-  }, [exercises.length]);
 
   const handleDidIt = async () => {
     if (currentSet && currentExercise) {
@@ -240,11 +187,12 @@ export function useWorkoutSessionState({
           }
         });
         
+        // Rest starts when a set is logged, as it does on mobile; before this the
+        // only trigger on web was the manual button (docs/specs/0011 item 2).
+        restTimer.start(currentExercise.restSeconds);
         // Auto-advance to next exercise if all sets completed
-        if (completedSetsCount + 1 === currentExercise.sets.length) {
-          if (currentExerciseIndex < exercises.length - 1) {
-            setTimeout(() => setCurrentExerciseIndex(currentExerciseIndex + 1), 500);
-          }
+        if (completedSetsCount + 1 === currentExercise.sets.length && currentExerciseIndex < exercises.length - 1) {
+          exerciseIndex.advanceSoon(currentExerciseIndex + 1);
         }
       } catch (error) {
         console.error('Failed to log set:', error);
@@ -254,10 +202,7 @@ export function useWorkoutSessionState({
   };
 
   const handleStartTimer = () => {
-    if (currentExercise?.restSeconds) {
-      setRestTimerSeconds(currentExercise.restSeconds);
-      setIsRestTimerActive(true);
-    }
+    restTimer.start(currentExercise?.restSeconds);
   };
 
   const handleSaveEdit = async () => {
@@ -292,7 +237,7 @@ export function useWorkoutSessionState({
   };
 
   const handleSwitchExercise = (index: number) => {
-    setCurrentExerciseIndex(index);
+    exerciseIndex.select(index);
     setEditingSetId(null);
   };
 
@@ -356,8 +301,7 @@ export function useWorkoutSessionState({
       }
     );
     // Closed either way: on failure the row count is simply unchanged, which the list shows.
-    setShowSetMenu(false);
-    setSelectedSetId(null);
+    dialogs.closeSetMenu();
     if (!outcome.ok) {
       console.error('Failed to remove set:', outcome.error);
       showToast(
@@ -367,38 +311,24 @@ export function useWorkoutSessionState({
     }
   };
 
-  const handleOpenSetMenu = (setId: string) => {
-    setSelectedSetId(setId);
-    setShowSetMenu(true);
-  };
-
   const handleEditSetFromMenu = () => {
-    if (selectedSetId && currentExercise) {
-      const set = currentExercise.sets.find(s => s.id === selectedSetId);
-      if (set) {
-        setEditingSetId(set.id);
-        setEditingWeight(set.weight);
-        setEditingReps(set.reps);
-      }
+    if (selectedSet) {
+      setEditingSetId(selectedSet.id);
+      setEditingWeight(selectedSet.weight);
+      setEditingReps(selectedSet.reps);
     }
-    setShowSetMenu(false);
-    setSelectedSetId(null);
+    dialogs.closeSetMenu();
   };
 
   const handleRemoveSetFromMenu = () => {
-    if (selectedSetId) {
-      handleRemoveSet(selectedSetId);
+    if (dialogs.selectedSetId) {
+      handleRemoveSet(dialogs.selectedSetId);
     }
   };
 
-  const handleAddExercise = () => {
-    setExercisePickerMode('add');
-    setShowExercisePicker(true);
-  };
-
   const handleSelectExercise = async (exercise: { id: number; name: string; restTime: string; muscleGroups: string[]; imageUrl: string }) => {
-    if (exercisePickerMode === 'add') {
-      isAddingExercise.current = true;
+    if (dialogs.exercisePickerMode === 'add') {
+      exerciseIndex.expectAddition(true);
       try {
         await addSessionExercise.mutateAsync({
           sessionId,
@@ -410,13 +340,13 @@ export function useWorkoutSessionState({
             target_weight: 0
           }
         });
-        setShowExercisePicker(false);
+        dialogs.setShowExercisePicker(false);
       } catch (error) {
         console.error('Failed to add exercise:', error);
         showToast("Couldn't add that exercise.", 'error');
-        isAddingExercise.current = false;
+        exerciseIndex.expectAddition(false);
       }
-    } else if (exercisePickerMode === 'swap') {
+    } else if (dialogs.exercisePickerMode === 'swap') {
       if (!currentExercise) return;
       // PATCH .../exercises/{sessionExercise}/swap changes exercise_id on the
       // existing row and nothing else, so logged sets, targets and the row's
@@ -431,8 +361,8 @@ export function useWorkoutSessionState({
           exerciseId: currentExercise.sessionExerciseId,
           data: { exercise_id: exercise.id }
         });
-        setShowExercisePicker(false);
-        setShowExerciseMenu(false);
+        dialogs.setShowExercisePicker(false);
+        dialogs.setShowExerciseMenu(false);
       } catch (error) {
         // The session is untouched on failure; the picker stays open for a retry.
         console.error('Failed to swap exercise:', error);
@@ -454,41 +384,22 @@ export function useWorkoutSessionState({
         sessionId,
         exerciseId: currentExercise.sessionExerciseId
       });
-      setShowExerciseMenu(false);
-      
-      // Adjust current exercise index
-      const newExercises = exercises.filter(ex => ex.id !== currentExercise.id);
-      if (currentExerciseIndex >= newExercises.length) {
-        setCurrentExerciseIndex(newExercises.length - 1);
-      }
+      dialogs.setShowExerciseMenu(false);
+      // The index follows the list: useExerciseIndex clamps it once the exercise is gone.
     } catch (error) {
       console.error('Failed to remove exercise:', error);
       showToast("Couldn't remove that exercise.", 'error');
     }
   };
 
-  const handleSwapExercise = () => {
-    setShowExerciseMenu(false);
-    setExercisePickerMode('swap');
-    setShowExercisePicker(true);
-  };
-
   const handleViewExercise = () => {
-    setShowExerciseMenu(false);
+    dialogs.setShowExerciseMenu(false);
     onViewExerciseDetail(currentExercise.name);
   };
 
-  const handleFinishWorkout = () => {
-    setShowFinishConfirm(true);
-  };
-
   const handleFinishWorkoutConfirm = async () => {
-    setShowFinishConfirm(false);
+    dialogs.setShowFinishConfirm(false);
     await handleFinish();
-  };
-
-  const handleCancelWorkoutClick = () => {
-    setShowCancelConfirm(true);
   };
 
   const handleCancelWorkoutConfirm = async () => {
@@ -504,7 +415,7 @@ export function useWorkoutSessionState({
           session: null,
         };
       });
-      setShowCancelConfirm(false);
+      dialogs.setShowCancelConfirm(false);
       onBack();
     } catch (error) {
       console.error('Failed to cancel session:', error);
@@ -544,45 +455,22 @@ export function useWorkoutSessionState({
 
     // Set management
     handleAddSet,
-    handleOpenSetMenu,
     handleEditSetFromMenu,
     handleRemoveSetFromMenu,
 
     // Exercise management
-    handleAddExercise,
     handleSelectExercise,
     handleRemoveExercise,
-    handleSwapExercise,
     handleViewExercise,
     swapMuscleGroupIds: currentExercise?.primaryMuscleGroupIds ?? [],
 
-    // Menus & dialogs state
-    showExerciseMenu,
-    setShowExerciseMenu,
-    showSetMenu,
-    setShowSetMenu,
+    // Set menu context
     selectedSet,
-    selectedSetId,
-    setSelectedSetId,
     canEditSet,
     canRemoveSet,
-    showExercisePicker,
-    setShowExercisePicker,
-    exercisePickerMode,
-    showCancelConfirm,
-    setShowCancelConfirm,
-    showFinishConfirm,
-    setShowFinishConfirm,
-
-    // Rest timer
-    isRestTimerActive,
-    restTimerSeconds,
-    setIsRestTimerActive,
 
     // Session actions
-    handleFinishWorkout,
     handleFinishWorkoutConfirm,
-    handleCancelWorkoutClick,
     handleCancelWorkoutConfirm,
     showSummary,
     handleSummaryDismiss,
