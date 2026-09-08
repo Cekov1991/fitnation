@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { Clock, Dumbbell, Activity, Edit2 } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
-import { formatWeight } from './workout-session/utils';
-import { estimateWorkoutDuration } from '@fit-nation/shared';
+import { estimateWorkoutDuration, formatWeight } from '@fit-nation/shared';
 import { formatRepRange, useWeightUnit } from '@fit-nation/shared';
 import type { WorkoutTemplateResource, TemplateExercise } from '@fit-nation/shared';
 

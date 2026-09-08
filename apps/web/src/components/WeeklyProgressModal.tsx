@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useFitnessMetrics, useProfile, useWeightUnit, getWeeklyGoalMessage } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit, getWeeklyGoalMessage, formatVolume, formatVolumeFull } from '@fit-nation/shared'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 
@@ -21,17 +21,6 @@ interface WeeklyProgressModalProps {
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-function formatVolume(volume: number): string {
-  if (volume >= 1000) {
-    return `${(volume / 1000).toFixed(1)}k`
-  }
-  return volume.toString()
-}
-
-function formatVolumeFull(volume: number): string {
-  return volume.toLocaleString()
-}
 
 function minutesToHours(minutes: number): string {
   const hours = minutes / 60

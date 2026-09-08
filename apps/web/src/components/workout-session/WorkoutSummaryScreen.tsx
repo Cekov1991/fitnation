@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
+import { formatWeight } from '@fit-nation/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Clock, Dumbbell, TrendingUp, Target, Award, Trophy } from 'lucide-react';
 import { useModalTransition, useSlideTransition } from '../../utils/animations';
-import { formatWeight } from './utils';
 import type { Exercise } from './types';
 import type { NewPrResource } from '@fit-nation/shared';
 import type { SessionTotals, WeightUnit } from '@fit-nation/shared';

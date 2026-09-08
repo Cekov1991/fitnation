@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatClock } from '@fit-nation/shared';
 
 export function useWorkoutTimer(performedAt: string | null | undefined) {
   const [duration, setDuration] = useState(0);
@@ -21,11 +22,5 @@ export function useWorkoutTimer(performedAt: string | null | undefined) {
     return () => clearInterval(interval);
   }, [performedAt]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  return { duration, formattedDuration: formatTime(duration) };
+  return { duration, formattedDuration: formatClock(duration) };
 }

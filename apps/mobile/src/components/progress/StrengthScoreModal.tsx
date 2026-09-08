@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { TrendingUp } from 'lucide-react-native'
-import { useFitnessMetrics, withAlpha } from '@fit-nation/shared'
+import { useFitnessMetrics, withAlpha, signPrefix } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -106,7 +106,7 @@ export function StrengthScoreModal({ visible, onClose }: StrengthScoreModalProps
             className="text-2xl font-bold"
             style={{ color: isPositive ? '#4ade80' : '#f87171' }}
           >
-            {isPositive ? '+' : ''}
+            {signPrefix(recentGain)}
             {Math.round(recentGain)}
           </Text>
         </InfoBlock>

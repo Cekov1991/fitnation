@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { idleRestTimer, restJustCompleted, restTimerReducer, type RestTimerState } from './restTimerReducer';
+import { formatRestCountdown } from '@fit-nation/shared';
 
 export interface RestTimerHandle extends RestTimerState {
   formattedTime: string;
@@ -39,11 +40,5 @@ export function useRestTimer({ onComplete }: { onComplete?: () => void } = {}): 
   const addTime = useCallback((seconds: number) => dispatch({ type: 'add', seconds }), []);
   const subtractTime = useCallback((seconds: number) => dispatch({ type: 'subtract', seconds }), []);
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  return { ...state, formattedTime: formatTime(state.timeRemaining), start, dismiss, addTime, subtractTime };
+  return { ...state, formattedTime: formatRestCountdown(state.timeRemaining), start, dismiss, addTime, subtractTime };
 }

@@ -24,6 +24,9 @@ import {
   formatWeekRangeLabel,
   addDaysToCalendarDateKey,
   withAlpha,
+  formatDate,
+  formatDuration,
+  signPrefix,
 } from '@fit-nation/shared'
 import type { WorkoutSessionCalendarResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -40,19 +43,6 @@ type Nav = NativeStackNavigationProp<AppStackParamList>
 type ProgressTab = 'calendar' | 'metrics'
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-function formatDayHeading(dateKey: string): string {
-  const d = new Date(`${dateKey}T12:00:00`)
-  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
-}
-
-function formatDuration(minutes: number | null): string {
-  if (minutes == null || minutes <= 0) return ''
-  if (minutes < 60) return `${minutes}m`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m > 0 ? `${h}h ${m}m` : `${h}h`
-}
 
 interface MetricCardItemProps {
   title: string
@@ -204,14 +194,14 @@ export function ProgressScreen() {
         const groups = metrics.strength_balance.muscle_groups ?? {}
         const activeCount = Object.values(groups).filter((v) => (v as number) > 0).length
         const change = metrics.strength_balance.recent_change
-        const sign = change >= 0 ? '+' : ''
+        const sign = signPrefix(change)
         return `${metrics.strength_balance.level} • ${sign}${change}% • ${activeCount} active`
       })()
     : undefined
 
   const weeklyValue = metrics?.weekly_progress
     ? (() => {
-        const sign = metrics.weekly_progress.percentage >= 0 ? '+' : ''
+        const sign = signPrefix(metrics.weekly_progress.percentage)
         return `${sign}${metrics.weekly_progress.percentage}%`
       })()
     : '--'
@@ -365,7 +355,7 @@ export function ProgressScreen() {
               style={{ borderTopWidth: 1, borderTopColor: `${colors.bgElevated}` }}
             >
               <Text className="text-sm font-bold mb-3" style={{ color: colors.textPrimary }}>
-                {formatDayHeading(selectedDateKey)}
+                {formatDate(selectedDateKey, 'weekday')}
               </Text>
               {selectedSessions.length === 0 ? (
                 <Text className="text-sm" style={{ color: colors.textSecondary }}>

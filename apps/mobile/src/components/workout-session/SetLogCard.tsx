@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import type { WeightUnit } from '@fit-nation/shared'
-import { sanitizeDecimalText, withAlpha } from '@fit-nation/shared'
+import { sanitizeDecimalText, withAlpha, formatWeight } from '@fit-nation/shared'
 
 interface SetLogCardProps {
   setNumber: number
@@ -26,10 +26,6 @@ interface SetLogCardProps {
   showTimerButton?: boolean
   /** Required so a missed call site is a compile error. */
   weightUnit: WeightUnit
-}
-
-function formatWeight(w: number) {
-  return Number.isInteger(w) ? w.toString() : w.toFixed(1)
 }
 
 export function SetLogCard({

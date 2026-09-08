@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
+import { formatWeight } from '@fit-nation/shared';
 import { Plus, MoreVertical } from 'lucide-react';
 import type { Set } from './types';
-import { formatWeight } from './utils';
 import { SetLogCard } from './SetLogCard';
 import { SetEditCard } from './SetEditCard';
 import type { WeightUnit } from '@fit-nation/shared';

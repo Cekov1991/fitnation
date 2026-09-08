@@ -3,7 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Award, CheckCircle2, Clock, Dumbbell, Target, TrendingUp, Trophy } from 'lucide-react-native'
-import { useSession, useWeightUnit, sessionTotals } from '@fit-nation/shared'
+import { useSession, useWeightUnit, sessionTotals, formatDuration, formatWeight, minutesBetween } from '@fit-nation/shared'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -11,18 +11,6 @@ import { GradientText } from '../../components/ui/GradientText'
 import type { AppScreenProps } from '../../navigation/types'
 
 type Props = AppScreenProps<'WorkoutSummary'>
-
-function formatDuration(performedAt: string | null, completedAt: string | null): string {
-  if (!performedAt || !completedAt) return 'N/A'
-  const minutes = Math.floor((new Date(completedAt).getTime() - new Date(performedAt).getTime()) / 60000)
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return h > 0 ? `${h}h ${m}m` : `${m}m`
-}
-
-function formatWeight(weight: number): string {
-  return Number.isInteger(weight) ? weight.toString() : weight.toFixed(1)
-}
 
 export function WorkoutSummaryScreen({ route, navigation }: Props) {
   const { sessionId, newPrs = [] } = route.params
@@ -32,7 +20,7 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
   const weightUnit = useWeightUnit()
 
   const exercises: SessionExerciseDetail[] = (sessionData as any)?.exercises ?? []
-  const duration = formatDuration(sessionData?.performed_at ?? null, sessionData?.completed_at ?? null)
+  const duration = formatDuration(minutesBetween(sessionData?.performed_at, sessionData?.completed_at)) || 'N/A'
 
   const stats = useMemo(() => sessionTotals({ exercises }), [exercises])
 
