@@ -33,12 +33,14 @@ import {
   useTodayWorkout,
   useUpdateProfile,
   withAlpha,
+  FITNESS_GOAL_OPTIONS,
+  TRAINING_EXPERIENCE_OPTIONS,
+  TRAINING_DAYS_OPTIONS,
+  WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared'
 import type {
-  FitnessGoal,
   ProgramResource,
   RegeneratePlanInput,
-  TrainingExperience,
   WorkoutTemplateResource,
 } from '@fit-nation/shared'
 
@@ -59,31 +61,13 @@ import type { AppStackParamList } from '../../navigation/types'
 
 type Nav = NativeStackNavigationProp<AppStackParamList>
 
-const GOAL_OPTIONS: Array<{ value: FitnessGoal; label: string }> = [
-  { value: 'fat_loss', label: 'Fat Loss' },
-  { value: 'muscle_gain', label: 'Muscle Gain' },
-  { value: 'strength', label: 'Strength' },
-  { value: 'general_fitness', label: 'General Fitness' },
-]
+const GOAL_OPTIONS = FITNESS_GOAL_OPTIONS
 
-const EXPERIENCE_OPTIONS: Array<{ value: TrainingExperience; label: string }> = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' },
-]
+const EXPERIENCE_OPTIONS = TRAINING_EXPERIENCE_OPTIONS
 
-const DAYS_OPTIONS: Array<{ value: number; label: string }> = [1, 2, 3, 4, 5, 6, 7].map((d) => ({
-  value: d,
-  label: `${d} day${d > 1 ? 's' : ''}`,
-}))
+const DAYS_OPTIONS = TRAINING_DAYS_OPTIONS
 
-const DURATION_OPTIONS: Array<{ value: number; label: string }> = [
-  { value: 30, label: '20-30 min' },
-  { value: 45, label: '30-45 min' },
-  { value: 60, label: '45-60 min' },
-  { value: 90, label: '60-90 min' },
-  { value: 120, label: '90+ min' },
-]
+const DURATION_OPTIONS = WORKOUT_DURATION_OPTIONS
 
 export function DashboardScreen() {
   const { colors } = useTheme()

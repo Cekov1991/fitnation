@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useFitnessMetrics, useProfile, useWeightUnit } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit, getWeeklyGoalMessage } from '@fit-nation/shared'
 import { useModalTransition } from '../utils/animations'
 import { useBackGesture } from '../hooks/useBackGesture'
 
@@ -41,20 +41,6 @@ function minutesToHours(minutes: number): string {
 function formatIsoWeekLabel(week: string): string {
   const match = week.match(/W(\d+)/i)
   return match ? `W${match[1]}` : week
-}
-
-function getWeeklyGoalMessage(
-  currentWeekWorkouts: number,
-  trainingDaysGoal: number | null
-): string | null {
-  if (trainingDaysGoal == null || trainingDaysGoal <= 0) return null
-  if (currentWeekWorkouts > trainingDaysGoal) {
-    return `You exceeded your ${trainingDaysGoal}-day goal — great week!`
-  }
-  if (currentWeekWorkouts === trainingDaysGoal) {
-    return `You hit your ${trainingDaysGoal}-day goal this week`
-  }
-  return `${currentWeekWorkouts} of ${trainingDaysGoal} day${trainingDaysGoal !== 1 ? 's' : ''} done — finish strong!`
 }
 
 export function WeeklyProgressModal({

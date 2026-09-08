@@ -31,6 +31,15 @@ export interface LegalDocument {
   title: string;
   /** Human-readable, as written in the markdown front matter. */
   lastUpdated: string;
+  /** Where the document lives on the canonical site, e.g. `/privacy`. */
+  path: string;
+  /** The one URL for this document. Every consumer links here; none invents a host. */
+  canonicalUrl: string;
+  /** The meta description. */
+  description: string;
+  /** Who to write to. The build checks the document text mentions the same address. */
+  contactEmail: string;
+  copyrightHolder: string;
   /** Intro paragraphs shown above the first numbered section. */
   lead: LegalBlock[];
   sections: LegalSection[];

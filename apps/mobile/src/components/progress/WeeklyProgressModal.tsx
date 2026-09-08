@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { LineChart } from 'react-native-gifted-charts'
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react-native'
-import { useFitnessMetrics, useProfile, useWeightUnit, withAlpha } from '@fit-nation/shared'
+import { useFitnessMetrics, useProfile, useWeightUnit, withAlpha, getWeeklyGoalMessage } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
@@ -31,20 +31,6 @@ function minutesToHours(minutes: number): string {
 function formatIsoWeekLabel(week: string): string {
   const match = week.match(/W(\d+)/i)
   return match ? `W${match[1]}` : week
-}
-
-function getWeeklyGoalMessage(
-  currentWeekWorkouts: number,
-  trainingDaysGoal: number | null
-): string | null {
-  if (trainingDaysGoal == null || trainingDaysGoal <= 0) return null
-  if (currentWeekWorkouts > trainingDaysGoal) {
-    return `You exceeded your ${trainingDaysGoal}-day goal — great week!`
-  }
-  if (currentWeekWorkouts === trainingDaysGoal) {
-    return `You hit your ${trainingDaysGoal}-day goal this week`
-  }
-  return `${currentWeekWorkouts} of ${trainingDaysGoal} day${trainingDaysGoal !== 1 ? 's' : ''} done — finish strong!`
 }
 
 export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalProps) {

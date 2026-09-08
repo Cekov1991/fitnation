@@ -15,6 +15,11 @@
 //   ---                       front matter, required, first
 //   title: <text>
 //   lastUpdated: <text>
+//   path: </route>              where the document lives on the canonical site
+//   canonicalUrl: <url>        the one URL for this document (must end with path)
+//   description: <text>       the meta description
+//   contactEmail: <email>     who to write to; the footer and the text agree
+//   copyrightHolder: <text>
 //   ---
 //   <paragraph>               lead paragraphs, before any heading
 //   ## <title> {#<anchor-id>} section heading (one line)
@@ -66,9 +71,11 @@ function parse(slug, src) {
     if (!m) throw new Error(`${slug}: bad front matter line: ${line}`);
     meta[m[1]] = m[2].trim();
   }
-  for (const k of ['title', 'lastUpdated']) {
+  for (const k of ['title', 'lastUpdated', 'path', 'canonicalUrl', 'description', 'contactEmail', 'copyrightHolder']) {
     if (!meta[k]) throw new Error(`${slug}: front matter missing ${k}`);
   }
+  if (!meta.canonicalUrl.endsWith(meta.path)) throw new Error(`${slug}: canonicalUrl must end with path`);
+  if (!src.includes(meta.contactEmail)) throw new Error(`${slug}: contactEmail is not mentioned in the document itself`);
 
   const chunks = src
     .slice(fm[0].length)
@@ -132,7 +139,18 @@ function parse(slug, src) {
   const dupes = sections.map((s) => s.id).filter((id, n, a) => a.indexOf(id) !== n);
   if (dupes.length) throw new Error(`${slug}: duplicate anchor id(s): ${dupes.join(', ')}`);
 
-  return { slug, title: meta.title, lastUpdated: meta.lastUpdated, lead, sections };
+  return {
+    slug,
+    title: meta.title,
+    lastUpdated: meta.lastUpdated,
+    path: meta.path,
+    canonicalUrl: meta.canonicalUrl,
+    description: meta.description,
+    contactEmail: meta.contactEmail,
+    copyrightHolder: meta.copyrightHolder,
+    lead,
+    sections,
+  };
 }
 
 const banner = (slug) =>

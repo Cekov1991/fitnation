@@ -1,6 +1,11 @@
 ---
 title: Privacy Policy
 lastUpdated: August 23, 2026
+path: /privacy
+canonicalUrl: https://joinfitnation.com/privacy
+description: How Fit Nation collects, uses, stores and protects your personal and training data.
+contactEmail: support@fitnation.mk
+copyrightHolder: Stefan Cekov
 ---
 
 Stefan Cekov, an individual operator of the Fit Nation Platform ("Fit Nation," "we," "us," or "our") is committed to protecting your privacy and personal data. This Privacy Policy explains how we collect, use, store, share, and protect your information when you use the Fit Nation website, mobile application, and related services ("Platform"). By using Fit Nation, you agree to the practices described in this Privacy Policy.

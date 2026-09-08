@@ -11,6 +11,9 @@ interface AuthConfig {
 
 let _authStorage: AuthStorage | null = null
 let _onUnauthorized: (() => void | Promise<void>) | null = null
+// A 401 that arrived while no handler was registered — before the auth provider
+// mounted — is held here and delivered to the next handler (0031 #7).
+let _pendingUnauthorized = false
 
 export function initAuth(config: AuthConfig) {
   _authStorage = config.storage
@@ -26,10 +29,17 @@ export function getAuthStorage(): AuthStorage {
 
 export function setOnUnauthorized(handler: (() => void | Promise<void>) | null) {
   _onUnauthorized = handler
+  if (handler && _pendingUnauthorized) {
+    _pendingUnauthorized = false
+    void Promise.resolve(handler()).catch(() => {})
+  }
 }
 
 export async function notifyUnauthorized() {
-  if (!_onUnauthorized) return
+  if (!_onUnauthorized) {
+    _pendingUnauthorized = true
+    return
+  }
   try {
     await _onUnauthorized()
   } catch {

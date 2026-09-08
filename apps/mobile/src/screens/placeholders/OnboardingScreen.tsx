@@ -8,7 +8,7 @@ import { Image } from 'expo-image'
 import { useMutation } from '@tanstack/react-query'
 // unitSystem here is form state, not the saved profile, so the pure label
 // helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
-import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS, submitOnboarding, withAlpha } from '@fit-nation/shared'
+import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS, submitOnboarding, withAlpha, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS, TRAINING_DAYS_OPTIONS, labelFor } from '@fit-nation/shared'
 import type { UpdateProfileInput, UnitSystem } from '@fit-nation/shared'
 import {
   Dumbbell, ArrowRight, ArrowLeft,
@@ -30,39 +30,13 @@ const localLogo = require('../../../assets/logo.png')
 // Steps 1-3 are data-collection steps (shown in progress bar)
 const TOTAL_DATA_STEPS = 3
 
-const FITNESS_GOALS = [
-  { value: 'general_fitness' as const, label: 'General Fitness', description: 'Stay healthy and active', Icon: HeartPulse },
-  { value: 'fat_loss' as const, label: 'Fat Loss', description: 'Burn fat and lose weight', Icon: TrendingDown },
-  { value: 'muscle_gain' as const, label: 'Build Muscle', description: 'Gain size and strength', Icon: Dumbbell },
-  { value: 'strength' as const, label: 'Strength', description: 'Increase overall strength', Icon: Target },
-]
+// Icons are this screen's; the values, labels and descriptions are the shared table's.
+const GOAL_ICONS = { general_fitness: HeartPulse, fat_loss: TrendingDown, muscle_gain: Dumbbell, strength: Target } as const
+const FITNESS_GOALS = FITNESS_GOAL_OPTIONS.map(o => ({ value: o.value, label: o.label, description: o.description, Icon: GOAL_ICONS[o.value] }))
 
-const EXPERIENCE_LEVELS = [
-  { value: 'beginner' as const, label: 'Beginner' },
-  { value: 'intermediate' as const, label: 'Intermediate' },
-  { value: 'advanced' as const, label: 'Advanced' },
-]
+const EXPERIENCE_LEVELS = TRAINING_EXPERIENCE_OPTIONS
 
-const DURATION_OPTIONS = [
-  { label: '20-30 min', value: 30 },
-  { label: '30-45 min', value: 45 },
-  { label: '45-60 min', value: 60 },
-  { label: '60-90 min', value: 90 },
-  { label: '90+ min', value: 120 },
-]
-
-const GOAL_LABELS: Record<string, string> = {
-  general_fitness: 'General Fitness',
-  fat_loss: 'Fat Loss',
-  muscle_gain: 'Build Muscle',
-  strength: 'Strength',
-}
-
-const EXPERIENCE_LABELS: Record<string, string> = {
-  beginner: 'Beginner',
-  intermediate: 'Intermediate',
-  advanced: 'Advanced',
-}
+const DURATION_OPTIONS = WORKOUT_DURATION_OPTIONS
 
 type Phase = 'saving-profile' | 'generating-plan' | 'plan-success' | 'push-prompt' | 'error'
 
@@ -240,7 +214,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                   <View className="flex-row justify-between mb-2">
                     <Text style={{ color: colors.textSecondary }}>Goal</Text>
                     <Text className="font-medium" style={{ color: colors.textPrimary }}>
-                      {GOAL_LABELS[state.fitness_goal]}
+                      {labelFor(FITNESS_GOAL_OPTIONS, state.fitness_goal)}
                     </Text>
                   </View>
                 )}
@@ -248,7 +222,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                   <View className="flex-row justify-between mb-2">
                     <Text style={{ color: colors.textSecondary }}>Experience</Text>
                     <Text className="font-medium" style={{ color: colors.textPrimary }}>
-                      {EXPERIENCE_LABELS[state.training_experience]}
+                      {labelFor(TRAINING_EXPERIENCE_OPTIONS, state.training_experience)}
                     </Text>
                   </View>
                 )}
@@ -620,7 +594,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
                 Training Days Per Week
               </Text>
               <View className="flex-row gap-2 mb-1">
-                {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                {TRAINING_DAYS_OPTIONS.map(({ value: day }) => {
                   const isSelected = state.training_days_per_week === day
                   return (
                     <TouchableOpacity

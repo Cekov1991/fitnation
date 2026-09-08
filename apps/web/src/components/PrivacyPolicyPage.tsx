@@ -7,6 +7,6 @@ import { LegalDocumentPage } from './legal/LegalDocumentPage';
 //   pnpm --filter @fit-nation/legal build
 export function PrivacyPolicyPage() {
   return (
-    <LegalDocumentPage doc={privacyPolicy} alsoSee={{ to: '/terms', label: 'Terms of Service' }} />
+    <LegalDocumentPage doc={privacyPolicy} />
   );
 }

@@ -159,14 +159,13 @@ The script throws if Start's output stops matching either expectation, so an
 upstream fix surfaces as a failed build rather than silent double-handling.
 Delete it once both are fixed upstream.
 
-### Known gap
+### Social preview image
 
-`twitter:card` is `summary_large_image` but there is **no `og:image`**, so shared
-links render without a preview image. Fixing it properly needs a designed
-1200×630 asset — the existing screenshots are portrait phone shots and would look
-wrong. Put the file in `public/` and reference it as an absolute URL built from
-`SITE_URL`, not a hashed `src/assets/` import, so the URL stays stable across
-builds.
+`og:image`, its type/width/height/alt and `twitter:image` are set in
+`src/routes/__root.tsx`, pointing at `public/og-image.png` as an absolute URL
+built from `SITE_URL` (not a hashed `src/assets/` import, so the URL stays stable
+across builds). The asset is produced by `scripts/og-image/generate.py`; rerun
+it when the copy or the brand changes.
 
 ## Hard-won constraints — do not undo these
 

@@ -225,6 +225,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@fit-nation/legal':
+        specifier: workspace:*
+        version: link:../../packages/legal
       '@fit-nation/shared':
         specifier: workspace:*
         version: link:../../packages/shared

@@ -26,6 +26,7 @@ export * from './hooks/useUnits'
 
 // Constants
 export * from './constants/trainingStyles'
+export * from './constants/profileOptions'
 
 // Utils
 export * from './utils/workoutHelpers'
@@ -41,8 +42,12 @@ export * from './partner/visualIdentity'
 // Named orchestrations for the multi-write invariants (0026)
 export * from './orchestrations'
 
+// Exercise history, as the detail screens derive it (0031 #5)
+export * from './exercises/historyView'
+
 // Workout Session read model — slots, completion, totals, the weight rule (0023)
 export * from './session/readModel'
+export { getWeeklyGoalMessage } from './session/weeklyGoal'
 
 // Query keys — every React Query key is built here (0028)
 export { queryKeys, type QueryKeys, type ExerciseHistoryParams, type BodyRegion } from './queryKeys'

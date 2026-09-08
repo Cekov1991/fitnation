@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Maximize, Plus, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging } from '@fit-nation/shared';
+import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, historyMetric, currentValue, bestValue, recentSessions as recentSessionsOf, progressPercentage as progressPercentageOf } from '@fit-nation/shared';
 import { ExerciseImage } from './ExerciseImage';
 import type { ExerciseResource, PerformanceDataPoint, MuscleGroupResource } from '@fit-nation/shared';
 import { useModalTransition } from '../utils/animations';
@@ -72,7 +72,8 @@ export function ExerciseDetailPage({
     }
   );
 
-  // Format performance data for chart
+  // Derived once, in packages/shared (0031 #5); the chart keeps its extra fields.
+  const view = useMemo(() => ({ allowWeightLogging, chartMode: 'volume' as const }), [allowWeightLogging]);
   const chartData = useMemo(() => {
     if (!historyData?.performance_data) return [];
     return historyData.performance_data.map((point: PerformanceDataPoint) => ({
@@ -82,39 +83,13 @@ export function ExerciseDetailPage({
       reps: point.reps,
       volume: point.volume,
       sets: point.sets,
-      // Use volume for weighted exercises, best_set_reps for bodyweight
-      value: allowWeightLogging ? point.volume : point.best_set_reps
+      value: historyMetric(point, view),
     }));
-  }, [historyData, allowWeightLogging]);
-
-  // Get recent sessions (last 3, most recent first)
-  const recentSessions = useMemo(() => {
-    if (!historyData?.performance_data) return [];
-    return [...historyData.performance_data]
-      .reverse()
-      .slice(0, 3);
-  }, [historyData]);
-
-  const currentVolume = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0;
-    const latest = historyData.performance_data[historyData.performance_data.length - 1];
-    return latest.volume;
-  }, [historyData]);
-
-  const bestVolume = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0;
-    return Math.max(...historyData.performance_data.map((point: PerformanceDataPoint) => point.volume));
-  }, [historyData]);
-
-  // Compute progress from the same metric the chart uses, so Current/Best/Progress are consistent
-  const progressPercentage = useMemo(() => {
-    if (!historyData?.performance_data?.length) return 0;
-    const data = historyData.performance_data;
-    const first = allowWeightLogging ? data[0].volume : data[0].best_set_reps;
-    const last  = allowWeightLogging ? data[data.length - 1].volume : data[data.length - 1].best_set_reps;
-    if (first === 0) return 0;
-    return ((last - first) / first) * 100;
-  }, [historyData, allowWeightLogging]);
+  }, [historyData, view]);
+  const recentSessions = useMemo(() => recentSessionsOf(historyData), [historyData]);
+  const currentVolume = useMemo(() => currentValue(historyData, view) ?? 0, [historyData, view]);
+  const bestVolume = useMemo(() => bestValue(historyData, view) ?? 0, [historyData, view]);
+  const progressPercentage = useMemo(() => progressPercentageOf(historyData, view), [historyData, view]);
 
   const primaryMuscles = useMemo(() => {
     if (!exercise?.muscle_groups) return [];

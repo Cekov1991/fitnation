@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { privacyPolicy, termsOfService } from '@fit-nation/legal'
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Linking } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -157,14 +158,14 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
           <Text className="text-xs text-center mt-4" style={{ color: colors.textMuted }}>
             By creating an account, you agree to our{' '}
             <Text
-              onPress={() => Linking.openURL('https://fitnation.mk/terms')}
+              onPress={() => Linking.openURL(termsOfService.canonicalUrl)}
               style={{ color: colors.primary, textDecorationLine: 'underline' }}
             >
               Terms of Service
             </Text>
             {' '}and{' '}
             <Text
-              onPress={() => Linking.openURL('https://fitnation.mk/privacy')}
+              onPress={() => Linking.openURL(privacyPolicy.canonicalUrl)}
               style={{ color: colors.primary, textDecorationLine: 'underline' }}
             >
               Privacy Policy

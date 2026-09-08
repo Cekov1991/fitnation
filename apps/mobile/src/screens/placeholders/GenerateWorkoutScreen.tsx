@@ -10,6 +10,7 @@ import {
   useGenerateDraftSession,
   useProfile,
   withAlpha,
+  WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared'
 import type { EquipmentTypeResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
@@ -24,13 +25,7 @@ const PRESETS = [
   { key: 'fullBody', name: 'Full Body', targetRegions: [] },
 ]
 
-const DURATION_OPTIONS = [
-  { label: '20-30 min', value: 30 },
-  { label: '30-45 min', value: 45 },
-  { label: '45-60 min', value: 60 },
-  { label: '60-90 min', value: 90 },
-  { label: '90+ min', value: 120 },
-]
+const DURATION_OPTIONS = WORKOUT_DURATION_OPTIONS
 
 type Props = AppScreenProps<'GenerateWorkout'>
 

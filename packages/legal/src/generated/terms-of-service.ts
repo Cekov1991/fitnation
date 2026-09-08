@@ -8,6 +8,11 @@ export const termsOfService: LegalDocument = {
   "slug": "terms-of-service",
   "title": "Terms of Service",
   "lastUpdated": "August 23, 2026",
+  "path": "/terms",
+  "canonicalUrl": "https://joinfitnation.com/terms",
+  "description": "The terms that govern your use of the Fit Nation platform, including health disclaimers and acceptable use.",
+  "contactEmail": "support@fitnation.mk",
+  "copyrightHolder": "Stefan Cekov",
   "lead": [
     {
       "kind": "p",
