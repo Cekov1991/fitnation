@@ -39,10 +39,8 @@ import {
   WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared'
 import type {
-  FitnessGoal,
   ProgramResource,
   RegeneratePlanInput,
-  TrainingExperience,
   WorkoutTemplateResource,
 } from '@fit-nation/shared'
 
