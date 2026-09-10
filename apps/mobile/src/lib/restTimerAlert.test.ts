@@ -19,6 +19,18 @@ const perms = vi.hoisted(() => ({
 }))
 vi.mock('./notifications', () => perms)
 
+// The Android foreground service (modules/rest-timer). Null = iOS/web/old binary.
+const native = vi.hoisted(() => ({
+  RestTimer: null as null | { start: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> },
+}))
+vi.mock('../../modules/rest-timer', () => native)
+
+function withService() {
+  native.RestTimer = { start: vi.fn(), update: vi.fn(), stop: vi.fn() }
+  platform.OS = 'android'
+  return native.RestTimer
+}
+
 const NOW = 1_800_000_000_000
 
 // Module-level state (the scheduled id, "asked this launch") must start fresh
@@ -39,6 +51,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(NOW)
   platform.OS = 'ios'
+  native.RestTimer = null
   notifications.scheduleNotificationAsync.mockClear().mockResolvedValue('req-1')
   notifications.cancelScheduledNotificationAsync.mockClear()
   perms.getPermissionStatus.mockClear().mockResolvedValue('granted')
@@ -231,5 +244,114 @@ describe('cancelRestAlert', () => {
     await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
     await expect(cancelRestAlert()).resolves.toBeUndefined()
     expect(console.warn).toHaveBeenCalledWith('[rest-timer]', expect.any(Error))
+  })
+})
+
+describe('Android foreground service (R6–R8)', () => {
+  it('starts the service at rest start and schedules no local notification', async () => {
+    const service = withService()
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 90, exerciseName: 'Bench Press' })
+    expect(service.start).toHaveBeenCalledWith(NOW + 90_000, 'Bench Press')
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  })
+
+  it('passes an empty label when there is no current exercise', async () => {
+    const service = withService()
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: null })
+    expect(service.start).toHaveBeenCalledWith(NOW + 60_000, '')
+  })
+
+  it('moves the service on ±15 s', async () => {
+    const service = withService()
+    const { startRestAlert, adjustRestAlert } = await load()
+    await startRestAlert({ seconds: 90, exerciseName: 'Squat' })
+    vi.setSystemTime(NOW + 10_000)
+    await adjustRestAlert(95)
+    expect(service.update).toHaveBeenCalledWith(NOW + 10_000 + 95_000, 'Squat')
+    expect(service.start).toHaveBeenCalledTimes(1)
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  })
+
+  it('stops the service on skip / finish / leave, even when nothing was started', async () => {
+    const service = withService()
+    const { startRestAlert, cancelRestAlert } = await load()
+    await cancelRestAlert()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await cancelRestAlert()
+    expect(service.stop).toHaveBeenCalledTimes(2)
+  })
+
+  it('never starts the service without notification permission', async () => {
+    perms.getPermissionStatus.mockResolvedValue('denied')
+    const service = withService()
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    expect(service.start).not.toHaveBeenCalled()
+  })
+
+  it('a refused service start falls back to the exact local notification and does not reject', async () => {
+    const service = withService()
+    service.start.mockImplementation(() => {
+      throw new Error('ForegroundServiceStartNotAllowed')
+    })
+    const { startRestAlert, cancelRestAlert } = await load()
+    await expect(startRestAlert({ seconds: 60, exerciseName: 'Squat' })).resolves.toBeUndefined()
+    expect(console.warn).toHaveBeenCalledWith('[rest-timer]', expect.any(Error))
+    expect(scheduled().trigger.date).toBe(NOW + 60_000)
+    await cancelRestAlert()
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith('req-1')
+  })
+
+  it('a throwing update or stop does not reject', async () => {
+    const service = withService()
+    service.update.mockImplementation(() => {
+      throw new Error('update')
+    })
+    service.stop.mockImplementation(() => {
+      throw new Error('stop')
+    })
+    const { startRestAlert, adjustRestAlert, cancelRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await expect(adjustRestAlert(70)).resolves.toBeUndefined()
+    await expect(cancelRestAlert()).resolves.toBeUndefined()
+  })
+
+  it('a skip during the permission prompt never starts the service', async () => {
+    perms.getPermissionStatus.mockResolvedValue('undetermined')
+    let release!: (granted: boolean) => void
+    perms.grantPushPermission.mockImplementation(() => new Promise<boolean>((r) => (release = r)))
+    const service = withService()
+    const { startRestAlert, cancelRestAlert } = await load()
+    const start = startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    await vi.waitFor(() => expect(perms.grantPushPermission).toHaveBeenCalled())
+    await cancelRestAlert()
+    release(true)
+    await start
+    expect(service.start).not.toHaveBeenCalled()
+    expect(notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  })
+
+  it('on Android without the native module (old binary) behaves like iOS: exact local notification', async () => {
+    platform.OS = 'android'
+    native.RestTimer = null
+    const { startRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    expect(scheduled().trigger.date).toBe(NOW + 60_000)
+  })
+
+  // modules/rest-timer/index.ts exports null off Android, so iOS never sees a
+  // service; the local notification is the alert.
+  it('on iOS (module null) the local notification is exact and nothing native is involved', async () => {
+    platform.OS = 'ios'
+    native.RestTimer = null
+    const { startRestAlert, adjustRestAlert, cancelRestAlert } = await load()
+    await startRestAlert({ seconds: 60, exerciseName: 'Squat' })
+    expect(scheduled().trigger.date).toBe(NOW + 60_000)
+    await adjustRestAlert(30)
+    expect(scheduled(1).trigger.date).toBe(NOW + 30_000)
+    await cancelRestAlert()
+    expect(notifications.cancelScheduledNotificationAsync).toHaveBeenCalledTimes(2)
   })
 })

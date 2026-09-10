@@ -3,7 +3,7 @@
     "name": "Fit Nation",
     "slug": "fit-nation",
     "scheme": "fitnation",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -69,7 +69,8 @@
           "color": "#0F0F0F",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "./modules/rest-timer/plugin/withRestTimerService.js"
     ],
     "extra": {
       "apiUrl": "$EXPO_PUBLIC_API_URL",
