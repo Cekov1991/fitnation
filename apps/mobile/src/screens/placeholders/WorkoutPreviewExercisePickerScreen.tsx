@@ -7,13 +7,15 @@ import { ArrowUpDown, Plus, Search, X } from 'lucide-react-native'
 import {
   useExercises,
   useMuscleGroups,
+  useEquipmentTypes,
   useAddSessionExercise,
   useSwapSessionExercise,
   withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
-import { FilterChips } from '../../components/exercises/FilterChips'
+import { ExerciseFilters } from '../../components/exercises/ExerciseFilters'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { NO_FILTERS, filterExercises, hasActiveFilter, type ExerciseFilterState } from '../../lib/exerciseFilters'
 import type { AppScreenProps } from '../../navigation/types'
 import type { ExerciseResource } from '@fit-nation/shared'
 
@@ -26,30 +28,25 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
   const isSwap = !!swapExerciseId
 
   const [search, setSearch] = useState('')
-  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(swapMuscleGroupId ?? null)
+  // A swap starts filtered on the outgoing exercise's primary muscle.
+  const [filters, setFilters] = useState<ExerciseFilterState>({
+    muscleId: swapMuscleGroupId ?? null,
+    equipmentCode: null,
+  })
   const [addingId, setAddingId] = useState<number | null>(null)
 
   const debouncedSearch = useDebounce(search, 300)
   const { data: exercises = [], isLoading } = useExercises(debouncedSearch || undefined)
   const { data: muscleGroups = [] } = useMuscleGroups()
+  const { data: equipmentTypes = [] } = useEquipmentTypes()
   const addExercise = useAddSessionExercise()
   const swapExercise = useSwapSessionExercise()
 
-  const availableMuscleIds = useMemo(() => {
-    const ids = new Set<string>()
-    ;(exercises as ExerciseResource[]).forEach(ex =>
-      ex.muscle_groups?.forEach(m => { if (m.is_primary) ids.add(m.id.toString()) })
-    )
-    return ids
-  }, [exercises])
-
-  const filtered = useMemo(() => {
-    return (exercises as ExerciseResource[]).filter(ex => {
-      const matchesMuscle =
-        !selectedMuscle || ex.muscle_groups?.some(m => m.is_primary && m.id.toString() === selectedMuscle)
-      return matchesMuscle
-    })
-  }, [exercises, selectedMuscle])
+  const filtered = useMemo(
+    () => filterExercises(exercises as ExerciseResource[], filters),
+    [exercises, filters]
+  )
+  const isNarrowed = search.length > 0 || hasActiveFilter(filters)
 
   const handleSelectExercise = async (exercise: ExerciseResource) => {
     if (addingId) return
@@ -72,7 +69,6 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
       setAddingId(null)
     }
   }
-
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
@@ -115,16 +111,14 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
         </View>
       </View>
 
-      {/* Muscle Group Filter */}
-      {availableMuscleIds.size > 0 && (
-        <FilterChips
-          options={(muscleGroups as any[])
-            .filter((m: any) => availableMuscleIds.has(m.id.toString()))
-            .map((m: any) => ({ value: m.id.toString(), label: m.name }))}
-          selected={selectedMuscle}
-          onSelect={id => setSelectedMuscle(prev => (prev === id ? null : id))}
-        />
-      )}
+      {/* Muscle / Equipment dropdowns + result count */}
+      <ExerciseFilters
+        muscleGroups={muscleGroups}
+        equipmentTypes={equipmentTypes}
+        filters={filters}
+        onChange={setFilters}
+        resultCount={isLoading ? null : filtered.length}
+      />
 
       {isLoading ? (
         <View className="px-4 gap-3">
@@ -137,6 +131,7 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
           data={filtered}
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => {
             const isAdding = addingId === item.id
             return (
@@ -186,18 +181,11 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
                   onPress={() => handleSelectExercise(item)}
                   disabled={!!addingId}
                   className="w-9 h-9 rounded-full items-center justify-center"
-                  style={{
-                    backgroundColor: isSwap
-                      ? withAlpha(colors.primary, 0.125)
-                      : withAlpha(colors.primary, 0.125),
-                  }}
+                  style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
                   activeOpacity={0.7}
                 >
                   {isAdding ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={isSwap ? colors.primary : colors.primary}
-                    />
+                    <ActivityIndicator size="small" color={colors.primary} />
                   ) : isSwap ? (
                     <ArrowUpDown size={18} color={colors.primary} />
                   ) : (
@@ -209,7 +197,22 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
           }}
           ListEmptyComponent={
             <View className="items-center py-12">
-              <Text style={{ color: colors.textSecondary }}>No exercises found</Text>
+              <Text style={{ color: colors.textSecondary }}>
+                {isNarrowed ? 'No exercises found' : 'No exercises available'}
+              </Text>
+              {isNarrowed && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearch('')
+                    setFilters(NO_FILTERS)
+                  }}
+                  className="mt-3"
+                >
+                  <Text className="text-sm" style={{ color: colors.primary }}>
+                    Clear filters
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           }
         />

@@ -7,8 +7,9 @@ import { useExercises, useMuscleGroups, useEquipmentTypes } from '@fit-nation/sh
 import { useNavigation } from '@react-navigation/native'
 import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
-import { FilterChips } from '../../components/exercises/FilterChips'
+import { ExerciseFilters } from '../../components/exercises/ExerciseFilters'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { NO_FILTERS, filterExercises, hasActiveFilter, type ExerciseFilterState } from '../../lib/exerciseFilters'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { AppStackParamList } from '../../navigation/types'
 import type { ExerciseResource } from '@fit-nation/shared'
@@ -19,40 +20,18 @@ export function ExerciseCatalogScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation<Nav>()
   const [search, setSearch] = useState('')
-  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
-  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
+  const [filters, setFilters] = useState<ExerciseFilterState>(NO_FILTERS)
 
   const debouncedSearch = useDebounce(search, 300)
   const { data: exercises = [], isLoading, isError, refetch } = useExercises(debouncedSearch || undefined)
   const { data: muscleGroups = [] } = useMuscleGroups()
   const { data: equipmentTypes = [] } = useEquipmentTypes()
 
-  const availableMuscleIds = useMemo(() => {
-    const ids = new Set<string>()
-    ;(exercises as ExerciseResource[]).forEach(ex =>
-      ex.muscle_groups?.forEach(m => { if (m.is_primary) ids.add(m.id.toString()) })
-    )
-    return ids
-  }, [exercises])
-
-  const availableEquipmentCodes = useMemo(() => {
-    const codes = new Set<string>()
-    ;(exercises as ExerciseResource[]).forEach(ex => {
-      if (ex.equipment_type?.code) codes.add(ex.equipment_type.code)
-    })
-    return codes
-  }, [exercises])
-
-  const filtered = useMemo(() => {
-    return (exercises as ExerciseResource[]).filter(ex => {
-      const matchesMuscle =
-        !selectedMuscle ||
-        ex.muscle_groups?.some(m => m.is_primary && m.id.toString() === selectedMuscle)
-      const matchesEquipment =
-        !selectedEquipment || ex.equipment_type?.code === selectedEquipment
-      return matchesMuscle && matchesEquipment
-    })
-  }, [exercises, selectedMuscle, selectedEquipment])
+  const filtered = useMemo(
+    () => filterExercises(exercises as ExerciseResource[], filters),
+    [exercises, filters]
+  )
+  const isNarrowed = search.length > 0 || hasActiveFilter(filters)
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
@@ -89,27 +68,14 @@ export function ExerciseCatalogScreen() {
         </View>
       </View>
 
-      {/* Muscle Group Filter Chips */}
-      {availableMuscleIds.size > 0 && (
-        <FilterChips
-          options={muscleGroups
-            .filter(mg => availableMuscleIds.has(mg.id.toString()))
-            .map(mg => ({ value: mg.id.toString(), label: mg.name }))}
-          selected={selectedMuscle}
-          onSelect={setSelectedMuscle}
-        />
-      )}
-
-      {/* Equipment Filter Chips */}
-      {availableEquipmentCodes.size > 0 && (
-        <FilterChips
-          options={equipmentTypes
-            .filter(eq => availableEquipmentCodes.has(eq.code))
-            .map(eq => ({ value: eq.code, label: eq.name }))}
-          selected={selectedEquipment}
-          onSelect={setSelectedEquipment}
-        />
-      )}
+      {/* Muscle / Equipment dropdowns + result count */}
+      <ExerciseFilters
+        muscleGroups={muscleGroups}
+        equipmentTypes={equipmentTypes}
+        filters={filters}
+        onChange={setFilters}
+        resultCount={isLoading || isError ? null : filtered.length}
+      />
 
       {/* Exercise List */}
       {isLoading ? (
@@ -148,16 +114,13 @@ export function ExerciseCatalogScreen() {
             <View className="items-center py-16">
               <Dumbbell size={40} color={colors.textMuted} />
               <Text className="text-base mt-4" style={{ color: colors.textSecondary }}>
-                {search || selectedMuscle || selectedEquipment
-                  ? 'No exercises found'
-                  : 'No exercises available'}
+                {isNarrowed ? 'No exercises found' : 'No exercises available'}
               </Text>
-              {(search || selectedMuscle || selectedEquipment) && (
+              {isNarrowed && (
                 <TouchableOpacity
                   onPress={() => {
                     setSearch('')
-                    setSelectedMuscle(null)
-                    setSelectedEquipment(null)
+                    setFilters(NO_FILTERS)
                   }}
                   className="mt-3"
                 >
