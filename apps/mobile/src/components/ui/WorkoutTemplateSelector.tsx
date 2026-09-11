@@ -12,6 +12,8 @@ interface Props {
   onTemplateSelect: (templateId: number) => void
   nextWorkout?: WorkoutTemplateResource | null
   onCompletedDayClick?: (sessionId: number) => void
+  /** `card`: sits on a white card — squarer chips on a light tint, no outer padding. */
+  variant?: 'default' | 'card'
 }
 
 /** Mirrors apps/web/src/components/dashboard/WorkoutTemplateSelector.tsx */
@@ -21,8 +23,11 @@ export function WorkoutTemplateSelector({
   onTemplateSelect,
   nextWorkout = null,
   onCompletedDayClick,
+  variant = 'default',
 }: Props) {
   const { colors } = useTheme()
+  const onCard = variant === 'card'
+  const restingBackground = onCard ? withAlpha(colors.textPrimary, 0.06) : colors.bgSurface
   const scrollRef = useRef<ScrollView>(null)
   const offsetsRef = useRef<Record<number, { x: number; width: number }>>({})
 
@@ -41,7 +46,7 @@ export function WorkoutTemplateSelector({
       ref={scrollRef}
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: 12, paddingVertical: 8, paddingHorizontal: 2 }}
+      contentContainerStyle={onCard ? { gap: 10 } : { gap: 12, paddingVertical: 8, paddingHorizontal: 2 }}
     >
       {templates.map((template, index) => {
         const isNext = nextWorkout != null && template.id === nextWorkout.id
@@ -70,19 +75,19 @@ export function WorkoutTemplateSelector({
             }}
             activeOpacity={0.8}
             style={{
-              paddingHorizontal: 24,
-              paddingVertical: 10,
-              borderRadius: 9999,
+              paddingHorizontal: onCard ? 20 : 24,
+              paddingVertical: onCard ? 12 : 10,
+              borderRadius: onCard ? 12 : 9999,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
               backgroundColor: isSelected
                 ? colors.bgSurface
                 : showNextOutline
-                ? colors.bgSurface
+                ? restingBackground
                 : isCompleted
                 ? withAlpha(colors.success, 0.149)
-                : colors.bgSurface,
+                : restingBackground,
               // borderWidth: showNextOutline ? 2 : 0,
               // borderColor: showNextOutline ? colors.primary : 'transparent',
               overflow: 'hidden',
@@ -124,7 +129,7 @@ export function WorkoutTemplateSelector({
           </TouchableOpacity>
         )
       })}
-      <View style={{ width: 8 }} />
+      {!onCard && <View style={{ width: 8 }} />}
     </ScrollView>
   )
 }

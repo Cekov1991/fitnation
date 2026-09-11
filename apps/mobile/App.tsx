@@ -2,6 +2,7 @@ import './global.css'
 import { useEffect } from 'react'
 import { Alert, AppState } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { KeyboardProvider } from 'react-native-keyboard-controller'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { MutationCache, QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query'
@@ -88,9 +89,11 @@ export default function App() {
             <QueryClientProvider client={queryClient}>
               <AuthProvider>
                 <ThemeProvider>
-                  <OfflineBanner />
-                  <RootNavigator />
-                  <ToastHost />
+                  <BottomSheetModalProvider>
+                    <OfflineBanner />
+                    <RootNavigator />
+                    <ToastHost />
+                  </BottomSheetModalProvider>
                 </ThemeProvider>
               </AuthProvider>
             </QueryClientProvider>

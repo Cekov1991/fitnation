@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { View, Text, TouchableOpacity, Modal, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist'
-import type { RenderItemParams } from 'react-native-draggable-flatlist'
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import * as Haptics from 'expo-haptics'
 import {
@@ -22,6 +20,9 @@ import type { TemplateExercise } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
+import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
+import { SwipeAction } from '../../components/ui/SwipeAction'
 import { Image } from 'expo-image'
 import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Play, Plus, Trash2 } from 'lucide-react-native'
 import { showToast } from '../../lib/toast'
@@ -96,8 +97,10 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
     })
   }
 
-  async function handleDragEnd({ data }: { data: ExerciseItem[] }) {
+  async function handleDragEnd(data: ExerciseItem[]) {
     isDraggingRef.current = false
+    // Dropped back into its own slot: the list hands back the same array.
+    if (data === exercises) return
     setExercises(data)
     const pivotIds = data.map((ex) => ex.pivotId)
     try {
@@ -173,131 +176,96 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
     }
   }
 
-  function renderItem({ item, drag, isActive }: RenderItemParams<ExerciseItem>) {
+  function renderItem({ item }: SortableListRenderItemInfo<ExerciseItem>) {
     return (
-      <ScaleDecorator activeScale={1.02}>
-        <ReanimatedSwipeable
-          ref={(ref) => {
-            if (ref) swipeableRefs.current.set(item.id, ref)
-            else swipeableRefs.current.delete(item.id)
-          }}
-          onSwipeableOpen={() => {
-            swipeableRefs.current.forEach((ref, k) => {
-              if (k !== item.id) ref.close()
-            })
-          }}
-          renderRightActions={() => (
-            <View style={{ flexDirection: 'row', marginLeft: 8, marginBottom: 12 }}>
-              {/* Swap */}
-              <TouchableOpacity
-                onPress={() => {
-                  swipeableRefs.current.get(item.id)?.close()
-                  handleSwapExercise(item)
-                }}
-                style={{
-                  width: 64,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 16,
-                  marginRight: 8,
-                  backgroundColor: colors.secondary,
-                }}
-              >
-                <ArrowUpDown size={20} color={colors.textButton} />
-              </TouchableOpacity>
-              {/* Edit */}
-              <TouchableOpacity
-                onPress={() => {
-                  swipeableRefs.current.get(item.id)?.close()
-                  openEditModal(item)
-                }}
-                style={{
-                  width: 64,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 16,
-                  marginRight: 8,
-                  backgroundColor: colors.primary,
-                }}
-              >
-                <Edit2 size={20} color={colors.textButton} />
-              </TouchableOpacity>
-              {/* Delete */}
-              <TouchableOpacity
-                onPress={() => {
-                  swipeableRefs.current.get(item.id)?.close()
-                  swipeRemove(item)
-                }}
-                style={{
-                  width: 64,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 16,
-                  backgroundColor: colors.error,
-                }}
-              >
-                <Trash2 size={20} color={colors.textButton} />
-              </TouchableOpacity>
-            </View>
-          )}
-          overshootRight={false}
-        >
-          <View
-            className="flex-row items-center gap-3 p-2 rounded-2xl mb-3"
-            style={{
-              backgroundColor: isActive ? colors.bgElevated : colors.bgSurface,
-              borderWidth: 1,
-              borderColor: isActive ? withAlpha(colors.primary, 0.251) : 'transparent',
-            }}
-          >
-            {/* Exercise image — tap to open details */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
-              activeOpacity={0.7}
-              className="w-16 h-16 rounded-xl overflow-hidden"
-              style={{ backgroundColor: colors.bgElevated }}
-            >
-              {item.imageUrl ? (
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="cover"
-                />
-              ) : (
-                <View className="flex-1 items-center justify-center">
-                  <Text style={{ color: colors.textMuted, fontSize: 22 }}>💪</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Info */}
-            <View className="flex-1 min-w-0">
-              <Text className="text-sm font-bold mb-1" style={{ color: colors.textPrimary }} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                <Text style={{ color: colors.primary }}>{item.sets} sets</Text>
-                <Text style={{ color: colors.textMuted }}> × </Text>
-                <Text style={{ color: colors.primary }}>{item.reps} reps</Text>
-                <Text style={{ color: colors.textMuted }}> × </Text>
-                <Text style={{ color: colors.primary }}>{formatWeight(Number(item.weight))} {weightUnit}</Text>
-              </Text>
-            </View>
-
-            {/* Drag handle — long-press fires haptic then starts drag */}
-            <TouchableOpacity
-              onLongPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                drag()
+      <ReanimatedSwipeable
+        ref={(ref) => {
+          if (ref) swipeableRefs.current.set(item.id, ref)
+          else swipeableRefs.current.delete(item.id)
+        }}
+        onSwipeableOpen={() => {
+          swipeableRefs.current.forEach((ref, k) => {
+            if (k !== item.id) ref.close()
+          })
+        }}
+        renderRightActions={() => (
+          <View style={{ flexDirection: 'row', marginLeft: 8, gap: 8 }}>
+            <SwipeAction
+              icon={ArrowUpDown}
+              label="Swap"
+              onPress={() => {
+                swipeableRefs.current.get(item.id)?.close()
+                handleSwapExercise(item)
               }}
-              delayLongPress={200}
-              className="p-2"
-            >
-              <GripVertical size={20} color={colors.textMuted} />
-            </TouchableOpacity>
+            />
+            <SwipeAction
+              icon={Edit2}
+              label="Edit"
+              onPress={() => {
+                swipeableRefs.current.get(item.id)?.close()
+                openEditModal(item)
+              }}
+            />
+            <SwipeAction
+              icon={Trash2}
+              label="Remove"
+              tone="destructive"
+              onPress={() => {
+                swipeableRefs.current.get(item.id)?.close()
+                swipeRemove(item)
+              }}
+            />
           </View>
-        </ReanimatedSwipeable>
-      </ScaleDecorator>
+        )}
+        overshootRight={false}
+      >
+        <SortableItemSurface
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8, borderRadius: 16, borderWidth: 1 }}
+          backgroundColor={colors.bgSurface}
+          activeBackgroundColor={colors.bgElevated}
+          borderColor={withAlpha(colors.primary, 0)}
+          activeBorderColor={withAlpha(colors.primary, 0.251)}
+        >
+          {/* Exercise image — tap to open details */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
+            activeOpacity={0.7}
+            className="w-16 h-16 rounded-xl overflow-hidden"
+            style={{ backgroundColor: colors.bgElevated }}
+          >
+            {item.imageUrl ? (
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+              />
+            ) : (
+              <View className="flex-1 items-center justify-center">
+                <Text style={{ color: colors.textMuted, fontSize: 22 }}>💪</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Info */}
+          <View className="flex-1 min-w-0">
+            <Text className="text-sm font-bold mb-1" style={{ color: colors.textPrimary }} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <Text className="text-xs" style={{ color: colors.textSecondary }}>
+              <Text style={{ color: colors.primary }}>{item.sets} sets</Text>
+              <Text style={{ color: colors.textMuted }}> × </Text>
+              <Text style={{ color: colors.primary }}>{item.reps} reps</Text>
+              <Text style={{ color: colors.textMuted }}> × </Text>
+              <Text style={{ color: colors.primary }}>{formatWeight(Number(item.weight))} {weightUnit}</Text>
+            </Text>
+          </View>
+
+          {/* Drag handle — hold to lift the row; the list adds the haptics */}
+          <SortableHandle style={{ padding: 8 }}>
+            <GripVertical size={20} color={colors.textMuted} />
+          </SortableHandle>
+        </SortableItemSurface>
+      </ReanimatedSwipeable>
     )
   }
 
@@ -338,18 +306,18 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
         </View>
       ) : (
         <View className="flex-1">
-          <DraggableFlatList
-            containerStyle={{ flex: 1 }}
+          <SortableList
+            style={{ flex: 1 }}
             data={exercises}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
-            onDragBegin={() => {
+            rowGap={12}
+            onDragStart={() => {
               isDraggingRef.current = true
               swipeableRefs.current.forEach(ref => ref.close())
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
             }}
             onDragEnd={handleDragEnd}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 }}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 28 }}
             ListHeaderComponent={
               <Text className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: colors.textSecondary }}>
                 Exercises
