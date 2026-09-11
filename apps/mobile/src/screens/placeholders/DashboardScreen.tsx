@@ -18,9 +18,10 @@ import {
   Dumbbell,
   Play,
   Plus,
-  RefreshCw,
+  SlidersHorizontal,
   Trophy,
   Zap,
+  type LucideIcon,
 } from 'lucide-react-native'
 import {
   estimateWorkoutDuration,
@@ -33,14 +34,9 @@ import {
   useTodayWorkout,
   useUpdateProfile,
   withAlpha,
-  FITNESS_GOAL_OPTIONS,
-  TRAINING_EXPERIENCE_OPTIONS,
-  TRAINING_DAYS_OPTIONS,
-  WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared'
 import type {
   ProgramResource,
-  RegeneratePlanInput,
   WorkoutTemplateResource,
 } from '@fit-nation/shared'
 
@@ -48,26 +44,54 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 
 import { Card } from '../../components/ui/Card'
-import { FilterChip } from '../../components/ui/FilterChip'
 import { GradientText } from '../../components/ui/GradientText'
 import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwitcher'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { WorkoutCard } from '../../components/ui/WorkoutCard'
 import { WorkoutTemplateSelector } from '../../components/ui/WorkoutTemplateSelector'
-import { RegeneratePlanModal } from '../../components/ui/RegeneratePlanModal'
+import { AdjustPlanSheet } from '../../components/ui/AdjustPlanSheet'
+import type { AdjustPlanInput } from '../../components/ui/AdjustPlanSheet'
 import { PlanGeneratingOverlay } from '../../components/ui/PlanGeneratingOverlay'
 
 import type { AppStackParamList } from '../../navigation/types'
 
 type Nav = NativeStackNavigationProp<AppStackParamList>
 
-const GOAL_OPTIONS = FITNESS_GOAL_OPTIONS
+interface PlanCardActionProps {
+  icon: LucideIcon
+  label: string
+  onPress: () => void
+  disabled?: boolean
+  /** Draw a hairline on the left, between this action and the previous one. */
+  divider?: boolean
+}
 
-const EXPERIENCE_OPTIONS = TRAINING_EXPERIENCE_OPTIONS
-
-const DAYS_OPTIONS = TRAINING_DAYS_OPTIONS
-
-const DURATION_OPTIONS = WORKOUT_DURATION_OPTIONS
+/** One action in the plan card's footer bar: an icon and a label, half the width each. */
+function PlanCardAction({ icon: Icon, label, onPress, disabled, divider }: PlanCardActionProps) {
+  const { colors } = useTheme()
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.6}
+      accessibilityRole="button"
+      style={{
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 14,
+        borderLeftWidth: divider ? 1 : 0,
+        borderLeftColor: colors.border,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <Icon size={16} color={colors.textSecondary} />
+      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textSecondary }}>{label}</Text>
+    </TouchableOpacity>
+  )
+}
 
 export function DashboardScreen() {
   const { colors } = useTheme()
@@ -76,7 +100,8 @@ export function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
-  const [regenerateModalVisible, setRegenerateModalVisible] = useState(false)
+  const [adjustPlanVisible, setAdjustPlanVisible] = useState(false)
+  const [adjustPlanError, setAdjustPlanError] = useState<string | null>(null)
 
   const { data: todayWorkout } = useTodayWorkout()
   const hasNavigated = useRef(false)
@@ -197,64 +222,38 @@ export function DashboardScreen() {
   }, [activePlan])
 
   // ─── Handlers ───
-  const goalOptions = GOAL_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
-  const experienceOptions = EXPERIENCE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
-
-  const goalLabel =
-    GOAL_OPTIONS.find((o) => o.value === profile?.fitness_goal)?.label ?? 'Goal'
-  const experienceLabel =
-    EXPERIENCE_OPTIONS.find((o) => o.value === profile?.training_experience)?.label ??
-    'Experience'
-  const daysLabel = profile?.training_days_per_week
-    ? `${profile.training_days_per_week} day${profile.training_days_per_week > 1 ? 's' : ''}`
-    : 'Days/week'
-  const durationLabel =
-    DURATION_OPTIONS.find((o) => o.value === profile?.workout_duration_minutes)?.label ??
-    'Duration'
-
-  const isProfileComplete = Boolean(
-    profile?.fitness_goal &&
-      profile?.training_experience &&
-      profile?.training_days_per_week &&
-      profile?.workout_duration_minutes,
-  )
-  const hasCompletedWorkouts = (activeProgram?.progress_percentage ?? 0) > 0
-
-  async function updateProfileField(
-    key: 'fitness_goal' | 'training_experience' | 'training_days_per_week' | 'workout_duration_minutes',
-    value: string | number,
-  ) {
-    try {
-      await updateProfile.mutateAsync({ [key]: value } as any)
-    } catch (e) {
-      console.error('Failed to update profile', e)
-    }
+  function openAdjustPlan() {
+    if (isRegenerating || regeneratePlan.isPending) return
+    setAdjustPlanError(null)
+    setAdjustPlanVisible(true)
   }
 
-  async function executeRegenerate(params: RegeneratePlanInput) {
+  async function executeAdjustPlan({ profile: settings, plan }: AdjustPlanInput) {
     setIsRegenerating(true)
+    setAdjustPlanError(null)
     try {
-      await regeneratePlan.mutateAsync(params)
+      // The server builds the plan from the stored profile, not from the
+      // regenerate request, so the four settings are saved first — and only
+      // when they changed, so an unchanged profile costs no request.
+      const settingsChanged = (Object.keys(settings) as Array<keyof typeof settings>).some(
+        (key) => profile?.[key] !== settings[key],
+      )
+      if (settingsChanged) {
+        await updateProfile.mutateAsync(settings)
+      }
+      await regeneratePlan.mutateAsync(plan)
+      setAdjustPlanVisible(false)
     } catch (e) {
-      console.error('Failed to regenerate plan', e)
+      console.error('Failed to refresh the plan', e)
+      // Stays open with the choices intact; a toast would be hidden under the modal.
+      setAdjustPlanError("Couldn't refresh the plan. Check your connection and try again.")
     } finally {
       setIsRegenerating(false)
-      setRegenerateModalVisible(false)
     }
-  }
-
-  function openRegenerateModal() {
-    if (isRegenerating || regeneratePlan.isPending) return
-    setRegenerateModalVisible(true)
   }
 
   function handleCompletedDayClick(sessionId: number) {
     navigation.navigate('SessionDetail', { sessionId: String(sessionId) })
-  }
-
-  const handleRefreshClick = () => {
-    if (isRegenerating || !isProfileComplete) return
-    openRegenerateModal()
   }
 
   const handleStartSelectedWorkout = async () => {
@@ -310,16 +309,11 @@ export function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ─── Header ─── */}
-        <View style={{ alignItems: 'center', paddingTop: 24, paddingBottom: 24 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 24, paddingBottom: 24 }}>
           {partnerLogo ? (
             <Image
               source={{ uri: partnerLogo }}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 16,
-                marginBottom: 16,
-              }}
+              style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: withAlpha(colors.textPrimary, 0.06) }}
               contentFit="contain"
               transition={200}
             />
@@ -328,30 +322,19 @@ export function DashboardScreen() {
               colors={[colors.primary, colors.secondary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 16,
-              }}
+              style={{ width: 56, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}
             >
-              <Dumbbell color={colors.textButton} size={32} />
+              <Dumbbell color={colors.textButton} size={28} />
             </LinearGradient>
           )}
-          <GradientText style={{ fontSize: 30, fontWeight: '800' }} numberOfLines={1}>
-            {partnerName}
-          </GradientText>
-          <Text
-            style={{
-              fontSize: 14,
-              marginTop: 4,
-              color: colors.textSecondary,
-            }}
-          >
-            Welcome back, {user?.name || 'Athlete'}
-          </Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <GradientText style={{ fontSize: 26, fontWeight: '800' }} numberOfLines={1}>
+              {partnerName}
+            </GradientText>
+            <Text style={{ fontSize: 14, marginTop: 2, color: colors.textSecondary }}>
+              Welcome back, {user?.name || 'Athlete'}
+            </Text>
+          </View>
         </View>
 
         {/* ─── Plan-type segment ─── */}
@@ -360,58 +343,6 @@ export function DashboardScreen() {
         {/* ═══ Programs Tab ═══ */}
         {activeTab === 'programs' && (
           <>
-            {/* Program controls — chips row */}
-            {autoGeneratedProgram && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                  gap: 8,
-                  paddingBottom: 16,
-                  paddingHorizontal: 2,
-                }}
-              >
-                {activeProgram?.is_active && (
-                  <FilterChip
-                    icon={Calendar}
-                    onPress={() =>
-                      navigation.navigate('ProgramDetail', { programId: activeProgram.id })
-                    }
-                  />
-                )}
-                <FilterChip
-                  label={goalLabel}
-                  options={goalOptions}
-                  placeholder="Fitness goal"
-                  onSelect={(v) => updateProfileField('fitness_goal', v)}
-                />
-                <FilterChip
-                  label={experienceLabel}
-                  options={experienceOptions}
-                  placeholder="Training experience"
-                  onSelect={(v) => updateProfileField('training_experience', v)}
-                />
-                <FilterChip
-                  label={daysLabel}
-                  options={DAYS_OPTIONS}
-                  placeholder="Days per week"
-                  onSelect={(v) => updateProfileField('training_days_per_week', v)}
-                />
-                <FilterChip
-                  label={durationLabel}
-                  options={DURATION_OPTIONS}
-                  placeholder="Workout duration"
-                  onSelect={(v) => updateProfileField('workout_duration_minutes', v)}
-                />
-                <FilterChip
-                  icon={RefreshCw}
-                  label="Refresh"
-                  disabled={isRegenerating || !isProfileComplete}
-                  onPress={handleRefreshClick}
-                />
-              </ScrollView>
-            )}
-
             {isProgramsLoading ? (
               <>
                 <SkeletonBox height={50} style={{ marginBottom: 12 }} />
@@ -457,7 +388,7 @@ export function DashboardScreen() {
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
-                  onPress={openRegenerateModal}
+                  onPress={openAdjustPlan}
                   disabled={isRegenerating || regeneratePlan.isPending}
                   style={{
                     flexDirection: 'row',
@@ -524,7 +455,7 @@ export function DashboardScreen() {
                 </Text>
                 {activeProgram.is_auto_generated && (
                   <TouchableOpacity
-                    onPress={openRegenerateModal}
+                    onPress={openAdjustPlan}
                     disabled={isRegenerating}
                     style={{
                       flexDirection: 'row',
@@ -550,34 +481,67 @@ export function DashboardScreen() {
               </Card>
             ) : (
               <>
-                {/* Day selector */}
-                {activeWeekWorkouts.length > 0 && (
-                  <View style={{ marginBottom: 12 }}>
-                    <WorkoutTemplateSelector
-                      templates={activeWeekWorkouts}
-                      selectedTemplateId={effectiveSelectedId}
-                      onTemplateSelect={setSelectedTemplateId}
-                      nextWorkout={activeProgram.next_workout ?? null}
-                      onCompletedDayClick={handleCompletedDayClick}
-                    />
+                {/* Plan card: name and week, this week's days, and the two plan actions as a footer bar */}
+                <Card style={{ marginBottom: 16, borderRadius: 24, padding: 0, overflow: 'hidden' }}>
+                  <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          flex: 1,
+                          fontSize: 12,
+                          fontWeight: '700',
+                          letterSpacing: 1.2,
+                          color: colors.primary,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {activeProgram.name || 'Your plan'}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '700',
+                          letterSpacing: 1.2,
+                          color: colors.textSecondary,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Week {displayWeekNumber}/{activeProgram.duration_weeks ?? '?'}
+                      </Text>
+                    </View>
+                    {activeWeekWorkouts.length > 0 && (
+                      <WorkoutTemplateSelector
+                        variant="card"
+                        templates={activeWeekWorkouts}
+                        selectedTemplateId={effectiveSelectedId}
+                        onTemplateSelect={setSelectedTemplateId}
+                        nextWorkout={activeProgram.next_workout ?? null}
+                        onCompletedDayClick={handleCompletedDayClick}
+                      />
+                    )}
                   </View>
-                )}
-
-                {/* Week indicator */}
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    letterSpacing: 1.2,
-                    textAlign: 'center',
-                    marginBottom: 16,
-                    color: colors.primary,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Week {displayWeekNumber}/{activeProgram.duration_weeks ?? '?'}
-                  {activeProgram.name ? ` — ${activeProgram.name}` : ''}
-                </Text>
+                  {(activeProgram.is_active || autoGeneratedProgram) && (
+                    <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.border }}>
+                      {activeProgram.is_active && (
+                        <PlanCardAction
+                          icon={Calendar}
+                          label="Overview"
+                          onPress={() => navigation.navigate('ProgramDetail', { programId: activeProgram.id })}
+                        />
+                      )}
+                      {autoGeneratedProgram && (
+                        <PlanCardAction
+                          icon={SlidersHorizontal}
+                          label="Customize"
+                          divider={!!activeProgram.is_active}
+                          disabled={isRegenerating || regeneratePlan.isPending}
+                          onPress={openAdjustPlan}
+                        />
+                      )}
+                    </View>
+                  )}
+                </Card>
 
                 {/* Workout card */}
                 {selectedWorkout ? (
@@ -995,12 +959,14 @@ export function DashboardScreen() {
         )}
       </ScrollView>
 
-      <RegeneratePlanModal
-        visible={regenerateModalVisible}
-        onClose={() => setRegenerateModalVisible(false)}
-        onConfirm={executeRegenerate}
-        showWarning={hasCompletedWorkouts}
+      <AdjustPlanSheet
+        visible={adjustPlanVisible}
+        onClose={() => setAdjustPlanVisible(false)}
+        onConfirm={executeAdjustPlan}
+        profile={profile}
+        program={autoGeneratedProgram ?? activeProgram}
         isLoading={isRegenerating || regeneratePlan.isPending}
+        error={adjustPlanError}
       />
 
       <PlanGeneratingOverlay
