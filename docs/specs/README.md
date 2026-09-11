@@ -59,7 +59,7 @@ a dependency order.
 | 0030 | Architecture | Split the web session hook's 52-member interface | done | web |
 | 0031 | Architecture | Findings from the depth review not yet specced | done (#4, #6, #10 left open by decision) | various |
 | 0032 | Architecture | A toast mechanism for `apps/web` | done | web |
-| 0034 | Architecture | Replace the drag-to-reorder list on mobile | in progress | mobile |
+| 0034 | Architecture | Replace the drag-to-reorder list on mobile | done | mobile |
 | 0035 | Feature | One place to customise the personalised plan (mobile) | done | mobile |
 
 ### Suggested order

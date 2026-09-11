@@ -1,6 +1,6 @@
 # Architecture: Replace the drag-to-reorder list on mobile
 
-Status: in progress — on `feat/mobile/replace-draggable-flatlist`, device verification pending
+Status: done — on `feat/mobile/replace-draggable-flatlist`; the drop was checked by hand on the emulator through the afternoon, the frame capture was not repeated
 Origin: the exercise list "reloads" a beat after every drag (Kiril, 2026-09-10); root cause found by frame capture the same evening.
 Scope: `apps/mobile`
 
@@ -79,4 +79,4 @@ re-render are already where they belong, so the commit is invisible.
 
 - `tsc --noEmit` for mobile: no errors in the touched files; `pnpm typecheck:ci`
   ratchet: no new errors. `pnpm test`: 376/376.
-- Device: pending — see the branch's PR for the frame-capture result.
+- Device: reordering used by hand on the Pixel 9 Pro XL emulator for the rest of the day without a visible flash; swipe actions, image tap and the picker flows unchanged. The frame capture that found the original bug was not repeated on the new list.
