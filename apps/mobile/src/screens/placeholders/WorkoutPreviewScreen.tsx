@@ -27,6 +27,7 @@ import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
 import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
+import { SwipeAction } from '../../components/ui/SwipeAction'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
@@ -346,9 +347,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                   })
                 }}
                 renderRightActions={() => (
-                  <View style={{ flexDirection: 'row', marginLeft: 8 }}>
-                    {/* Swap */}
-                    <TouchableOpacity
+                  <View style={{ flexDirection: 'row', marginLeft: 8, gap: 8 }}>
+                    <SwipeAction
+                      icon={ArrowUpDown}
+                      label="Swap"
                       onPress={() => {
                         swipeableRefs.current.get(String(se.id))?.close()
                         navigation.navigate('WorkoutPreviewExercisePicker', {
@@ -357,50 +359,24 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                           swapMuscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString(),
                         })
                       }}
-                      style={{
-                        width: 64,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 16,
-                        marginRight: 8,
-                        backgroundColor: colors.secondary,
-                      }}
-                    >
-                      <ArrowUpDown size={20} color={colors.textButton} />
-                    </TouchableOpacity>
-                    {/* Edit */}
-                    <TouchableOpacity
+                    />
+                    <SwipeAction
+                      icon={Edit2}
+                      label="Edit"
                       onPress={() => {
                         swipeableRefs.current.get(String(se.id))?.close()
                         openEditModal(exerciseDetail)
                       }}
-                      style={{
-                        width: 64,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 16,
-                        marginRight: 8,
-                        backgroundColor: colors.primary,
-                      }}
-                    >
-                      <Edit2 size={20} color={colors.textButton} />
-                    </TouchableOpacity>
-                    {/* Delete */}
-                    <TouchableOpacity
+                    />
+                    <SwipeAction
+                      icon={Trash2}
+                      label="Remove"
+                      tone="destructive"
                       onPress={() => {
                         swipeableRefs.current.get(String(se.id))?.close()
                         handleSwipeRemove(exerciseDetail)
                       }}
-                      style={{
-                        width: 64,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 16,
-                        backgroundColor: colors.error,
-                      }}
-                    >
-                      <Trash2 size={20} color={colors.textButton} />
-                    </TouchableOpacity>
+                    />
                   </View>
                 )}
                 overshootRight={false}

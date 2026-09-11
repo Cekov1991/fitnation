@@ -22,6 +22,7 @@ import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
 import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
+import { SwipeAction } from '../../components/ui/SwipeAction'
 import { Image } from 'expo-image'
 import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Play, Plus, Trash2 } from 'lucide-react-native'
 import { showToast } from '../../lib/toast'
@@ -188,57 +189,32 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
           })
         }}
         renderRightActions={() => (
-          <View style={{ flexDirection: 'row', marginLeft: 8 }}>
-            {/* Swap */}
-            <TouchableOpacity
+          <View style={{ flexDirection: 'row', marginLeft: 8, gap: 8 }}>
+            <SwipeAction
+              icon={ArrowUpDown}
+              label="Swap"
               onPress={() => {
                 swipeableRefs.current.get(item.id)?.close()
                 handleSwapExercise(item)
               }}
-              style={{
-                width: 64,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 16,
-                marginRight: 8,
-                backgroundColor: colors.secondary,
-              }}
-            >
-              <ArrowUpDown size={20} color={colors.textButton} />
-            </TouchableOpacity>
-            {/* Edit */}
-            <TouchableOpacity
+            />
+            <SwipeAction
+              icon={Edit2}
+              label="Edit"
               onPress={() => {
                 swipeableRefs.current.get(item.id)?.close()
                 openEditModal(item)
               }}
-              style={{
-                width: 64,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 16,
-                marginRight: 8,
-                backgroundColor: colors.primary,
-              }}
-            >
-              <Edit2 size={20} color={colors.textButton} />
-            </TouchableOpacity>
-            {/* Delete */}
-            <TouchableOpacity
+            />
+            <SwipeAction
+              icon={Trash2}
+              label="Remove"
+              tone="destructive"
               onPress={() => {
                 swipeableRefs.current.get(item.id)?.close()
                 swipeRemove(item)
               }}
-              style={{
-                width: 64,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 16,
-                backgroundColor: colors.error,
-              }}
-            >
-              <Trash2 size={20} color={colors.textButton} />
-            </TouchableOpacity>
+            />
           </View>
         )}
         overshootRight={false}

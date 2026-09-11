@@ -49,6 +49,14 @@ react-native-draggable-flatlist #123, #226).
   Everything else on the rows — swipe actions, image tap, edit modal — is
   untouched.
 
+- `src/components/ui/SwipeAction.tsx` (new, second commit) — the buttons
+  behind a swiped row. Swap and Edit sit on a neutral tint of the text colour
+  with a dark icon and a short label; only Remove carries colour, a soft red
+  tint with a red icon. Before, they were solid blocks of the theme's
+  secondary, primary and error colours with white icons, which a partner
+  palette (navy and yellow) turned into three loud blocks and an unreadable
+  white-on-yellow. Brand colour stays for real calls to action.
+
 Why this library fixes the frame: it owns every row's position in its own
 animated values, keyed by item, and does not move React children to reorder.
 When the screen commits the reordered data after a drop, the rows that
