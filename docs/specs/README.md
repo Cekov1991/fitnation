@@ -61,6 +61,7 @@ a dependency order.
 | 0032 | Architecture | A toast mechanism for `apps/web` | done | web |
 | 0034 | Architecture | Replace the drag-to-reorder list on mobile | done | mobile |
 | 0035 | Feature | One place to customise the personalised plan (mobile) | done | mobile |
+| 0036 | Feature | Exercise filters as two dropdowns (mobile) | in progress | mobile |
 
 ### Suggested order
 
