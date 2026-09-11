@@ -4,8 +4,6 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist'
-import type { RenderItemParams } from 'react-native-draggable-flatlist'
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import * as Haptics from 'expo-haptics'
 import { Check, RefreshCw, X, Edit2, ArrowUpDown, GripVertical, Plus, Trash2 } from 'lucide-react-native'
@@ -27,6 +25,8 @@ import { useTheme } from '../../context/ThemeContext'
 import { showToast } from '../../lib/toast'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
+import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
@@ -59,8 +59,10 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftSession])
 
-  async function handleDragEnd({ data }: { data: SessionExerciseDetail[] }) {
+  async function handleDragEnd(data: SessionExerciseDetail[]) {
     isDraggingRef.current = false
+    // Dropped back into its own slot: the list hands back the same array.
+    if (data === orderedExercises) return
     setOrderedExercises(data)
     const exerciseIds = data.map(e => e.session_exercise.id)
     try {
@@ -235,7 +237,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       {/* Add Exercise Button */}
       <TouchableOpacity
         onPress={() => navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })}
-        className="w-full py-6 border-2 border-dashed rounded-2xl mt-2 items-center justify-center"
+        className="w-full py-6 border-2 border-dashed rounded-2xl mt-5 items-center justify-center"
         style={{ borderColor: withAlpha(colors.primary, 0.314) }}
         activeOpacity={0.7}
       >
@@ -313,154 +315,143 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <DraggableFlatList
+        <SortableList
           data={orderedExercises}
           keyExtractor={(item) => String(item.session_exercise.id)}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
-          onDragBegin={() => {
+          rowGap={12}
+          onDragStart={() => {
             isDraggingRef.current = true
             swipeableRefs.current.forEach(ref => ref.close())
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
           }}
           onDragEnd={handleDragEnd}
           ListHeaderComponent={listHeader}
           ListFooterComponent={listFooter}
-          renderItem={({ item: exerciseDetail, drag, isActive }: RenderItemParams<SessionExerciseDetail>) => {
+          renderItem={({ item: exerciseDetail }: SortableListRenderItemInfo<SessionExerciseDetail>) => {
             const se = exerciseDetail.session_exercise
             const ex = se.exercise
             if (!ex) return null
             return (
-              <ScaleDecorator activeScale={1.02}>
-                <ReanimatedSwipeable
-                  ref={(ref) => {
-                    const key = String(se.id)
-                    if (ref) swipeableRefs.current.set(key, ref)
-                    else swipeableRefs.current.delete(key)
-                  }}
-                  onSwipeableOpen={() => {
-                    const key = String(se.id)
-                    swipeableRefs.current.forEach((ref, k) => {
-                      if (k !== key) ref.close()
-                    })
-                  }}
-                  renderRightActions={() => (
-                    <View style={{ flexDirection: 'row', marginLeft: 8, marginBottom: 12 }}>
-                      {/* Swap */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          swipeableRefs.current.get(String(se.id))?.close()
-                          navigation.navigate('WorkoutPreviewExercisePicker', {
-                            sessionId,
-                            swapExerciseId: se.id,
-                            swapMuscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString(),
-                          })
-                        }}
-                        style={{
-                          width: 64,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 16,
-                          marginRight: 8,
-                          backgroundColor: colors.secondary,
-                        }}
-                      >
-                        <ArrowUpDown size={20} color={colors.textButton} />
-                      </TouchableOpacity>
-                      {/* Edit */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          swipeableRefs.current.get(String(se.id))?.close()
-                          openEditModal(exerciseDetail)
-                        }}
-                        style={{
-                          width: 64,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 16,
-                          marginRight: 8,
-                          backgroundColor: colors.primary,
-                        }}
-                      >
-                        <Edit2 size={20} color={colors.textButton} />
-                      </TouchableOpacity>
-                      {/* Delete */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          swipeableRefs.current.get(String(se.id))?.close()
-                          handleSwipeRemove(exerciseDetail)
-                        }}
-                        style={{
-                          width: 64,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 16,
-                          backgroundColor: colors.error,
-                        }}
-                      >
-                        <Trash2 size={20} color={colors.textButton} />
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  overshootRight={false}
-                >
-                  <View
-                    className="flex-row items-center gap-3 p-2 rounded-2xl"
-                    style={{
-                      backgroundColor: isActive ? colors.bgElevated : colors.bgSurface,
-                      borderWidth: 1,
-                      borderColor: isActive ? withAlpha(colors.primary, 0.251) : 'transparent',
-                      marginBottom: 12,
-                    }}
-                  >
+              <ReanimatedSwipeable
+                ref={(ref) => {
+                  const key = String(se.id)
+                  if (ref) swipeableRefs.current.set(key, ref)
+                  else swipeableRefs.current.delete(key)
+                }}
+                onSwipeableOpen={() => {
+                  const key = String(se.id)
+                  swipeableRefs.current.forEach((ref, k) => {
+                    if (k !== key) ref.close()
+                  })
+                }}
+                renderRightActions={() => (
+                  <View style={{ flexDirection: 'row', marginLeft: 8 }}>
+                    {/* Swap */}
                     <TouchableOpacity
-                      onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
-                      activeOpacity={0.7}
-                    >
-                      {ex.image ? (
-                        <Image
-                          source={{ uri: ex.image }}
-                          style={{ width: 64, height: 64, borderRadius: 12 }}
-                          contentFit="cover"
-                        />
-                      ) : (
-                        <View
-                          style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.bgElevated }}
-                        />
-                      )}
-                    </TouchableOpacity>
-                    <View className="flex-1 min-w-0">
-                      <Text className="text-sm font-bold mb-1 leading-tight" style={{ color: colors.textPrimary }} numberOfLines={1}>
-                        {ex.name}
-                      </Text>
-                      <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                        <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
-                        <Text style={{ color: colors.textMuted }}> × </Text>
-                        <Text style={{ color: colors.primary }}>
-                          {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
-                        </Text>
-                        {se.target_weight && se.target_weight > 0 ? (
-                          <>
-                            <Text style={{ color: colors.textMuted }}> × </Text>
-                            <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
-                          </>
-                        ) : null}
-                      </Text>
-                    </View>
-                    {/* Drag handle */}
-                    <TouchableOpacity
-                      onLongPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                        drag()
+                      onPress={() => {
+                        swipeableRefs.current.get(String(se.id))?.close()
+                        navigation.navigate('WorkoutPreviewExercisePicker', {
+                          sessionId,
+                          swapExerciseId: se.id,
+                          swapMuscleGroupId: ex.muscle_groups?.find(m => m.is_primary)?.id.toString(),
+                        })
                       }}
-                      delayLongPress={200}
-                      className="p-2"
+                      style={{
+                        width: 64,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 16,
+                        marginRight: 8,
+                        backgroundColor: colors.secondary,
+                      }}
                     >
-                      <GripVertical size={20} color={colors.textMuted} />
+                      <ArrowUpDown size={20} color={colors.textButton} />
+                    </TouchableOpacity>
+                    {/* Edit */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        swipeableRefs.current.get(String(se.id))?.close()
+                        openEditModal(exerciseDetail)
+                      }}
+                      style={{
+                        width: 64,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 16,
+                        marginRight: 8,
+                        backgroundColor: colors.primary,
+                      }}
+                    >
+                      <Edit2 size={20} color={colors.textButton} />
+                    </TouchableOpacity>
+                    {/* Delete */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        swipeableRefs.current.get(String(se.id))?.close()
+                        handleSwipeRemove(exerciseDetail)
+                      }}
+                      style={{
+                        width: 64,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 16,
+                        backgroundColor: colors.error,
+                      }}
+                    >
+                      <Trash2 size={20} color={colors.textButton} />
                     </TouchableOpacity>
                   </View>
-                </ReanimatedSwipeable>
-              </ScaleDecorator>
+                )}
+                overshootRight={false}
+              >
+                <SortableItemSurface
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8, borderRadius: 16, borderWidth: 1 }}
+                  backgroundColor={colors.bgSurface}
+                  activeBackgroundColor={colors.bgElevated}
+                  borderColor={withAlpha(colors.primary, 0)}
+                  activeBorderColor={withAlpha(colors.primary, 0.251)}
+                >
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
+                    activeOpacity={0.7}
+                  >
+                    {ex.image ? (
+                      <Image
+                        source={{ uri: ex.image }}
+                        style={{ width: 64, height: 64, borderRadius: 12 }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View
+                        style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.bgElevated }}
+                      />
+                    )}
+                  </TouchableOpacity>
+                  <View className="flex-1 min-w-0">
+                    <Text className="text-sm font-bold mb-1 leading-tight" style={{ color: colors.textPrimary }} numberOfLines={1}>
+                      {ex.name}
+                    </Text>
+                    <Text className="text-xs" style={{ color: colors.textSecondary }}>
+                      <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
+                      <Text style={{ color: colors.textMuted }}> × </Text>
+                      <Text style={{ color: colors.primary }}>
+                        {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
+                      </Text>
+                      {se.target_weight && se.target_weight > 0 ? (
+                        <>
+                          <Text style={{ color: colors.textMuted }}> × </Text>
+                          <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
+                        </>
+                      ) : null}
+                    </Text>
+                  </View>
+                  {/* Drag handle — hold to lift the row; the list adds the haptics */}
+                  <SortableHandle style={{ padding: 8 }}>
+                    <GripVertical size={20} color={colors.textMuted} />
+                  </SortableHandle>
+                </SortableItemSurface>
+              </ReanimatedSwipeable>
             )
           }}
         />
