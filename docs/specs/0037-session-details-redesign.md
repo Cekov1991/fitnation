@@ -13,7 +13,7 @@ have no completion time recorded), and listed every logged set of every
 exercise as its own bordered box, so a five-exercise session was a long scroll
 of near-identical rows before the eye found anything. Nothing said how the
 session compared with the last one, and there was no way to repeat the
-workout or share it from the screen.
+workout from the screen.
 
 ## Change
 
@@ -43,12 +43,12 @@ workout or share it from the screen.
   exercise" link, which is where the tap-to-open-exercise of the old rows went.
 - **Footer**, outside the scroll: **Repeat this session** starts a new session
   from the same template (the Manage Exercises start flow: preview when the
-  server returns a draft, otherwise straight into the session) — hidden when
-  the session has no template; **Continue session** replaces it while the
-  session is still active; and a square **share** button (decision
-  2026-09-12: the mock's arrow-up-right button shares) that opens the native
-  share sheet with `sessionShareText`: name and date, the totals, one line per
-  exercise.
+  server returns a draft, otherwise straight into the session); **Continue
+  session** replaces it while the session is still active. The footer is
+  absent when the session has no template and is not active. The mock's
+  square arrow-up-right button was first built as a share button (decision
+  2026-09-12) and then removed the same day at Kiril's request; the screen
+  has no share.
 - Notes keep their card. Sizes follow the app's scale (24 title, 22 name, 11
   uppercase labels), and the header is the round back button of Program
   Details with the title in `textPrimary`, as the mock shows it.
@@ -70,15 +70,14 @@ helpers are in `packages/shared` so it can adopt them.
 
 - `tsc --noEmit`: mobile 7 errors before and after, none in the new screen;
   shared only its pre-existing `register.ts` error. `pnpm test`: 43 files,
-  407 tests, 13 of them new (`detailView.test.ts`, `formatTime`).
+  405 tests, 11 of them new (`detailView.test.ts`, `formatTime`).
 - Pixel emulator, 2026-09-12, light and dark: a completed Legs Day opened from
   the dashboard's Day 2 chip shows its name from the template, "Saturday,
   Sep 12 · 10:21 AM", the Completed pill, "7,560 kg · 5 exercises · 17 sets",
   and one summarised row per exercise ("4 × 8 @ 107.5 kg", 3,440 kg). Tapping
-  Deadlift lists its four set lines and the View exercise link; the share
-  button opens the system sheet with the headline, totals and five exercise
-  lines. A Push Day with no logged sets reads "0 kg · 6 exercises · 0 sets"
-  and "No sets logged" per row.
+  Deadlift lists its four set lines and the View exercise link. A Push Day
+  with no logged sets reads "0 kg · 6 exercises · 0 sets" and "No sets
+  logged" per row.
 - Not exercised on a device: the comparison strip (neither session had an
   earlier performance of its exercises; the logic is under test) and Repeat
   this session (it starts a real session on the account).

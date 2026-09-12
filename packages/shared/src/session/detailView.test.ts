@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionExerciseDetail, SetLogResource } from '../types/api';
 import {
-  sessionShareText,
   summarizeSets,
   volumeComparison,
   volumeComparisonParts,
@@ -111,31 +110,5 @@ describe('volumeComparisonParts', () => {
     expect(volumeComparisonParts({ current: 1, previous: 1, percent: 0, exercises: 1 })).toEqual({
       direction: 'flat', percent: '', text: 'Same volume as last time',
     });
-  });
-});
-
-describe('sessionShareText', () => {
-  it('writes the headline, the totals and one line per exercise', () => {
-    const exercises = [
-      detail([log(1, 100, 8), log(2, 100, 8)], [], { exercise: { name: 'Deadlift' } as any }),
-      detail([log(1, 0, 12)], [], { progression_mode: 'total_reps', exercise: { name: 'Plank' } as any }),
-    ];
-    const text = sessionShareText({ name: 'Push Day', dateLine: 'Thursday, Sep 12 · 18:40', unit: 'kg', exercises });
-    expect(text.split('\n')).toEqual([
-      'Push Day · Thursday, Sep 12 · 18:40',
-      '1,600 kg total volume · 2 exercises · 3 sets',
-      '',
-      '• Deadlift — 2 × 8 @ 100 kg',
-      '• Plank — 1 × 12 reps',
-    ]);
-  });
-
-  it('counts reps when nothing was weighted and names a missing exercise plainly', () => {
-    const text = sessionShareText({
-      name: 'Workout session', dateLine: 'Monday, Sep 7 · 07:10', unit: 'lbs',
-      exercises: [detail([log(1, 0, 15)], [], { progression_mode: 'total_reps' })],
-    });
-    expect(text).toContain('15 reps in total · 1 exercise · 1 set');
-    expect(text).toContain('• Exercise — 1 × 15 reps');
   });
 });

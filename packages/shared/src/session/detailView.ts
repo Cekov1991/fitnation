@@ -1,11 +1,10 @@
 import type { SessionExerciseDetail, SetLogResource } from '../types/api';
-import { formatVolumeFull, formatWeight } from '../units/format';
-import { sessionTotals } from './readModel';
+import { formatWeight } from '../units/format';
 
 /**
  * How a finished session reads on the Session Details screen: one line per
- * exercise, a comparison with last time, and the text a share sheet gets.
- * Pure over the session detail response; the screens only lay it out.
+ * exercise and a comparison with last time. Pure over the session detail
+ * response; the screens only lay it out.
  */
 
 export interface SetSummaryOptions {
@@ -96,32 +95,4 @@ export function volumeComparisonParts(comparison: VolumeComparison): VolumeCompa
     return { direction: 'down', percent: `${Math.abs(comparison.percent)}%`, text: 'less volume than last time' };
   }
   return { direction: 'flat', percent: '', text: 'Same volume as last time' };
-}
-
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? '' : 's'}`;
-}
-
-export interface SessionShareInput {
-  /** The workout's name, or a stand-in like "Workout session". */
-  name: string;
-  /** `Thursday, Sep 12 · 18:40` */
-  dateLine: string;
-  unit: string;
-  exercises: readonly SessionExerciseDetail[];
-}
-
-/** Plain text for the share sheet: a headline, the totals, then one line per exercise. */
-export function sessionShareText({ name, dateLine, unit, exercises }: SessionShareInput): string {
-  const totals = sessionTotals({ exercises: [...exercises] });
-  const figures = totals.hasWeighted
-    ? `${formatVolumeFull(totals.weightedVolume)} ${unit} total volume`
-    : `${plural(totals.bodyweightReps, 'rep')} in total`;
-  const headline = `${figures} · ${plural(totals.exercisesCount, 'exercise')} · ${plural(totals.totalSets, 'set')}`;
-  const lines = exercises.map((detail) => {
-    const weighted = detail.session_exercise.progression_mode === 'double_progression';
-    const label = detail.session_exercise.exercise?.name ?? 'Exercise';
-    return `• ${label} — ${summarizeSets(detail.logged_sets ?? [], { weighted, unit })}`;
-  });
-  return [`${name} · ${dateLine}`, headline, '', ...lines].join('\n');
 }

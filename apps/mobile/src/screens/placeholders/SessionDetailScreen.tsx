@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
-  ArrowUpRight,
   Check,
   ChevronDown,
   ChevronRight,
@@ -20,7 +19,6 @@ import {
   formatTime,
   formatVolumeFull,
   formatWeight,
-  sessionShareText,
   sessionTotals,
   summarizeSets,
   useSession,
@@ -44,8 +42,7 @@ type SessionState = 'completed' | 'active' | 'cancelled'
 /**
  * A finished (or running) session at a glance: the workout, when it happened,
  * its totals and how they compare with last time, then one collapsible row per
- * exercise. Repeat starts the same template again; share hands the summary to
- * the native share sheet (spec 0037).
+ * exercise. Repeat starts the same template again (spec 0037).
  */
 export function SessionDetailScreen({ route, navigation }: Props) {
   const { sessionId } = route.params
@@ -151,26 +148,6 @@ export function SessionDetailScreen({ route, navigation }: Props) {
     }
   }
 
-  async function handleShare() {
-    try {
-      await Share.share({ title: name, message: sessionShareText({ name, dateLine, unit, exercises }) })
-    } catch {
-      showToast("Couldn't open the share sheet.", 'error')
-    }
-  }
-
-  const shareButton = (
-    <TouchableOpacity
-      onPress={handleShare}
-      accessibilityRole="button"
-      accessibilityLabel="Share session"
-      activeOpacity={0.7}
-      style={[styles.iconBtn, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}
-    >
-      <ArrowUpRight size={22} color={colors.textPrimary} />
-    </TouchableOpacity>
-  )
-
   return (
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bgBase }]}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 24 }]} showsVerticalScrollIndicator={false}>
@@ -247,9 +224,10 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         )}
       </ScrollView>
 
-      {/* Footer */}
-      <View style={[styles.footer, { backgroundColor: colors.bgBase, paddingBottom: insets.bottom + 12 }]}>
-        {isActive ? (
+      {/* Footer — only when there is something to do with the session */}
+      {(isActive || canRepeat) && (
+        <View style={[styles.footer, { backgroundColor: colors.bgBase, paddingBottom: insets.bottom + 12 }]}>
+          {isActive ? (
           <TouchableOpacity
             onPress={() => navigation.navigate('WorkoutSession', { sessionId })}
             accessibilityRole="button"
@@ -258,7 +236,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
           >
             <Text style={[styles.mainBtnText, { color: colors.textButton }]}>Continue session</Text>
           </TouchableOpacity>
-        ) : canRepeat ? (
+        ) : (
           <TouchableOpacity
             onPress={handleRepeat}
             disabled={startSession.isPending}
@@ -275,19 +253,9 @@ export function SessionDetailScreen({ route, navigation }: Props) {
               <Text style={[styles.mainBtnText, { color: colors.textPrimary }]}>Repeat this session</Text>
             )}
           </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={handleShare}
-            accessibilityRole="button"
-            activeOpacity={0.7}
-            style={[styles.mainBtn, styles.mainBtnRow, { backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border }]}
-          >
-            <ArrowUpRight size={20} color={colors.textPrimary} />
-            <Text style={[styles.mainBtnText, { color: colors.textPrimary }]}>Share session</Text>
-          </TouchableOpacity>
         )}
-        {(isActive || canRepeat) && shareButton}
-      </View>
+        </View>
+      )}
     </SafeAreaView>
   )
 }
@@ -453,7 +421,5 @@ const styles = StyleSheet.create({
 
   footer: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingTop: 12 },
   mainBtn: { flex: 1, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  mainBtnRow: { flexDirection: 'row', gap: 8 },
   mainBtnText: { fontSize: 16, fontWeight: '600' },
-  iconBtn: { width: 56, height: 56, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 })
