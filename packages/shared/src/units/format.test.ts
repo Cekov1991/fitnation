@@ -8,6 +8,7 @@ import {
   formatClock,
   formatRestCountdown,
   formatDate,
+  formatTime,
   signPrefix,
   formatSignedPercent,
 } from './format';
@@ -109,5 +110,14 @@ describe('signed changes', () => {
     expect(formatSignedPercent(12.4)).toBe('+12%');
     expect(formatSignedPercent(-5)).toBe('-5%');
     expect(formatSignedPercent(2.25, 1)).toBe('+2.3%');
+  });
+});
+
+describe('formatTime', () => {
+  it('renders the clock time of a timestamp with a two-digit minute', () => {
+    const iso = '2026-09-12T18:05:00';
+    const expected = new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    expect(formatTime(iso)).toBe(expected);
+    expect(formatTime(iso)).toMatch(/05/);
   });
 });

@@ -47,6 +47,7 @@ export * from './exercises/historyView'
 
 // Workout Session read model — slots, completion, totals, the weight rule (0023)
 export * from './session/readModel'
+export * from './session/detailView'
 export { getWeeklyGoalMessage } from './session/weeklyGoal'
 
 // Query keys — every React Query key is built here (0028)

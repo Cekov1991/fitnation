@@ -102,6 +102,11 @@ export function formatDate(iso: string, style: DateStyle = 'short'): string {
   return style === 'long' ? `${monthDay}, ${date.getFullYear()}` : monthDay;
 }
 
+/** The clock time of an ISO timestamp in the device locale: `6:40 PM` or `18:40`. */
+export function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
 /** `"+"` for a gain (zero included, so a flat week reads `+0%`), nothing for a loss. */
 export function signPrefix(value: number): '+' | '' {
   return value >= 0 ? '+' : '';
