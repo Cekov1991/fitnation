@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Modal, StyleSheet, Text, View } from 'react-native'
+import { useNetInfo } from '@react-native-community/netinfo'
 import { labelFor, withAlpha, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared'
 import { Check } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
@@ -17,6 +18,11 @@ const TEXT_DIM = '#8C9BB3'
 // (backend WelcomePlanGenerationService::DURATION_WEEKS).
 const PLAN_WEEKS = 5
 const ROW_COUNT = 4
+
+// The plan request is slow by nature (it writes twenty workouts), so a wait is
+// not itself a fault. Past this, though, silence reads as a freeze — so the
+// subtitle says the app is still working rather than leaving the list stalled.
+const SLOW_AFTER_MS = 10_000
 
 /**
  * 'preparing' — the request has not started (onboarding saves the profile first).
@@ -37,6 +43,7 @@ export interface PlanBuildingContentProps {
 
 export function PlanBuildingContent({ stage, title, subtitle, goalLabel, daysPerWeek }: PlanBuildingContentProps) {
   const { colors } = useTheme()
+  const netInfo = useNetInfo()
 
   const rows = [
     `Matching exercises to ${goalLabel}`,
@@ -61,6 +68,24 @@ export function PlanBuildingContent({ stage, title, subtitle, goalLabel, daysPer
     return () => timers.forEach(clearTimeout)
   }, [stage])
 
+  // Dropped connection mid-request: the request has not failed yet (it may
+  // still be answered when the network returns), but the wait now has a cause
+  // worth naming.
+  const offline = netInfo.isConnected === false
+
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    if (stage !== 'building') { setSlow(false); return }
+    const t = setTimeout(() => setSlow(true), SLOW_AFTER_MS)
+    return () => clearTimeout(t)
+  }, [stage])
+
+  const notice = offline
+    ? 'Waiting for a connection — this will carry on when you are back online.'
+    : slow
+      ? 'Still working — your connection looks slow.'
+      : null
+
   const progress = useRef(new Animated.Value(0)).current
   useEffect(() => {
     Animated.timing(progress, {
@@ -73,7 +98,9 @@ export function PlanBuildingContent({ stage, title, subtitle, goalLabel, daysPer
   return (
     <View style={styles.body}>
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={[styles.subtitle, notice && { color: colors.warning }]}>
+        {notice ?? subtitle}
+      </Text>
 
       <View style={styles.rows}>
         {rows.map((row, i) => {
