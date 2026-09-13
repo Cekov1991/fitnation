@@ -9,7 +9,10 @@ type OnboardingAction =
   | { type: 'BACK' }
   | { type: 'SET'; payload: Partial<UpdateProfileInput> }
 
-// Steps: 0=Welcome, 1=PersonalInfo, 2=Goals, 3=Training, 4=Complete
+// Steps: 1=Goal, 2=About you, 3=How you train, 4=Building your plan.
+// The flow opens on the first question — there is no welcome step to go back to,
+// so BACK clamps at FIRST_STEP rather than at zero.
+export const FIRST_STEP = 1
 export const TOTAL_STEPS = 4
 
 export function onboardingReducer(state: OnboardingState, action: OnboardingAction): OnboardingState {
@@ -17,7 +20,7 @@ export function onboardingReducer(state: OnboardingState, action: OnboardingActi
     case 'NEXT':
       return { ...state, currentStep: Math.min(state.currentStep + 1, TOTAL_STEPS) }
     case 'BACK':
-      return { ...state, currentStep: Math.max(state.currentStep - 1, 0) }
+      return { ...state, currentStep: Math.max(state.currentStep - 1, FIRST_STEP) }
     case 'SET':
       return { ...state, ...action.payload }
     default:

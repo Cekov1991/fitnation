@@ -25,6 +25,8 @@ import {
 } from 'lucide-react-native'
 import {
   estimateWorkoutDuration,
+  labelFor,
+  FITNESS_GOAL_OPTIONS,
   useBrowsableRoutines,
   usePlans,
   usePrograms,
@@ -50,8 +52,8 @@ import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { WorkoutCard } from '../../components/ui/WorkoutCard'
 import { WorkoutTemplateSelector } from '../../components/ui/WorkoutTemplateSelector'
 import { AdjustPlanSheet } from '../../components/ui/AdjustPlanSheet'
-import type { AdjustPlanInput } from '../../components/ui/AdjustPlanSheet'
-import { PlanGeneratingOverlay } from '../../components/ui/PlanGeneratingOverlay'
+import type { AdjustPlanInput, PlanProfileSettings } from '../../components/ui/AdjustPlanSheet'
+import { PlanGeneratingOverlay, type PlanBuildStage } from '../../components/ui/PlanGeneratingOverlay'
 
 import type { AppStackParamList } from '../../navigation/types'
 
@@ -96,10 +98,13 @@ function PlanCardAction({ icon: Icon, label, onPress, disabled, divider }: PlanC
 export function DashboardScreen() {
   const { colors } = useTheme()
   const { user } = useAuth()
+  const firstName = user?.name?.trim().split(' ')[0] ?? null
   const navigation = useNavigation<Nav>()
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [buildStage, setBuildStage] = useState<PlanBuildStage>('building')
+  const [buildFor, setBuildFor] = useState<PlanProfileSettings | null>(null)
   const [adjustPlanVisible, setAdjustPlanVisible] = useState(false)
   const [adjustPlanError, setAdjustPlanError] = useState<string | null>(null)
 
@@ -231,6 +236,10 @@ export function DashboardScreen() {
   async function executeAdjustPlan({ profile: settings, plan }: AdjustPlanInput) {
     setIsRegenerating(true)
     setAdjustPlanError(null)
+    // The checklist names the settings being applied, not the stored ones —
+    // these are what the refreshed plan will be built from.
+    setBuildFor(settings)
+    setBuildStage('building')
     try {
       // The server builds the plan from the stored profile, not from the
       // regenerate request, so the four settings are saved first — and only
@@ -243,6 +252,10 @@ export function DashboardScreen() {
       }
       await regeneratePlan.mutateAsync(plan)
       setAdjustPlanVisible(false)
+      // A beat on the completed list, matching onboarding, so the last row is
+      // seen ticking rather than the overlay vanishing mid-list.
+      setBuildStage('done')
+      await new Promise(resolve => setTimeout(resolve, 900))
     } catch (e) {
       console.error('Failed to refresh the plan', e)
       // Stays open with the choices intact; a toast would be hidden under the modal.
@@ -971,7 +984,11 @@ export function DashboardScreen() {
 
       <PlanGeneratingOverlay
         visible={isRegenerating || regeneratePlan.isPending}
-        partnerLogoUrl={user?.partner?.visual_identity?.logo}
+        stage={buildStage}
+        title="Refreshing your plan"
+        subtitle={`A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.`}
+        goalLabel={labelFor(FITNESS_GOAL_OPTIONS, buildFor?.fitness_goal ?? profile?.fitness_goal)}
+        daysPerWeek={buildFor?.training_days_per_week ?? profile?.training_days_per_week ?? 0}
       />
     </SafeAreaView>
   )
