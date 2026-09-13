@@ -15,6 +15,7 @@ import { useAuth } from '../../context/AuthContext'
 import { onboardingReducer, FIRST_STEP } from '../Onboarding/onboardingReducer'
 import { PlanBuildingContent, PLAN_BUILD_BG } from '../../components/ui/PlanGeneratingOverlay'
 import { NotificationPermissionSheet } from '../../components/ui/NotificationPermissionSheet'
+import { isOnline } from '../../lib/connectivity'
 import { getPermissionStatus } from '../../lib/notifications'
 import { readPushPromptLastShownAt, shouldShowPermissionSheet } from '../../lib/pushPrompt'
 import type { AppScreenProps } from '../../navigation/types'
@@ -84,6 +85,11 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const submitMutation = useMutation({
     mutationFn: async () => {
       setErrorMsg(null)
+      // Offline is worth saying at once rather than after a request that would
+      // sit on the build screen until it timed out.
+      if (!(await isOnline())) {
+        throw new Error('No internet connection. Reconnect and try again.')
+      }
       const { currentStep: _, ...profileData } = state
       const outcome = await submitOnboarding(
         {

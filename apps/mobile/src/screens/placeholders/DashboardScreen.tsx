@@ -44,6 +44,7 @@ import type {
 
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { isOnline } from '../../lib/connectivity'
 
 import { Card } from '../../components/ui/Card'
 import { GradientText } from '../../components/ui/GradientText'
@@ -234,6 +235,12 @@ export function DashboardScreen() {
   }
 
   async function executeAdjustPlan({ profile: settings, plan }: AdjustPlanInput) {
+    // Offline is worth saying at once: the request would otherwise sit in the
+    // build screen until it timed out, which reads as a freeze.
+    if (!(await isOnline())) {
+      setAdjustPlanError('No internet connection. Reconnect and try again.')
+      return
+    }
     setIsRegenerating(true)
     setAdjustPlanError(null)
     // The checklist names the settings being applied, not the stored ones —
