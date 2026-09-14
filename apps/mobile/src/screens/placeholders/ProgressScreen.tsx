@@ -30,8 +30,11 @@ import {
 } from '@fit-nation/shared'
 import type { WorkoutSessionCalendarResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
+import { SCREEN } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
+import { PageTitle } from '../../components/ui/ScreenHeader'
 import { StrengthScoreModal } from '../../components/progress/StrengthScoreModal'
 import { BalanceModal } from '../../components/progress/BalanceModal'
 import { WeeklyProgressModal } from '../../components/progress/WeeklyProgressModal'
@@ -221,18 +224,10 @@ export function ProgressScreen() {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="pt-8 pb-4">
-          <Text className="text-3xl font-bold" style={{ color: colors.primary }}>
-            Progress
-          </Text>
-          <Text className="text-sm mt-1" style={{ color: colors.textSecondary }}>
-            Track your fitness journey
-          </Text>
-        </View>
+        <PageTitle title="Progress" subtitle="Track your fitness journey" />
 
         {/* Segment Switcher */}
         <View
@@ -260,10 +255,7 @@ export function ProgressScreen() {
 
         {/* ── Calendar Tab ── */}
         {progressTab === 'calendar' && (
-          <View
-            className="rounded-3xl p-5 mb-6"
-            style={{ backgroundColor: colors.bgSurface }}
-          >
+          <Card variant="summary" style={{ marginBottom: 24 }}>
             {/* Week navigation */}
             <View className="flex-row items-center gap-2 mb-6">
               <TouchableOpacity
@@ -326,7 +318,7 @@ export function ProgressScreen() {
                             : hasSession
                             ? item.isCompleted
                               ? withAlpha(colors.primary, 0.082)
-                              : `#fbbf2415`
+                              : withAlpha(colors.warning, 0.08)
                             : colors.bgElevated,
                           borderWidth: isSelected ? 2 : 0,
                           borderColor: colors.primary,
@@ -335,7 +327,7 @@ export function ProgressScreen() {
                         {item.isCompleted ? (
                           <CheckCircle2 size={18} color={colors.primary} />
                         ) : item.progress > 0 ? (
-                          <Clock size={16} color="#fbbf24" />
+                          <Clock size={16} color={colors.warning} />
                         ) : item.isToday ? (
                           <View
                             className="w-2 h-2 rounded-full"
@@ -376,13 +368,13 @@ export function ProgressScreen() {
                       style={{
                         backgroundColor: session.completed
                           ? withAlpha(colors.primary, 0.133)
-                          : `#fbbf2422`,
+                          : withAlpha(colors.warning, 0.13),
                       }}
                     >
                       {session.completed ? (
                         <CheckCircle2 size={20} color={colors.primary} />
                       ) : (
-                        <Clock size={20} color="#fbbf24" />
+                        <Clock size={20} color={colors.warning} />
                       )}
                     </View>
                     <View className="flex-1 min-w-0">
@@ -405,7 +397,7 @@ export function ProgressScreen() {
                 ))
               )}
             </View>
-          </View>
+          </Card>
         )}
 
         {/* ── Metrics Tab ── */}

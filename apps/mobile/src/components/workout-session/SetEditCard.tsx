@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import type { WeightUnit } from '@fit-nation/shared'
 import { sanitizeDecimalText, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from '../ui/Button'
 
 interface SetEditCardProps {
   setNumber: number
@@ -148,32 +149,8 @@ export function SetEditCard({
       </View>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-        <TouchableOpacity
-          onPress={onCancel}
-          activeOpacity={0.85}
-          style={{
-            flex: 1,
-            paddingVertical: 16,
-            borderRadius: 18,
-            alignItems: 'center',
-            backgroundColor: withAlpha(colors.textButton, 0.2),
-          }}
-        >
-          <Text style={{ color: colors.textButton, fontSize: 16, fontWeight: '700' }}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={onSave}
-          activeOpacity={0.85}
-          style={{
-            flex: 1,
-            paddingVertical: 16,
-            borderRadius: 18,
-            alignItems: 'center',
-            backgroundColor: colors.textButton,
-          }}
-        >
-          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>Save</Text>
-        </TouchableOpacity>
+        <Button variant="onBrandGhost" label="Cancel" onPress={onCancel} style={{ flex: 1 }} />
+        <Button variant="onBrand" label="Save" onPress={onSave} style={{ flex: 1 }} />
       </View>
     </LinearGradient>
   )

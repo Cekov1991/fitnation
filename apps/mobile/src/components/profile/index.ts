@@ -1,0 +1,5 @@
+export * from './profileSections'
+export { GoalSection } from './GoalSection'
+export { AboutSection } from './AboutSection'
+export { TrainingSection } from './TrainingSection'
+export { AccountSection } from './AccountSection'

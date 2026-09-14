@@ -1,7 +1,8 @@
-import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
+import { Modal, View, Text, Pressable, StyleSheet } from 'react-native'
 import { withAlpha } from '@fit-nation/shared'
 import { AlertTriangle, Info } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 
 interface ConfirmDialogProps {
   visible: boolean
@@ -43,7 +44,7 @@ export function ConfirmDialog({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
         <Pressable
           onPress={() => {}}
           style={[
@@ -68,32 +69,13 @@ export function ConfirmDialog({
 
           {/* Buttons stacked vertically */}
           <View style={styles.buttonsContainer}>
-            {/* Confirm button */}
-            <TouchableOpacity
+            <Button
+              label={confirmLabel}
+              variant={destructive ? 'destructive' : 'primary'}
+              size="md"
               onPress={handleConfirm}
-              activeOpacity={0.75}
-              style={[
-                styles.confirmButton,
-                {
-                  backgroundColor: destructive ? colors.error : colors.primary,
-                },
-              ]}
-            >
-              <Text style={[styles.confirmLabel, { color: colors.textButton }]}>
-                {confirmLabel}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Cancel — subtle, no fill */}
-            <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.6}
-              style={styles.cancelButton}
-            >
-              <Text style={[styles.cancelLabel, { color: colors.textSecondary }]}>
-                {cancelLabel}
-              </Text>
-            </TouchableOpacity>
+            />
+            <Button label={cancelLabel} variant="ghost" size="sm" onPress={onClose} />
           </View>
         </Pressable>
       </Pressable>
@@ -104,7 +86,6 @@ export function ConfirmDialog({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -149,24 +130,5 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     paddingHorizontal: 16,
     gap: 8,
-  },
-  confirmButton: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelLabel: {
-    fontSize: 15,
-    fontWeight: '500',
   },
 })

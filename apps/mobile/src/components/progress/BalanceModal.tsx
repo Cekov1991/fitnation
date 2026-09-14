@@ -1,8 +1,9 @@
 import { View, Text } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Scale } from 'lucide-react-native'
-import { useFitnessMetrics } from '@fit-nation/shared'
+import { useFitnessMetrics, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import type { AppColors } from '../../constants/theme'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
 interface BalanceModalProps {
@@ -18,53 +19,34 @@ interface LevelColors {
   iconText: string
 }
 
-function getLevelColors(level: string): LevelColors {
-  switch (level) {
-    case 'EXCELLENT':
-      return {
-        bg: 'rgba(34,197,94,0.2)',
-        border: 'rgba(34,197,94,0.3)',
-        text: '#4ade80',
-        iconBg: 'rgba(34,197,94,0.2)',
-        iconText: '#4ade80',
-      }
-    case 'FAIR':
-      return {
-        bg: 'rgba(234,179,8,0.2)',
-        border: 'rgba(234,179,8,0.3)',
-        text: '#facc15',
-        iconBg: 'rgba(234,179,8,0.2)',
-        iconText: '#facc15',
-      }
-    case 'NEEDS_IMPROVEMENT':
-      return {
-        bg: 'rgba(239,68,68,0.2)',
-        border: 'rgba(239,68,68,0.3)',
-        text: '#f87171',
-        iconBg: 'rgba(239,68,68,0.2)',
-        iconText: '#f87171',
-      }
-    case 'GOOD':
-    default:
-      return {
-        bg: 'rgba(59,130,246,0.2)',
-        border: 'rgba(59,130,246,0.3)',
-        text: '#60a5fa',
-        iconBg: 'rgba(59,130,246,0.2)',
-        iconText: '#60a5fa',
-      }
+/** Status tint for a balance level: excellent → success, fair → warning, needs improvement → error, good → info. */
+function getLevelColors(level: string, colors: AppColors): LevelColors {
+  const tone =
+    level === 'EXCELLENT'
+      ? colors.success
+      : level === 'FAIR'
+        ? colors.warning
+        : level === 'NEEDS_IMPROVEMENT'
+          ? colors.error
+          : colors.info
+  return {
+    bg: withAlpha(tone, 0.2),
+    border: withAlpha(tone, 0.3),
+    text: tone,
+    iconBg: withAlpha(tone, 0.2),
+    iconText: tone,
   }
 }
 
-function getMuscleGroupColor(name: string, primary: string, secondary: string): string {
+function getMuscleGroupColor(name: string, colors: AppColors): string {
   const n = name.toLowerCase()
-  if (n.includes('chest')) return primary
-  if (n.includes('lats') || n.includes('upper back') || n.includes('lower back')) return secondary
-  if (n.includes('quad') || n.includes('hamstring') || n.includes('glute') || n.includes('calve')) return '#10b981'
-  if (n.includes('delt') || n.includes('shoulder') || n.includes('trap')) return '#f97316'
-  if (n.includes('bicep') || n.includes('tricep') || n.includes('forearm')) return '#06b6d4'
-  if (n.includes('abs') || n.includes('oblique') || n.includes('core')) return '#eab308'
-  return primary
+  if (n.includes('chest')) return colors.primary
+  if (n.includes('lats') || n.includes('upper back') || n.includes('lower back')) return colors.secondary
+  if (n.includes('quad') || n.includes('hamstring') || n.includes('glute') || n.includes('calve')) return colors.success
+  if (n.includes('delt') || n.includes('shoulder') || n.includes('trap')) return colors.secondary
+  if (n.includes('bicep') || n.includes('tricep') || n.includes('forearm')) return colors.primary
+  if (n.includes('abs') || n.includes('oblique') || n.includes('core')) return colors.warning
+  return colors.primary
 }
 
 export function BalanceModal({ visible, onClose }: BalanceModalProps) {
@@ -79,7 +61,7 @@ export function BalanceModal({ visible, onClose }: BalanceModalProps) {
 
   const isPositive = recentChange > 0
   const isNeutral = recentChange === 0
-  const levelColors = getLevelColors(level)
+  const levelColors = getLevelColors(level, colors)
 
   const sortedMuscleGroups = Object.entries(muscleGroups)
     .map(([name, value]) => ({ name, percentage: value as number }))
@@ -88,7 +70,7 @@ export function BalanceModal({ visible, onClose }: BalanceModalProps) {
   const activeGroups = sortedMuscleGroups.filter((g) => g.percentage > 0)
   const totalGroups = sortedMuscleGroups.length
 
-  const recentChangeColor = isPositive ? '#4ade80' : isNeutral ? '#60a5fa' : '#f87171'
+  const recentChangeColor = isPositive ? colors.success : isNeutral ? colors.info : colors.error
 
   return (
     <ProgressDetailModal visible={visible} onClose={onClose} title="Strength Balance Details">
@@ -185,7 +167,7 @@ export function BalanceModal({ visible, onClose }: BalanceModalProps) {
           {sortedMuscleGroups.map((group) => {
             const displayName =
               group.name.charAt(0).toUpperCase() + group.name.slice(1).replace(/_/g, ' ')
-            const color = getMuscleGroupColor(group.name, colors.primary, colors.secondary)
+            const color = getMuscleGroupColor(group.name, colors)
             return (
               <View key={group.name} className="mb-3">
                 <View className="flex-row items-center justify-between mb-1">

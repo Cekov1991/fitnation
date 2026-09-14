@@ -7,9 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
 import { resetPasswordSchema, type ResetPasswordFormData, authApi, withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
+import { SCREEN, SECTION_GAP } from '../../constants/layout'
 import type { AuthScreenProps } from '../../navigation/types'
 
 export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'ResetPassword'>) {
@@ -63,18 +65,12 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   // Missing token or email — link is incomplete
   if (!token || !email) {
     return (
-      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
-        <View
-          style={{
-            backgroundColor: colors.bgSurface,
-            borderRadius: 24,
-            padding: 24,
-            borderWidth: 1,
-            borderColor: colors.bgElevated,
-            width: '100%',
-            alignItems: 'center',
-          }}
-        >
+      <SafeAreaView
+        edges={['top']}
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
+      >
+        <Card variant="summary" style={{ width: '100%', alignItems: 'center' }}>
           <AlertCircle color={colors.warning} size={48} style={{ marginBottom: 16 }} />
           <Text className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
             Missing reset link
@@ -83,16 +79,16 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             This page needs a valid reset link. If your link expired or didn't open correctly, request a new one.
           </Text>
           <Button
-            label="Request a new link"
+            label="Request a New Link"
             onPress={() => navigation.navigate('ForgotPassword')}
           />
           <Button
-            label="Back to sign in"
+            label="Back to Sign in"
             variant="ghost"
             style={{ marginTop: 8 }}
             onPress={() => navigation.navigate('Login')}
           />
-        </View>
+        </Card>
       </SafeAreaView>
     )
   }
@@ -100,18 +96,12 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   // Success state
   if (success) {
     return (
-      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
-        <View
-          style={{
-            backgroundColor: colors.bgSurface,
-            borderRadius: 24,
-            padding: 24,
-            borderWidth: 1,
-            borderColor: colors.bgElevated,
-            width: '100%',
-            alignItems: 'center',
-          }}
-        >
+      <SafeAreaView
+        edges={['top']}
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
+      >
+        <Card variant="summary" style={{ width: '100%', alignItems: 'center' }}>
           <View
             style={{
               width: 64,
@@ -138,7 +128,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
           >
             Go to sign in now
           </Text>
-        </View>
+        </Card>
       </SafeAreaView>
     )
   }
@@ -151,7 +141,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 24, justifyContent: 'center', flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingVertical: SECTION_GAP, justifyContent: 'center', flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
           <AuthLogoHeader
@@ -160,15 +150,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
           />
 
           {/* Form card */}
-          <View
-            style={{
-              backgroundColor: colors.bgSurface,
-              borderRadius: 24,
-              padding: 24,
-              borderWidth: 1,
-              borderColor: colors.bgElevated,
-            }}
-          >
+          <Card variant="summary">
             {error && (
               <View
                 className="flex-row items-center gap-3 p-4 rounded-xl mb-4"
@@ -181,7 +163,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
 
             {isInvalidLink && (
               <Button
-                label="Request a new link"
+                label="Request a New Link"
                 variant="ghost"
                 style={{ marginBottom: 16, borderWidth: 1, borderColor: colors.bgElevated }}
                 onPress={() => navigation.navigate('ForgotPassword')}
@@ -239,7 +221,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             />
 
             <Button
-              label="Reset password"
+              label="Reset Password"
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             />
@@ -253,7 +235,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
                 Request a new link
               </Text>
             </View>
-          </View>
+          </Card>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

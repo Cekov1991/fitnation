@@ -26,14 +26,14 @@ function ToastItem({ toast }: { toast: Toast }) {
 
   return (
     <Animated.View style={[styles.item, { backgroundColor: bgColor, opacity }]}>
-      <Text style={styles.message} numberOfLines={3}>
+      <Text style={[styles.message, { color: colors.textButton }]} numberOfLines={3}>
         {toast.message}
       </Text>
       <TouchableOpacity
         onPress={() => dismissToast(toast.id)}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <X size={16} color="#fff" />
+        <X size={16} color={colors.textButton} />
       </TouchableOpacity>
     </Animated.View>
   )
@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
   },
   message: {
     flex: 1,
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
     lineHeight: 20,

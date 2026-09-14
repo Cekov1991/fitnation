@@ -31,8 +31,12 @@ import type {
   ProgramResource,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN, RADIUS } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
-import { GradientText } from '../../components/ui/GradientText'
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { PageTitle } from '../../components/ui/ScreenHeader'
+import { SectionLabel } from '../../components/ui/SectionLabel'
 import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwitcher'
 import { ActionSheet } from '../../components/ui/ActionSheet'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -43,6 +47,7 @@ type Nav = NativeStackNavigationProp<AppStackParamList>
 
 export function PlansScreen() {
   const { colors } = useTheme()
+  const primaryButtonContent = useButtonContentColor('primary')
   const navigation = useNavigation<Nav>()
   const [activeTab, setActiveTab] = useState<PlanType>('programs')
   const [planSheet, setPlanSheet] = useState<PlanResource | null>(null)
@@ -303,7 +308,7 @@ export function PlansScreen() {
               style={StyleSheet.absoluteFill}
               contentFit="cover"
             />
-            <View style={styles.coverImageOverlay} />
+            <View style={[styles.coverImageOverlay, { backgroundColor: colors.imageScrim }]} />
           </View>
         ) : null}
 
@@ -366,18 +371,21 @@ export function PlansScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <GradientText style={styles.headerTitle}>Plans</GradientText>
-          {effectiveTab === 'customPlans' && (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CreatePlan')}
-              style={[styles.addBtn, { backgroundColor: withAlpha(colors.primary, 0.133) }]}
-            >
-              <Plus size={22} color={colors.primary} />
-            </TouchableOpacity>
-          )}
-        </View>
+        <PageTitle
+          title="Plans"
+          right={
+            effectiveTab === 'customPlans' ? (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('CreatePlan')}
+                accessibilityRole="button"
+                accessibilityLabel="Create plan"
+                style={[styles.addBtn, { backgroundColor: withAlpha(colors.primary, 0.133) }]}
+              >
+                <Plus size={22} color={colors.primary} />
+              </TouchableOpacity>
+            ) : undefined
+          }
+        />
 
         {/* Plan Type Switcher — only rendered when Programs tab is relevant */}
         {showProgramsTab && (
@@ -402,9 +410,7 @@ export function PlansScreen() {
                 {/* Active Plan — only shown when one exists */}
                 {activePlan && (
                   <View style={styles.sectionContainer}>
-                    <Text style={[styles.sectionLabel, { color: colors.primary }]}>
-                      Active Plan
-                    </Text>
+                    <SectionLabel style={{ color: colors.primary }}>Active Plan</SectionLabel>
                     <LinearGradient
                       colors={[colors.bgElevated, colors.bgSurface]}
                       start={{ x: 0, y: 0 }}
@@ -458,9 +464,7 @@ export function PlansScreen() {
 
                       {/* Workout list */}
                       {sortedWorkouts(activePlan.workout_templates).length === 0 ? (
-                        <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                          No workouts in this plan yet.
-                        </Text>
+                        <EmptyState variant="card" title="This plan has no workouts yet" />
                       ) : (
                         sortedWorkouts(activePlan.workout_templates).map(renderWorkoutRow)
                       )}
@@ -469,14 +473,10 @@ export function PlansScreen() {
                 )}
 
                 {/* All Plans */}
-                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-                  All Plans
-                </Text>
+                <SectionLabel>All Plans</SectionLabel>
 
                 {allOtherPlans.length === 0 ? (
-                  <Text style={[styles.emptyLargeText, { color: colors.textMuted }]}>
-                    No other plans yet.
-                  </Text>
+                  <EmptyState variant="card" title="No other plans" />
                 ) : (
                   allOtherPlans.map((plan: PlanResource) => {
                     const workouts = sortedWorkouts(plan.workout_templates)
@@ -503,9 +503,7 @@ export function PlansScreen() {
                         <View style={[styles.divider, { backgroundColor: colors.bgElevated }]} />
 
                         {workouts.length === 0 ? (
-                          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                            No workout templates in this plan.
-                          </Text>
+                          <EmptyState variant="card" title="This plan has no workouts yet" />
                         ) : (
                           workouts.map(renderWorkoutRow)
                         )}
@@ -543,7 +541,7 @@ export function PlansScreen() {
                                   contentFit="cover"
                                 />
                                 <LinearGradient
-                                  colors={['transparent', 'rgba(0,0,0,0.5)']}
+                                  colors={['transparent', withAlpha(colors.mediaBackdrop, 0.5)]}
                                   style={StyleSheet.absoluteFill}
                                 />
                               </>
@@ -665,44 +663,28 @@ export function PlansScreen() {
                 {/* Active Program — only shown when one exists */}
                 {activeProgram && (
                   <View style={styles.sectionContainer}>
-                    <Text style={[styles.sectionLabel, { color: colors.primary }]}>
-                      Active Program
-                    </Text>
+                    <SectionLabel style={{ color: colors.primary }}>Active Program</SectionLabel>
                     {renderProgramCard(activeProgram, true)}
                   </View>
                 )}
 
                 {/* All Programs */}
-                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-                  All Programs
-                </Text>
+                <SectionLabel>All Programs</SectionLabel>
 
                 {inactivePrograms.length === 0 ? (
-                  <Text style={[styles.emptyLargeText, { color: colors.textMuted }]}>
-                    No other programs yet.
-                  </Text>
+                  <EmptyState variant="card" title="No other programs" />
                 ) : (
                   inactivePrograms.map((prog: ProgramResource) =>
                     renderProgramCard(prog, false),
                   )
                 )}
 
-                {/* Browse Library button */}
-                <TouchableOpacity
+                <Button
+                  label="Browse Library"
+                  icon={<Plus size={BUTTON.md.icon} color={primaryButtonContent} />}
                   onPress={() => navigation.navigate('ProgramLibrary')}
                   style={styles.browseLibraryBtn}
-                  activeOpacity={0.85}
-                >
-                  <LinearGradient
-                    colors={[colors.secondary, colors.primary]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.browseLibraryGradient}
-                  >
-                    <Plus size={20} color={colors.textButton} />
-                    <Text style={styles.browseLibraryText}>BROWSE LIBRARY</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                />
               </>
             )}
           </>
@@ -720,22 +702,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingHorizontal: SCREEN.paddingX,
+    paddingBottom: SCREEN.paddingBottom,
   },
 
   // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 32,
-    paddingBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: '700',
-  },
   addBtn: {
     width: 40,
     height: 40,
@@ -744,16 +715,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Section labels
+  // Sections
   sectionContainer: {
     marginBottom: 32,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 16,
   },
 
   // Skeleton
@@ -807,20 +771,10 @@ const styles = StyleSheet.create({
     height: 1,
     marginBottom: 16,
   },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 16,
-  },
-  emptyLargeText: {
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 32,
-  },
 
   // Active plan card
   activePlanCard: {
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 24,
     shadowColor: '#000',
     shadowOpacity: 0.2,
@@ -920,13 +874,13 @@ const styles = StyleSheet.create({
 
   // Program cards
   programCard: {
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
     marginBottom: 16,
   },
   programCardGradient: {
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
   },
   coverImageContainer: {
     height: 140,
@@ -934,7 +888,6 @@ const styles = StyleSheet.create({
   },
   coverImageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   programCardBody: {
     padding: 24,
@@ -964,20 +917,5 @@ const styles = StyleSheet.create({
   // Browse Library button
   browseLibraryBtn: {
     marginTop: 8,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  browseLibraryGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 16,
-  },
-  browseLibraryText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
   },
 })

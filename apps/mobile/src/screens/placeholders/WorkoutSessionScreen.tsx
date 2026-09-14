@@ -28,6 +28,9 @@ import { SessionClock } from '../../components/workout-session/SessionClock'
 import { RestTimer } from '../../components/workout-session/RestTimer'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { Button } from '../../components/ui/Button'
+import { SCREEN } from '../../constants/layout'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ExerciseOptionsMenu } from '../../components/workout-session/ExerciseOptionsMenu'
 import { showToast } from '../../lib/toast'
@@ -144,8 +147,8 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
 
   // Clamp during render, not only in the effect below: an effect runs after
   // commit, so a list that shrinks by any other path (focus refetch, another
-  // client) would paint the "No exercises in this session." empty state for a
-  // frame with an out-of-range index.
+  // client) would paint the empty state for a frame with an out-of-range
+  // index.
   const safeIndex = exerciseCount > 0 ? Math.min(currentIndex, exerciseCount - 1) : 0
 
   useEffect(() => {
@@ -375,7 +378,7 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <View className="px-5 pt-4">
+        <View className="pt-4" style={{ paddingHorizontal: SCREEN.paddingX }}>
           <SkeletonBox height={50} style={{ marginBottom: 16 }} />
           <SkeletonBox height={60} style={{ marginBottom: 16 }} />
           <SkeletonBox height={240} style={{ marginBottom: 12 }} />
@@ -402,8 +405,12 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Header */}
         <View
-          className="flex-row items-center justify-between px-6 py-3"
-          style={{ borderBottomWidth: 1, borderBottomColor: withAlpha(colors.textMuted, 0.125) }}
+          className="flex-row items-center justify-between py-3"
+          style={{
+            paddingHorizontal: SCREEN.paddingX,
+            borderBottomWidth: 1,
+            borderBottomColor: withAlpha(colors.textMuted, 0.125),
+          }}
         >
           <TouchableOpacity
             onPress={handleCancel}
@@ -483,46 +490,23 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
             onNext={nextIndex != null ? handleNext : undefined}
           />
         ) : (
-          <View className="flex-1 items-center justify-center px-6">
-            <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
-              No exercises in this session.
-            </Text>
-            <TouchableOpacity
-              onPress={handleAddExercise}
-              activeOpacity={0.85}
-              style={{
-                marginTop: 16,
-                paddingHorizontal: 20,
-                paddingVertical: 12,
-                borderRadius: 12,
-                backgroundColor: colors.primary,
-              }}
-            >
-              <Text style={{ color: colors.textButton, fontWeight: '700' }}>Add Exercise</Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            title="No exercises added"
+            description="Add an exercise to get this session going."
+            action={{ label: 'Add Exercise', onPress: handleAddExercise }}
+          />
         )}
 
         {/* Finish footer when all sets are done */}
         {allDone && (
           <SafeAreaView edges={['bottom']}>
-            <TouchableOpacity
+            <Button
+              label="Finish Workout"
+              variant="primary"
               onPress={handleFinish}
-              style={{ margin: 16, borderRadius: 16, overflow: 'hidden' }}
-              activeOpacity={0.85}
-            >
-              <View
-                style={{
-                  paddingVertical: 18,
-                  alignItems: 'center',
-                  backgroundColor: colors.success,
-                }}
-              >
-                <Text style={{ color: colors.textButton, fontSize: 17, fontWeight: '700' }}>
-                  FINISH WORKOUT
-                </Text>
-              </View>
-            </TouchableOpacity>
+              loading={completeSession.isPending}
+              style={{ marginHorizontal: SCREEN.paddingX, marginVertical: 16 }}
+            />
           </SafeAreaView>
         )}
       </SafeAreaView>

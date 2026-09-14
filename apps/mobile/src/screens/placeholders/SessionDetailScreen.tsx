@@ -1,16 +1,13 @@
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowUp,
   Check,
   ChevronDown,
   ChevronRight,
   ChevronUp,
-  Dumbbell,
   Minus,
 } from 'lucide-react-native'
 import {
@@ -30,7 +27,15 @@ import {
   withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
+import { RADIUS, SCREEN, SECTION_GAP } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { Button } from '../../components/ui/Button'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { SectionLabel } from '../../components/ui/SectionLabel'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
@@ -63,19 +68,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
     [exercises, session?.performed_at]
   )
 
-  const header = (
-    <View style={styles.header}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        style={[styles.backBtn, { backgroundColor: colors.bgElevated }]}
-      >
-        <ArrowLeft size={22} color={colors.textSecondary} />
-      </TouchableOpacity>
-      <Text style={[styles.title, { color: colors.textPrimary }]}>Session Details</Text>
-    </View>
-  )
+  const header = <ScreenHeader title="Session Details" onBack={() => navigation.goBack()} />
 
   if (isLoading) {
     return (
@@ -94,12 +87,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bgBase }]}>
         <View style={styles.content}>{header}</View>
-        <View style={styles.errorWrap}>
-          <Text style={{ color: colors.textSecondary }}>Failed to load session</Text>
-          <TouchableOpacity onPress={() => refetch()} style={[styles.retryBtn, { backgroundColor: colors.primary }]}>
-            <Text style={{ color: colors.textButton, fontWeight: '600' }}>Retry</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorState message="Failed to load session" onRetry={() => refetch()} />
       </SafeAreaView>
     )
   }
@@ -150,11 +138,14 @@ export function SessionDetailScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bgBase }]}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 24 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: SCREEN.paddingBottom }]}
+        showsVerticalScrollIndicator={false}
+      >
         {header}
 
         {/* Summary card */}
-        <View style={[styles.card, { backgroundColor: colors.bgSurface }]}>
+        <Card variant="summary">
           <View style={styles.cardTop}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[styles.name, { color: colors.textPrimary }]}>{name}</Text>
@@ -176,26 +167,25 @@ export function SessionDetailScreen({ route, navigation }: Props) {
                   <Text style={[styles.statValue, { color: colors.textPrimary }]}>{stat.value}</Text>
                   {stat.unit && <Text style={[styles.statUnit, { color: colors.textMuted }]}>{stat.unit}</Text>}
                 </View>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{stat.label}</Text>
+                <SectionLabel tone="muted" style={styles.statLabel}>
+                  {stat.label}
+                </SectionLabel>
               </View>
             ))}
           </View>
 
           {comparison && <ComparisonStrip parts={volumeComparisonParts(comparison)} />}
-        </View>
+        </Card>
 
         {/* Exercises */}
-        <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Exercises</Text>
+        <SectionLabel style={styles.sectionLabel}>Exercises</SectionLabel>
         {exercises.length > 0 ? (
-          <View style={[styles.listCard, { backgroundColor: colors.bgSurface }]}>
-            {exercises.map((detail, index) => {
+          <View style={{ gap: EXERCISE_ROW.rowGap }}>
+            {exercises.map((detail) => {
               const se = detail.session_exercise
               return (
-                <View
-                  key={se.id}
-                  style={index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }}
-                >
-                  <ExerciseRow
+                <View key={se.id} style={[styles.exerciseCard, { backgroundColor: colors.bgSurface }]}>
+                  <SessionExerciseRow
                     detail={detail}
                     unit={unit}
                     expanded={!!expanded[se.id]}
@@ -211,16 +201,16 @@ export function SessionDetailScreen({ route, navigation }: Props) {
             })}
           </View>
         ) : (
-          <View style={[styles.listCard, { backgroundColor: colors.bgSurface, paddingVertical: 20, alignItems: 'center' }]}>
-            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>No exercises in this session</Text>
-          </View>
+          <EmptyState variant="card" title="No exercises" />
         )}
 
         {!!session.notes && (
-          <View style={[styles.notesCard, { backgroundColor: colors.bgSurface }]}>
-            <Text style={[styles.notesLabel, { color: colors.textMuted }]}>Notes</Text>
+          <Card variant="summary" style={{ marginTop: 20 }}>
+            <SectionLabel tone="muted" style={styles.notesLabel}>
+              Notes
+            </SectionLabel>
             <Text style={[styles.notesText, { color: colors.textSecondary }]}>{session.notes}</Text>
-          </View>
+          </Card>
         )}
       </ScrollView>
 
@@ -228,32 +218,22 @@ export function SessionDetailScreen({ route, navigation }: Props) {
       {(isActive || canRepeat) && (
         <View style={[styles.footer, { backgroundColor: colors.bgBase, paddingBottom: insets.bottom + 12 }]}>
           {isActive ? (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('WorkoutSession', { sessionId })}
-            accessibilityRole="button"
-            activeOpacity={0.8}
-            style={[styles.mainBtn, { backgroundColor: colors.primary }]}
-          >
-            <Text style={[styles.mainBtnText, { color: colors.textButton }]}>Continue session</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={handleRepeat}
-            disabled={startSession.isPending}
-            accessibilityRole="button"
-            activeOpacity={0.7}
-            style={[
-              styles.mainBtn,
-              { backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, opacity: startSession.isPending ? 0.7 : 1 },
-            ]}
-          >
-            {startSession.isPending ? (
-              <ActivityIndicator color={colors.textPrimary} />
-            ) : (
-              <Text style={[styles.mainBtnText, { color: colors.textPrimary }]}>Repeat this session</Text>
-            )}
-          </TouchableOpacity>
-        )}
+            <Button
+              label="Continue Session"
+              variant="accent"
+              style={{ flex: 1 }}
+              onPress={() => navigation.navigate('WorkoutSession', { sessionId })}
+            />
+          ) : (
+            <Button
+              label="Repeat This Session"
+              variant="secondary"
+              style={{ flex: 1 }}
+              loading={startSession.isPending}
+              disabled={startSession.isPending}
+              onPress={handleRepeat}
+            />
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -275,7 +255,7 @@ function ComparisonStrip({ parts }: { parts: ReturnType<typeof volumeComparisonP
   )
 }
 
-interface ExerciseRowProps {
+interface SessionExerciseRowProps {
   detail: SessionExerciseDetail
   unit: string
   expanded: boolean
@@ -283,8 +263,8 @@ interface ExerciseRowProps {
   onOpen?: () => void
 }
 
-/** One exercise: the row summarises its sets; tapping it lists them. */
-function ExerciseRow({ detail, unit, expanded, onToggle, onOpen }: ExerciseRowProps) {
+/** One exercise card: the standard row summarises its sets; tapping it lists them below. */
+function SessionExerciseRow({ detail, unit, expanded, onToggle, onOpen }: SessionExerciseRowProps) {
   const { colors } = useTheme()
   const se = detail.session_exercise
   const weighted = se.progression_mode === 'double_progression'
@@ -294,38 +274,27 @@ function ExerciseRow({ detail, unit, expanded, onToggle, onOpen }: ExerciseRowPr
 
   return (
     <View>
-      <TouchableOpacity
+      <ExerciseRow
+        surface="plain"
+        name={se.exercise?.name ?? 'Unknown exercise'}
+        image={se.exercise?.image}
+        meta={summarizeSets(sets, { weighted, unit })}
         onPress={onToggle}
-        activeOpacity={0.7}
-        accessibilityRole="button"
         accessibilityState={{ expanded }}
-        style={styles.row}
-      >
-        {se.exercise?.image ? (
-          <Image source={{ uri: se.exercise.image }} style={styles.thumb} contentFit="cover" />
-        ) : (
-          <View style={[styles.thumb, styles.thumbEmpty, { backgroundColor: withAlpha(colors.primary, 0.094) }]}>
-            <Dumbbell size={22} color={colors.primary} />
-          </View>
-        )}
-        <View style={styles.rowText}>
-          <Text numberOfLines={1} style={[styles.rowName, { color: colors.textPrimary }]}>
-            {se.exercise?.name ?? 'Unknown exercise'}
-          </Text>
-          <Text numberOfLines={1} style={[styles.rowMeta, { color: colors.textSecondary }]}>
-            {summarizeSets(sets, { weighted, unit })}
-          </Text>
-        </View>
-        {sets.length > 0 && (
-          <View style={styles.rowFigure}>
-            <Text style={[styles.rowVolume, { color: colors.textPrimary }]}>
-              {weighted ? formatVolumeFull(totals.volume) : String(totals.reps)}
-            </Text>
-            <Text style={[styles.rowUnit, { color: colors.textMuted }]}>{weighted ? unit : 'reps'}</Text>
-          </View>
-        )}
-        <Chevron size={18} color={colors.textMuted} />
-      </TouchableOpacity>
+        right={
+          <>
+            {sets.length > 0 && (
+              <View style={styles.rowFigure}>
+                <Text style={[styles.rowVolume, { color: colors.textPrimary }]}>
+                  {weighted ? formatVolumeFull(totals.volume) : String(totals.reps)}
+                </Text>
+                <Text style={[styles.rowUnit, { color: colors.textMuted }]}>{weighted ? unit : 'reps'}</Text>
+              </View>
+            )}
+            <Chevron size={18} color={colors.textMuted} style={{ marginRight: 4 }} />
+          </>
+        }
+      />
 
       {expanded && (
         <View style={styles.setList}>
@@ -370,18 +339,12 @@ function ExerciseRow({ detail, unit, expanded, onToggle, onOpen }: ExerciseRowPr
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { paddingHorizontal: 16 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 16, paddingBottom: 16 },
-  backBtn: { padding: 8, borderRadius: 999 },
-  title: { fontSize: 24, fontWeight: '700' },
-  errorWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  retryBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  content: { paddingHorizontal: SCREEN.paddingX },
 
-  card: { borderRadius: 24, padding: 20 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   name: { fontSize: 22, fontWeight: '800' },
   date: { fontSize: 14, marginTop: 4 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, marginTop: 2 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.pill, marginTop: 2 },
   pillText: { fontSize: 12, fontWeight: '700' },
   stats: { flexDirection: 'row', marginTop: 16, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth },
   stat: { flex: 1, minWidth: 0 },
@@ -389,22 +352,18 @@ const styles = StyleSheet.create({
   statValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 3 },
   statValue: { fontSize: 24, fontWeight: '700', lineHeight: 28 },
   statUnit: { fontSize: 13, fontWeight: '600', marginBottom: 3 },
-  statLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 4 },
+  // Margins only — the caption itself is <SectionLabel>.
+  statLabel: { marginBottom: 0, marginTop: 4 },
   compare: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14 },
   compareText: { flex: 1, fontSize: 14 },
 
-  sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 24, marginBottom: 10, marginLeft: 4 },
-  listCard: { borderRadius: 24, paddingVertical: 4, paddingHorizontal: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
-  thumb: { width: 64, height: 64, borderRadius: 16 },
-  thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
-  rowText: { flex: 1, minWidth: 0 },
-  rowName: { fontSize: 17, fontWeight: '700' },
-  rowMeta: { fontSize: 13, marginTop: 3 },
+  sectionLabel: { marginTop: SECTION_GAP, marginLeft: 4 },
+  // The row itself is <ExerciseRow>; this card wraps it plus the expanded set list.
+  exerciseCard: { borderRadius: EXERCISE_ROW.radius },
   rowFigure: { alignItems: 'flex-end' },
-  rowVolume: { fontSize: 17, fontWeight: '700' },
-  rowUnit: { fontSize: 12, marginTop: 1 },
-  setList: { paddingLeft: 12, paddingBottom: 12 },
+  rowVolume: { fontSize: EXERCISE_ROW.nameSize, fontWeight: '700' },
+  rowUnit: { fontSize: EXERCISE_ROW.metaSize, marginTop: 1 },
+  setList: { paddingHorizontal: 16, paddingBottom: 12 },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   setLabel: { width: 52, fontSize: 14 },
   setFigures: { flex: 1, fontSize: 16, fontWeight: '700' },
@@ -415,11 +374,8 @@ const styles = StyleSheet.create({
   viewLink: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingTop: 8 },
   viewLinkText: { fontSize: 13, fontWeight: '600' },
 
-  notesCard: { borderRadius: 24, padding: 20, marginTop: 20 },
-  notesLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+  notesLabel: { marginBottom: 8 },
   notesText: { fontSize: 14, lineHeight: 20 },
 
-  footer: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingTop: 12 },
-  mainBtn: { flex: 1, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  mainBtnText: { fontSize: 16, fontWeight: '600' },
+  footer: { flexDirection: 'row', gap: 12, paddingHorizontal: SCREEN.paddingX, paddingTop: 12 },
 })

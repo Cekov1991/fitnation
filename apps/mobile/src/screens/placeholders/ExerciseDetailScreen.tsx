@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
-import { ArrowLeft, ArrowUpDown, Maximize2, Plus, X } from 'lucide-react-native'
+import { ArrowUpDown, Maximize2, Plus, X } from 'lucide-react-native'
 import * as ScreenOrientation from 'expo-screen-orientation'
 import {
   useAddSessionExercise,
@@ -35,8 +35,11 @@ import {
   formatSignedPercent,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
-import { GradientText } from '../../components/ui/GradientText'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SectionLabel } from '../../components/ui/SectionLabel'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { SCREEN } from '../../constants/layout'
 import { SpeechButton } from '../../components/ui/SpeechButton'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
@@ -48,6 +51,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
 // so useVideoPlayer receives a valid source at mount (its setup callback
 // runs exactly once, never with null/undefined).
 function ExerciseVideoPlayer({ uri }: { uri: string }) {
+  const { colors } = useTheme()
   const player = useVideoPlayer(uri, p => {
     p.loop = true
     p.muted = true
@@ -104,10 +108,10 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
           right: 10,
           padding: 8,
           borderRadius: 8,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: withAlpha(colors.mediaBackdrop, 0.5),
         }}
       >
-        <Maximize2 size={18} color="#fff" />
+        <Maximize2 size={18} color={colors.textOnImage} />
       </TouchableOpacity>
 
       <Modal
@@ -117,7 +121,7 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
         onRequestClose={closeFullscreen}
         supportedOrientations={['landscape', 'landscape-left', 'landscape-right']}
       >
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <View style={{ flex: 1, backgroundColor: colors.mediaBackdrop }}>
           <VideoView
             player={player}
             style={{ flex: 1 }}
@@ -133,10 +137,10 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
               right: 16,
               padding: 8,
               borderRadius: 8,
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: withAlpha(colors.mediaBackdrop, 0.5),
             }}
           >
-            <X size={20} color="#fff" />
+            <X size={20} color={colors.textOnImage} />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -253,54 +257,40 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
 
-        {/* Header */}
-        <View className="flex-row items-center gap-4 px-6 py-4">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: colors.bgSurface }}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <View className="flex-1 min-w-0">
-            <GradientText
-              className="text-2xl font-bold"
-              style={{ fontSize: 22, fontWeight: 'bold' }}
-              numberOfLines={1}
-            >
-              {exercise?.name || exerciseName}
-            </GradientText>
-          </View>
-          {action && (
-            <TouchableOpacity
-              onPress={handleAction}
-              disabled={!exercise || actionPending}
-              className="p-2 rounded-full flex-shrink-0"
-              style={{
-                backgroundColor: isSwapAction
-                  ? withAlpha(colors.primary, 0.125)
-                  : withAlpha(colors.primary, 0.125),
-                opacity: !exercise || actionPending ? 0.5 : 1,
-              }}
-              activeOpacity={0.7}
-            >
-              {actionPending ? (
-                <ActivityIndicator
-                  size="small"
-                  color={isSwapAction ? colors.primary : colors.primary}
-                />
-              ) : isSwapAction ? (
-                <ArrowUpDown size={20} color={colors.primary} />
-              ) : (
-                <Plus size={20} color={colors.primary} />
-              )}
-            </TouchableOpacity>
-          )}
+        <View style={{ paddingHorizontal: SCREEN.paddingX }}>
+          <ScreenHeader
+            title={exercise?.name || exerciseName}
+            titleLines={1}
+            onBack={() => navigation.goBack()}
+            right={
+              action ? (
+                <TouchableOpacity
+                  onPress={handleAction}
+                  disabled={!exercise || actionPending}
+                  className="p-2 rounded-full flex-shrink-0"
+                  style={{
+                    backgroundColor: withAlpha(colors.primary, 0.125),
+                    opacity: !exercise || actionPending ? 0.5 : 1,
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={isSwapAction ? 'Swap exercise' : 'Add exercise'}
+                >
+                  {actionPending ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : isSwapAction ? (
+                    <ArrowUpDown size={20} color={colors.primary} />
+                  ) : (
+                    <Plus size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ) : undefined
+            }
+          />
         </View>
 
         {/* Tab Pill Switcher — comes before video, matching web layout */}
-        <View className="px-6 mb-4">
+        <View className="mb-4" style={{ paddingHorizontal: SCREEN.paddingX }}>
           <View
             className="flex-row p-1 rounded-full"
             style={{ backgroundColor: colors.segmentTrack }}
@@ -347,9 +337,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
               contentFit="cover"
             />
           ) : (
-            <View className="flex-1 items-center justify-center">
-              <Text style={{ color: colors.textMuted }}>No media available</Text>
-            </View>
+            <EmptyState title="No media" description="This exercise has no video or picture yet." />
           )}
         </View>
 
@@ -392,12 +380,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                           className="px-3 py-1.5 rounded-full border"
                           style={{ borderColor: colors.primary }}
                         >
-                          <Text
-                            className="text-xs font-semibold uppercase"
-                            style={{ color: colors.textPrimary }}
-                          >
-                            {m}
-                          </Text>
+                          <SectionLabel style={{ marginBottom: 0 }}>{m}</SectionLabel>
                         </View>
                       ))
                     ) : (
@@ -425,12 +408,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                           className="px-3 py-1.5 rounded-full border"
                           style={{ borderColor: colors.bgElevated }}
                         >
-                          <Text
-                            className="text-xs font-semibold uppercase"
-                            style={{ color: colors.textSecondary }}
-                          >
-                            {m}
-                          </Text>
+                          <SectionLabel tone="muted" style={{ marginBottom: 0 }}>{m}</SectionLabel>
                         </View>
                       ))
                     ) : (
@@ -467,7 +445,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                 className="text-sm leading-6"
                 style={{ color: colors.textSecondary }}
               >
-                {exercise?.description || 'No instructions available yet.'}
+                {exercise?.description || 'Instructions for this exercise haven\'t been added yet.'}
               </Text>
             </View>
           </ScrollView>
@@ -487,12 +465,11 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
               {isLoadingHistory ? (
                 <SkeletonBox height={160} />
               ) : !historyData?.performance_data?.length ? (
-                <Text
-                  className="text-center py-8 text-sm"
-                  style={{ color: colors.textSecondary }}
-                >
-                  No history available yet.
-                </Text>
+                <EmptyState
+                  variant="card"
+                  title="Nothing logged yet"
+                  description="Complete a set of this exercise to see your history here."
+                />
               ) : (
                 <>
                   {/* Volume / Weight toggle — only for weighted exercises */}
@@ -513,7 +490,7 @@ export function ExerciseDetailScreen({ route, navigation }: AppScreenProps<'Exer
                         >
                           <Text
                             className="text-xs font-semibold capitalize"
-                            style={{ color: chartMode === mode ? '#fff' : colors.textSecondary }}
+                            style={{ color: chartMode === mode ? colors.textButton : colors.textSecondary }}
                           >
                             {mode === 'weight' ? `Weight (${weightUnit})` : 'Volume'}
                           </Text>

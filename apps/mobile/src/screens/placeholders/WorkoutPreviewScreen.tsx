@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { View, Text, TouchableOpacity, Modal, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import * as Haptics from 'expo-haptics'
 import { Check, RefreshCw, X, Edit2, ArrowUpDown, GripVertical, Plus, Trash2 } from 'lucide-react-native'
@@ -25,9 +23,15 @@ import { useTheme } from '../../context/ThemeContext'
 import { showToast } from '../../lib/toast'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SectionLabel } from '../../components/ui/SectionLabel'
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { RADIUS, SCREEN } from '../../constants/layout'
 import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
 import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
 import { SwipeAction } from '../../components/ui/SwipeAction'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
@@ -38,6 +42,9 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const { colors } = useTheme()
   const numericSessionId = Number(sessionId)
   const weightUnit = useWeightUnit()
+  const primaryContent = useButtonContentColor('primary')
+  const secondaryContent = useButtonContentColor('secondary')
+  const destructiveContent = useButtonContentColor('destructive')
 
   const { data: draftSession, isLoading, isError, refetch } = useSession(numericSessionId)
   const confirmDraft = useConfirmDraftSession()
@@ -179,7 +186,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <View className="px-5 pt-6">
+        <View className="pt-6" style={{ paddingHorizontal: SCREEN.paddingX }}>
           <SkeletonBox height={40} style={{ marginBottom: 16 }} />
           <SkeletonBox height={100} style={{ marginBottom: 12 }} />
           <SkeletonBox height={100} style={{ marginBottom: 12 }} />
@@ -191,11 +198,19 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
 
   if (isError || !draftSession) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
-        <Text style={{ color: colors.textSecondary }}>Session not found</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 px-6 py-3 rounded-xl" style={{ backgroundColor: colors.primary }}>
-          <Text style={{ color: colors.textButton, fontWeight: '600' }}>Go Back</Text>
-        </TouchableOpacity>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: SCREEN.paddingX }}>
+          <View>
+            <ErrorState message="Session not found" />
+          </View>
+          <Button
+            label="Go Back"
+            variant="secondary"
+            size="sm"
+            onPress={() => navigation.goBack()}
+            style={{ alignSelf: 'center', marginTop: 16, minWidth: 160 }}
+          />
+        </View>
       </SafeAreaView>
     )
   }
@@ -203,14 +218,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
   const listHeader = (
     <>
       {/* Header */}
-      <View style={{ paddingTop: 24, marginBottom: 24 }}>
-        <Text className="text-2xl font-black mb-1" style={{ color: colors.textPrimary }}>
-          Preview Workout
-        </Text>
-        <Text className="text-sm" style={{ color: colors.textSecondary }}>
-          Review and adjust your Fit Nation's Engine workout
-        </Text>
-      </View>
+      <ScreenHeader title="Preview Workout" subtitle="Review and adjust your Fit Nation's Engine workout" />
 
       {/* Rationale */}
       {(draftSession as any).rationale && (
@@ -227,89 +235,45 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
         </View>
       )}
 
-      <Text className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: colors.textSecondary }}>
-        Exercises ({orderedExercises.length})
-      </Text>
+      <SectionLabel>{`Exercises (${orderedExercises.length})`}</SectionLabel>
     </>
   )
 
   const listFooter = (
     <>
-      {/* Add Exercise Button */}
-      <TouchableOpacity
+      <Button
+        variant="dashed"
+        label="Add Exercise"
+        icon={<Plus size={BUTTON.md.icon} color={colors.primary} />}
         onPress={() => navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })}
-        className="w-full py-6 border-2 border-dashed rounded-2xl mt-5 items-center justify-center"
-        style={{ borderColor: withAlpha(colors.primary, 0.314) }}
-        activeOpacity={0.7}
-      >
-        <View className="flex-row items-center gap-3">
-          <View className="p-2 rounded-lg" style={{ backgroundColor: withAlpha(colors.primary, 0.082) }}>
-            <Plus size={20} color={colors.primary} />
-          </View>
-          <Text className="text-base font-semibold" style={{ color: colors.primary }}>
-            Add Exercise
-          </Text>
-        </View>
-      </TouchableOpacity>
+        style={{ marginTop: 20 }}
+      />
 
       {/* Action Buttons */}
       <View className="gap-3 mt-6">
-        <TouchableOpacity
+        <Button
+          label="Start Workout"
+          variant="primary"
+          icon={<Check size={BUTTON.md.icon} color={primaryContent} />}
+          loading={confirmDraft.isPending}
           onPress={handleConfirm}
-          disabled={confirmDraft.isPending}
-          style={{ borderRadius: 16, overflow: 'hidden', opacity: confirmDraft.isPending ? 0.7 : 1 }}
-          activeOpacity={0.85}
-        >
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ paddingVertical: 18, alignItems: 'center', justifyContent: 'center' }}
-          >
-            <View className="flex-row items-center gap-2">
-              <Check size={20} color={colors.textButton} />
-              <Text style={{ color: colors.textButton, fontSize: 17, fontWeight: '700' }}>
-                {confirmDraft.isPending ? 'STARTING...' : 'START WORKOUT'}
-              </Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
+        <Button
+          label="Regenerate"
+          variant="secondary"
+          icon={<RefreshCw size={BUTTON.md.icon} color={secondaryContent} />}
+          loading={regenerateDraft.isPending}
           onPress={handleRegenerate}
-          disabled={regenerateDraft.isPending}
-          className="w-full py-4 rounded-2xl border-2 flex-row items-center justify-center gap-2"
-          style={{
-            borderColor: withAlpha(colors.textMuted, 0.251),
-            backgroundColor: colors.bgSurface,
-            opacity: regenerateDraft.isPending ? 0.7 : 1,
-          }}
-          activeOpacity={0.8}
-        >
-          {regenerateDraft.isPending ? (
-            <ActivityIndicator size="small" color={colors.textPrimary} />
-          ) : (
-            <RefreshCw size={20} color={colors.textPrimary} />
-          )}
-          <Text style={{ color: colors.textPrimary, fontSize: 16, fontWeight: '700' }}>
-            {regenerateDraft.isPending ? 'REGENERATING...' : 'REGENERATE'}
-          </Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
+        <Button
+          label="Cancel Workout"
+          variant="destructive"
+          icon={<X size={BUTTON.md.icon} color={destructiveContent} />}
+          loading={cancelSession.isPending}
           onPress={handleCancel}
-          disabled={cancelSession.isPending}
-          className="w-full py-4 rounded-2xl border-2 flex-row items-center justify-center gap-2"
-          style={{
-            borderColor: withAlpha(colors.error, 0.251),
-            backgroundColor: 'transparent',
-            opacity: cancelSession.isPending ? 0.6 : 1,
-          }}
-          activeOpacity={0.8}
-        >
-          <X size={20} color={colors.error} />
-          <Text style={{ color: colors.error, fontSize: 16, fontWeight: '700' }}>CANCEL</Text>
-        </TouchableOpacity>
+        />
       </View>
     </>
   )
@@ -319,7 +283,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
         <SortableList
           data={orderedExercises}
           keyExtractor={(item) => String(item.session_exercise.id)}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
           showsVerticalScrollIndicator={false}
           rowGap={12}
           onDragStart={() => {
@@ -382,50 +346,39 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                 overshootRight={false}
               >
                 <SortableItemSurface
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8, borderRadius: 16, borderWidth: 1 }}
+                  style={{ borderRadius: EXERCISE_ROW.radius, borderWidth: 1 }}
                   backgroundColor={colors.bgSurface}
                   activeBackgroundColor={colors.bgElevated}
                   borderColor={withAlpha(colors.primary, 0)}
                   activeBorderColor={withAlpha(colors.primary, 0.251)}
                 >
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
-                    activeOpacity={0.7}
-                  >
-                    {ex.image ? (
-                      <Image
-                        source={{ uri: ex.image }}
-                        style={{ width: 64, height: 64, borderRadius: 12 }}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <View
-                        style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.bgElevated }}
-                      />
-                    )}
-                  </TouchableOpacity>
-                  <View className="flex-1 min-w-0">
-                    <Text className="text-sm font-bold mb-1 leading-tight" style={{ color: colors.textPrimary }} numberOfLines={1}>
-                      {ex.name}
-                    </Text>
-                    <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                      <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
-                      <Text style={{ color: colors.textMuted }}> × </Text>
-                      <Text style={{ color: colors.primary }}>
-                        {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
-                      </Text>
-                      {se.target_weight && se.target_weight > 0 ? (
-                        <>
-                          <Text style={{ color: colors.textMuted }}> × </Text>
-                          <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
-                        </>
-                      ) : null}
-                    </Text>
-                  </View>
-                  {/* Drag handle — hold to lift the row; the list adds the haptics */}
-                  <SortableHandle style={{ padding: 8 }}>
-                    <GripVertical size={20} color={colors.textMuted} />
-                  </SortableHandle>
+                  <ExerciseRow
+                    surface="plain"
+                    name={ex.name}
+                    image={ex.image}
+                    onPressImage={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
+                    meta={
+                      <>
+                        <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
+                        <Text style={{ color: colors.textMuted }}> × </Text>
+                        <Text style={{ color: colors.primary }}>
+                          {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
+                        </Text>
+                        {se.target_weight && se.target_weight > 0 ? (
+                          <>
+                            <Text style={{ color: colors.textMuted }}> × </Text>
+                            <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
+                          </>
+                        ) : null}
+                      </>
+                    }
+                    right={
+                      /* Drag handle — hold to lift the row; the list adds the haptics */
+                      <SortableHandle style={{ padding: 8 }}>
+                        <GripVertical size={20} color={colors.textMuted} />
+                      </SortableHandle>
+                    }
+                  />
                 </SortableItemSurface>
               </ReanimatedSwipeable>
             )
@@ -442,9 +395,9 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
       >
         <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.scrim }}>
             <TouchableWithoutFeedback onPress={() => {}}>
-              <View style={{ backgroundColor: colors.bgSurface, borderRadius: 24, width: '90%', alignSelf: 'center'}}>
+              <View style={{ backgroundColor: colors.bgSurface, borderRadius: RADIUS.card, width: '90%', alignSelf: 'center'}}>
                   <SafeAreaView edges={['bottom']} style={{ padding: 24 }}>
                     <Text className="text-lg font-bold mb-1" style={{ color: colors.textPrimary }}>
                       Edit Exercise
@@ -454,7 +407,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                     </Text>
                     <View className="flex-row gap-3 mb-4">
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Sets</Text>
+                        <SectionLabel tone="muted" style={{ marginBottom: 6 }}>Sets</SectionLabel>
                         <TextInput
                           value={editSets}
                           onChangeText={setEditSets}
@@ -463,7 +416,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Min Reps</Text>
+                        <SectionLabel tone="muted" style={{ marginBottom: 6 }}>Min Reps</SectionLabel>
                         <TextInput
                           value={editMinReps}
                           onChangeText={setEditMinReps}
@@ -472,7 +425,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                         />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Max Reps</Text>
+                        <SectionLabel tone="muted" style={{ marginBottom: 6 }}>Max Reps</SectionLabel>
                         <TextInput
                           value={editMaxReps}
                           onChangeText={setEditMaxReps}
@@ -482,7 +435,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </View>
                     </View>
                     <View className="mb-6">
-                      <Text style={{ fontSize: 11, fontWeight: '600', marginBottom: 6, color: colors.textSecondary, textTransform: 'uppercase' }}>Weight ({weightUnit})</Text>
+                      <SectionLabel tone="muted" style={{ marginBottom: 6 }}>{`Weight (${weightUnit})`}</SectionLabel>
                       <TextInput
                         value={editWeight}
                         onChangeText={(t) => setEditWeight(sanitizeDecimalText(t))}
@@ -504,25 +457,21 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                       </Text>
                     )}
                     <View className="flex-row gap-3">
-                      <TouchableOpacity
+                      <Button
+                        label="Cancel"
+                        variant="secondary"
+                        size="sm"
                         onPress={() => setShowEditModal(false)}
-                        className="flex-1 py-4 rounded-xl items-center"
-                        style={{ backgroundColor: colors.bgElevated }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
+                        style={{ flex: 1 }}
+                      />
+                      <Button
+                        label="Save"
+                        variant="primary"
+                        size="sm"
+                        loading={updateExercise.isPending}
                         onPress={handleSaveEdit}
-                        disabled={updateExercise.isPending}
-                        className="flex-1 py-4 rounded-xl items-center"
-                        style={{ backgroundColor: colors.primary, opacity: updateExercise.isPending ? 0.7 : 1 }}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={{ color: colors.textButton, fontWeight: '700' }}>
-                          {updateExercise.isPending ? 'Saving...' : 'Save'}
-                        </Text>
-                      </TouchableOpacity>
+                        style={{ flex: 1 }}
+                      />
                     </View>
                   </SafeAreaView>
                 </View>

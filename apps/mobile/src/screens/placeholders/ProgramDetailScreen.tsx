@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
-import { ArrowLeft, Check, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react-native'
+import { Check, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react-native'
 import { estimateWorkoutDuration, useProgram, useStartSession, withAlpha } from '@fit-nation/shared'
 import type { ProgramResource, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN } from '../../constants/layout'
+import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SectionLabel } from '../../components/ui/SectionLabel'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { showToast } from '../../lib/toast'
 import {
@@ -36,9 +41,7 @@ function StatusChip({ label, color }: { label: string; color: string }) {
         backgroundColor: withAlpha(color, 0.125),
       }}
     >
-      <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color }}>
-        {label}
-      </Text>
+      <SectionLabel style={{ marginBottom: 0, color }}>{label}</SectionLabel>
     </View>
   )
 }
@@ -145,11 +148,7 @@ function DayRow({ workout, dayNumber, isNext, isLast, starting, onPress, onStart
       <View style={{ flex: 1, minWidth: 0, paddingBottom: isLast ? 0 : 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text
-              style={{ fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: labelColor }}
-            >
-              {label}
-            </Text>
+            <SectionLabel style={{ marginBottom: 0, color: labelColor }}>{label}</SectionLabel>
             <Text numberOfLines={1} style={{ fontSize: 17, fontWeight: '700', marginTop: 2, color: colors.textPrimary }}>
               {workout.name}
             </Text>
@@ -159,30 +158,13 @@ function DayRow({ workout, dayNumber, isNext, isLast, starting, onPress, onStart
         </View>
 
         {isNext && onStart && (
-          <TouchableOpacity
+          <Button
+            label="Start Workout"
+            size="sm"
+            loading={starting}
             onPress={onStart}
-            disabled={starting}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            style={{
-              alignSelf: 'flex-start',
-              minWidth: 150,
-              marginTop: 12,
-              paddingHorizontal: 22,
-              paddingVertical: 12,
-              borderRadius: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.primary,
-              opacity: starting ? 0.7 : 1,
-            }}
-          >
-            {starting ? (
-              <ActivityIndicator size="small" color={colors.textButton} />
-            ) : (
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textButton }}>Start workout</Text>
-            )}
-          </TouchableOpacity>
+            style={{ alignSelf: 'flex-start', minWidth: 150, marginTop: 12 }}
+          />
         )}
       </View>
     </TouchableOpacity>
@@ -308,24 +290,12 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
     }
   }
 
-  const header = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 24, marginBottom: 24 }}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        style={{ padding: 8, borderRadius: 999, backgroundColor: colors.bgElevated }}
-      >
-        <ArrowLeft size={22} color={colors.textSecondary} />
-      </TouchableOpacity>
-      <Text style={{ fontSize: 24, fontWeight: '700', color: colors.primary }}>Program Details</Text>
-    </View>
-  )
+  const header = <ScreenHeader title="Program Details" onBack={() => navigation.goBack()} />
 
   if (isLoading) {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bgBase }}>
-        <View style={{ paddingHorizontal: 24 }}>
+        <View style={{ paddingHorizontal: SCREEN.paddingX }}>
           {header}
           <SkeletonBox height={150} style={{ marginBottom: 16 }} />
           <SkeletonBox height={280} style={{ marginBottom: 12 }} />
@@ -339,19 +309,8 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
   if (isError || !prog) {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bgBase }}>
-        <View style={{ paddingHorizontal: 24 }}>{header}</View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-          <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 16, color: colors.textSecondary }}>
-            Failed to load program
-          </Text>
-          <TouchableOpacity
-            onPress={() => refetch()}
-            accessibilityRole="button"
-            style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary }}
-          >
-            <Text style={{ fontWeight: '600', color: colors.textButton }}>Retry</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={{ paddingHorizontal: SCREEN.paddingX }}>{header}</View>
+        <ErrorState message="Failed to load program" onRetry={() => refetch()} />
       </SafeAreaView>
     )
   }
@@ -362,7 +321,7 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bgBase }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         showsVerticalScrollIndicator={false}
       >
         {header}
@@ -398,7 +357,7 @@ export function ProgramDetailScreen({ route, navigation }: Props) {
         </View>
 
         {weeks.length === 0 ? (
-          <EmptyState title="No workouts yet" description="This program doesn't have any workouts scheduled." />
+          <EmptyState title="No workouts scheduled" description="This program doesn't have any workouts yet." />
         ) : (
           weeks.map((week, index) => {
             const expanded = isExpanded(week, index)

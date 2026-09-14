@@ -1,7 +1,5 @@
 import { useMemo } from 'react'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { Activity, Clock, Dumbbell, Edit2 } from 'lucide-react-native'
 import {
   estimateWorkoutDuration,
@@ -11,7 +9,10 @@ import {
   type WorkoutTemplateResource,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 import { GradientText } from './GradientText'
+import { SectionLabel } from './SectionLabel'
+import { ExerciseRow, EXERCISE_ROW } from '../exercises/ExerciseRow'
 
 interface WorkoutCardProps {
   template: WorkoutTemplateResource | null
@@ -33,7 +34,7 @@ export function WorkoutCard({
   onStartWorkout,
   onStartNextWorkout,
   showStartButton = false,
-  startButtonText = 'START WORKOUT',
+  startButtonText = 'Start Workout',
   startButtonDisabled = false,
   startButtonLoading = false,
   onExerciseClick,
@@ -121,17 +122,7 @@ export function WorkoutCard({
       <View style={{ height: 1, backgroundColor: colors.borderSubtle, marginBottom: 16 }} />
 
       {/* Workout plan */}
-      <Text
-        style={{
-          fontSize: 12,
-          fontWeight: '700',
-          letterSpacing: 1,
-          color: colors.textPrimary,
-          marginBottom: 12,
-        }}
-      >
-        WORKOUT PLAN
-      </Text>
+      <SectionLabel tone="muted">Workout plan</SectionLabel>
 
       {sortedExercises.length === 0 ? (
         <Text
@@ -145,7 +136,7 @@ export function WorkoutCard({
           No exercises in this workout
         </Text>
       ) : (
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: EXERCISE_ROW.rowGap }}>
           {sortedExercises.map((ex) => {
             const sets = ex.pivot?.target_sets ?? 0
             const minReps = ex.pivot?.min_target_reps ?? 0
@@ -154,56 +145,14 @@ export function WorkoutCard({
             const label = `${sets} sets × ${formatRepRange(minReps, maxReps)} reps${weight ? ` × ${weight} ${weightUnit}` : ''}`
 
             return (
-              <TouchableOpacity
+              <ExerciseRow
                 key={ex.pivot?.id ?? ex.id}
-                activeOpacity={onExerciseClick ? 0.7 : 1}
-                onPress={() => onExerciseClick?.(ex.name)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  borderRadius: 12,
-                  backgroundColor: colors.bgElevated,
-                  padding: 8,
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    overflow: 'hidden',
-                    backgroundColor: colors.borderSubtle,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {ex.image ? (
-                    <Image
-                      source={{ uri: ex.image }}
-                      style={{ width: '100%', height: '100%' }}
-                      contentFit="cover"
-                      transition={150}
-                    />
-                  ) : (
-                    <Dumbbell size={22} color={colors.textSecondary} />
-                  )}
-                </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    numberOfLines={2}
-                    style={{
-                      fontSize: 14,
-                      fontWeight: '700',
-                      color: colors.textPrimary,
-                      marginBottom: 2,
-                    }}
-                  >
-                    {ex.name}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{label}</Text>
-                </View>
-              </TouchableOpacity>
+                name={ex.name}
+                image={ex.image}
+                meta={label}
+                surface="elevated"
+                onPress={onExerciseClick ? () => onExerciseClick(ex.name) : undefined}
+              />
             )
           })}
         </View>
@@ -219,56 +168,16 @@ export function WorkoutCard({
             borderTopColor: colors.borderSubtle,
           }}
         >
-          <TouchableOpacity
-            activeOpacity={0.9}
-            disabled={startButtonDisabled || startButtonLoading}
+          <Button
+            label={startButtonText}
+            variant="primary"
+            loading={startButtonLoading}
+            disabled={startButtonDisabled}
             onPress={() => {
               if (onStartNextWorkout) onStartNextWorkout()
               else if (onStartWorkout && template.id) onStartWorkout(template.id)
             }}
-            style={{
-              height: 48,
-              borderRadius: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              opacity: startButtonDisabled ? 0.5 : 1,
-            }}
-          >
-            {startButtonDisabled ? (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: colors.borderSubtle,
-                }}
-              />
-            ) : (
-              <LinearGradient
-                colors={[colors.primary, colors.secondary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-              />
-            )}
-            {startButtonLoading ? (
-              <ActivityIndicator color={colors.textButton} />
-            ) : (
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  letterSpacing: 1,
-                  color: startButtonDisabled ? colors.textSecondary : colors.textButton,
-                }}
-              >
-                {startButtonText}
-              </Text>
-            )}
-          </TouchableOpacity>
+          />
         </View>
       )}
     </View>

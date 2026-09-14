@@ -5,8 +5,8 @@ export function Placeholder({ name }: { name: string }) {
   const { colors } = useTheme()
   return (
     <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
-      <Text className="text-white text-xl font-bold">{name}</Text>
-      <Text className="text-gray-400 text-sm mt-2">Coming soon</Text>
+      <Text className="text-xl font-bold" style={{ color: colors.textPrimary }}>{name}</Text>
+      <Text className="text-sm mt-2" style={{ color: colors.textMuted }}>Coming soon</Text>
     </View>
   )
 }

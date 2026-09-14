@@ -4,12 +4,14 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Mail, AlertCircle, ArrowLeft } from 'lucide-react-native'
+import { Mail, AlertCircle } from 'lucide-react-native'
 import { forgotPasswordSchema, type ForgotPasswordFormData, authApi, withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
+import { SCREEN, SECTION_GAP } from '../../constants/layout'
 import type { AuthScreenProps } from '../../navigation/types'
 
 const SUCCESS_MESSAGE =
@@ -52,7 +54,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 24, justifyContent: 'center', flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingVertical: SECTION_GAP, justifyContent: 'center', flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
           <AuthLogoHeader
@@ -61,15 +63,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
           />
 
           {/* Form card */}
-          <View
-            style={{
-              backgroundColor: colors.bgSurface,
-              borderRadius: 24,
-              padding: 24,
-              borderWidth: 1,
-              borderColor: colors.bgElevated,
-            }}
-          >
+          <Card variant="summary">
             {success ? (
               <View>
                 <View
@@ -85,7 +79,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
                   </Text>
                 </View>
                 <Button
-                  label="Back to Sign In"
+                  label="Back to Sign in"
                   onPress={() => navigation.navigate('Login')}
                 />
               </View>
@@ -120,24 +114,20 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
                 />
 
                 <Button
-                  label="Send reset link"
+                  label="Send Reset Link"
                   loading={isSubmitting}
                   onPress={handleSubmit(onSubmit)}
                 />
               </View>
             )}
-          </View>
+          </Card>
 
-          <View className="flex-row items-center justify-center gap-1 mt-6">
-            <ArrowLeft color={colors.primary} size={16} />
-            <Text
-              className="text-sm font-semibold"
-              style={{ color: colors.primary }}
-              onPress={() => navigation.navigate('Login')}
-            >
-              Back to sign in
-            </Text>
-          </View>
+          <Button
+            label="Back to Sign in"
+            variant="ghost"
+            style={{ marginTop: SECTION_GAP }}
+            onPress={() => navigation.navigate('Login')}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

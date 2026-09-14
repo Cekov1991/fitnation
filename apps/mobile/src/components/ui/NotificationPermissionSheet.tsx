@@ -4,11 +4,10 @@
 // ConfirmDialog.
 import { useEffect, useState } from 'react'
 import { withAlpha } from '@fit-nation/shared'
-import {
-  Modal, View, Text, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator, Linking,
-} from 'react-native'
+import { Modal, View, Text, Pressable, StyleSheet, Linking } from 'react-native'
 import { Bell } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 import { grantPushPermission } from '../../lib/notifications'
 import {
   NOTIFICATIONS_OFF_IN_SETTINGS_COPY,
@@ -68,7 +67,7 @@ export function NotificationPermissionSheet({
       onRequestClose={handleNotNow}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={handleNotNow}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={handleNotNow}>
         <Pressable
           onPress={() => {}}
           style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}
@@ -84,24 +83,14 @@ export function NotificationPermissionSheet({
           </View>
 
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity
+            <Button
+              label={variant === 'settings' ? 'Open Settings' : 'Turn On'}
+              variant="primary"
+              size="md"
+              loading={busy}
               onPress={handlePrimary}
-              disabled={busy}
-              activeOpacity={0.75}
-              style={[styles.confirmButton, { backgroundColor: colors.primary, opacity: busy ? 0.7 : 1 }]}
-            >
-              {busy ? (
-                <ActivityIndicator color={colors.textButton} size="small" />
-              ) : (
-                <Text style={[styles.confirmLabel, { color: colors.textButton }]}>
-                  {variant === 'settings' ? 'Open Settings' : 'Turn on'}
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={handleNotNow} disabled={busy} activeOpacity={0.6} style={styles.cancelButton}>
-              <Text style={[styles.cancelLabel, { color: colors.textSecondary }]}>Not now</Text>
-            </TouchableOpacity>
+            />
+            <Button label="Not Now" variant="ghost" size="sm" disabled={busy} onPress={handleNotNow} />
           </View>
         </Pressable>
       </Pressable>
@@ -112,7 +101,6 @@ export function NotificationPermissionSheet({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -153,24 +141,5 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     paddingHorizontal: 16,
     gap: 8,
-  },
-  confirmButton: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelLabel: {
-    fontSize: 15,
-    fontWeight: '500',
   },
 })

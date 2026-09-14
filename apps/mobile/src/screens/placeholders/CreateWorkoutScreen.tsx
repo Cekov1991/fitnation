@@ -8,7 +8,9 @@ import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
-import { ArrowLeft, ChevronDown } from 'lucide-react-native'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { RADIUS, SCREEN } from '../../constants/layout'
+import { ChevronDown } from 'lucide-react-native'
 import { useState } from 'react'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
@@ -71,22 +73,10 @@ export function CreateWorkoutScreen({ navigation, route }: Props) {
     <SafeAreaView edges={['top', 'bottom']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View className="flex-row items-center gap-4 pt-6 mb-8">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: colors.bgElevated }}
-          >
-            <ArrowLeft size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <Text className="text-3xl font-bold" style={{ color: colors.primary }}>
-            Create Workout
-          </Text>
-        </View>
+        <ScreenHeader title="Create Workout" onBack={() => navigation.goBack()} />
 
         {/* Plan Selector — hidden when navigating from a specific plan */}
         {!preselectedPlanId && (
@@ -100,8 +90,8 @@ export function CreateWorkoutScreen({ navigation, route }: Props) {
               <>
                 <TouchableOpacity
                   onPress={() => setPlanDropdownOpen(!planDropdownOpen)}
-                  className="flex-row items-center justify-between px-4 py-4 rounded-xl"
-                  style={{ backgroundColor: colors.bgElevated }}
+                  className="flex-row items-center justify-between px-4"
+                  style={{ backgroundColor: colors.bgElevated, paddingVertical: 16, borderRadius: RADIUS.control }}
                 >
                   <Text
                     style={{
@@ -131,7 +121,7 @@ export function CreateWorkoutScreen({ navigation, route }: Props) {
                           setSelectedPlanName(p.name)
                           setPlanDropdownOpen(false)
                         }}
-                        className="px-5 py-3"
+                        className="px-4 py-3"
                         style={{
                           backgroundColor:
                             (selectedPlanId ?? activePlan?.id) === p.id
@@ -176,7 +166,7 @@ export function CreateWorkoutScreen({ navigation, route }: Props) {
         />
 
         <Button
-          label={isSubmitting ? 'Creating...' : 'CREATE WORKOUT'}
+          label={isSubmitting ? 'Creating...' : 'Create Workout'}
           loading={isSubmitting}
           onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}

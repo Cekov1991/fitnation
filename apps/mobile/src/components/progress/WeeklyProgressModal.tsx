@@ -47,17 +47,9 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
   const isPositive = trend === 'up'
   const isNeutral = trend === 'same'
 
-  const trendColor = isPositive ? '#4ade80' : isNeutral ? colors.primary : '#f87171'
-  const trendBg = isPositive
-    ? 'rgba(16,185,129,0.2)'
-    : isNeutral
-      ? withAlpha(colors.primary, 0.2)
-      : 'rgba(239,68,68,0.2)'
-  const trendBorder = isPositive
-    ? 'rgba(16,185,129,0.3)'
-    : isNeutral
-      ? withAlpha(colors.primary, 0.302)
-      : 'rgba(239,68,68,0.3)'
+  const trendColor = isPositive ? colors.success : isNeutral ? colors.primary : colors.error
+  const trendBg = withAlpha(trendColor, 0.2)
+  const trendBorder = withAlpha(trendColor, 0.3)
   const trendLabel = isPositive ? 'IMPROVING' : isNeutral ? 'STEADY' : 'DECLINING'
 
   const chartData = dailyBreakdown.map((day: { day_of_week: number; volume: number; workouts: number }) => ({
@@ -127,7 +119,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
           </Text>
         </InfoBlock>
         <InfoBlock style={{ flex: 1 }}>
-          <TrendingUp size={18} color="#4ade80" style={{ marginBottom: 8 }} />
+          <TrendingUp size={18} color={colors.success} style={{ marginBottom: 8 }} />
           <Text className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
             {minutesToHours(currentWeekTimeMinutes)}
           </Text>
@@ -240,7 +232,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
                     {day.workouts > 0 ? `${formatVolumeFull(day.value)} ${weightUnit}` : 'Rest'}
                   </Text>
                   {day.workouts > 0 && (
-                    <View className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4ade80' }} />
+                    <View className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.success }} />
                   )}
                 </View>
               </View>
@@ -278,7 +270,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
             </Text>
             <Text
               className="text-sm font-bold"
-              style={{ color: volumeDifference >= 0 ? '#4ade80' : '#f87171' }}
+              style={{ color: volumeDifference >= 0 ? colors.success : colors.error }}
             >
               {signPrefix(volumeDifference)}
               {formatVolumeFull(volumeDifference)} {weightUnit} ({volumeDifferencePercent >= 0 ? '+' : ''}
