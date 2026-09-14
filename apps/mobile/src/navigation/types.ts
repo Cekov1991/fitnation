@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 import type { NavigatorScreenParams } from '@react-navigation/native'
 import type { NewPrResource, RegenerateWorkoutInput } from '@fit-nation/shared'
+import type { ProfileSectionKey } from '../components/profile/profileSections'
 
 // Auth stack
 export type AuthStackParamList = {
@@ -48,6 +49,7 @@ export type AppStackParamList = {
   ExerciseCatalog: undefined
   CreatePlan: undefined
   EditPlan: { planId: number }
+  EditProfileSection: { section: ProfileSectionKey }
   CreateWorkout: { planId?: number; planName?: string } | undefined
   EditWorkout: { templateId: number }
   ManageExercises: { templateId: number }

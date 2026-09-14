@@ -38,6 +38,8 @@ spellings of the same caption.
 | Larger heading with an inline action ("See all") | `ui/SectionHeader` |
 | A load that failed | `ui/ErrorState` (`onRetry`) |
 | Nothing to show — full page, or in the flow of a list | `ui/EmptyState` (`variant="page" \| "card"`) |
+| A profile question — goal, about you (units/age/height/weight/gender), training, account | `profile/GoalSection`, `AboutSection`, `TrainingSection`, `AccountSection`; metadata + validation in `profile/profileSections.ts` |
+| A settings-style row on the Profile hub (icon tile, title, one-line summary, chevron) | `profile/ProfileSectionRow` |
 | An exercise with its thumbnail, name, second line, trailing control | `exercises/ExerciseRow` |
 | A row from an `ExerciseResource` in a FlatList | `exercises/ExerciseCard` (thin `ExerciseRow` wrapper) |
 | A surface block in a stack | `ui/Card` |
@@ -105,6 +107,17 @@ each `style={{ flex: 1 }}`.
 `icon` leads, `iconRight` trails (a chevron on a row-like button). Icon-only
 controls (a timer button, a close X) and segment chips are not `Button`. The one
 allow-listed dashed tile is the plan carousel's card-shaped "Create New".
+
+### Profile sections — one body, two shells
+
+`components/profile/` owns every profile question. A section is controlled
+(`draft`, `onChange(patch)`, optional `errors`) and renders no headline: the
+shell does. Onboarding is the wizard shell (question as a 28/800 headline,
+progress segments, Continue, save at the end). The Profile tab is the page
+shell (`ScreenHeader title={meta.title} subtitle={meta.question}`, prefilled
+draft, `Save` enabled when `isSectionDirty`, `validateSection` on save). Field
+bounds come from the shared `createProfileSchema`, so web and mobile agree.
+Do not add a fourth way to ask for someone's weight.
 
 ### Headers, states and captions — the cases that came up
 

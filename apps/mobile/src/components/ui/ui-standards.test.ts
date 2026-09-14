@@ -103,6 +103,16 @@ describe('ui standards', () => {
     expect([...offenders(screens(), dashed, allow), ...offenders(screens(), bigRadius)]).toEqual([]);
   });
 
+  it('profile questions are asked by the sections in components/profile, not re-drawn in screens', () => {
+    // Rendering the option lists directly is the signature of a re-drawn goal / experience / days / units picker.
+    const optionMap = /\b(?:FITNESS_GOAL_OPTIONS|TRAINING_EXPERIENCE_OPTIONS|WORKOUT_DURATION_OPTIONS|TRAINING_DAYS_OPTIONS|UNIT_OPTIONS)\.map\(/g;
+    const allow = new Set<string>([
+      // The plan-adjust sheet is a plan action, not a profile edit; it has its own compact pickers.
+      'components/ui/AdjustPlanSheet.tsx',
+    ]);
+    expect(offenders(everything().filter((f) => !f.includes('/components/profile/')), optionMap, allow)).toEqual([]);
+  });
+
   it('screens use SCREEN.paddingX for their gutter, not a literal', () => {
     // 20 and 24 were the strays; 16 matches the token and is tolerated inline.
     const literal = /\b(?:paddingHorizontal:\s*(?:20|24)\b|px-[56]\b)/g;
