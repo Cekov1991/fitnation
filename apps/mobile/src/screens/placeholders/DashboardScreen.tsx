@@ -44,7 +44,7 @@ import type {
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { isOnline } from '../../lib/connectivity'
-import { SCREEN } from '../../constants/layout'
+import { SCREEN, RADIUS } from '../../constants/layout'
 
 import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -472,7 +472,7 @@ export function DashboardScreen() {
             ) : (
               <>
                 {/* Plan card: name and week, this week's days, and the two plan actions as a footer bar */}
-                <Card style={{ marginBottom: 16, borderRadius: 24, padding: 0, overflow: 'hidden' }}>
+                <Card variant="summary" style={{ marginBottom: 16, padding: 0, overflow: 'hidden' }}>
                   <View style={{ padding: 20, paddingBottom: 16 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                       <SectionLabel style={{ flex: 1, marginBottom: 0, color: colors.primary }}>
@@ -588,25 +588,13 @@ export function DashboardScreen() {
                 Let our AI generate a perfect workout based on your recovery and goals.
               </Text>
 
-              <TouchableOpacity
+              <Button
+                variant="onBrandGhost"
+                size="sm"
+                label="Generate Smart Workout"
+                iconRight={<ChevronRight size={BUTTON.sm.icon} color={colors.textButton} strokeWidth={2} />}
                 onPress={() => navigation.navigate('GenerateWorkout')}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 16,
-                  borderRadius: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderWidth: 1,
-                  borderColor: withAlpha(colors.textButton, 0.2),
-                  backgroundColor: withAlpha(colors.textButton, 0.05),
-                }}
-              >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textButton }}>
-                  Generate Smart Workout
-                </Text>
-                <ChevronRight size={16} color={colors.textButton} strokeWidth={2} />
-              </TouchableOpacity>
+              />
             </View>
 
             {/* Recommended Routines */}
@@ -823,7 +811,7 @@ export function DashboardScreen() {
                     style={{
                       width: 48,
                       height: 48,
-                      borderRadius: 24,
+                      borderRadius: RADIUS.pill,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: 12,

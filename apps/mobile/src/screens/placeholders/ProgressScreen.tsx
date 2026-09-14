@@ -30,6 +30,7 @@ import {
 } from '@fit-nation/shared'
 import type { WorkoutSessionCalendarResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { SCREEN } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
@@ -254,10 +255,7 @@ export function ProgressScreen() {
 
         {/* ── Calendar Tab ── */}
         {progressTab === 'calendar' && (
-          <View
-            className="rounded-3xl p-5 mb-6"
-            style={{ backgroundColor: colors.bgSurface }}
-          >
+          <Card variant="summary" style={{ marginBottom: 24 }}>
             {/* Week navigation */}
             <View className="flex-row items-center gap-2 mb-6">
               <TouchableOpacity
@@ -399,7 +397,7 @@ export function ProgressScreen() {
                 ))
               )}
             </View>
-          </View>
+          </Card>
         )}
 
         {/* ── Metrics Tab ── */}

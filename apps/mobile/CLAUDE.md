@@ -40,7 +40,8 @@ spellings of the same caption.
 | Nothing to show — full page, or in the flow of a list | `ui/EmptyState` (`variant="page" \| "card"`) |
 | An exercise with its thumbnail, name, second line, trailing control | `exercises/ExerciseRow` |
 | A row from an `ExerciseResource` in a FlatList | `exercises/ExerciseCard` (thin `ExerciseRow` wrapper) |
-| A plain surface block | `ui/Card` |
+| A surface block in a stack | `ui/Card` |
+| The headline card of a screen, an auth form, a notes card (radius 24, hairline border) | `ui/Card variant="summary"` |
 | Loading placeholder | `ui/SkeletonBox` |
 | Confirm before a destructive action | `ui/ConfirmDialog` |
 | Drag-to-reorder list, swipe actions | `ui/SortableList`, `ui/SwipeAction` |
@@ -58,7 +59,7 @@ spellings of the same caption.
 | `EXERCISE_ROW` | `exercises/ExerciseRow.tsx` | thumb 56 r12; name 14/700; meta 12; padding 8; gap 12; radius 16; row gap 12 |
 
 A screen's scroll content is `contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}`.
-A screen never writes `paddingHorizontal: 24`, `px-6`, `rounded-2xl py-4`, `text-2xl font-bold` next to an arrow, or `uppercase tracking-wider`.
+A screen never writes `paddingHorizontal: 24`, `px-6`, `rounded-2xl py-4`, `borderRadius: 24`, `border-dashed`, `text-2xl font-bold` next to an arrow, or `uppercase tracking-wider`.
 
 If a design genuinely needs a different number, change the token so every
 instance moves together, and say so in the PR.
@@ -92,17 +93,18 @@ mark); `PlanGeneratingOverlay.tsx` (a deliberate dark scene with its own palette
 | `secondary` | `bgSurface` + hairline border, `textPrimary` | Regenerate, Repeat this session, dialog Cancel |
 | `ghost` | text only | Skip, a Cancel under a primary |
 | `destructive` | outlined `error` | Cancel Workout, Delete, Remove |
+| `dashed` | dashed brand outline, taller | the "Add …" tile at the end of a list |
+| `onBrand` | solid `textButton` fill, brand text | the main action on a brand-gradient card: Log Set, Save |
+| `onBrandGhost` | translucent `textButton` fill | the secondary action on a brand card: Cancel, Generate Smart Workout |
 
 Labels are Title Case ("Start Workout", "Save Changes", "Back to Sign In"), never
 shouted ("START WORKOUT"). A retry is `ErrorState`'s "Try Again"; a screen never
 writes its own "Retry". Two buttons side by side: `size="sm"` in a `flex-row gap-3`,
 each `style={{ flex: 1 }}`.
 
-Not yet a `Button` variant, so still drawn by hand until one is added: the dashed
-"Add …" drop-zone tile, the translucent pill on a brand-filled card (Dashboard's
-"Generate Smart Workout"), segment chips, decorative gradient discs. Dialogs and
-sheets inside `components/ui/` still hand-roll their pills; the CTA guard scans
-`screens/` only. Converting them is open work, not a licence for new ones.
+`icon` leads, `iconRight` trails (a chevron on a row-like button). Icon-only
+controls (a timer button, a close X) and segment chips are not `Button`. The one
+allow-listed dashed tile is the plan carousel's card-shaped "Create New".
 
 ### Headers, states and captions — the cases that came up
 

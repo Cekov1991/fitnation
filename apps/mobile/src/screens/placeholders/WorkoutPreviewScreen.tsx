@@ -241,22 +241,13 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
 
   const listFooter = (
     <>
-      {/* Add Exercise Button */}
-      <TouchableOpacity
+      <Button
+        variant="dashed"
+        label="Add Exercise"
+        icon={<Plus size={BUTTON.md.icon} color={colors.primary} />}
         onPress={() => navigation.navigate('WorkoutPreviewExercisePicker', { sessionId })}
-        className="w-full py-6 border-2 border-dashed rounded-2xl mt-5 items-center justify-center"
-        style={{ borderColor: withAlpha(colors.primary, 0.314) }}
-        activeOpacity={0.7}
-      >
-        <View className="flex-row items-center gap-3">
-          <View className="p-2 rounded-lg" style={{ backgroundColor: withAlpha(colors.primary, 0.082) }}>
-            <Plus size={20} color={colors.primary} />
-          </View>
-          <Text className="text-base font-semibold" style={{ color: colors.primary }}>
-            Add Exercise
-          </Text>
-        </View>
-      </TouchableOpacity>
+        style={{ marginTop: 20 }}
+      />
 
       {/* Action Buttons */}
       <View className="gap-3 mt-6">

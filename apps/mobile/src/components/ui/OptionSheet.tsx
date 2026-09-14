@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Check, X } from 'lucide-react-native'
 import { withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 
 export interface OptionSheetOption<T> {
   value: T
@@ -109,15 +110,13 @@ export function OptionSheet<T extends string | number>({
                 })}
               </ScrollView>
 
-              <TouchableOpacity
+              <Button
+                label={multi ? 'Done' : 'Cancel'}
+                variant={multi ? 'primary' : 'ghost'}
+                size={multi ? 'md' : 'sm'}
                 onPress={onClose}
-                activeOpacity={0.7}
-                style={[styles.footerBtn, multi && { backgroundColor: colors.primary, marginHorizontal: 12, borderRadius: 14 }]}
-              >
-                <Text style={[styles.footerLabel, { color: multi ? colors.textButton : colors.textSecondary }]}>
-                  {multi ? 'Done' : 'Cancel'}
-                </Text>
-              </TouchableOpacity>
+                style={styles.footerBtn}
+              />
             </View>
           </Pressable>
         </SafeAreaView>
@@ -162,6 +161,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  footerBtn: { marginTop: 8, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-  footerLabel: { fontSize: 15, fontWeight: '600' },
+  footerBtn: { marginTop: 8, marginHorizontal: 12 },
 })

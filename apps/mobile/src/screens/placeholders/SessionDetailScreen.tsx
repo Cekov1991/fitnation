@@ -27,6 +27,7 @@ import {
   withAlpha,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { RADIUS, SCREEN, SECTION_GAP } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ScreenHeader } from '../../components/ui/ScreenHeader'
@@ -144,7 +145,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         {header}
 
         {/* Summary card */}
-        <View style={[styles.card, { backgroundColor: colors.bgSurface }]}>
+        <Card variant="summary">
           <View style={styles.cardTop}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[styles.name, { color: colors.textPrimary }]}>{name}</Text>
@@ -174,7 +175,7 @@ export function SessionDetailScreen({ route, navigation }: Props) {
           </View>
 
           {comparison && <ComparisonStrip parts={volumeComparisonParts(comparison)} />}
-        </View>
+        </Card>
 
         {/* Exercises */}
         <SectionLabel style={styles.sectionLabel}>Exercises</SectionLabel>
@@ -204,12 +205,12 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         )}
 
         {!!session.notes && (
-          <View style={[styles.notesCard, { backgroundColor: colors.bgSurface }]}>
+          <Card variant="summary" style={{ marginTop: 20 }}>
             <SectionLabel tone="muted" style={styles.notesLabel}>
               Notes
             </SectionLabel>
             <Text style={[styles.notesText, { color: colors.textSecondary }]}>{session.notes}</Text>
-          </View>
+          </Card>
         )}
       </ScrollView>
 
@@ -340,7 +341,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: SCREEN.paddingX },
 
-  card: { borderRadius: RADIUS.card, padding: 20 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   name: { fontSize: 22, fontWeight: '800' },
   date: { fontSize: 14, marginTop: 4 },
@@ -374,7 +374,6 @@ const styles = StyleSheet.create({
   viewLink: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingTop: 8 },
   viewLinkText: { fontSize: 13, fontWeight: '600' },
 
-  notesCard: { borderRadius: RADIUS.card, padding: 20, marginTop: 20 },
   notesLabel: { marginBottom: 8 },
   notesText: { fontSize: 14, lineHeight: 20 },
 

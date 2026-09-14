@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Mail, AlertCircle } from 'lucide-react-native'
 import { forgotPasswordSchema, type ForgotPasswordFormData, authApi, withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
@@ -62,15 +63,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
           />
 
           {/* Form card */}
-          <View
-            style={{
-              backgroundColor: colors.bgSurface,
-              borderRadius: 24,
-              padding: 24,
-              borderWidth: 1,
-              borderColor: colors.bgElevated,
-            }}
-          >
+          <Card variant="summary">
             {success ? (
               <View>
                 <View
@@ -127,7 +120,7 @@ export function ForgotPasswordScreen({ navigation }: AuthScreenProps<'ForgotPass
                 />
               </View>
             )}
-          </View>
+          </Card>
 
           <Button
             label="Back to Sign in"

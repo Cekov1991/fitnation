@@ -31,7 +31,7 @@ import type {
   ProgramResource,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
-import { SCREEN } from '../../constants/layout'
+import { SCREEN, RADIUS } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
 
   // Active plan card
   activePlanCard: {
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 24,
     shadowColor: '#000',
     shadowOpacity: 0.2,
@@ -874,13 +874,13 @@ const styles = StyleSheet.create({
 
   // Program cards
   programCard: {
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
     marginBottom: 16,
   },
   programCardGradient: {
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
   },
   coverImageContainer: {
     height: 140,

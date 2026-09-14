@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, BackHandler, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { BackHandler, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Easing } from 'react-native-reanimated'
 import {
@@ -30,6 +30,7 @@ import type {
   UserProfileResource,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 import { OptionSheet } from './OptionSheet'
 import { SectionLabel } from './SectionLabel'
 
@@ -217,21 +218,15 @@ export function AdjustPlanSheet({
           ) : (
             <Text style={[styles.note, { color: colors.textSecondary }]}>{note}</Text>
           )}
-          <TouchableOpacity
-            onPress={handleConfirm}
+          <Button
+            label="Refresh Plan"
+            variant="primary"
+            size="md"
+            loading={isLoading}
             disabled={!canConfirm}
-            activeOpacity={0.75}
-            style={[styles.confirmButton, { backgroundColor: colors.primary, opacity: canConfirm ? 1 : 0.5 }]}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={colors.textButton} />
-            ) : (
-              <Text style={[styles.confirmLabel, { color: colors.textButton }]}>Refresh Plan</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onClose} disabled={isLoading} activeOpacity={0.6} style={styles.cancelButton}>
-            <Text style={[styles.cancelLabel, { color: colors.textSecondary }]}>Cancel</Text>
-          </TouchableOpacity>
+            onPress={handleConfirm}
+          />
+          <Button label="Cancel" variant="ghost" size="sm" disabled={isLoading} onPress={onClose} />
         </View>
       </BottomSheetFooter>
     ),
@@ -416,8 +411,4 @@ const styles = StyleSheet.create({
   dayChipText: { fontSize: 15, fontWeight: '600' },
   footer: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 12, borderTopWidth: 1 },
   note: { fontSize: 13, lineHeight: 18, marginBottom: 12 },
-  confirmButton: { height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  confirmLabel: { fontSize: 16, fontWeight: '700' },
-  cancelButton: { paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
-  cancelLabel: { fontSize: 15, fontWeight: '500' },
 })

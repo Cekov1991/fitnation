@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Timer, MoreVertical } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from '../ui/Button'
 import type { WeightUnit } from '@fit-nation/shared'
 import { sanitizeDecimalText, withAlpha, formatWeight } from '@fit-nation/shared'
 
@@ -250,21 +251,7 @@ export function SetLogCard({
             is in flight this card already belongs to the *next* set. A spinner
             here would sit on a set nobody has logged, and disabling the button
             would stop a fast user logging back-to-back sets. */}
-        <TouchableOpacity
-          onPress={onLog}
-          activeOpacity={0.85}
-          style={{
-            flex: 1,
-            paddingVertical: 16,
-            borderRadius: 18,
-            alignItems: 'center',
-            backgroundColor: colors.textButton,
-          }}
-        >
-          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>
-            Log Set
-          </Text>
-        </TouchableOpacity>
+        <Button variant="onBrand" label="Log Set" onPress={onLog} style={{ flex: 1 }} />
         {showTimerButton && onStartTimer && (
           <TouchableOpacity
             onPress={onStartTimer}

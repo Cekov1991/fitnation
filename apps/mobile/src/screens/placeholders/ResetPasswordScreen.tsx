@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
 import { resetPasswordSchema, type ResetPasswordFormData, authApi, withAlpha, failureOf, firstFieldError } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
@@ -69,17 +70,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
         className="flex-1 items-center justify-center"
         style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
       >
-        <View
-          style={{
-            backgroundColor: colors.bgSurface,
-            borderRadius: 24,
-            padding: 24,
-            borderWidth: 1,
-            borderColor: colors.bgElevated,
-            width: '100%',
-            alignItems: 'center',
-          }}
-        >
+        <Card variant="summary" style={{ width: '100%', alignItems: 'center' }}>
           <AlertCircle color={colors.warning} size={48} style={{ marginBottom: 16 }} />
           <Text className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
             Missing reset link
@@ -97,7 +88,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             style={{ marginTop: 8 }}
             onPress={() => navigation.navigate('Login')}
           />
-        </View>
+        </Card>
       </SafeAreaView>
     )
   }
@@ -110,17 +101,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
         className="flex-1 items-center justify-center"
         style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
       >
-        <View
-          style={{
-            backgroundColor: colors.bgSurface,
-            borderRadius: 24,
-            padding: 24,
-            borderWidth: 1,
-            borderColor: colors.bgElevated,
-            width: '100%',
-            alignItems: 'center',
-          }}
-        >
+        <Card variant="summary" style={{ width: '100%', alignItems: 'center' }}>
           <View
             style={{
               width: 64,
@@ -147,7 +128,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
           >
             Go to sign in now
           </Text>
-        </View>
+        </Card>
       </SafeAreaView>
     )
   }
@@ -169,15 +150,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
           />
 
           {/* Form card */}
-          <View
-            style={{
-              backgroundColor: colors.bgSurface,
-              borderRadius: 24,
-              padding: 24,
-              borderWidth: 1,
-              borderColor: colors.bgElevated,
-            }}
-          >
+          <Card variant="summary">
             {error && (
               <View
                 className="flex-row items-center gap-3 p-4 rounded-xl mb-4"
@@ -262,7 +235,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
                 Request a new link
               </Text>
             </View>
-          </View>
+          </Card>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -9,6 +9,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
 import { loginSchema, type LoginFormData, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../components/ui/Card'
 import { SCREEN, SECTION_GAP } from '../../constants/layout'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
@@ -59,15 +60,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
           />
 
           {/* Form card */}
-          <View
-            style={{
-              backgroundColor: colors.bgSurface,
-              borderRadius: 24,
-              padding: 24,
-              borderWidth: 1,
-              borderColor: colors.bgElevated,
-            }}
-          >
+          <Card variant="summary">
             {error && (
               <View
                 className="flex-row items-center gap-3 p-4 rounded-xl mb-4"
@@ -175,7 +168,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
               }}
               onError={(_, message) => setError(message ?? 'Social sign in failed.')}
             />
-          </View>
+          </Card>
 
           <Text className="text-xs text-center mt-8" style={{ color: colors.textMuted }}>
             By signing in, you agree to our{' '}

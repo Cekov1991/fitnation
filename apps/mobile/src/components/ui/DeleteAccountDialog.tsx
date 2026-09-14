@@ -7,12 +7,12 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
-  ActivityIndicator,
   StyleSheet,
 } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 
 interface DeleteAccountDialogProps {
   visible: boolean
@@ -150,32 +150,14 @@ export function DeleteAccountDialog({
 
           {/* Buttons */}
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity
+            <Button
+              label="Delete My Account"
+              variant="destructive"
+              size="md"
+              loading={isLoading}
               onPress={handleConfirm}
-              disabled={isLoading}
-              activeOpacity={0.75}
-              style={[
-                styles.deleteButton,
-                { backgroundColor: colors.error, opacity: isLoading ? 0.7 : 1 },
-              ]}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color={colors.textButton} />
-              ) : (
-                <Text style={[styles.deleteLabel, { color: colors.textButton }]}>Delete My Account</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleClose}
-              disabled={isLoading}
-              activeOpacity={0.6}
-              style={styles.cancelButton}
-            >
-              <Text style={[styles.cancelLabel, { color: colors.textSecondary }]}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
+            />
+            <Button label="Cancel" variant="ghost" size="sm" disabled={isLoading} onPress={handleClose} />
           </View>
         </Pressable>
       </Pressable>
@@ -253,24 +235,5 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     paddingHorizontal: 16,
     gap: 8,
-  },
-  deleteButton: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelLabel: {
-    fontSize: 15,
-    fontWeight: '500',
   },
 })

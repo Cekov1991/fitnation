@@ -68,7 +68,21 @@ describe('ui standards', () => {
       // The summary's Award medallion is an 80px decorative gradient disc, not a button.
       'screens/placeholders/WorkoutSummaryScreen.tsx',
     ]);
-    expect([...offenders(screens(), nativewind), ...offenders(screens(), gradient, allow)]).toEqual([]);
+    const gradientOwners = new Set<string>([
+      ...allow,
+      'components/ui/Button.tsx',
+      // Brand-gradient surfaces (cards, the tab strip's active pill, the timer ring), not buttons.
+      'components/ui/GradientText.tsx',
+      'components/ui/WorkoutTemplateSelector.tsx',
+      'components/workout-session/RestTimer.tsx',
+      'components/workout-session/SetLogCard.tsx',
+      'components/workout-session/SetEditCard.tsx',
+      'components/progress/BalanceModal.tsx',
+      'components/progress/StrengthScoreModal.tsx',
+      'components/progress/WeeklyProgressModal.tsx',
+      'screens/placeholders/WorkoutSummaryScreen.tsx',
+    ]);
+    expect([...offenders(everything(), nativewind), ...offenders(everything(), gradient, gradientOwners)]).toEqual([]);
   });
 
   it('screens do not hand-roll retry or empty states (use <ErrorState> / <EmptyState>)', () => {
@@ -77,6 +91,16 @@ describe('ui standards', () => {
     // A "No … found" sentence rendered directly — not one passed as a prop to EmptyState/ErrorState.
     const empty = /(?<!(?:title|description|message|label)=)(?:>|['"`])\s*No [a-z ]+ (?:found|yet|available|in this [a-z]+)\.?\s*(?:<|['"`])/g;
     expect([...offenders(screens(), retry), ...offenders(screens(), empty)]).toEqual([]);
+  });
+
+  it('screens do not hand-roll a dashed "add" tile or a 24-radius card (use <Button variant="dashed"> / <Card variant="summary">)', () => {
+    const dashed = /border-dashed|borderStyle:\s*'dashed'/g;
+    const bigRadius = /\bborderRadius:\s*24\b|\brounded-3xl\b/g;
+    const allow = new Set<string>([
+      // The plan carousel's "Create New" is a 160×140 card-shaped tile in a horizontal list, not a button.
+      'screens/placeholders/DashboardScreen.tsx',
+    ]);
+    expect([...offenders(screens(), dashed, allow), ...offenders(screens(), bigRadius)]).toEqual([]);
   });
 
   it('screens use SCREEN.paddingX for their gutter, not a literal', () => {
