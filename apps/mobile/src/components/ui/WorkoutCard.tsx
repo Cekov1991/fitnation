@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Activity, Clock, Dumbbell, Edit2 } from 'lucide-react-native'
 import {
@@ -12,6 +11,7 @@ import {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { GradientText } from './GradientText'
+import { ExerciseRow, EXERCISE_ROW } from '../exercises/ExerciseRow'
 
 interface WorkoutCardProps {
   template: WorkoutTemplateResource | null
@@ -145,7 +145,7 @@ export function WorkoutCard({
           No exercises in this workout
         </Text>
       ) : (
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: EXERCISE_ROW.rowGap }}>
           {sortedExercises.map((ex) => {
             const sets = ex.pivot?.target_sets ?? 0
             const minReps = ex.pivot?.min_target_reps ?? 0
@@ -154,56 +154,14 @@ export function WorkoutCard({
             const label = `${sets} sets × ${formatRepRange(minReps, maxReps)} reps${weight ? ` × ${weight} ${weightUnit}` : ''}`
 
             return (
-              <TouchableOpacity
+              <ExerciseRow
                 key={ex.pivot?.id ?? ex.id}
-                activeOpacity={onExerciseClick ? 0.7 : 1}
-                onPress={() => onExerciseClick?.(ex.name)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  borderRadius: 12,
-                  backgroundColor: colors.bgElevated,
-                  padding: 8,
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    overflow: 'hidden',
-                    backgroundColor: colors.borderSubtle,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {ex.image ? (
-                    <Image
-                      source={{ uri: ex.image }}
-                      style={{ width: '100%', height: '100%' }}
-                      contentFit="cover"
-                      transition={150}
-                    />
-                  ) : (
-                    <Dumbbell size={22} color={colors.textSecondary} />
-                  )}
-                </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    numberOfLines={2}
-                    style={{
-                      fontSize: 14,
-                      fontWeight: '700',
-                      color: colors.textPrimary,
-                      marginBottom: 2,
-                    }}
-                  >
-                    {ex.name}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{label}</Text>
-                </View>
-              </TouchableOpacity>
+                name={ex.name}
+                image={ex.image}
+                meta={label}
+                surface="elevated"
+                onPress={onExerciseClick ? () => onExerciseClick(ex.name) : undefined}
+              />
             )
           })}
         </View>

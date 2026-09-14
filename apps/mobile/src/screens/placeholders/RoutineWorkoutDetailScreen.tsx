@@ -5,8 +5,8 @@ import { useBrowsableRoutine, useStartSession, useTodayWorkout, useWeightUnit, f
 import type { TemplateExercise, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import { ArrowLeft, ChevronRight } from 'lucide-react-native'
-import { Image } from 'expo-image'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -125,46 +125,21 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
             </Text>
           </View>
         ) : (
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: EXERCISE_ROW.rowGap }}>
             {exercises.map((ex: TemplateExercise) => {
               const sets = ex.pivot?.target_sets ?? 0
               const minReps = ex.pivot?.min_target_reps ?? 0
               const maxReps = ex.pivot?.max_target_reps ?? 0
               const weight = ex.pivot?.target_weight ?? 0
               return (
-                <TouchableOpacity
+                <ExerciseRow
                   key={ex.pivot?.id ?? ex.id}
+                  name={ex.name}
+                  image={ex.image}
+                  meta={`${sets} sets · ${formatRepRange(minReps, maxReps)} reps · ${weight > 0 ? weight : 0} ${weightUnit}`}
                   onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
-                  className="flex-row items-center gap-4 p-2 rounded-2xl"
-                  style={{ backgroundColor: colors.bgSurface }}
-                  activeOpacity={0.75}
-                >
-                  <View
-                    className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0"
-                    style={{ backgroundColor: colors.bgElevated }}
-                  >
-                    {ex.image ? (
-                      <Image
-                        source={{ uri: ex.image }}
-                        style={{ width: '100%', height: '100%' }}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <View className="flex-1 items-center justify-center">
-                        <Text style={{ color: colors.textMuted, fontSize: 22 }}>💪</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View className="flex-1 min-w-0">
-                    <Text className="font-semibold text-sm mb-1" style={{ color: colors.textPrimary }} numberOfLines={1}>
-                      {ex.name}
-                    </Text>
-                    <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                      {sets} sets · {formatRepRange(minReps, maxReps)} reps{weight > 0 ? ` · ${weight} ${weightUnit}` : ` · 0 ${weightUnit}`}
-                    </Text>
-                  </View>
-                  <ChevronRight size={18} color={colors.textMuted} style={{ flexShrink: 0, marginRight: 4 }} />
-                </TouchableOpacity>
+                  right={<ChevronRight size={18} color={colors.textMuted} style={{ marginRight: 4 }} />}
+                />
               )
             })}
           </View>

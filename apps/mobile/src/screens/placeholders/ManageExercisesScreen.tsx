@@ -23,7 +23,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
 import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
 import { SwipeAction } from '../../components/ui/SwipeAction'
-import { Image } from 'expo-image'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import { ArrowLeft, ArrowUpDown, Edit2, GripVertical, Play, Plus, Trash2 } from 'lucide-react-native'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
@@ -220,50 +220,33 @@ export function ManageExercisesScreen({ route, navigation }: Props) {
         overshootRight={false}
       >
         <SortableItemSurface
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8, borderRadius: 16, borderWidth: 1 }}
+          style={{ borderRadius: EXERCISE_ROW.radius, borderWidth: 1 }}
           backgroundColor={colors.bgSurface}
           activeBackgroundColor={colors.bgElevated}
           borderColor={withAlpha(colors.primary, 0)}
           activeBorderColor={withAlpha(colors.primary, 0.251)}
         >
-          {/* Exercise image — tap to open details */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
-            activeOpacity={0.7}
-            className="w-16 h-16 rounded-xl overflow-hidden"
-            style={{ backgroundColor: colors.bgElevated }}
-          >
-            {item.imageUrl ? (
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={{ width: '100%', height: '100%' }}
-                contentFit="cover"
-              />
-            ) : (
-              <View className="flex-1 items-center justify-center">
-                <Text style={{ color: colors.textMuted, fontSize: 22 }}>💪</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          {/* Info */}
-          <View className="flex-1 min-w-0">
-            <Text className="text-sm font-bold mb-1" style={{ color: colors.textPrimary }} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text className="text-xs" style={{ color: colors.textSecondary }}>
-              <Text style={{ color: colors.primary }}>{item.sets} sets</Text>
-              <Text style={{ color: colors.textMuted }}> × </Text>
-              <Text style={{ color: colors.primary }}>{item.reps} reps</Text>
-              <Text style={{ color: colors.textMuted }}> × </Text>
-              <Text style={{ color: colors.primary }}>{formatWeight(Number(item.weight))} {weightUnit}</Text>
-            </Text>
-          </View>
-
-          {/* Drag handle — hold to lift the row; the list adds the haptics */}
-          <SortableHandle style={{ padding: 8 }}>
-            <GripVertical size={20} color={colors.textMuted} />
-          </SortableHandle>
+          <ExerciseRow
+            surface="plain"
+            name={item.name}
+            image={item.imageUrl}
+            onPressImage={() => navigation.navigate('ExerciseDetail', { exerciseName: item.name })}
+            meta={
+              <>
+                <Text style={{ color: colors.primary }}>{item.sets} sets</Text>
+                <Text style={{ color: colors.textMuted }}> × </Text>
+                <Text style={{ color: colors.primary }}>{item.reps} reps</Text>
+                <Text style={{ color: colors.textMuted }}> × </Text>
+                <Text style={{ color: colors.primary }}>{formatWeight(Number(item.weight))} {weightUnit}</Text>
+              </>
+            }
+            right={
+              /* Drag handle — hold to lift the row; the list adds the haptics */
+              <SortableHandle style={{ padding: 8 }}>
+                <GripVertical size={20} color={colors.textMuted} />
+              </SortableHandle>
+            }
+          />
         </SortableItemSurface>
       </ReanimatedSwipeable>
     )

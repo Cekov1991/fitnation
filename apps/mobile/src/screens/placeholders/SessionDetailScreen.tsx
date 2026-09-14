@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
 import {
   ArrowDown,
   ArrowLeft,
@@ -10,7 +9,6 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
-  Dumbbell,
   Minus,
 } from 'lucide-react-native'
 import {
@@ -31,6 +29,7 @@ import {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
@@ -187,15 +186,12 @@ export function SessionDetailScreen({ route, navigation }: Props) {
         {/* Exercises */}
         <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Exercises</Text>
         {exercises.length > 0 ? (
-          <View style={[styles.listCard, { backgroundColor: colors.bgSurface }]}>
-            {exercises.map((detail, index) => {
+          <View style={{ gap: EXERCISE_ROW.rowGap }}>
+            {exercises.map((detail) => {
               const se = detail.session_exercise
               return (
-                <View
-                  key={se.id}
-                  style={index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }}
-                >
-                  <ExerciseRow
+                <View key={se.id} style={[styles.exerciseCard, { backgroundColor: colors.bgSurface }]}>
+                  <SessionExerciseRow
                     detail={detail}
                     unit={unit}
                     expanded={!!expanded[se.id]}
@@ -275,7 +271,7 @@ function ComparisonStrip({ parts }: { parts: ReturnType<typeof volumeComparisonP
   )
 }
 
-interface ExerciseRowProps {
+interface SessionExerciseRowProps {
   detail: SessionExerciseDetail
   unit: string
   expanded: boolean
@@ -283,8 +279,8 @@ interface ExerciseRowProps {
   onOpen?: () => void
 }
 
-/** One exercise: the row summarises its sets; tapping it lists them. */
-function ExerciseRow({ detail, unit, expanded, onToggle, onOpen }: ExerciseRowProps) {
+/** One exercise card: the standard row summarises its sets; tapping it lists them below. */
+function SessionExerciseRow({ detail, unit, expanded, onToggle, onOpen }: SessionExerciseRowProps) {
   const { colors } = useTheme()
   const se = detail.session_exercise
   const weighted = se.progression_mode === 'double_progression'
@@ -294,38 +290,27 @@ function ExerciseRow({ detail, unit, expanded, onToggle, onOpen }: ExerciseRowPr
 
   return (
     <View>
-      <TouchableOpacity
+      <ExerciseRow
+        surface="plain"
+        name={se.exercise?.name ?? 'Unknown exercise'}
+        image={se.exercise?.image}
+        meta={summarizeSets(sets, { weighted, unit })}
         onPress={onToggle}
-        activeOpacity={0.7}
-        accessibilityRole="button"
         accessibilityState={{ expanded }}
-        style={styles.row}
-      >
-        {se.exercise?.image ? (
-          <Image source={{ uri: se.exercise.image }} style={styles.thumb} contentFit="cover" />
-        ) : (
-          <View style={[styles.thumb, styles.thumbEmpty, { backgroundColor: withAlpha(colors.primary, 0.094) }]}>
-            <Dumbbell size={22} color={colors.primary} />
-          </View>
-        )}
-        <View style={styles.rowText}>
-          <Text numberOfLines={1} style={[styles.rowName, { color: colors.textPrimary }]}>
-            {se.exercise?.name ?? 'Unknown exercise'}
-          </Text>
-          <Text numberOfLines={1} style={[styles.rowMeta, { color: colors.textSecondary }]}>
-            {summarizeSets(sets, { weighted, unit })}
-          </Text>
-        </View>
-        {sets.length > 0 && (
-          <View style={styles.rowFigure}>
-            <Text style={[styles.rowVolume, { color: colors.textPrimary }]}>
-              {weighted ? formatVolumeFull(totals.volume) : String(totals.reps)}
-            </Text>
-            <Text style={[styles.rowUnit, { color: colors.textMuted }]}>{weighted ? unit : 'reps'}</Text>
-          </View>
-        )}
-        <Chevron size={18} color={colors.textMuted} />
-      </TouchableOpacity>
+        right={
+          <>
+            {sets.length > 0 && (
+              <View style={styles.rowFigure}>
+                <Text style={[styles.rowVolume, { color: colors.textPrimary }]}>
+                  {weighted ? formatVolumeFull(totals.volume) : String(totals.reps)}
+                </Text>
+                <Text style={[styles.rowUnit, { color: colors.textMuted }]}>{weighted ? unit : 'reps'}</Text>
+              </View>
+            )}
+            <Chevron size={18} color={colors.textMuted} style={{ marginRight: 4 }} />
+          </>
+        }
+      />
 
       {expanded && (
         <View style={styles.setList}>
@@ -395,16 +380,12 @@ const styles = StyleSheet.create({
 
   sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 24, marginBottom: 10, marginLeft: 4 },
   listCard: { borderRadius: 24, paddingVertical: 4, paddingHorizontal: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
-  thumb: { width: 64, height: 64, borderRadius: 16 },
-  thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
-  rowText: { flex: 1, minWidth: 0 },
-  rowName: { fontSize: 17, fontWeight: '700' },
-  rowMeta: { fontSize: 13, marginTop: 3 },
+  // The row itself is <ExerciseRow>; this card wraps it plus the expanded set list.
+  exerciseCard: { borderRadius: EXERCISE_ROW.radius },
   rowFigure: { alignItems: 'flex-end' },
-  rowVolume: { fontSize: 17, fontWeight: '700' },
-  rowUnit: { fontSize: 12, marginTop: 1 },
-  setList: { paddingLeft: 12, paddingBottom: 12 },
+  rowVolume: { fontSize: EXERCISE_ROW.nameSize, fontWeight: '700' },
+  rowUnit: { fontSize: EXERCISE_ROW.metaSize, marginTop: 1 },
+  setList: { paddingHorizontal: 16, paddingBottom: 12 },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   setLabel: { width: 52, fontSize: 14 },
   setFigures: { flex: 1, fontSize: 16, fontWeight: '700' },

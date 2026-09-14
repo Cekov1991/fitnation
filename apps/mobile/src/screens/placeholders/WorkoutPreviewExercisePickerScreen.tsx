@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { useDebounce } from '../../hooks/useDebounce'
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
 import { ArrowUpDown, Plus, Search, X } from 'lucide-react-native'
 import {
   useExercises,
@@ -14,6 +13,7 @@ import {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ExerciseFilters } from '../../components/exercises/ExerciseFilters'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { NO_FILTERS, filterExercises, hasActiveFilter, type ExerciseFilterState } from '../../lib/exerciseFilters'
 import type { AppScreenProps } from '../../navigation/types'
@@ -135,7 +135,17 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
           renderItem={({ item }) => {
             const isAdding = addingId === item.id
             return (
-              <TouchableOpacity
+              <ExerciseRow
+                name={item.name}
+                image={item.image}
+                meta={
+                  item.muscle_groups && item.muscle_groups.length > 0
+                    ? item.muscle_groups
+                        .filter((m: any) => m.is_primary)
+                        .map((m: any) => m.name)
+                        .join(', ') || item.muscle_groups[0]?.name
+                    : undefined
+                }
                 onPress={() =>
                   navigation.navigate('ExerciseDetail', {
                     exerciseName: item.name,
@@ -146,53 +156,25 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
                   })
                 }
                 disabled={!!addingId}
-                className="flex-row items-center gap-3 p-3 rounded-xl mb-2"
-                style={{
-                  backgroundColor: colors.bgSurface,
-                  opacity: addingId && addingId !== item.id ? 0.5 : 1,
-                }}
-                activeOpacity={0.75}
-              >
-                {item.image ? (
-                  <Image
-                    source={{ uri: item.image }}
-                    style={{ width: 52, height: 52, borderRadius: 10 }}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <View
-                    style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: colors.bgElevated }}
-                  />
-                )}
-                <View className="flex-1 min-w-0">
-                  <Text className="text-sm font-bold" style={{ color: colors.textPrimary }} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {item.muscle_groups && item.muscle_groups.length > 0 && (
-                    <Text className="text-xs mt-0.5" style={{ color: colors.textSecondary }} numberOfLines={1}>
-                      {item.muscle_groups
-                        .filter((m: any) => m.is_primary)
-                        .map((m: any) => m.name)
-                        .join(', ') || item.muscle_groups[0]?.name}
-                    </Text>
-                  )}
-                </View>
-                <TouchableOpacity
-                  onPress={() => handleSelectExercise(item)}
-                  disabled={!!addingId}
-                  className="w-9 h-9 rounded-full items-center justify-center"
-                  style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
-                  activeOpacity={0.7}
-                >
-                  {isAdding ? (
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  ) : isSwap ? (
-                    <ArrowUpDown size={18} color={colors.primary} />
-                  ) : (
-                    <Plus size={18} color={colors.primary} />
-                  )}
-                </TouchableOpacity>
-              </TouchableOpacity>
+                style={{ marginBottom: EXERCISE_ROW.rowGap, opacity: addingId && addingId !== item.id ? 0.5 : 1 }}
+                right={
+                  <TouchableOpacity
+                    onPress={() => handleSelectExercise(item)}
+                    disabled={!!addingId}
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: withAlpha(colors.primary, 0.125) }}
+                    activeOpacity={0.7}
+                  >
+                    {isAdding ? (
+                      <ActivityIndicator size="small" color={colors.primary} />
+                    ) : isSwap ? (
+                      <ArrowUpDown size={18} color={colors.primary} />
+                    ) : (
+                      <Plus size={18} color={colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                }
+              />
             )
           }}
           ListEmptyComponent={

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, TouchableOpacity, Modal, ActivityIndicator, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable'
 import * as Haptics from 'expo-haptics'
@@ -28,6 +27,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { SortableHandle, SortableItemSurface, SortableList } from '../../components/ui/SortableList'
 import type { SortableListRenderItemInfo } from '../../components/ui/SortableList'
 import { SwipeAction } from '../../components/ui/SwipeAction'
+import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import type { AppScreenProps } from '../../navigation/types'
 import type { SessionExerciseDetail, RegenerateWorkoutInput } from '@fit-nation/shared'
 
@@ -382,50 +382,39 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                 overshootRight={false}
               >
                 <SortableItemSurface
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8, borderRadius: 16, borderWidth: 1 }}
+                  style={{ borderRadius: EXERCISE_ROW.radius, borderWidth: 1 }}
                   backgroundColor={colors.bgSurface}
                   activeBackgroundColor={colors.bgElevated}
                   borderColor={withAlpha(colors.primary, 0)}
                   activeBorderColor={withAlpha(colors.primary, 0.251)}
                 >
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
-                    activeOpacity={0.7}
-                  >
-                    {ex.image ? (
-                      <Image
-                        source={{ uri: ex.image }}
-                        style={{ width: 64, height: 64, borderRadius: 12 }}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <View
-                        style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.bgElevated }}
-                      />
-                    )}
-                  </TouchableOpacity>
-                  <View className="flex-1 min-w-0">
-                    <Text className="text-sm font-bold mb-1 leading-tight" style={{ color: colors.textPrimary }} numberOfLines={1}>
-                      {ex.name}
-                    </Text>
-                    <Text className="text-xs" style={{ color: colors.textSecondary }}>
-                      <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
-                      <Text style={{ color: colors.textMuted }}> × </Text>
-                      <Text style={{ color: colors.primary }}>
-                        {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
-                      </Text>
-                      {se.target_weight && se.target_weight > 0 ? (
-                        <>
-                          <Text style={{ color: colors.textMuted }}> × </Text>
-                          <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
-                        </>
-                      ) : null}
-                    </Text>
-                  </View>
-                  {/* Drag handle — hold to lift the row; the list adds the haptics */}
-                  <SortableHandle style={{ padding: 8 }}>
-                    <GripVertical size={20} color={colors.textMuted} />
-                  </SortableHandle>
+                  <ExerciseRow
+                    surface="plain"
+                    name={ex.name}
+                    image={ex.image}
+                    onPressImage={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
+                    meta={
+                      <>
+                        <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
+                        <Text style={{ color: colors.textMuted }}> × </Text>
+                        <Text style={{ color: colors.primary }}>
+                          {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
+                        </Text>
+                        {se.target_weight && se.target_weight > 0 ? (
+                          <>
+                            <Text style={{ color: colors.textMuted }}> × </Text>
+                            <Text style={{ color: colors.primary }}>{formatWeight(se.target_weight)} {weightUnit}</Text>
+                          </>
+                        ) : null}
+                      </>
+                    }
+                    right={
+                      /* Drag handle — hold to lift the row; the list adds the haptics */
+                      <SortableHandle style={{ padding: 8 }}>
+                        <GripVertical size={20} color={colors.textMuted} />
+                      </SortableHandle>
+                    }
+                  />
                 </SortableItemSurface>
               </ReanimatedSwipeable>
             )
