@@ -1,13 +1,16 @@
 import { useMemo } from 'react'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Award, CheckCircle2, Clock, Dumbbell, Target, TrendingUp, Trophy } from 'lucide-react-native'
 import { useSession, useWeightUnit, sessionTotals, formatDuration, formatWeight, minutesBetween } from '@fit-nation/shared'
 import type { SessionExerciseDetail, SetLogResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { GradientText } from '../../components/ui/GradientText'
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { ErrorState } from '../../components/ui/ErrorState'
 import type { AppScreenProps } from '../../navigation/types'
 
 type Props = AppScreenProps<'WorkoutSummary'>
@@ -15,6 +18,7 @@ type Props = AppScreenProps<'WorkoutSummary'>
 export function WorkoutSummaryScreen({ route, navigation }: Props) {
   const { sessionId, newPrs = [] } = route.params
   const { colors } = useTheme()
+  const doneContentColor = useButtonContentColor('primary')
   const numericSessionId = Number(sessionId)
   const { data: sessionData, isLoading, isError, refetch } = useSession(numericSessionId)
   const weightUnit = useWeightUnit()
@@ -36,7 +40,7 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <View className="px-4 pt-4">
+        <View style={{ paddingHorizontal: SCREEN.paddingX, paddingTop: SCREEN.paddingTop }}>
           <SkeletonBox height={140} style={{ marginBottom: 16 }} />
           <SkeletonBox height={170} style={{ marginBottom: 16 }} />
           <SkeletonBox height={220} />
@@ -47,11 +51,8 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
 
   if (isError || !sessionData) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
-        <Text style={{ color: colors.textSecondary, marginBottom: 12 }}>Failed to load workout summary</Text>
-        <TouchableOpacity onPress={() => refetch()} className="px-6 py-3 rounded-xl" style={{ backgroundColor: colors.primary }}>
-          <Text style={{ color: colors.textButton, fontWeight: '600' }}>Retry</Text>
-        </TouchableOpacity>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
+        <ErrorState message="Failed to load workout summary" onRetry={() => refetch()} />
       </SafeAreaView>
     )
   }
@@ -60,7 +61,7 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 36 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingTop: 12, paddingBottom: SCREEN.paddingBottom }}
         showsVerticalScrollIndicator={false}
       >
         <View className="items-center mb-6">
@@ -189,12 +190,12 @@ export function WorkoutSummaryScreen({ route, navigation }: Props) {
           </View>
         </View>
 
-        <TouchableOpacity onPress={handleDone} className="rounded-2xl py-4" style={{ backgroundColor: colors.success }}>
-          <View className="flex-row items-center justify-center gap-2">
-            <CheckCircle2 size={22} color={colors.textButton} />
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textButton }}>Done</Text>
-          </View>
-        </TouchableOpacity>
+        <Button
+          label="Done"
+          variant="primary"
+          icon={<CheckCircle2 size={BUTTON.md.icon} color={doneContentColor} />}
+          onPress={handleDone}
+        />
       </ScrollView>
     </SafeAreaView>
   )

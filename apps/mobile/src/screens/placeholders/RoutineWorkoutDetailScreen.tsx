@@ -1,12 +1,18 @@
 import { useMemo } from 'react'
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
+import { View, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useBrowsableRoutine, useStartSession, useTodayWorkout, useWeightUnit, formatRepRange } from '@fit-nation/shared'
 import type { TemplateExercise, WorkoutTemplateResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { Button } from '../../components/ui/Button'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { SectionLabel } from '../../components/ui/SectionLabel'
 import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
-import { ArrowLeft, ChevronRight } from 'lucide-react-native'
+import { ChevronRight } from 'lucide-react-native'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -42,23 +48,13 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
     }
   }
 
-  const backButton = (
-    <TouchableOpacity
-      onPress={() => navigation.goBack()}
-      className="p-2 rounded-full"
-      style={{ backgroundColor: colors.bgElevated }}
-    >
-      <ArrowLeft size={22} color={colors.textSecondary} />
-    </TouchableOpacity>
-  )
+  const header = <ScreenHeader title={workout?.name ?? 'Workout'} onBack={() => navigation.goBack()} />
 
   if (isLoading) {
     return (
       <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <View className="flex-row items-center gap-4 px-6 pt-6 mb-6">
-          {backButton}
-        </View>
-        <View className="px-6">
+        <View style={{ paddingHorizontal: SCREEN.paddingX }}>
+          {header}
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonBox key={i} height={80} className="mb-3" />
           ))}
@@ -70,21 +66,11 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
   if (isError || !workout) {
     return (
       <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <View className="flex-row items-center gap-4 px-6 pt-6 mb-6">{backButton}</View>
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-base mb-4 text-center" style={{ color: colors.textSecondary }}>
-            {!workout && !isLoading && !isError ? 'Workout not found.' : 'Failed to load workout'}
-          </Text>
-          {isError && (
-            <TouchableOpacity
-              onPress={() => refetch()}
-              className="px-6 py-3 rounded-xl"
-              style={{ backgroundColor: colors.primary }}
-            >
-              <Text className="font-semibold text-white">Retry</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <View style={{ paddingHorizontal: SCREEN.paddingX }}>{header}</View>
+        <ErrorState
+          message={!workout && !isLoading && !isError ? 'Workout not found.' : 'Failed to load workout'}
+          onRetry={isError ? () => refetch() : undefined}
+        />
       </SafeAreaView>
     )
   }
@@ -97,33 +83,15 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottomWithFooter }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="flex-row items-center gap-4 pt-6 mb-6">
-          {backButton}
-          <Text className="text-2xl font-bold flex-1" style={{ color: colors.textPrimary }} numberOfLines={2}>
-            {workout.name}
-          </Text>
-        </View>
+        {header}
 
-        <Text
-          className="text-xs font-semibold uppercase tracking-wider mb-4"
-          style={{ color: colors.textSecondary }}
-        >
-          Exercises
-        </Text>
+        <SectionLabel>Exercises</SectionLabel>
 
         {exercises.length === 0 ? (
-          <View
-            className="rounded-2xl p-6 items-center"
-            style={{ backgroundColor: colors.bgSurface }}
-          >
-            <Text className="text-sm" style={{ color: colors.textSecondary }}>
-              No exercises in this workout.
-            </Text>
-          </View>
+          <EmptyState variant="card" title="No exercises" />
         ) : (
           <View style={{ gap: EXERCISE_ROW.rowGap }}>
             {exercises.map((ex: TemplateExercise) => {
@@ -148,18 +116,14 @@ export function RoutineWorkoutDetailScreen({ route, navigation }: Props) {
 
       {/* Start / Continue Workout button */}
       <View
-        className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4"
-        style={{ backgroundColor: colors.bgBase }}
+        className="absolute bottom-0 left-0 right-0 pb-8 pt-4"
+        style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
       >
-        <TouchableOpacity
+        <Button
+          label={hasActiveSession ? 'Continue Workout' : 'Start Workout'}
+          variant={hasActiveSession ? 'accent' : 'primary'}
           onPress={handleStartWorkout}
-          className="py-4 rounded-xl items-center"
-          style={{ backgroundColor: hasActiveSession ? colors.secondary : colors.primary }}
-        >
-          <Text className="font-bold text-white text-base">
-            {hasActiveSession ? 'Continue Workout' : 'Start Workout'}
-          </Text>
-        </TouchableOpacity>
+        />
       </View>
     </SafeAreaView>
   )

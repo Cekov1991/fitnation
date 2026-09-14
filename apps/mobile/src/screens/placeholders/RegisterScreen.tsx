@@ -10,6 +10,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
 import { registerSchema, type RegisterFormData, authApi, AUTH_TOKEN_KEY, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN, SECTION_GAP } from '../../constants/layout'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
@@ -48,7 +49,7 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
         <ScrollView
           ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ padding: 24, flexGrow: 1, paddingBottom: 48 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingVertical: SECTION_GAP, flexGrow: 1, paddingBottom: 48 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

@@ -43,7 +43,7 @@ export function ConfirmDialog({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
         <Pressable
           onPress={() => {}}
           style={[
@@ -104,7 +104,6 @@ export function ConfirmDialog({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,

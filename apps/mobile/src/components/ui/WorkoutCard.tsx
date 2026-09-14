@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { Activity, Clock, Dumbbell, Edit2 } from 'lucide-react-native'
 import {
   estimateWorkoutDuration,
@@ -10,7 +9,9 @@ import {
   type WorkoutTemplateResource,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Button } from './Button'
 import { GradientText } from './GradientText'
+import { SectionLabel } from './SectionLabel'
 import { ExerciseRow, EXERCISE_ROW } from '../exercises/ExerciseRow'
 
 interface WorkoutCardProps {
@@ -33,7 +34,7 @@ export function WorkoutCard({
   onStartWorkout,
   onStartNextWorkout,
   showStartButton = false,
-  startButtonText = 'START WORKOUT',
+  startButtonText = 'Start Workout',
   startButtonDisabled = false,
   startButtonLoading = false,
   onExerciseClick,
@@ -121,17 +122,7 @@ export function WorkoutCard({
       <View style={{ height: 1, backgroundColor: colors.borderSubtle, marginBottom: 16 }} />
 
       {/* Workout plan */}
-      <Text
-        style={{
-          fontSize: 12,
-          fontWeight: '700',
-          letterSpacing: 1,
-          color: colors.textPrimary,
-          marginBottom: 12,
-        }}
-      >
-        WORKOUT PLAN
-      </Text>
+      <SectionLabel tone="muted">Workout plan</SectionLabel>
 
       {sortedExercises.length === 0 ? (
         <Text
@@ -177,56 +168,16 @@ export function WorkoutCard({
             borderTopColor: colors.borderSubtle,
           }}
         >
-          <TouchableOpacity
-            activeOpacity={0.9}
-            disabled={startButtonDisabled || startButtonLoading}
+          <Button
+            label={startButtonText}
+            variant="primary"
+            loading={startButtonLoading}
+            disabled={startButtonDisabled}
             onPress={() => {
               if (onStartNextWorkout) onStartNextWorkout()
               else if (onStartWorkout && template.id) onStartWorkout(template.id)
             }}
-            style={{
-              height: 48,
-              borderRadius: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              opacity: startButtonDisabled ? 0.5 : 1,
-            }}
-          >
-            {startButtonDisabled ? (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: colors.borderSubtle,
-                }}
-              />
-            ) : (
-              <LinearGradient
-                colors={[colors.primary, colors.secondary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-              />
-            )}
-            {startButtonLoading ? (
-              <ActivityIndicator color={colors.textButton} />
-            ) : (
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  letterSpacing: 1,
-                  color: startButtonDisabled ? colors.textSecondary : colors.textButton,
-                }}
-              >
-                {startButtonText}
-              </Text>
-            )}
-          </TouchableOpacity>
+          />
         </View>
       )}
     </View>

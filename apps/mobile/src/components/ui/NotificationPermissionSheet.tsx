@@ -68,7 +68,7 @@ export function NotificationPermissionSheet({
       onRequestClose={handleNotNow}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={handleNotNow}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={handleNotNow}>
         <Pressable
           onPress={() => {}}
           style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}
@@ -112,7 +112,6 @@ export function NotificationPermissionSheet({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,

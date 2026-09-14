@@ -7,8 +7,8 @@ import type { PlanFormData } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
 import { Button } from '../../components/ui/Button'
-import { ArrowLeft } from 'lucide-react-native'
-import { GradientText } from '../../components/ui/GradientText'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SCREEN } from '../../constants/layout'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -48,22 +48,10 @@ export function CreatePlanScreen({ navigation }: Props) {
     <SafeAreaView edges={['top', 'bottom']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View className="flex-row items-center gap-4 pt-6 mb-8">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: colors.bgElevated }}
-          >
-            <ArrowLeft size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <GradientText style={{ fontSize: 30, fontWeight: '700' }}>
-            Create Plan
-          </GradientText>
-        </View>
+        <ScreenHeader title="Create Plan" onBack={() => navigation.goBack()} />
 
         {/* Form Fields */}
         <FormField
@@ -116,7 +104,7 @@ export function CreatePlanScreen({ navigation }: Props) {
         </View>
 
         <Button
-          label={isSubmitting ? 'Creating...' : 'CREATE PLAN'}
+          label={isSubmitting ? 'Creating...' : 'Create Plan'}
           loading={isSubmitting}
           onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}

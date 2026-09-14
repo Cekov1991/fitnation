@@ -4,9 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useProgramLibrary, useCloneProgram, useUpdateProgram, useDeleteProgram, startLibraryProgram, withAlpha } from '@fit-nation/shared'
 import type { LibraryProgramResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { ArrowLeft, Calendar, Info, Dumbbell } from 'lucide-react-native'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { Button } from '../../components/ui/Button'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { Calendar, Info, Dumbbell } from 'lucide-react-native'
 import { Image } from 'expo-image'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
@@ -55,22 +60,10 @@ export function ProgramLibraryScreen({ navigation }: Props) {
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="flex-row items-center gap-4 pt-6 mb-6">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: colors.bgElevated }}
-          >
-            <ArrowLeft size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <Text className="text-3xl font-bold" style={{ color: colors.primary }}>
-            Program Library
-          </Text>
-        </View>
+        <ScreenHeader title="Program Library" onBack={() => navigation.goBack()} />
 
         {/* Info Banner */}
         <View
@@ -90,27 +83,13 @@ export function ProgramLibraryScreen({ navigation }: Props) {
             <SkeletonBox height={200} className="mb-4" />
           </>
         ) : isError ? (
-          <View className="items-center py-12">
-            <Text className="text-base mb-4" style={{ color: colors.textSecondary }}>
-              Failed to load programs
-            </Text>
-            <TouchableOpacity
-              onPress={() => refetch()}
-              className="px-6 py-3 rounded-xl"
-              style={{ backgroundColor: colors.primary }}
-            >
-              <Text className="font-semibold text-white">Retry</Text>
-            </TouchableOpacity>
-          </View>
+          <ErrorState message="Failed to load programs" onRetry={() => refetch()} />
         ) : libraryPrograms.length === 0 ? (
-          <View
-            className="rounded-2xl p-8 items-center"
-            style={{ backgroundColor: colors.bgSurface }}
-          >
-            <Text className="text-sm text-center" style={{ color: colors.textMuted }}>
-              No programs available in the library yet.
-            </Text>
-          </View>
+          <EmptyState
+            variant="card"
+            title="No programs in the library"
+            description="Your gym hasn't published any programs yet."
+          />
         ) : (
           <View style={{ gap: 16 }}>
             {(libraryPrograms as LibraryProgramResource[]).map((program) => (
@@ -136,7 +115,7 @@ export function ProgramLibraryScreen({ navigation }: Props) {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.45)',
+                        backgroundColor: colors.imageScrim,
                       }}
                     />
                   </View>
@@ -154,15 +133,15 @@ export function ProgramLibraryScreen({ navigation }: Props) {
                   <View className="mb-4">
                     <Text
                       className="text-xl font-bold mb-2"
-                      style={{ color: program.cover_image ? '#fff' : colors.textPrimary }}
+                      style={{ color: program.cover_image ? colors.textOnImage : colors.textPrimary }}
                     >
                       {program.name}
                     </Text>
                     <Text
                       className="text-sm leading-relaxed"
-                      style={{ color: program.cover_image ? 'rgba(255,255,255,0.9)' : colors.textSecondary }}
+                      style={{ color: program.cover_image ? withAlpha(colors.textOnImage, 0.9) : colors.textSecondary }}
                     >
-                      {program.description || 'No description available.'}
+                      {program.description || 'No description.'}
                     </Text>
                   </View>
 
@@ -191,12 +170,7 @@ export function ProgramLibraryScreen({ navigation }: Props) {
                   </View>
 
                   {/* CTA */}
-                  <View
-                    className="w-full py-3 rounded-xl items-center"
-                    style={{ backgroundColor: colors.primary }}
-                  >
-                    <Text className="font-bold text-white">View program</Text>
-                  </View>
+                  <Button label="View Program" onPress={() => setConfirmProgram(program)} />
                 </View>
               </TouchableOpacity>
             ))}

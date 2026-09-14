@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useDebounce } from '../../hooks/useDebounce'
-import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowUpDown, Plus, Search, X } from 'lucide-react-native'
 import {
@@ -15,6 +15,9 @@ import { useTheme } from '../../context/ThemeContext'
 import { ExerciseFilters } from '../../components/exercises/ExerciseFilters'
 import { ExerciseRow, EXERCISE_ROW } from '../../components/exercises/ExerciseRow'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SCREEN } from '../../constants/layout'
 import { NO_FILTERS, filterExercises, hasActiveFilter, type ExerciseFilterState } from '../../lib/exerciseFilters'
 import type { AppScreenProps } from '../../navigation/types'
 import type { ExerciseResource } from '@fit-nation/shared'
@@ -73,18 +76,22 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       {/* Header */}
-      <View className="flex-row items-center gap-4 px-4 pt-4 pb-3">
-        <Text className="flex-1 text-xl font-bold" style={{ color: colors.textPrimary }}>
-          {isSwap ? 'Swap Exercise' : 'Add Exercise'}
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="p-2 rounded-full"
-          style={{ backgroundColor: colors.bgSurface }}
-          activeOpacity={0.7}
-        >
-          <X size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
+      <View style={{ paddingHorizontal: SCREEN.paddingX }}>
+        <ScreenHeader
+          title={isSwap ? 'Swap Exercise' : 'Add Exercise'}
+          right={
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              className="p-2 rounded-full"
+              style={{ backgroundColor: colors.bgSurface }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <X size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          }
+        />
       </View>
 
       {/* Search */}
@@ -130,7 +137,7 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
         <FlatList
           data={filtered}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => {
             const isAdding = addingId === item.id
@@ -178,24 +185,21 @@ export function WorkoutPreviewExercisePickerScreen({ route, navigation }: Props)
             )
           }}
           ListEmptyComponent={
-            <View className="items-center py-12">
-              <Text style={{ color: colors.textSecondary }}>
-                {isNarrowed ? 'No exercises found' : 'No exercises available'}
-              </Text>
-              {isNarrowed && (
-                <TouchableOpacity
-                  onPress={() => {
+            isNarrowed ? (
+              <EmptyState
+                title="No exercises match"
+                description="Try a different search or clear the filters."
+                action={{
+                  label: 'Clear Filters',
+                  onPress: () => {
                     setSearch('')
                     setFilters(NO_FILTERS)
-                  }}
-                  className="mt-3"
-                >
-                  <Text className="text-sm" style={{ color: colors.primary }}>
-                    Clear filters
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+                  },
+                }}
+              />
+            ) : (
+              <EmptyState title="No exercises to show" />
+            )
           }
         />
       )}

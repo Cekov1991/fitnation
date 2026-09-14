@@ -10,6 +10,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
+import { SCREEN, SECTION_GAP } from '../../constants/layout'
 import type { AuthScreenProps } from '../../navigation/types'
 
 export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'ResetPassword'>) {
@@ -63,7 +64,11 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   // Missing token or email — link is incomplete
   if (!token || !email) {
     return (
-      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView
+        edges={['top']}
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
+      >
         <View
           style={{
             backgroundColor: colors.bgSurface,
@@ -83,11 +88,11 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             This page needs a valid reset link. If your link expired or didn't open correctly, request a new one.
           </Text>
           <Button
-            label="Request a new link"
+            label="Request a New Link"
             onPress={() => navigation.navigate('ForgotPassword')}
           />
           <Button
-            label="Back to sign in"
+            label="Back to Sign in"
             variant="ghost"
             style={{ marginTop: 8 }}
             onPress={() => navigation.navigate('Login')}
@@ -100,7 +105,11 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
   // Success state
   if (success) {
     return (
-      <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6" style={{ backgroundColor: colors.bgBase }}>
+      <SafeAreaView
+        edges={['top']}
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
+      >
         <View
           style={{
             backgroundColor: colors.bgSurface,
@@ -151,7 +160,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 24, justifyContent: 'center', flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingVertical: SECTION_GAP, justifyContent: 'center', flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
           <AuthLogoHeader
@@ -181,7 +190,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
 
             {isInvalidLink && (
               <Button
-                label="Request a new link"
+                label="Request a New Link"
                 variant="ghost"
                 style={{ marginBottom: 16, borderWidth: 1, borderColor: colors.bgElevated }}
                 onPress={() => navigation.navigate('ForgotPassword')}
@@ -239,7 +248,7 @@ export function ResetPasswordScreen({ navigation, route }: AuthScreenProps<'Rese
             />
 
             <Button
-              label="Reset password"
+              label="Reset Password"
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             />

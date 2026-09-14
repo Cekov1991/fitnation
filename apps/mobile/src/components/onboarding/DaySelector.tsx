@@ -25,7 +25,7 @@ export function DaySelector({ value, onChange, min = 1, max = 7 }: DaySelectorPr
         >
           <Text
             className="text-base font-bold"
-            style={{ color: value === day ? '#fff' : colors.textSecondary }}
+            style={{ color: value === day ? colors.textButton : colors.textSecondary }}
           >
             {day}
           </Text>

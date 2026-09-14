@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -45,8 +44,12 @@ import type {
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { isOnline } from '../../lib/connectivity'
+import { SCREEN } from '../../constants/layout'
 
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { SectionLabel } from '../../components/ui/SectionLabel'
 import { GradientText } from '../../components/ui/GradientText'
 import { PlanTypeSwitcher, type PlanType } from '../../components/ui/PlanTypeSwitcher'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
@@ -98,6 +101,7 @@ function PlanCardAction({ icon: Icon, label, onPress, disabled, divider }: PlanC
 
 export function DashboardScreen() {
   const { colors } = useTheme()
+  const primaryButtonContent = useButtonContentColor('primary')
   const { user } = useAuth()
   const firstName = user?.name?.trim().split(' ')[0] ?? null
   const navigation = useNavigation<Nav>()
@@ -325,7 +329,7 @@ export function DashboardScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bgBase }}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         showsVerticalScrollIndicator={false}
       >
         {/* ─── Header ─── */}
@@ -407,30 +411,13 @@ export function DashboardScreen() {
                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>View →</Text>
                   </TouchableOpacity>
                 ))}
-                <TouchableOpacity
+                <Button
+                  label="Generate Personalized Plan"
+                  icon={<Zap size={BUTTON.md.icon} color={primaryButtonContent} />}
+                  loading={isRegenerating || regeneratePlan.isPending}
                   onPress={openAdjustPlan}
-                  disabled={isRegenerating || regeneratePlan.isPending}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 12,
-                    borderRadius: 12,
-                    marginTop: 8,
-                    backgroundColor: colors.primary,
-                    opacity: isRegenerating ? 0.7 : 1,
-                  }}
-                >
-                  {isRegenerating || regeneratePlan.isPending ? (
-                    <ActivityIndicator size="small" color={colors.textButton} />
-                  ) : (
-                    <Zap size={16} color={colors.textButton} />
-                  )}
-                  <Text style={{ fontWeight: '600', color: colors.textButton }}>
-                    Generate personalized plan
-                  </Text>
-                </TouchableOpacity>
+                  style={{ marginTop: 8 }}
+                />
               </Card>
             ) : isPlanComplete ? (
               <Card>
@@ -474,61 +461,26 @@ export function DashboardScreen() {
                   .
                 </Text>
                 {activeProgram.is_auto_generated && (
-                  <TouchableOpacity
+                  <Button
+                    label="Generate New Plan"
+                    icon={<Zap size={BUTTON.md.icon} color={primaryButtonContent} />}
+                    loading={isRegenerating}
                     onPress={openAdjustPlan}
-                    disabled={isRegenerating}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 12,
-                      borderRadius: 12,
-                      backgroundColor: colors.primary,
-                      opacity: isRegenerating ? 0.7 : 1,
-                    }}
-                  >
-                    {isRegenerating ? (
-                      <ActivityIndicator size="small" color={colors.textButton} />
-                    ) : (
-                      <Zap size={16} color={colors.textButton} />
-                    )}
-                    <Text style={{ fontWeight: '600', color: colors.textButton }}>
-                      Generate new plan
-                    </Text>
-                  </TouchableOpacity>
+                  />
                 )}
               </Card>
             ) : (
               <>
                 {/* Plan card: name and week, this week's days, and the two plan actions as a footer bar */}
                 <Card style={{ marginBottom: 16, borderRadius: 24, padding: 0, overflow: 'hidden' }}>
-                  <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
+                  <View style={{ padding: 20, paddingBottom: 16 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          flex: 1,
-                          fontSize: 12,
-                          fontWeight: '700',
-                          letterSpacing: 1.2,
-                          color: colors.primary,
-                          textTransform: 'uppercase',
-                        }}
-                      >
+                      <SectionLabel style={{ flex: 1, marginBottom: 0, color: colors.primary }}>
                         {activeProgram.name || 'Your plan'}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: '700',
-                          letterSpacing: 1.2,
-                          color: colors.textSecondary,
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Week {displayWeekNumber}/{activeProgram.duration_weeks ?? '?'}
-                      </Text>
+                      </SectionLabel>
+                      <SectionLabel style={{ marginBottom: 0 }}>
+                        {`Week ${displayWeekNumber}/${activeProgram.duration_weeks ?? '?'}`}
+                      </SectionLabel>
                     </View>
                     {activeWeekWorkouts.length > 0 && (
                       <WorkoutTemplateSelector
@@ -569,7 +521,7 @@ export function DashboardScreen() {
                     template={selectedWorkout}
                     title={selectedWorkout.name || 'WORKOUT'}
                     showStartButton
-                    startButtonText={effectiveSelectedId ? 'START WORKOUT' : 'NO WORKOUTS AVAILABLE'}
+                    startButtonText={effectiveSelectedId ? 'Start Workout' : 'No Workouts Available'}
                     startButtonDisabled={!effectiveSelectedId}
                     startButtonLoading={startSession.isPending}
                     onStartNextWorkout={handleStartSelectedWorkout}
@@ -579,11 +531,7 @@ export function DashboardScreen() {
                     onEditWorkout={handleEditWorkout}
                   />
                 ) : (
-                  <Card>
-                    <Text style={{ textAlign: 'center', color: colors.textSecondary }}>
-                      No workouts available for this week
-                    </Text>
-                  </Card>
+                  <EmptyState variant="card" title="No workouts available for this week" />
                 )}
               </>
             )}
@@ -613,24 +561,14 @@ export function DashboardScreen() {
                   width: 128,
                   height: 128,
                   borderRadius: 64,
-                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  backgroundColor: withAlpha(colors.textButton, 0.1),
                 }}
               />
 
               {/* "Fit Nation Engine" label */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Zap size={16} color={colors.secondary} fill={colors.secondary} />
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    letterSpacing: 1.5,
-                    textTransform: 'uppercase',
-                    color: colors.secondary,
-                  }}
-                >
-                  Fit Nation Engine
-                </Text>
+                <SectionLabel style={{ marginBottom: 0, color: colors.secondary }}>Fit Nation Engine</SectionLabel>
               </View>
 
               <Text
@@ -660,8 +598,8 @@ export function DashboardScreen() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderColor: withAlpha(colors.textButton, 0.2),
+                  backgroundColor: withAlpha(colors.textButton, 0.05),
                 }}
               >
                 <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textButton }}>
@@ -716,7 +654,7 @@ export function DashboardScreen() {
                               contentFit="cover"
                             />
                             <LinearGradient
-                              colors={['transparent', 'rgba(0,0,0,0.5)']}
+                              colors={['transparent', withAlpha(colors.mediaBackdrop, 0.5)]}
                               style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
                             />
                           </>
@@ -855,20 +793,12 @@ export function DashboardScreen() {
                       </Text>
                     </View>
 
-                    <TouchableOpacity
-                      onPress={() => handleStartPlanWorkout(workout.id)}
+                    <Button
+                      label="Start"
+                      size="sm"
                       disabled={startSession.isPending}
-                      style={{
-                        paddingVertical: 8,
-                        borderRadius: 12,
-                        alignItems: 'center',
-                        backgroundColor: colors.primary,
-                      }}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textButton }}>
-                        Start
-                      </Text>
-                    </TouchableOpacity>
+                      onPress={() => handleStartPlanWorkout(workout.id)}
+                    />
                   </View>
                 ))}
               </ScrollView>
@@ -941,39 +871,13 @@ export function DashboardScreen() {
                 </View>
               </View>
 
-              <TouchableOpacity
+              <Button
+                label="Start Blank Session"
+                icon={<Play size={BUTTON.md.icon} color={primaryButtonContent} fill={primaryButtonContent} />}
+                loading={startSession.isPending}
                 onPress={handleStartBlankSession}
-                disabled={startSession.isPending}
-                activeOpacity={0.9}
-                style={{
-                  height: 48,
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  marginTop: 24,
-                  opacity: startSession.isPending ? 0.7 : 1,
-                }}
-              >
-                <LinearGradient
-                  colors={[colors.secondary, colors.primary]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-                />
-                {startSession.isPending ? (
-                  <ActivityIndicator color={colors.textButton} />
-                ) : (
-                  <>
-                    <Play size={18} color={colors.textButton} fill={colors.textButton} />
-                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textButton }}>
-                      Start Blank Session
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
+                style={{ marginTop: 24 }}
+              />
             </View>
           </>
         )}

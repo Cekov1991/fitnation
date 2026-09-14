@@ -31,6 +31,7 @@ import type {
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { OptionSheet } from './OptionSheet'
+import { SectionLabel } from './SectionLabel'
 
 /** The four profile fields the server builds a plan from. All are required. */
 export interface PlanProfileSettings {
@@ -276,7 +277,7 @@ export function AdjustPlanSheet({
 
             <View style={[styles.row, styles.daysRow, hairline]}>
               <View style={styles.daysHeader}>
-                <Text style={[styles.rowLabel, { color: colors.textMuted, marginBottom: 0 }]}>Days per week</Text>
+                <SectionLabel tone="muted" style={{ marginBottom: 0 }}>Days per week</SectionLabel>
                 <Text style={[styles.daysValue, { color: colors.primary }]}>{days ?? ''}</Text>
               </View>
               <View style={styles.daysChips}>
@@ -383,7 +384,7 @@ function SettingRow({ label, value, detail, muted, onPress }: SettingRowProps) {
       style={[styles.row, { borderBottomColor: colors.border }]}
     >
       <View style={styles.rowText}>
-        <Text style={[styles.rowLabel, { color: colors.textMuted }]}>{label}</Text>
+        <SectionLabel tone="muted" style={styles.rowLabel}>{label}</SectionLabel>
         <Text style={[styles.rowValue, { color: muted ? colors.textMuted : colors.textPrimary }]}>{value}</Text>
         {!!detail && <Text style={[styles.rowDetail, { color: colors.textMuted }]}>{detail}</Text>}
       </View>
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   rowsContent: { paddingHorizontal: 24, paddingBottom: 16 },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1 },
   rowText: { flex: 1, marginRight: 12 },
-  rowLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 5 },
+  rowLabel: { marginBottom: 5 },
   rowValue: { fontSize: 16, fontWeight: '600' },
   rowDetail: { fontSize: 12, marginTop: 3 },
   daysRow: { flexDirection: 'column', alignItems: 'stretch' },

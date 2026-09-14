@@ -30,6 +30,18 @@ export const lightColors = {
   success: '#22C55E',
   error: '#EF4444',
   warning: '#F59E0B',
+  /** Informational accent for charts/badges that are neither brand nor status. */
+  info: '#3B82F6',
+
+  // Overlays — theme-independent by design, but named so no screen spells them out
+  /** Backdrop behind sheets, dialogs and modals. */
+  scrim: 'rgba(0, 0, 0, 0.55)',
+  /** Darkening over a cover photo so text on it stays legible. */
+  imageScrim: 'rgba(0, 0, 0, 0.45)',
+  /** Text and icons laid over a cover photo. */
+  textOnImage: '#FFFFFF',
+  /** Full-screen media viewer background. */
+  mediaBackdrop: '#000000',
 }
 
 export const darkColors: AppColors = {
@@ -62,6 +74,13 @@ export const darkColors: AppColors = {
   success: '#22C55E',
   error: '#EF4444',
   warning: '#F59E0B',
+  info: '#60A5FA',
+
+  // Overlays
+  scrim: 'rgba(0, 0, 0, 0.55)',
+  imageScrim: 'rgba(0, 0, 0, 0.45)',
+  textOnImage: '#FFFFFF',
+  mediaBackdrop: '#000000',
 }
 
 export const defaultColors = lightColors

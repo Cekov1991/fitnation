@@ -9,6 +9,10 @@ import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
 import { ExerciseFilters } from '../../components/exercises/ExerciseFilters'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { PageTitle } from '../../components/ui/ScreenHeader'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { SCREEN } from '../../constants/layout'
 import { NO_FILTERS, filterExercises, hasActiveFilter, type ExerciseFilterState } from '../../lib/exerciseFilters'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { AppStackParamList } from '../../navigation/types'
@@ -36,10 +40,8 @@ export function ExerciseCatalogScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       {/* Header */}
-      <View className="px-4 pt-4 pb-3">
-        <Text className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
-          Exercises
-        </Text>
+      <View className="pb-3" style={{ paddingHorizontal: SCREEN.paddingX }}>
+        <PageTitle title="Exercises" />
 
         {/* Search bar */}
         <View
@@ -79,29 +81,18 @@ export function ExerciseCatalogScreen() {
 
       {/* Exercise List */}
       {isLoading ? (
-        <View className="px-4 pt-2">
+        <View className="pt-2" style={{ paddingHorizontal: SCREEN.paddingX }}>
           {Array.from({ length: 7 }).map((_, i) => (
             <SkeletonBox key={i} height={72} className="mb-3" />
           ))}
         </View>
       ) : isError ? (
-        <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-base mb-4" style={{ color: colors.textSecondary }}>
-            Failed to load exercises
-          </Text>
-          <TouchableOpacity
-            onPress={() => refetch()}
-            className="px-6 py-3 rounded-xl"
-            style={{ backgroundColor: colors.primary }}
-          >
-            <Text className="font-semibold text-white">Retry</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorState message="Failed to load exercises" onRetry={() => refetch()} />
       ) : (
         <FlatList
           data={filtered}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingTop: 4, paddingBottom: SCREEN.paddingBottom }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
@@ -111,25 +102,22 @@ export function ExerciseCatalogScreen() {
             />
           )}
           ListEmptyComponent={
-            <View className="items-center py-16">
-              <Dumbbell size={40} color={colors.textMuted} />
-              <Text className="text-base mt-4" style={{ color: colors.textSecondary }}>
-                {isNarrowed ? 'No exercises found' : 'No exercises available'}
-              </Text>
-              {isNarrowed && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setSearch('')
-                    setFilters(NO_FILTERS)
-                  }}
-                  className="mt-3"
-                >
-                  <Text className="text-sm" style={{ color: colors.primary }}>
-                    Clear filters
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <EmptyState
+              icon={Dumbbell}
+              title={isNarrowed ? 'No exercises match' : 'The catalog is empty'}
+              description={isNarrowed ? 'Try a different search or clear the filters.' : undefined}
+              action={
+                isNarrowed
+                  ? {
+                      label: 'Clear filters',
+                      onPress: () => {
+                        setSearch('')
+                        setFilters(NO_FILTERS)
+                      },
+                    }
+                  : undefined
+              }
+            />
           }
         />
       )}

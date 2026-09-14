@@ -9,11 +9,15 @@ import { useMutation } from '@tanstack/react-query'
 // helpers are used rather than the useWeightUnit()/useHeightUnit() hooks.
 import { profileApi, onboardingApi, plansApi, weightUnitLabel, heightUnitLabel, sanitizeDecimalText, parseDecimalText, UNIT_OPTIONS, submitOnboarding, withAlpha, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS, TRAINING_DAYS_OPTIONS, labelFor } from '@fit-nation/shared'
 import type { UpdateProfileInput, UnitSystem } from '@fit-nation/shared'
-import { ArrowLeft, ArrowRight, Check, AlertCircle } from 'lucide-react-native'
+import { Check } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { onboardingReducer, FIRST_STEP } from '../Onboarding/onboardingReducer'
 import { PlanBuildingContent, PLAN_BUILD_BG } from '../../components/ui/PlanGeneratingOverlay'
+import { Button } from '../../components/ui/Button'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { SectionLabel } from '../../components/ui/SectionLabel'
+import { SCREEN } from '../../constants/layout'
 import { NotificationPermissionSheet } from '../../components/ui/NotificationPermissionSheet'
 import { isOnline } from '../../lib/connectivity'
 import { getPermissionStatus } from '../../lib/notifications'
@@ -22,11 +26,6 @@ import type { AppScreenProps } from '../../navigation/types'
 
 // Steps 1-3 are the questions; step 4 builds the plan.
 const TOTAL_DATA_STEPS = 3
-
-// Content colours for the error state, which sits on the same navy as the
-// build screen it replaces (PLAN_BUILD_BG).
-const BUILD_TEXT = '#FFFFFF'
-const BUILD_TEXT_DIM = '#8C9BB3'
 
 type Phase = 'saving-profile' | 'generating-plan' | 'done' | 'error'
 
@@ -195,9 +194,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
       {/* Back arrow + one segment per question */}
       <View style={styles.header}>
         {step > FIRST_STEP ? (
-          <TouchableOpacity onPress={back} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
-            <ArrowLeft size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <Button label="Back" variant="ghost" size="sm" onPress={back} style={styles.backButton} />
         ) : null}
         <View style={styles.segments}>
           {Array.from({ length: TOTAL_DATA_STEPS }, (_, i) => (
@@ -237,16 +234,11 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-        <TouchableOpacity
-          onPress={next}
+        <Button
+          label={step === 3 ? 'Build My Plan' : 'Continue'}
           disabled={!canProceed()}
-          accessibilityRole="button"
-          style={[styles.cta, { backgroundColor: canProceed() ? colors.primary : withAlpha(colors.textMuted, 0.25) }]}
-        >
-          <Text style={[styles.ctaText, { color: canProceed() ? colors.textButton : colors.textMuted }]}>
-            {step === 3 ? 'Build my plan' : 'Continue'}
-          </Text>
-        </TouchableOpacity>
+          onPress={next}
+        />
       </View>
 
     </SafeAreaView>
@@ -471,7 +463,7 @@ function TrainStep({ colors, state, set }: {
 
       {complete && (
         <View style={[styles.summary, { backgroundColor: colors.bgSurface }]}>
-          <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>Your plan will be</Text>
+          <SectionLabel tone="muted" style={{ marginBottom: 6 }}>Your plan will be</SectionLabel>
           <Text style={[styles.summaryText, { color: colors.textPrimary }]}>
             {labelFor(FITNESS_GOAL_OPTIONS, state.fitness_goal)}
             {` · ${labelFor(TRAINING_DAYS_OPTIONS, days)} a week`}
@@ -550,24 +542,15 @@ function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, onRetr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
+  // A failed build is the app's one error state, on the themed background:
+  // <ErrorState> paints its text in textPrimary, which the navy build scene
+  // cannot carry in the light theme.
   if (phase === 'error') {
     return (
-      <SafeAreaView edges={['top']} style={[styles.buildScreen, { backgroundColor: PLAN_BUILD_BG }]}>
-        <View style={styles.buildError}>
-          <AlertCircle size={40} color={colors.error} />
-          <Text style={[styles.headline, { color: BUILD_TEXT, textAlign: 'center' }]}>Something went wrong</Text>
-          <Text style={[styles.subhead, { color: BUILD_TEXT_DIM, textAlign: 'center' }]}>{errorMsg}</Text>
-          <TouchableOpacity
-            onPress={onRetry}
-            accessibilityRole="button"
-            style={[styles.cta, { backgroundColor: colors.primary, alignSelf: 'stretch' }]}
-          >
-            <Text style={[styles.ctaText, { color: colors.textButton }]}>Try again</Text>
-            <ArrowRight size={18} color={colors.textButton} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onBack} accessibilityRole="button" style={styles.buildBackBtn}>
-            <Text style={[styles.buildBackText, { color: BUILD_TEXT_DIM }]}>Back to questions</Text>
-          </TouchableOpacity>
+      <SafeAreaView edges={['top', 'bottom']} style={[styles.buildScreen, { backgroundColor: colors.bgBase }]}>
+        <ErrorState message={errorMsg ?? 'Something went wrong. Please try again.'} onRetry={onRetry} />
+        <View style={styles.footer}>
+          <Button label="Back to Questions" variant="ghost" onPress={onBack} />
         </View>
       </SafeAreaView>
     )
@@ -591,18 +574,17 @@ function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, onRetr
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: SCREEN.paddingX, paddingTop: 12, paddingBottom: 20 },
+  backButton: { alignSelf: 'center' },
   segments: { flex: 1, flexDirection: 'row', gap: 6 },
   segment: { flex: 1, height: 3, borderRadius: 999 },
 
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 16 },
+  content: { paddingHorizontal: SCREEN.paddingX, paddingBottom: 16 },
   headline: { fontSize: 28, fontWeight: '800', lineHeight: 34 },
   subhead: { fontSize: 15, marginTop: 8, marginBottom: 24, lineHeight: 21 },
 
-  footer: { paddingHorizontal: 16, paddingTop: 8 },
-  cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 56, borderRadius: 16 },
-  ctaText: { fontSize: 16, fontWeight: '700' },
+  footer: { paddingHorizontal: SCREEN.paddingX, paddingTop: 8 },
 
   cardList: { gap: 10 },
   goalCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 16, borderWidth: 2 },
@@ -633,12 +615,7 @@ const styles = StyleSheet.create({
   chipTextSm: { fontSize: 13, fontWeight: '600' },
 
   summary: { marginTop: 24, padding: 16, borderRadius: 16 },
-  summaryLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
   summaryText: { fontSize: 16, fontWeight: '700', lineHeight: 23 },
 
   buildScreen: { flex: 1 },
-
-  buildError: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 24 },
-  buildBackBtn: { paddingVertical: 10, paddingHorizontal: 16 },
-  buildBackText: { fontSize: 15, fontWeight: '600' },
 })

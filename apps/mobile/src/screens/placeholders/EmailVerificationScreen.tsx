@@ -6,6 +6,7 @@ import { authApi, failureOf } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../../components/ui/Button'
+import { SCREEN } from '../../constants/layout'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -107,7 +108,11 @@ export function EmailVerificationScreen({ navigation }: AppScreenProps<'EmailVer
   }
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} className="flex-1 px-6 items-center justify-center" style={{ backgroundColor: colors.bgBase }}>
+    <SafeAreaView
+      edges={['top', 'bottom']}
+      className="flex-1 items-center justify-center"
+      style={{ backgroundColor: colors.bgBase, paddingHorizontal: SCREEN.paddingX }}
+    >
       {/* Partner logo or default app logo */}
       <View className="mb-8 items-center">
         <Image
@@ -134,7 +139,7 @@ export function EmailVerificationScreen({ navigation }: AppScreenProps<'EmailVer
 
       <View className="w-full gap-3">
         <Button
-          label={refreshing ? 'Checking...' : 'I have verified my email'}
+          label={refreshing ? 'Checking...' : 'I Have Verified My Email'}
           onPress={handleRefresh}
           disabled={refreshing}
         />
@@ -154,7 +159,7 @@ export function EmailVerificationScreen({ navigation }: AppScreenProps<'EmailVer
 
         <Button
           variant="ghost"
-          label="Sign out"
+          label="Sign Out"
           onPress={handleSignOut}
         />
       </View>

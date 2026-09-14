@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
-import { ArrowLeft, Sparkles } from 'lucide-react-native'
+import { Sparkles } from 'lucide-react-native'
 import {
   DEFAULT_TRAINING_STYLES,
   TRAINING_STYLE_OPTIONS,
@@ -14,6 +13,10 @@ import {
 } from '@fit-nation/shared'
 import type { EquipmentTypeResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN } from '../../constants/layout'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { SectionLabel } from '../../components/ui/SectionLabel'
 import type { AppScreenProps } from '../../navigation/types'
 
 const PRESETS = [
@@ -31,6 +34,7 @@ type Props = AppScreenProps<'GenerateWorkout'>
 
 export function GenerateWorkoutScreen({ navigation }: Props) {
   const { colors } = useTheme()
+  const generateContentColor = useButtonContentColor('primary')
   const { data: profile } = useProfile()
   const generateDraft = useGenerateDraftSession()
   const { data: equipmentTypes = [] } = useEquipmentTypes()
@@ -89,37 +93,19 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="flex-row items-center gap-4 pt-6 mb-8">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 rounded-xl"
-            style={{ backgroundColor: colors.bgSurface }}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <View className="flex-1">
-            <View className="flex-row items-center gap-2">
-              <Sparkles size={24} color={colors.primary} />
-              <Text className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
-                Smart Workout
-              </Text>
-            </View>
-            <Text className="text-sm mt-1" style={{ color: colors.textSecondary }}>
-              Powered by Fit Nation's Engine
-            </Text>
-          </View>
-        </View>
+        <ScreenHeader
+          title="Smart Workout"
+          subtitle="Powered by Fit Nation's Engine"
+          onBack={() => navigation.goBack()}
+          right={<Sparkles size={24} color={colors.primary} />}
+        />
 
         {/* Quick Select / Presets */}
         <View className="mb-8">
-          <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
-            Quick Select
-          </Text>
+          <SectionLabel>Quick Select</SectionLabel>
           <View className="flex-row flex-wrap gap-3">
             {PRESETS.map(preset => {
               const isSelected = selectedPreset === preset.key
@@ -129,7 +115,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                   onPress={() => setSelectedPreset(isSelected ? null : preset.key)}
                   className="rounded-xl border-2"
                   style={{
-                    paddingHorizontal: 20,
+                    paddingHorizontal: 16,
                     paddingVertical: 14,
                     flexBasis: '47%',
                     backgroundColor: isSelected ? withAlpha(colors.primary, 0.082) : colors.bgSurface,
@@ -156,9 +142,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
 
         {/* Duration */}
         <View className="mb-8">
-          <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
-            Duration
-          </Text>
+          <SectionLabel>Duration</SectionLabel>
           <View className="flex-row flex-wrap gap-2">
             {DURATION_OPTIONS.map(opt => {
               const isSelected = selectedDuration === opt.value
@@ -175,7 +159,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                 >
                   <Text
                     className="text-sm font-medium"
-                    style={{ color: isSelected ? '#fff' : colors.textPrimary }}
+                    style={{ color: isSelected ? colors.textButton : colors.textPrimary }}
                   >
                     {opt.label}
                   </Text>
@@ -188,9 +172,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
         {/* Equipment */}
         {equipmentTypes.length > 0 && (
           <View className="mb-8">
-            <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
-              Equipment
-            </Text>
+            <SectionLabel>Equipment</SectionLabel>
             <View className="flex-row flex-wrap gap-2">
               {equipmentTypes.map((eq: EquipmentTypeResource) => {
                 const isSelected = selectedEquipment.includes(eq.code)
@@ -207,7 +189,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                   >
                     <Text
                       className="text-xs font-medium"
-                      style={{ color: isSelected ? '#fff' : colors.textPrimary }}
+                      style={{ color: isSelected ? colors.textButton : colors.textPrimary }}
                     >
                       {eq.name}
                     </Text>
@@ -220,9 +202,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
 
         {/* Training Style */}
         <View className="mb-10">
-          <Text className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
-            Training Style
-          </Text>
+          <SectionLabel>Training Style</SectionLabel>
           <View className="flex-row flex-wrap gap-2">
             {TRAINING_STYLE_OPTIONS.map(style => {
               const isSelected = selectedStyles.includes(style.code)
@@ -239,7 +219,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
                 >
                   <Text
                     className="text-xs font-medium"
-                    style={{ color: isSelected ? '#fff' : colors.textPrimary }}
+                    style={{ color: isSelected ? colors.textButton : colors.textPrimary }}
                   >
                     {style.label}
                   </Text>
@@ -250,26 +230,14 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
         </View>
 
         {/* Generate Button */}
-        <TouchableOpacity
-          onPress={handleGenerate}
+        <Button
+          label="Generate Workout"
+          variant="primary"
+          icon={<Sparkles size={BUTTON.md.icon} color={generateContentColor} />}
+          loading={generateDraft.isPending}
           disabled={generateDraft.isPending}
-          style={{ borderRadius: 16, overflow: 'hidden', opacity: generateDraft.isPending ? 0.7 : 1 }}
-          activeOpacity={0.85}
-        >
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ paddingVertical: 18, alignItems: 'center', justifyContent: 'center' }}
-          >
-            <View className="flex-row items-center gap-2">
-              <Sparkles size={20} color={colors.textButton} />
-              <Text style={{ color: colors.textButton, fontSize: 17, fontWeight: '700' }}>
-                {generateDraft.isPending ? 'GENERATING...' : 'GENERATE WORKOUT'}
-              </Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
+          onPress={handleGenerate}
+        />
       </ScrollView>
     </SafeAreaView>
   )

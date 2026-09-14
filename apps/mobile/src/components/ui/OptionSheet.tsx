@@ -49,7 +49,7 @@ export function OptionSheet<T extends string | number>({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
         <SafeAreaView edges={['bottom']}>
           <Pressable onPress={() => {}} style={styles.container}>
             <View style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}>
@@ -127,7 +127,7 @@ export function OptionSheet<T extends string | number>({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' },
   container: { paddingHorizontal: 12, paddingBottom: 8 },
   card: { borderRadius: 20, borderWidth: 1, paddingTop: 8, paddingBottom: 8 },
   headerRow: {

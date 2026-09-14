@@ -15,6 +15,10 @@ import { useTheme } from '../../context/ThemeContext'
 import { ExerciseCard } from '../../components/exercises/ExerciseCard'
 import { ExerciseFilters } from '../../components/exercises/ExerciseFilters'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { SCREEN } from '../../constants/layout'
 import { showToast } from '../../lib/toast'
 import { NO_FILTERS, filterExercises, hasActiveFilter, type ExerciseFilterState } from '../../lib/exerciseFilters'
 import type { AppScreenProps } from '../../navigation/types'
@@ -68,23 +72,28 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-      {/* Header */}
-      <View className="flex-row items-center gap-4 px-4 pt-4 pb-3">
-        <Text className="flex-1 text-xl font-bold" style={{ color: colors.textPrimary }}>
-          {isSwap ? 'Swap Exercise' : 'Add Exercise'}
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="p-2 rounded-full"
-          style={{ backgroundColor: colors.bgSurface }}
-          activeOpacity={0.7}
-        >
-          <X size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
+      {/* Header — a picker closes with an X rather than a back arrow */}
+      <View style={{ paddingHorizontal: SCREEN.paddingX }}>
+        <ScreenHeader
+          title={isSwap ? 'Swap Exercise' : 'Add Exercise'}
+          titleLines={1}
+          right={
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              className="p-2 rounded-full"
+              style={{ backgroundColor: colors.bgSurface }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <X size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          }
+        />
       </View>
 
       {/* Search bar */}
-      <View className="px-4 pb-3">
+      <View className="pb-3" style={{ paddingHorizontal: SCREEN.paddingX }}>
         <View
           className="flex-row items-center px-4 py-3 rounded-xl gap-3"
           style={{ backgroundColor: colors.bgSurface }}
@@ -123,29 +132,18 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
 
       {/* Exercise List */}
       {isLoading ? (
-        <View className="px-4 pt-2">
+        <View className="pt-2" style={{ paddingHorizontal: SCREEN.paddingX }}>
           {Array.from({ length: 7 }).map((_, i) => (
             <SkeletonBox key={i} height={72} className="mb-3" />
           ))}
         </View>
       ) : isError ? (
-        <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-base mb-4" style={{ color: colors.textSecondary }}>
-            Failed to load exercises
-          </Text>
-          <TouchableOpacity
-            onPress={() => refetch()}
-            className="px-6 py-3 rounded-xl"
-            style={{ backgroundColor: colors.primary }}
-          >
-            <Text className="font-semibold text-white">Retry</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorState message="Failed to load exercises" onRetry={() => refetch()} />
       ) : (
         <FlatList
           data={filtered}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingTop: 4, paddingBottom: SCREEN.paddingBottom }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
@@ -222,25 +220,22 @@ export function ExercisePickerScreen({ route, navigation }: Props) {
             />
           )}
           ListEmptyComponent={
-            <View className="items-center py-16">
-              <Dumbbell size={40} color={colors.textMuted} />
-              <Text className="text-base mt-4" style={{ color: colors.textSecondary }}>
-                {isNarrowed ? 'No exercises found' : 'No exercises available'}
-              </Text>
-              {isNarrowed && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setSearch('')
-                    setFilters(NO_FILTERS)
-                  }}
-                  className="mt-3"
-                >
-                  <Text className="text-sm" style={{ color: colors.primary }}>
-                    Clear filters
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <EmptyState
+              icon={Dumbbell}
+              title={isNarrowed ? 'No exercises match' : 'The catalog is empty'}
+              description={isNarrowed ? 'Try a different search or clear the filters.' : undefined}
+              action={
+                isNarrowed
+                  ? {
+                      label: 'Clear filters',
+                      onPress: () => {
+                        setSearch('')
+                        setFilters(NO_FILTERS)
+                      },
+                    }
+                  : undefined
+              }
+            />
           }
         />
       )}

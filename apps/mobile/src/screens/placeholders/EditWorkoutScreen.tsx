@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
+import { ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useTemplate, useUpdateTemplate, useDeleteTemplate, withAlpha } from '@fit-nation/shared'
+import { useTemplate, useUpdateTemplate, useDeleteTemplate } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { FormField } from '../../components/ui/FormField'
-import { Button } from '../../components/ui/Button'
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SCREEN } from '../../constants/layout'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { ArrowLeft, Trash2, Settings2 } from 'lucide-react-native'
+import { Trash2, Settings2 } from 'lucide-react-native'
 import { showToast } from '../../lib/toast'
 import type { AppScreenProps } from '../../navigation/types'
 
@@ -25,6 +27,8 @@ type Props = AppScreenProps<'EditWorkout'>
 export function EditWorkoutScreen({ route, navigation }: Props) {
   const { templateId } = route.params
   const { colors } = useTheme()
+  const secondaryColor = useButtonContentColor('secondary')
+  const destructiveColor = useButtonContentColor('destructive')
   const { data: template, isLoading } = useTemplate(templateId)
   const updateTemplate = useUpdateTemplate()
   const deleteTemplate = useDeleteTemplate()
@@ -74,22 +78,10 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
     <SafeAreaView edges={['top', 'bottom']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View className="flex-row items-center gap-4 pt-6 mb-8">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: colors.bgElevated }}
-          >
-            <ArrowLeft size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <Text className="text-3xl font-bold flex-1" style={{ color: colors.primary }} numberOfLines={1}>
-            Edit Workout
-          </Text>
-        </View>
+        <ScreenHeader title="Edit Workout" onBack={() => navigation.goBack()} titleLines={1} />
 
         {isLoading ? (
           <>
@@ -115,35 +107,27 @@ export function EditWorkoutScreen({ route, navigation }: Props) {
             />
 
             <Button
-              label={isSubmitting ? 'Saving...' : 'SAVE CHANGES'}
+              label={isSubmitting ? 'Saving...' : 'Save Changes'}
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
             />
 
-            {/* Manage Exercises Link */}
-            <TouchableOpacity
+            <Button
+              label="Manage Exercises"
+              variant="secondary"
+              icon={<Settings2 size={BUTTON.md.icon} color={secondaryColor} />}
+              style={{ marginTop: 16 }}
               onPress={() => navigation.navigate('ManageExercises', { templateId })}
-              className="flex-row items-center justify-center gap-2 mt-4 py-4 rounded-2xl"
-              style={{ backgroundColor: withAlpha(colors.primary, 0.082) }}
-            >
-              <Settings2 size={18} color={colors.primary} />
-              <Text className="font-semibold" style={{ color: colors.primary }}>
-                Manage Exercises
-              </Text>
-            </TouchableOpacity>
+            />
 
-            {/* Delete Workout */}
-            <TouchableOpacity
+            <Button
+              label="Delete Workout"
+              variant="destructive"
+              icon={<Trash2 size={BUTTON.md.icon} color={destructiveColor} />}
+              style={{ marginTop: 12 }}
               onPress={() => setDeleteVisible(true)}
-              className="flex-row items-center justify-center gap-2 mt-3 py-4 rounded-2xl"
-              style={{ backgroundColor: withAlpha(colors.error, 0.082) }}
-            >
-              <Trash2 size={18} color={colors.error} />
-              <Text className="font-semibold" style={{ color: colors.error }}>
-                Delete Workout
-              </Text>
-            </TouchableOpacity>
+            />
           </>
         )}
       </ScrollView>

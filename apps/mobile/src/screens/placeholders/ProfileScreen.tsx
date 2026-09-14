@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   Switch,
   Linking,
 } from 'react-native'
@@ -49,6 +48,9 @@ import {
 } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN } from '../../constants/layout'
+import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { PageTitle } from '../../components/ui/ScreenHeader'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -142,6 +144,7 @@ function PermissionHint({ text, action, onPress }: { text: string; action: strin
 
 export function ProfileScreen() {
   const { colors } = useTheme()
+  const destructiveButtonContent = useButtonContentColor('destructive')
   const { logout, user } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateProfile = useUpdateProfile()
@@ -289,7 +292,7 @@ export function ProfileScreen() {
   if (isLoading) {
     return (
       <SafeAreaView edges={['top']} className="flex-1" style={{ backgroundColor: colors.bgBase }}>
-        <View className="px-4 pt-8">
+        <View className="pt-8" style={{ paddingHorizontal: SCREEN.paddingX }}>
           <SkeletonBox height={40} className="mb-4" width="50%" />
           <SkeletonBox height={52} className="mb-4" />
           <SkeletonBox height={52} className="mb-4" />
@@ -317,16 +320,11 @@ export function ProfileScreen() {
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-          <View className="pt-8 mb-8">
-            <Text className="text-3xl font-bold" style={{ color: colors.primary }}>
-              Profile
-            </Text>
-          </View>
+          <PageTitle title="Profile" />
 
           {/* Account Information */}
           <View className="mb-8">
@@ -431,7 +429,7 @@ export function ProfileScreen() {
                         >
                           <Text
                             className="text-xs font-semibold capitalize"
-                            style={{ color: value === g ? '#fff' : colors.textSecondary }}
+                            style={{ color: value === g ? colors.textButton : colors.textSecondary }}
                           >
                             {g === 'other' ? '—' : g.charAt(0).toUpperCase() + g.slice(1)}
                           </Text>
@@ -467,7 +465,7 @@ export function ProfileScreen() {
                     >
                       <Text
                         className="text-xs font-semibold"
-                        style={{ color: selected ? '#fff' : colors.textSecondary }}
+                        style={{ color: selected ? colors.textButton : colors.textSecondary }}
                       >
                         {option.label} ({option.hint})
                       </Text>
@@ -684,7 +682,7 @@ export function ProfileScreen() {
                       >
                         <Text
                           className="text-base font-semibold"
-                          style={{ color: value === day ? '#fff' : colors.textSecondary }}
+                          style={{ color: value === day ? colors.textButton : colors.textSecondary }}
                         >
                           {day}
                         </Text>
@@ -745,26 +743,13 @@ export function ProfileScreen() {
           </View>
 
           {/* Save Changes */}
-          <TouchableOpacity
-            onPress={handleSubmit(onSubmit)}
+          <Button
+            label="Save Changes"
+            loading={isSubmitting}
             disabled={isSubmitting || !isDirty}
-            className="py-4 rounded-2xl items-center mb-4"
-            style={{
-              backgroundColor: isDirty ? colors.primary : colors.bgElevated,
-              opacity: isSubmitting ? 0.7 : 1,
-            }}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color={colors.textButton} size="small" />
-            ) : (
-              <Text
-                className="font-bold text-lg"
-                style={{ color: isDirty ? '#fff' : colors.textMuted }}
-              >
-                SAVE CHANGES
-              </Text>
-            )}
-          </TouchableOpacity>
+            onPress={handleSubmit(onSubmit)}
+            style={{ marginBottom: 16 }}
+          />
 
           {/* Notifications */}
           <View className="mb-8">
@@ -790,7 +775,7 @@ export function ProfileScreen() {
                   onValueChange={handlePushToggle}
                   disabled={updateNotificationSettings.isPending}
                   trackColor={{ true: colors.primary, false: colors.segmentTrack }}
-                  thumbColor="#FFFFFF"
+                  thumbColor={colors.textButton}
                 />
               </View>
 
@@ -814,36 +799,23 @@ export function ProfileScreen() {
           </View>
 
           {/* Log Out */}
-          <TouchableOpacity
+          <Button
+            label="Log Out"
+            variant="destructive"
+            icon={<LogOut size={BUTTON.md.icon} color={destructiveButtonContent} />}
             onPress={handleLogout}
-            className="flex-row items-center justify-center gap-2 py-4 rounded-2xl mb-4"
-            style={{
-              backgroundColor: 'transparent',
-              borderWidth: 2,
-              borderColor: withAlpha(colors.error, 0.251),
-            }}
-          >
-            <LogOut size={20} color={colors.error} />
-            <Text className="font-bold text-lg" style={{ color: colors.error }}>
-              LOG OUT
-            </Text>
-          </TouchableOpacity>
+            style={{ marginBottom: 16 }}
+          />
 
           {/* Delete Account */}
-          <TouchableOpacity
+          <Button
+            label="Delete Account"
+            variant="destructive"
+            size="sm"
+            icon={<Trash2 size={BUTTON.sm.icon} color={destructiveButtonContent} />}
             onPress={() => setDeleteVisible(true)}
-            className="flex-row items-center justify-center gap-2 py-3 rounded-2xl mb-8"
-            style={{
-              backgroundColor: 'transparent',
-              borderWidth: 1,
-              borderColor: withAlpha(colors.error, 0.157),
-            }}
-          >
-            <Trash2 size={16} color={withAlpha(colors.error, 0.6)} />
-            <Text className="font-semibold text-sm" style={{ color: withAlpha(colors.error, 0.6) }}>
-              DELETE ACCOUNT
-            </Text>
-          </TouchableOpacity>
+            style={{ marginBottom: 32 }}
+          />
 
           {/* App version */}
           <Text className="text-xs text-center mb-8" style={{ color: colors.textMuted }}>

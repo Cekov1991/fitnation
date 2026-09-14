@@ -66,7 +66,7 @@ export function DeleteAccountDialog({
       statusBarTranslucent
     >
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-      <Pressable style={styles.backdrop} onPress={handleClose}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={handleClose}>
         <Pressable
           onPress={() => {}}
           style={[
@@ -162,7 +162,7 @@ export function DeleteAccountDialog({
               {isLoading ? (
                 <ActivityIndicator size="small" color={colors.textButton} />
               ) : (
-                <Text style={styles.deleteLabel}>Delete My Account</Text>
+                <Text style={[styles.deleteLabel, { color: colors.textButton }]}>Delete My Account</Text>
               )}
             </TouchableOpacity>
 
@@ -187,7 +187,6 @@ export function DeleteAccountDialog({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -264,7 +263,6 @@ const styles = StyleSheet.create({
   deleteLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#fff',
   },
   cancelButton: {
     paddingVertical: 10,

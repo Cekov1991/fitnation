@@ -14,19 +14,23 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { LineChart } from 'react-native-gifted-charts'
-import { ArrowLeft, Maximize2, X } from 'lucide-react-native'
+import { Maximize2, X } from 'lucide-react-native'
 import * as ScreenOrientation from 'expo-screen-orientation'
 import { useExercises, useExerciseHistory, useWeightUnit, allowsWeightLogging, withAlpha, formatDate, formatSignedPercent } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
-import { GradientText } from '../../components/ui/GradientText'
+import { ScreenHeader } from '../../components/ui/ScreenHeader'
+import { SectionLabel } from '../../components/ui/SectionLabel'
+import { EmptyState } from '../../components/ui/EmptyState'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { SpeechButton } from '../../components/ui/SpeechButton'
+import { SCREEN } from '../../constants/layout'
 import type { AppScreenProps } from '../../navigation/types'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 // Helper: "Jan 15" from ISO date string
 function ExerciseVideoPlayer({ uri }: { uri: string }) {
+  const { colors } = useTheme()
   const player = useVideoPlayer(uri, p => {
     p.loop = true
     p.muted = true
@@ -81,10 +85,10 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
           right: 10,
           padding: 8,
           borderRadius: 8,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: withAlpha(colors.mediaBackdrop, 0.5),
         }}
       >
-        <Maximize2 size={18} color="#fff" />
+        <Maximize2 size={18} color={colors.textOnImage} />
       </TouchableOpacity>
 
       <Modal
@@ -94,7 +98,7 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
         onRequestClose={closeFullscreen}
         supportedOrientations={['landscape', 'landscape-left', 'landscape-right']}
       >
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <View style={{ flex: 1, backgroundColor: colors.mediaBackdrop }}>
           <VideoView
             player={player}
             style={{ flex: 1 }}
@@ -110,10 +114,10 @@ function ExerciseVideoPlayer({ uri }: { uri: string }) {
               right: 16,
               padding: 8,
               borderRadius: 8,
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: withAlpha(colors.mediaBackdrop, 0.5),
             }}
           >
-            <X size={20} color="#fff" />
+            <X size={20} color={colors.textOnImage} />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -173,48 +177,28 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
     [exercise]
   )
 
-  const instructions = exercise?.description || 'No instructions available yet.'
+  const instructions = exercise?.description || 'Instructions for this exercise are coming soon.'
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgBase }}>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
 
-        {/* Header — ArrowLeft + gradient title */}
+        {/* Header */}
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-            paddingVertical: 16,
-            gap: 12,
+            paddingHorizontal: SCREEN.paddingX,
             borderBottomWidth: 1,
             borderBottomColor: withAlpha(colors.textMuted, 0.125),
           }}
         >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{
-              padding: 8,
-              borderRadius: 999,
-              backgroundColor: withAlpha(colors.textPrimary, 0.051),
-            }}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={24} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <GradientText
-            style={{ fontSize: 22, fontWeight: '700', flex: 1 }}
-            numberOfLines={1}
-          >
-            {exercise?.name ?? ''}
-          </GradientText>
+          <ScreenHeader title={exercise?.name ?? ''} titleLines={1} onBack={() => navigation.goBack()} />
         </View>
 
         {/* Tabs — pill style matching web segmentTrack */}
         <View
           style={{
             flexDirection: 'row',
-            marginHorizontal: 24,
+            marginHorizontal: SCREEN.paddingX,
             marginTop: 16,
             marginBottom: 16,
             borderRadius: 999,
@@ -229,7 +213,6 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
               style={{
                 flex: 1,
                 paddingVertical: 12,
-                paddingHorizontal: 24,
                 borderRadius: 999,
                 alignItems: 'center',
                 backgroundColor: activeTab === tab ? colors.segmentActive : 'transparent',
@@ -268,9 +251,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
               contentFit="cover"
             />
           ) : (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: colors.textMuted, fontSize: 14 }}>No media available</Text>
-            </View>
+            <EmptyState title="No media" description="This exercise has no video or picture yet." />
           )}
         </View>
 
@@ -279,7 +260,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 24, gap: 16, paddingBottom: 40 }}
+            contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, gap: 16, paddingBottom: 40 }}
             style={{ flex: 1 }}
           >
             {/* Muscles Worked Card */}
@@ -329,16 +310,9 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                             borderColor: withAlpha(colors.textPrimary, 0.188),
                           }}
                         >
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              fontWeight: '600',
-                              textTransform: 'uppercase',
-                              color: colors.textPrimary,
-                            }}
-                          >
+                          <SectionLabel tone="muted" style={{ marginBottom: 0 }}>
                             {muscle}
-                          </Text>
+                          </SectionLabel>
                         </View>
                       ))
                     ) : (
@@ -373,16 +347,9 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                             borderColor: withAlpha(colors.textPrimary, 0.188),
                           }}
                         >
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              fontWeight: '600',
-                              textTransform: 'uppercase',
-                              color: colors.textPrimary,
-                            }}
-                          >
+                          <SectionLabel tone="muted" style={{ marginBottom: 0 }}>
                             {muscle}
-                          </Text>
+                          </SectionLabel>
                         </View>
                       ))
                     ) : (
@@ -446,7 +413,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
         ) : (
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+            contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
             <View
@@ -474,11 +441,11 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                   <SkeletonBox height={80} />
                 </>
               ) : !historyData || historyData.performance_data.length === 0 ? (
-                <Text
-                  style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center', paddingVertical: 32 }}
-                >
-                  No history available yet.
-                </Text>
+                <EmptyState
+                  variant="card"
+                  title="Nothing logged yet"
+                  description="Complete a set of this exercise to see your history here."
+                />
               ) : (
                 <>
                   {/* Volume / Weight toggle — only for weighted exercises */}
@@ -509,7 +476,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                             style={{
                               fontSize: 12,
                               fontWeight: '600',
-                              color: chartMode === mode ? '#fff' : colors.textSecondary,
+                              color: chartMode === mode ? colors.textButton : colors.textSecondary,
                             }}
                           >
                             {mode === 'weight' ? `Weight (${weightUnit})` : 'Volume'}
@@ -576,7 +543,7 @@ export function WorkoutSessionExerciseDetailScreen({ route, navigation }: Props)
                     <View style={{ marginBottom: 16 }}>
                       <LineChart
                         data={chartData}
-                        width={SCREEN_WIDTH - 96}
+                        width={SCREEN_WIDTH - (SCREEN.paddingX + 24) * 2}
                         height={180}
                         color={colors.primary}
                         thickness={2}

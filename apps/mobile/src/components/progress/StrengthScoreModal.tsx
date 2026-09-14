@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { TrendingUp } from 'lucide-react-native'
 import { useFitnessMetrics, withAlpha, signPrefix } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import type { AppColors } from '../../constants/theme'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
 interface StrengthScoreModalProps {
@@ -16,26 +17,20 @@ interface LevelColors {
   text: string
 }
 
-function getLevelColors(level: string): LevelColors {
-  switch (level) {
-    case 'ADVANCED':
-      return { bg: 'rgba(34,197,94,0.2)', border: 'rgba(34,197,94,0.3)', text: '#4ade80' }
-    case 'BEGINNER':
-      return { bg: 'rgba(234,179,8,0.2)', border: 'rgba(234,179,8,0.3)', text: '#facc15' }
-    case 'INTERMEDIATE':
-    default:
-      return { bg: 'rgba(59,130,246,0.2)', border: 'rgba(59,130,246,0.3)', text: '#60a5fa' }
-  }
+/** Status tint for a strength level: advanced → success, beginner → warning, intermediate → info. */
+function getLevelColors(level: string, colors: AppColors): LevelColors {
+  const tone = level === 'ADVANCED' ? colors.success : level === 'BEGINNER' ? colors.warning : colors.info
+  return { bg: withAlpha(tone, 0.2), border: withAlpha(tone, 0.3), text: tone }
 }
 
-function getMuscleGroupColor(name: string, primary: string, secondary: string): string {
+function getMuscleGroupColor(name: string, colors: AppColors): string {
   const n = name.toLowerCase()
-  if (n.includes('chest')) return primary
-  if (n.includes('back')) return secondary
-  if (n.includes('leg') || n.includes('quad') || n.includes('hamstring') || n.includes('glute') || n.includes('calve')) return '#10b981'
-  if (n.includes('shoulder') || n.includes('delt')) return '#f97316'
-  if (n.includes('arm') || n.includes('bicep') || n.includes('tricep') || n.includes('forearm')) return '#06b6d4'
-  return primary
+  if (n.includes('chest')) return colors.primary
+  if (n.includes('back')) return colors.secondary
+  if (n.includes('leg') || n.includes('quad') || n.includes('hamstring') || n.includes('glute') || n.includes('calve')) return colors.success
+  if (n.includes('shoulder') || n.includes('delt')) return colors.secondary
+  if (n.includes('arm') || n.includes('bicep') || n.includes('tricep') || n.includes('forearm')) return colors.primary
+  return colors.primary
 }
 
 export function StrengthScoreModal({ visible, onClose }: StrengthScoreModalProps) {
@@ -55,7 +50,7 @@ export function StrengthScoreModal({ visible, onClose }: StrengthScoreModalProps
   const rankingDisplay = ranking ?? (percentile !== undefined ? `Top ${100 - Math.round(percentile)}%` : null)
 
   const isPositive = recentGain >= 0
-  const levelColors = getLevelColors(level)
+  const levelColors = getLevelColors(level, colors)
 
   const sortedMuscleGroups = Object.entries(muscleGroups)
     .map(([name, score]) => ({ name, score: score as number }))
@@ -104,7 +99,7 @@ export function StrengthScoreModal({ visible, onClose }: StrengthScoreModalProps
           </Text>
           <Text
             className="text-2xl font-bold"
-            style={{ color: isPositive ? '#4ade80' : '#f87171' }}
+            style={{ color: isPositive ? colors.success : colors.error }}
           >
             {signPrefix(recentGain)}
             {Math.round(recentGain)}
@@ -146,7 +141,7 @@ export function StrengthScoreModal({ visible, onClose }: StrengthScoreModalProps
             const displayName =
               group.name.charAt(0).toUpperCase() + group.name.slice(1).replace(/_/g, ' ')
             const percentage = maxScore > 0 ? (group.score / maxScore) * 100 : 0
-            const color = getMuscleGroupColor(group.name, colors.primary, colors.secondary)
+            const color = getMuscleGroupColor(group.name, colors)
             return (
               <View key={group.name} className="mb-3">
                 <View className="flex-row items-center justify-between mb-1">

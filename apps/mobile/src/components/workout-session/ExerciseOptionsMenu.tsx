@@ -33,7 +33,7 @@ export function ExerciseOptionsMenu({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
         <SafeAreaView edges={['bottom']}>
           <Pressable onPress={() => {}} style={styles.container}>
             <View style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}>
@@ -156,7 +156,6 @@ function MenuButton({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
   },
   container: {

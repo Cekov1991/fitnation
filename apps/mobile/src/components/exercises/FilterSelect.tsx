@@ -54,7 +54,7 @@ export function FilterSelect({ label, options, value, onChange, allLabel = 'All'
             style={[styles.label, { color: active ? withAlpha(colors.textButton, 0.8) : colors.textMuted }]}
             numberOfLines={1}
           >
-            {label}
+            {label.toUpperCase()}
           </Text>
           <Text
             style={[styles.value, { color: active ? colors.textButton : colors.textPrimary }]}
@@ -90,6 +90,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   textCol: { flex: 1, minWidth: 0 },
-  label: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 },
+  // Set in caps via `label.toUpperCase()` rather than a transform. Not a SectionLabel:
+  // it inverts to textButton on the brand fill when active, a tone SectionLabel lacks.
+  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 2 },
   value: { fontSize: 16, fontWeight: '600' },
 })

@@ -9,6 +9,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react-native'
 import { loginSchema, type LoginFormData, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { SCREEN, SECTION_GAP } from '../../constants/layout'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
@@ -48,7 +49,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
         <ScrollView
           ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ padding: 24, justifyContent: 'center', flexGrow: 1, paddingBottom: 80 }}
+          contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingVertical: SECTION_GAP, justifyContent: 'center', flexGrow: 1, paddingBottom: 80 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -151,7 +152,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
             </View>
 
             <Button
-              label="Sign In"
+              label="Sign in"
               loading={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             />
