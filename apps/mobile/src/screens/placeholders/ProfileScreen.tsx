@@ -31,6 +31,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
 import { ProfileSectionRow } from '../../components/profile/ProfileSectionRow'
 import { NotificationsCard } from '../../components/profile/NotificationsCard'
+import { SubscriptionCard } from '../../components/profile/SubscriptionCard'
 import { PROFILE_SECTIONS } from '../../components/profile'
 import type { ProfileSectionKey } from '../../components/profile'
 import { showToast } from '../../lib/toast'
@@ -179,6 +180,9 @@ export function ProfileScreen() {
             />
           ))}
         </Card>
+
+        <SectionLabel style={{ marginTop: 8 }}>Subscription</SectionLabel>
+        <SubscriptionCard onSeePlans={() => navigation.navigate('Paywall')} />
 
         <SectionLabel style={{ marginTop: 8 }}>Notifications</SectionLabel>
         <NotificationsCard

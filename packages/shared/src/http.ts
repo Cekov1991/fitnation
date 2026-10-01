@@ -1,5 +1,5 @@
 import { getConfig } from './config';
-import { getAuthStorage, AUTH_TOKEN_KEY, notifyUnauthorized } from './auth';
+import { getAuthStorage, AUTH_TOKEN_KEY, notifyUnauthorized, notifySubscriptionRequired } from './auth';
 
 /**
  * The typed HTTP seam (spec 0025).
@@ -20,6 +20,8 @@ export type ApiFailureKind =
   | 'validation'
   /** 401: the token was rejected; `unauthorizedHandled` says whether it was already cleared. */
   | 'unauthorized'
+  /** 403 with `code: subscription_required`: the subscription gate; the app has been told to show the paywall. */
+  | 'subscription_required'
   /** Any other non-2xx, with its status. */
   | 'http'
   /** The request never got an HTTP answer — offline, DNS, TLS, aborted. */
@@ -108,7 +110,7 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
   }
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as { message?: string; errors?: unknown };
+    const body = (await response.json().catch(() => ({}))) as { message?: string; errors?: unknown; code?: string };
     const message = body.message || `Request failed (${response.status})`;
     if (response.status === 422) {
       throw new ApiFailure('validation', message, { status: 422, errors: body.errors });
@@ -127,6 +129,13 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
         handled = true;
       }
       throw new ApiFailure('unauthorized', message, { status: 401, unauthorizedHandled: handled });
+    }
+    if (response.status === 403 && body.code === 'subscription_required') {
+      // Entitlements changed server-side (expiry, refund) while the client
+      // still granted access. Tell the app so it refreshes and shows the
+      // paywall instead of a generic error.
+      await notifySubscriptionRequired();
+      throw new ApiFailure('subscription_required', message, { status: 403 });
     }
     throw new ApiFailure('http', message, { status: response.status, errors: body.errors });
   }

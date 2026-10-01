@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
-import * as SecureStore from 'expo-secure-store'
 import { useQueryClient } from '@tanstack/react-query'
-import { initAuth, setOnUnauthorized, AUTH_TOKEN_KEY, authApi } from '@fit-nation/shared'
+import * as SecureStore from 'expo-secure-store'
+import { initAuth, setOnUnauthorized, setOnSubscriptionRequired, AUTH_TOKEN_KEY, authApi, queryKeys } from '@fit-nation/shared'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
+import { identifyRevenueCatUser, logOutRevenueCat } from '../lib/revenuecat'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -43,7 +44,7 @@ const AuthContext = createContext<AuthContextValue>({
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserResource | null>(null)
+  const [user, setUserState] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
@@ -51,6 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Device heartbeat: registers this phone for push once the user is set,
   // onboarded and has granted permission. See useDeviceRegistration.
   useDeviceRegistration(user)
+
+  // Keep AuthContext and the TanStack user query in lockstep so that
+  // useEntitlements (which reads from the query cache) always sees the latest
+  // entitlements/subscription after login, refresh, or foreground sync.
+  const setUser = useCallback((nextUser: UserResource | null) => {
+    setUserState(nextUser)
+    if (nextUser) {
+      queryClient.setQueryData(queryKeys.user.current(), nextUser)
+    } else {
+      queryClient.removeQueries({ queryKey: queryKeys.user.current() })
+    }
+  }, [queryClient])
 
   // Server rejected the token (deleted user, revoked session, expired token).
   // Clear cached state and drop back to the auth navigator.
@@ -61,6 +74,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearLastDeviceRegistration()
     })
     return () => setOnUnauthorized(null)
+  }, [queryClient, setUser])
+
+  // A gated endpoint returned 403 subscription_required — entitlements changed
+  // server-side while the cached user still granted access. Refresh both
+  // entitlement sources; EntitlementWatcher reroutes to the paywall once the
+  // fresh user lands. GET /api/user is pre-paywall, so this cannot loop.
+  useEffect(() => {
+    setOnSubscriptionRequired(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.current() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.revenueCat.customerInfo() })
+    })
+    return () => setOnSubscriptionRequired(null)
   }, [queryClient])
 
   useEffect(() => {
@@ -70,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (token) {
           const { user: currentUser } = await authApi.getCurrentUser()
           setUser(currentUser)
+          await identifyRevenueCatUser(String(currentUser.id))
         }
       } catch {
         await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
@@ -108,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // like onboarding_completed_at that the navigation logic depends on.
     const { user: fullUser } = await authApi.getCurrentUser()
     setUser(fullUser)
+    await identifyRevenueCatUser(String(fullUser.id))
   }
 
   async function loginWithSocial(provider: 'google' | 'apple', token: string, name?: string) {
@@ -115,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
     const { user: fullUser } = await authApi.getCurrentUser()
     setUser(fullUser)
+    await identifyRevenueCatUser(String(fullUser.id))
   }
 
   async function logout() {
@@ -132,6 +160,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Forget the heartbeat record so a different user on this phone registers
     // immediately instead of waiting out the throttle.
     await clearLastDeviceRegistration()
+    // Reset RevenueCat to an anonymous user so the next account on this device
+    // doesn't inherit this user's purchase identity. Guarded like the calls
+    // below: local logout must always complete.
+    try { await logOutRevenueCat() } catch {}
     // Sign out from Google so the account picker appears on next social login
     try { await GoogleSignin.signOut() } catch {}
     queryClient.clear()

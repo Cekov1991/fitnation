@@ -53,6 +53,19 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return <Redirect to="/" />;
   }
 
+  // Gate on subscription/entitlement
+  const hasAppAccess = user.entitlements.includes('app_access');
+  if (!hasAppAccess && location.pathname !== '/subscribe') {
+    return <Redirect to="/subscribe" />;
+  }
+  if (hasAppAccess && location.pathname === '/subscribe') {
+    return <Redirect to="/" />;
+  }
+  // Unsubscribed user is on /subscribe — render it and skip further checks
+  if (!hasAppAccess) {
+    return <>{children}</>;
+  }
+
   // If there is an active (confirmed, not yet completed) session and the user is not
   // already viewing that session, redirect them to it.
   const activeSession = todayWorkout?.session;

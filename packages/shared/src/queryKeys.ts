@@ -39,6 +39,8 @@ const routinesRoot = ['routines'] as const;
 const sessionsRoot = ['sessions'] as const;
 const exercisesRoot = ['exercises'] as const;
 const partnersRoot = ['partners'] as const;
+const userRoot = ['user'] as const;
+const revenueCatRoot = ['revenuecat'] as const;
 
 export const queryKeys = {
   profile: {
@@ -87,6 +89,14 @@ export const queryKeys = {
       [...exercisesRoot, exerciseId, 'history', params] as const,
     /** Every cached history for the exercise — the prefix of `history()`. */
     histories: (exerciseId: number) => [...exercisesRoot, exerciseId, 'history'] as const,
+  },
+  /** The signed-in user as `GET /api/user` returns them: entitlements, subscription, flags. */
+  user: {
+    current: () => userRoot,
+  },
+  /** RevenueCat's locally cached customer info — the offline fallback for entitlements. */
+  revenueCat: {
+    customerInfo: () => [...revenueCatRoot, 'customer-info'] as const,
   },
   partners: {
     all: () => partnersRoot,

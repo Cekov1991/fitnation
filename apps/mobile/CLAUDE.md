@@ -40,6 +40,7 @@ spellings of the same caption.
 | Nothing to show — full page, or in the flow of a list | `ui/EmptyState` (`variant="page" \| "card"`) |
 | A profile question — goal, about you (units/age/height/weight/gender), training, account | `profile/GoalSection`, `AboutSection`, `TrainingSection`, `AccountSection`; metadata + validation in `profile/profileSections.ts` |
 | A settings-style row on the Profile hub (icon tile, title, one-line summary, chevron) | `profile/ProfileSectionRow` |
+| The Profile hub's subscription status (plan or gym, renewal date, Manage Subscription / See Plans) | `profile/SubscriptionCard` |
 | An exercise with its thumbnail, name, second line, trailing control | `exercises/ExerciseRow` |
 | A row from an `ExerciseResource` in a FlatList | `exercises/ExerciseCard` (thin `ExerciseRow` wrapper) |
 | A surface block in a stack | `ui/Card` |

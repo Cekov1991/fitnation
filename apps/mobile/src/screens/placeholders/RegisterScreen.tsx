@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { Card } from '../../components/ui/Card'
 import { SCREEN, SECTION_GAP } from '../../constants/layout'
+import { identifyRevenueCatUser } from '../../lib/revenuecat'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AuthLogoHeader } from '../../components/ui/AuthLogoHeader'
@@ -38,6 +39,9 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
       const response = await authApi.register(data)
       await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.token)
       setUser(response.user)
+      // Attach the RevenueCat identity now — without this, a purchase made
+      // before the next cold start would land on an anonymous app_user_id.
+      await identifyRevenueCatUser(String(response.user.id))
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Registration failed'
       setError(msg)
