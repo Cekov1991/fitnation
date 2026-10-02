@@ -75,7 +75,9 @@ export function formatRestCountdown(totalSeconds: number): string {
   return seconds < 60 ? `${seconds}s` : formatClock(seconds);
 }
 
-export type DateStyle = 'short' | 'long' | 'weekday';
+export type DateStyle = 'short' | 'long' | 'weekday' | 'weekdayShort';
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /**
  * Parse an ISO string the way the screens mean it. A date-only value like
@@ -92,11 +94,15 @@ function parseDisplayDate(iso: string): Date {
  * - `short`   `Aug 27`        — chart axes, session lists
  * - `long`    `Aug 27, 2026`  — a session's detail header
  * - `weekday` `Monday, Aug 27` — a day heading, in the device locale
+ * - `weekdayShort` `Mon, Aug 27` — a date in a card corner
  */
 export function formatDate(iso: string, style: DateStyle = 'short'): string {
   const date = parseDisplayDate(iso);
   if (style === 'weekday') {
     return date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+  }
+  if (style === 'weekdayShort') {
+    return `${WEEKDAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
   }
   const monthDay = `${MONTHS[date.getMonth()]} ${date.getDate()}`;
   return style === 'long' ? `${monthDay}, ${date.getFullYear()}` : monthDay;

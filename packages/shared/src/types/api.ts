@@ -383,10 +383,18 @@ export interface SetLogResource {
   created_at: string;
   updated_at: string;
 }
+/** The user's best set ever on an exercise: the highest estimated one-rep max, reps deciding a tie. */
+export interface BestSetResource {
+  weight: number; // formatted for the user's unit_system; 0 for bodyweight
+  reps: number;
+  performed_at: string;
+}
 export interface SessionExerciseDetail {
   session_exercise: WorkoutSessionExerciseResource;
   logged_sets: SetLogResource[];
   previous_sets: SetLogResource[];
+  /** Before this session; null without completed history. */
+  best_set: BestSetResource | null;
   is_completed: boolean;
 }
 export interface SessionProgress {

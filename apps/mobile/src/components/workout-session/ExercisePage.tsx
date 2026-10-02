@@ -27,6 +27,8 @@ import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
 import { progressionCopy } from './progressionCopy'
+import { LastSessionCard } from './LastSessionCard'
+import { BestSetCard } from './BestSetCard'
 import { SetOptionsMenu } from './SetOptionsMenu'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
@@ -483,89 +485,28 @@ export function ExercisePage({
           </TouchableOpacity>
         )}
 
+        {/* The best set ever on this exercise, above last time's sets so a weaker day never hides it. */}
+        {exerciseDetail.best_set && (
+          <View style={{ marginTop: 10 }}>
+            <BestSetCard best={exerciseDetail.best_set} weighted={allowWeightLogging} weightUnit={weightUnit} />
+          </View>
+        )}
+
         {/* Previous session (at bottom for reference) */}
-        {previous_sets.length > 0 && (() => {
-          const totalVolume = previous_sets.reduce((sum, s) => sum + (s.weight ?? 0) * s.reps, 0)
-          return (
-            <View
-              style={{
-                marginTop: 10,
-                borderRadius: 14,
-                backgroundColor: colors.bgSurface,
-                borderWidth: 1,
-                borderColor: colors.borderSubtle,
-                overflow: 'hidden',
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  letterSpacing: 1,
-                  color: colors.textSecondary,
-                  paddingHorizontal: 14,
-                  paddingTop: 12,
-                  paddingBottom: 10,
-                }}
-              >
-                LAST SESSION
-              </Text>
-              {previous_sets.map((prev, i) => {
-                const setVolume = (prev.weight ?? 0) * prev.reps
-                return (
-                  <View
-                    key={i}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 14,
-                      paddingVertical: 10,
-                      borderTopWidth: 1,
-                      borderTopColor: colors.borderSubtle,
-                    }}
-                  >
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary, width: 50 }}>
-                      Set {prev.set_number}
-                    </Text>
-                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      {allowWeightLogging && (
-                        <>
-                          <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.weight == null ? '' : formatWeight(prev.weight)}</Text>
-                          <Text style={{ fontSize: 14, color: colors.textMuted }}>{weightUnit}</Text>
-                          <Text style={{ fontSize: 14, color: colors.textMuted, marginHorizontal: 2 }}>×</Text>
-                        </>
-                      )}
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>{prev.reps}</Text>
-                      <Text style={{ fontSize: 14, color: colors.textMuted }}>reps</Text>
-                    </View>
-                    {allowWeightLogging && (
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted }}>{formatWeight(setVolume)} {weightUnit}</Text>
-                        <Text style={{ fontSize: 10, color: colors.textMuted }}>volume</Text>
-                      </View>
-                    )}
-                  </View>
-                )
-              })}
-              {allowWeightLogging && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    borderTopWidth: 1,
-                    borderTopColor: colors.borderSubtle,
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary }}>Volume</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: colors.primary }}>{formatWeight(totalVolume)} {weightUnit}</Text>
-                </View>
-              )}
-            </View>
-          )
-        })()}
+        {previous_sets.length > 0 && (
+          <View style={{ marginTop: 10 }}>
+            <LastSessionCard
+              sets={previous_sets}
+              weighted={allowWeightLogging}
+              weightUnit={weightUnit}
+              minReps={minReps}
+              maxReps={maxReps}
+              progressionMode={progressionMode}
+              totalRepsTarget={session_exercise.total_reps_target}
+            />
+          </View>
+        )}
+
       </View>
 
       <SetOptionsMenu

@@ -36,6 +36,7 @@ function detail(
     },
     logged_sets: logged,
     previous_sets: previous,
+    best_set: null,
     is_completed: true,
   };
 }
