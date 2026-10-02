@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Purchases, { type PurchasesPackage, INTRO_ELIGIBILITY_STATUS } from 'react-native-purchases'
+import Purchases, { type PurchasesPackage, INTRO_ELIGIBILITY_STATUS, PURCHASES_ERROR_CODE } from 'react-native-purchases'
 import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Zap } from 'lucide-react-native'
 import { privacyPolicy, termsOfService } from '@fit-nation/legal'
@@ -105,8 +105,13 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
         await enterApp()
       }
     } catch (e: unknown) {
-      const err = e as { userCancelled?: boolean; message?: string }
-      if (!err.userCancelled) {
+      const err = e as { code?: PURCHASES_ERROR_CODE; userCancelled?: boolean; message?: string }
+      if (err.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
+        // The store account already holds this subscription (Play: "already
+        // subscribed"), so the way in is Restore, which also transfers it to the
+        // signed-in user. The store's own message would leave them stuck here.
+        await handleRestore()
+      } else if (!err.userCancelled) {
         showToast(err.message ?? 'Purchase failed. Please try again.', 'error')
       }
     } finally {
