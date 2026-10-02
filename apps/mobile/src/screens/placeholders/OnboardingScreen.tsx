@@ -17,7 +17,9 @@ import {
   ONBOARDING_SECTIONS,
   PROFILE_SECTIONS,
   isSectionComplete,
+  validateSection,
 } from '../../components/profile'
+import type { SectionErrors } from '../../components/profile'
 import { SCREEN } from '../../constants/layout'
 import { NotificationPermissionSheet } from '../../components/ui/NotificationPermissionSheet'
 import { isOnline } from '../../lib/connectivity'
@@ -104,9 +106,32 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBuilding])
 
-  function next() { dispatch({ type: 'NEXT' }) }
-  function back() { dispatch({ type: 'BACK' }) }
-  function set(payload: Partial<UpdateProfileInput>) { dispatch({ type: 'SET', payload }) }
+  // Range errors for the current question, shown under the field. Checked when
+  // the person taps Continue, in the unit they are typing in — the same rule the
+  // profile pages apply on Save, so a value onboarding accepts stays editable.
+  const [errors, setErrors] = useState<SectionErrors>({})
+
+  function next() {
+    if (section) {
+      const nextErrors = validateSection(section, state, state.unit_system ?? 'metric')
+      setErrors(nextErrors)
+      if (Object.keys(nextErrors).length > 0) return
+    }
+    dispatch({ type: 'NEXT' })
+  }
+  function back() {
+    setErrors({})
+    dispatch({ type: 'BACK' })
+  }
+  function set(payload: Partial<UpdateProfileInput>) {
+    dispatch({ type: 'SET', payload })
+    // A field being retyped drops its error until the next Continue.
+    setErrors((prev) => {
+      const next = { ...prev }
+      for (const key of Object.keys(payload) as Array<keyof UpdateProfileInput>) delete next[key]
+      return next
+    })
+  }
 
   function canProceed() {
     return section ? isSectionComplete(section, state) : true
@@ -213,7 +238,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
             </>
           )}
           {section === 'goal' && <GoalSection value={state.fitness_goal} onChange={v => set({ fitness_goal: v })} />}
-          {section === 'about' && <AboutSection draft={state} onChange={set} />}
+          {section === 'about' && <AboutSection draft={state} onChange={set} errors={errors} />}
           {section === 'training' && <TrainingSection draft={state} onChange={set} />}
         </Animated.View>
       </ScrollView>
