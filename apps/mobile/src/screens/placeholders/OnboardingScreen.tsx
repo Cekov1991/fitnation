@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Animated, StyleSheet } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useMutation } from '@tanstack/react-query'
 import { profileApi, onboardingApi, plansApi, submitOnboarding, withAlpha, FITNESS_GOAL_OPTIONS, labelFor } from '@fit-nation/shared'
-import type { UpdateProfileInput } from '@fit-nation/shared'
+import type { UpdateProfileInput, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { onboardingReducer, FIRST_STEP } from '../Onboarding/onboardingReducer'
@@ -24,6 +24,7 @@ import { isOnline } from '../../lib/connectivity'
 import { getPermissionStatus } from '../../lib/notifications'
 import { readPushPromptLastShownAt, shouldShowPermissionSheet } from '../../lib/pushPrompt'
 import type { AppScreenProps } from '../../navigation/types'
+import { gateRoute, hasBackendAppAccess, type GateRoute } from '../../navigation/gate'
 
 // Steps 1-3 are the questions; step 4 builds the plan.
 const TOTAL_DATA_STEPS = 3
@@ -114,13 +115,20 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   // Ask for push permission here, behind an explainer — the contextual moment
   // (0012 M3, cadence per 0013 R10–R12: not if granted, nor within 7 days of
   // the sheet last showing). Onboarding always uses the 'ask' variant.
+  // Where the wizard hands over: Tabs with app access, the Paywall without.
+  // Decided on the fresh user, before the push sheet, so the sheet's close goes
+  // to the same place (finding #5: this used to be a bare 'Tabs').
+  const exitRouteRef = useRef<GateRoute>('Paywall')
+
   async function leaveOnboarding() {
-    try { await refreshUser() } catch { /* proceed anyway */ }
+    let fresh: UserResource | null = null
+    try { fresh = await refreshUser() } catch { /* proceed on what we have */ }
+    exitRouteRef.current = gateRoute(hasBackendAppAccess(fresh ?? user))
     if (await shouldAskForPush()) {
       setSheetVisible(true)
       return
     }
-    navigation.replace('Tabs')
+    navigation.replace(exitRouteRef.current)
   }
 
   async function shouldAskForPush(): Promise<boolean> {
@@ -163,7 +171,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
         onBack={backToQuestions}
         onFinished={leaveOnboarding}
         sheetVisible={sheetVisible}
-        onSheetClose={() => navigation.replace('Tabs')}
+        onSheetClose={() => navigation.replace(exitRouteRef.current)}
       />
     )
   }

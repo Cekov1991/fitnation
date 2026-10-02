@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { authApi, queryKeys } from '@fit-nation/shared'
 import Purchases from 'react-native-purchases'
 import { useAuth } from '../context/AuthContext'
+import { Entitlement } from '../lib/entitlements'
 
-export const Entitlement = { AppAccess: 'app_access' } as const
-export type Entitlement = (typeof Entitlement)[keyof typeof Entitlement]
+export { Entitlement } from '../lib/entitlements'
 
 export function useEntitlements() {
   const { user: authUser } = useAuth()

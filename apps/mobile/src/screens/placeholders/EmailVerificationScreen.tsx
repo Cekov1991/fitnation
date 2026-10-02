@@ -4,6 +4,8 @@ import { Image } from 'expo-image'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { authApi, failureOf } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
+import { useEntitlements, Entitlement } from '../../hooks/useEntitlements'
+import { entryRoute } from '../../navigation/gate'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../../components/ui/Button'
 import { SCREEN } from '../../constants/layout'
@@ -24,14 +26,15 @@ export function EmailVerificationScreen({ navigation }: AppScreenProps<'EmailVer
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const logoUrl = user?.partner?.visual_identity?.logo ?? null
-  const needsOnboarding = !user?.onboarding_completed_at
+  const { has } = useEntitlements()
 
-  // Auto-advance when email_verified_at is set (triggered by AppState refresh or manual refresh)
+  // Auto-advance when email_verified_at is set (triggered by AppState refresh or
+  // manual refresh): on to onboarding, or past the subscription gate.
   useEffect(() => {
     if (user?.email_verified_at) {
       navigation.reset({
         index: 0,
-        routes: [{ name: needsOnboarding ? 'Onboarding' : 'Tabs' }],
+        routes: [{ name: entryRoute(user, has(Entitlement.AppAccess)) }],
       })
     }
   }, [user?.email_verified_at])

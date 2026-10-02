@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLaunchPermissionCheck } from '../hooks/useLaunchPermissionCheck'
 import { NotificationPermissionSheet } from '../components/ui/NotificationPermissionSheet'
 import { useEntitlements, Entitlement } from '../hooks/useEntitlements'
+import { entryRoute } from './gate'
 import { TabNavigator } from './TabNavigator'
 import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
@@ -39,17 +40,7 @@ interface AppNavigatorProps {
 export function AppNavigator({ launchReady }: AppNavigatorProps) {
   const { user } = useAuth()
   const { has } = useEntitlements()
-  const needsVerification = !user?.email_verified_at
-  const needsOnboarding = !user?.onboarding_completed_at
-  const needsPaywall = !has(Entitlement.AppAccess)
-
-  const initialRouteName = needsVerification
-    ? 'EmailVerification'
-    : needsOnboarding
-      ? 'Onboarding'
-      : needsPaywall
-        ? 'Paywall'
-        : 'Tabs'
+  const initialRouteName = entryRoute(user, has(Entitlement.AppAccess))
 
   // 0013 R10: the permission explainer, at most weekly, only on a launch that
   // lands on Tabs — EmailVerification and Onboarding keep their own moments.

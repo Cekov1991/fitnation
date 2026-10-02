@@ -24,7 +24,8 @@ interface AuthContextValue {
   loginWithSocial: (provider: 'google' | 'apple', token: string, name?: string) => Promise<void>
   logout: () => Promise<void>
   setUser: (user: UserResource | null) => void
-  refreshUser: () => Promise<void>
+  /** Re-reads GET /api/user into the context and returns it, for callers that must route on the fresh answer. */
+  refreshUser: () => Promise<UserResource | null>
 }
 
 // Configure Google Sign-In once at module load
@@ -40,7 +41,7 @@ const AuthContext = createContext<AuthContextValue>({
   loginWithSocial: async () => {},
   logout: async () => {},
   setUser: () => {},
-  refreshUser: async () => {},
+  refreshUser: async () => null,
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -173,6 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function refreshUser() {
     const { user: currentUser } = await authApi.getCurrentUser()
     setUser(currentUser)
+    return currentUser
   }
 
   return (
