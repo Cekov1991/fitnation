@@ -22,6 +22,9 @@ const STORE_SUBSCRIPTIONS_URL =
     ? 'https://apps.apple.com/account/subscriptions'
     : 'https://play.google.com/store/account/subscriptions'
 
+/** The store that bills a plan on this platform, as a sentence names it. */
+export const STORE_NAME = Platform.OS === 'ios' ? 'the App Store' : 'Google Play'
+
 interface SubscriptionCardProps {
   /** Opens the paywall. Shown only when the user has no app access. */
   onSeePlans?: () => void

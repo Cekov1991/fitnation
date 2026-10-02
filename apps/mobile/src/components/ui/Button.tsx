@@ -21,6 +21,7 @@ import { RADIUS } from '../../constants/layout'
  * - secondary      surface with a hairline border ("Regenerate", "Repeat this session", modal "Cancel")
  * - ghost          text only ("Skip", "Cancel" under a primary)
  * - destructive    outlined in error colour ("Cancel Workout", "Delete")
+ * - destructiveSolid  solid error fill, textButton text — the final confirmation of an irreversible action ("Delete Account" in the delete sheet)
  * - dashed         dashed outline in brand colour, the "add one more" tile at the end of a list
  * - onBrand        solid textButton fill with brand text — the main action on a brand-gradient card ("Log Set")
  * - onBrandGhost   translucent textButton fill — the secondary action on a brand-gradient card ("Cancel", "Generate Smart Workout")
@@ -33,7 +34,7 @@ export const BUTTON = {
   sm: { paddingVertical: 10, fontSize: 14, radius: RADIUS.control, icon: 16 },
 } as const
 
-export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'destructive' | 'dashed' | 'onBrand' | 'onBrandGhost'
+export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'destructive' | 'destructiveSolid' | 'dashed' | 'onBrand' | 'onBrandGhost'
 export type ButtonSize = 'md' | 'sm'
 
 export interface ButtonProps extends Omit<TouchableOpacityProps, 'children'> {
@@ -53,6 +54,7 @@ export function useButtonContentColor(variant: ButtonVariant = 'primary'): strin
   switch (variant) {
     case 'primary':
     case 'accent':
+    case 'destructiveSolid':
     case 'onBrandGhost':
       return colors.textButton
     case 'onBrand':
@@ -107,6 +109,7 @@ export function Button({
     secondary: { backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border },
     ghost: {},
     destructive: { borderWidth: 1, borderColor: withAlpha(colors.error, 0.35) },
+    destructiveSolid: { backgroundColor: colors.error },
     dashed: { borderWidth: 2, borderStyle: 'dashed', borderColor: withAlpha(colors.primary, 0.3) },
     onBrand: { backgroundColor: colors.textButton },
     onBrandGhost: {

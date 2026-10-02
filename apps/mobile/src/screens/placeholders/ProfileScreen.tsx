@@ -19,7 +19,6 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { SCREEN } from '../../constants/layout'
-import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
 import { PageTitle } from '../../components/ui/ScreenHeader'
 import { SectionLabel } from '../../components/ui/SectionLabel'
 import { Card } from '../../components/ui/Card'
@@ -51,7 +50,6 @@ const NOT_SET = 'Not set'
 export function ProfileScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation<Nav>()
-  const destructiveButtonContent = useButtonContentColor('destructive')
   const { logout } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateNotificationSettings = useUpdateNotificationSettings()
@@ -196,14 +194,10 @@ export function ProfileScreen() {
           onAllow={handleAllowPush}
         />
 
-        {/* Log Out */}
-        <Button
-          label="Log Out"
-          variant="destructive"
-          icon={<LogOut size={BUTTON.md.icon} color={destructiveButtonContent} />}
-          onPress={handleLogout}
-          style={{ marginTop: 8, marginBottom: 32 }}
-        />
+        {/* Log out: a row like the ones above, confirmed before it runs. */}
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <ProfileSectionRow icon={LogOut} title="Log out" first chevron={false} onPress={handleLogout} />
+        </Card>
 
         {/* App version */}
         <Text className="text-xs text-center mb-8" style={{ color: colors.textMuted }}>

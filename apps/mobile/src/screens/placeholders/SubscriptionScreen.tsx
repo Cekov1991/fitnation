@@ -1,14 +1,12 @@
-import { Platform, ScrollView, StyleSheet, Text } from 'react-native'
+import { ScrollView, StyleSheet, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../../context/ThemeContext'
 import { SCREEN } from '../../constants/layout'
 import { ScreenHeader } from '../../components/ui/ScreenHeader'
-import { SubscriptionCard } from '../../components/profile/SubscriptionCard'
+import { STORE_NAME, SubscriptionCard } from '../../components/profile/SubscriptionCard'
 import { subscriptionCopy, subscriptionIntro } from '../../components/profile'
 import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
 import type { AppScreenProps } from '../../navigation/types'
-
-const STORE_NAME = Platform.OS === 'ios' ? 'the App Store' : 'Google Play'
 
 /**
  * Account → Subscription: the plan that grants access today and the one way

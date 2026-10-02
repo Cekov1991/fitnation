@@ -8,10 +8,11 @@ import type { UnitSystem, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { SCREEN } from '../../constants/layout'
-import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
+import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { SectionLabel } from '../../components/ui/SectionLabel'
-import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
+import { DeleteAccountSheet } from '../../components/profile/DeleteAccountSheet'
+import { STORE_NAME } from '../../components/profile/SubscriptionCard'
 import { ProfileSectionRow } from '../../components/profile/ProfileSectionRow'
 import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
 import { ScreenHeader } from '../../components/ui/ScreenHeader'
@@ -26,6 +27,7 @@ import {
   PROFILE_SECTIONS,
   isSectionDirty,
   pickSection,
+  deleteAccountMessage,
   subscriptionCopy,
   validateSection,
 } from '../../components/profile'
@@ -50,11 +52,11 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
   const { data: programs = [] } = usePrograms()
   const hasActivePlan = programs.some((p) => p.is_active)
 
-  // Account only: the Subscription row and Delete Account live on this page,
-  // so the Profile tab keeps a single, prominent way in — subscribing.
-  const { logout, user } = useAuth()
+  // Account only: the Subscription row and the Danger Zone (Delete account)
+  // live on this page, so the Profile tab keeps a single, prominent way in —
+  // subscribing.
+  const { logout } = useAuth()
   const deleteAccount = useDeleteAccount()
-  const destructiveContent = useButtonContentColor('destructive')
   const { subscription, has } = useEntitlements()
   const plan = subscriptionCopy(subscription, has(Entitlement.AppAccess))
   const [deleteVisible, setDeleteVisible] = useState(false)
@@ -200,14 +202,17 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
                 />
               </Card>
 
-              <Button
-                label="Delete Account"
-                variant="destructive"
-                size="sm"
-                icon={<Trash2 size={BUTTON.sm.icon} color={destructiveContent} />}
-                onPress={() => setDeleteVisible(true)}
-                style={styles.deleteButton}
-              />
+              <SectionLabel style={styles.sectionLabel}>Danger Zone</SectionLabel>
+              <Card style={styles.rows}>
+                <ProfileSectionRow
+                  tone="danger"
+                  icon={Trash2}
+                  title="Delete account"
+                  summary="Permanently erase your data and history"
+                  first
+                  onPress={() => setDeleteVisible(true)}
+                />
+              </Card>
             </>
           )}
           {section === 'goal' && <GoalSection value={draft.fitness_goal} onChange={(fitness_goal) => handleChange({ fitness_goal })} />}
@@ -235,17 +240,18 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
         onConfirm={() => { adjustChosenRef.current = true }}
       />
 
-      <DeleteAccountDialog
+      <DeleteAccountSheet
         visible={deleteVisible}
-        requiresPassword={user?.has_password ?? true}
+        message={deleteAccountMessage(subscription, STORE_NAME)}
         onClose={() => setDeleteVisible(false)}
-        onConfirm={async (password) => {
+        onConfirm={async () => {
           // Delete then sign out as one named action (0026): a sign-out that
           // throws after the delete is retried, and never shown as an error
-          // for an account that no longer exists.
+          // for an account that no longer exists. The sheet's typed word is
+          // the whole confirmation (deleteAccountCopy.ts).
           const outcome = await deleteAccountAndSignOut(
-            { deleteAccount: pw => deleteAccount.mutateAsync(pw), signOut: () => logout() },
-            { password }
+            { deleteAccount: () => deleteAccount.mutateAsync(undefined), signOut: () => logout() },
+            {}
           )
           if (!outcome.ok && outcome.failed === 'delete') throw outcome.error
           if (!outcome.ok) showToast('Your account was deleted. Restart the app to finish signing out.', 'error')
@@ -281,6 +287,5 @@ const styles = StyleSheet.create({
   hint: { fontSize: 14, lineHeight: 20, marginBottom: 24 },
   sectionLabel: { marginTop: 8 },
   rows: { padding: 0, overflow: 'hidden' },
-  deleteButton: { marginTop: 8 },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: SCREEN.paddingX, paddingTop: 12 },
 })

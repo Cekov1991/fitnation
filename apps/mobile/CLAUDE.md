@@ -39,7 +39,7 @@ spellings of the same caption.
 | A load that failed | `ui/ErrorState` (`onRetry`) |
 | Nothing to show — full page, or in the flow of a list | `ui/EmptyState` (`variant="page" \| "card"`) |
 | A profile question — goal, about you (units/age/height/weight/gender), training, account | `profile/GoalSection`, `AboutSection`, `TrainingSection`, `AccountSection`; metadata + validation in `profile/profileSections.ts` |
-| A settings-style row on the Profile hub (icon tile, title, one-line summary, chevron) | `profile/ProfileSectionRow` |
+| A settings-style row on the Profile hub or the Account page (icon tile, title, optional summary, chevron — or a control such as a Switch in its place; `tone="danger"` for Delete account) | `profile/ProfileSectionRow` |
 | The Profile hub's subscription status (plan or gym, renewal date, Manage Subscription / See Plans) | `profile/SubscriptionCard` |
 | An exercise with its thumbnail, name, second line, trailing control | `exercises/ExerciseRow` |
 | A row from an `ExerciseResource` in a FlatList | `exercises/ExerciseCard` (thin `ExerciseRow` wrapper) |
@@ -47,6 +47,7 @@ spellings of the same caption.
 | The headline card of a screen, an auth form, a notes card (radius 24, hairline border) | `ui/Card variant="summary"` |
 | Loading placeholder | `ui/SkeletonBox` |
 | Confirm before a destructive action | `ui/ConfirmDialog` |
+| Delete the account (a bottom sheet confirmed by typing DELETE, never a password) | `profile/DeleteAccountSheet`; copy in `profile/deleteAccountCopy.ts` |
 | Drag-to-reorder list, swipe actions | `ui/SortableList`, `ui/SwipeAction` |
 
 ### Rule 2 — numbers live in tokens, not in screens
@@ -96,6 +97,7 @@ mark); `PlanGeneratingOverlay.tsx` (a deliberate dark scene with its own palette
 | `secondary` | `bgSurface` + hairline border, `textPrimary` | Regenerate, Repeat this session, dialog Cancel |
 | `ghost` | text only | Skip, a Cancel under a primary |
 | `destructive` | outlined `error` | Cancel Workout, Delete, Remove |
+| `destructiveSolid` | solid `error` fill, `textButton` | the final confirmation of an irreversible action: Delete Account in the delete sheet |
 | `dashed` | dashed brand outline, taller | the "Add …" tile at the end of a list |
 | `onBrand` | solid `textButton` fill, brand text | the main action on a brand-gradient card: Log Set, Save |
 | `onBrandGhost` | translucent `textButton` fill | the secondary action on a brand card: Cancel, Generate Smart Workout |
