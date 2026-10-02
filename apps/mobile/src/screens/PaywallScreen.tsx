@@ -24,7 +24,7 @@ import type { AppScreenProps } from '../navigation/types'
  * reachable, so it carries its own Sign Out.
  */
 const FEATURES = [
-  'Personalized AI workout plans',
+  'Personalized workout plans',
   'Full exercise library & guided sessions',
   'Progress tracking & performance analytics',
   'Unlimited workout sessions',

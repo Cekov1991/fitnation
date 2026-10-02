@@ -77,7 +77,7 @@ export function SubscribePage() {
 
           <p className="text-sm text-center mb-6" style={{ color: 'var(--color-text-muted)' }}>
             Download the Fit Nation app, sign in with this account, and subscribe to unlock workouts,
-            progress tracking, and AI-powered plans — then come back here for full web access.
+            progress tracking, and personalized plans — then come back here for full web access.
           </p>
 
           <div className="space-y-3">

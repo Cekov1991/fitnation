@@ -5,7 +5,7 @@ import { QuickStartCard } from './QuickStartCard';
 import { WorkoutCardSmall } from './WorkoutCardSmall';
 import { RoutineCardSmall } from './RoutineCardSmall';
 import { CreateCustomPlanCard } from './CreateCustomPlanCard';
-import { AIGeneratorCard } from './AIGeneratorCard';
+import { WorkoutGeneratorCard } from './WorkoutGeneratorCard';
 import { CustomPlansDashboardSkeleton } from './CustomPlansDashboardSkeleton';
 import { usePlans, useBrowsableRoutines, useStartSession, useTodayWorkout } from '@fit-nation/shared';
 import { estimateWorkoutDuration } from '@fit-nation/shared';
@@ -112,7 +112,7 @@ export function CustomPlansDashboard({ onStartBlankSession }: CustomPlansDashboa
   return (
     <div className="pb-24">
       <div className="space-y-8">
-        <AIGeneratorCard onGenerate={handleGenerateWorkout} />
+        <WorkoutGeneratorCard onGenerate={handleGenerateWorkout} />
 
         {/* Browsable Routines Section */}
         {browsableRoutines.length > 0 && (

@@ -34,7 +34,7 @@ export function CustomPlansDashboardSkeleton() {
   return (
     <div className="pb-24" aria-busy aria-label="Loading plans">
       <div className="space-y-8">
-        {/* AIGeneratorCard */}
+        {/* WorkoutGeneratorCard */}
         <div
           className="rounded-2xl p-6 shadow-lg mb-8"
           style={{ backgroundColor: 'var(--color-primary)' }}
