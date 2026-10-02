@@ -7,6 +7,8 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
 import { identifyRevenueCatUser, logOutRevenueCat } from '../lib/revenuecat'
+import { restoreSession } from '../lib/session'
+import { readCachedUser, writeCachedUser } from '../lib/userCache'
 
 // Wire up storage injection (called once at module load)
 initAuth({
@@ -64,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       queryClient.removeQueries({ queryKey: queryKeys.user.current() })
     }
+    // The last payload we saw, for booting offline (finding #4). Best effort.
+    void writeCachedUser(nextUser)
   }, [queryClient])
 
   // Server rejected the token (deleted user, revoked session, expired token).
@@ -89,17 +93,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnSubscriptionRequired(null)
   }, [queryClient])
 
+  // Boot: restore the session from the stored token. Only a rejected token
+  // signs out (the HTTP layer has already dropped it); no network falls back
+  // to the last user payload, so a relaunch in airplane mode is still in
+  // (finding #4). See restoreSession for the cases.
   useEffect(() => {
     async function loadUser() {
       try {
-        const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY)
-        if (token) {
-          const { user: currentUser } = await authApi.getCurrentUser()
-          setUser(currentUser)
-          await identifyRevenueCatUser(String(currentUser.id))
+        const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
+        const session = await restoreSession({
+          token,
+          fetchUser: () => authApi.getCurrentUser().then(r => r.user),
+          readCachedUser,
+        })
+        if (session.kind === 'online' || session.kind === 'offline') {
+          setUser(session.user)
+          await identifyRevenueCatUser(String(session.user.id))
         }
-      } catch {
-        await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
       } finally {
         setIsLoading(false)
       }
@@ -146,29 +156,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await identifyRevenueCatUser(String(fullUser.id))
   }
 
-  async function logout() {
-    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
-    if (token) {
-      try {
-        await authApi.logout()
-      } catch {
-        // Continue with local logout even if the server call fails (token
-        // already revoked, account deleted, network down, etc).
-      }
+  // One run at a time: a second tap while the first is in flight joins it
+  // instead of starting the sequence again (finding #8).
+  const logoutRef = useRef<Promise<void> | null>(null)
+  function logout(): Promise<void> {
+    if (!logoutRef.current) {
+      logoutRef.current = performLogout().finally(() => { logoutRef.current = null })
     }
-    await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
+    return logoutRef.current
+  }
+
+  async function performLogout() {
+    const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
+    // Start the remote clean-up first — RevenueCat switches to an anonymous
+    // user the moment it is called, so a quick sign-in as another account
+    // afterwards cannot be undone by it — then sign out locally without
+    // waiting on any of it, so the screen answers the tap at once. Every
+    // remote call is best effort: token already revoked, account deleted,
+    // network down, Google never signed in.
+    const remote = Promise.allSettled([
+      token ? authApi.logout() : Promise.resolve(),
+      // Reset RevenueCat so the next account on this device doesn't inherit
+      // this user's purchase identity.
+      logOutRevenueCat(),
+      // Sign out from Google so the account picker appears on next social login.
+      Promise.resolve().then(() => GoogleSignin.signOut()),
+    ])
+    queryClient.clear()
+    setUser(null)
+    await remote
+    // Drop the token only if it is still this session's: a quick sign-in as
+    // another account may have stored a new one meanwhile.
+    const current = await SecureStore.getItemAsync(AUTH_TOKEN_KEY).catch(() => null)
+    if (current !== null && current === token) await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY)
     // No unregister call: the server ends the Device with the revoked token.
     // Forget the heartbeat record so a different user on this phone registers
     // immediately instead of waiting out the throttle.
     await clearLastDeviceRegistration()
-    // Reset RevenueCat to an anonymous user so the next account on this device
-    // doesn't inherit this user's purchase identity. Guarded like the calls
-    // below: local logout must always complete.
-    try { await logOutRevenueCat() } catch {}
-    // Sign out from Google so the account picker appears on next social login
-    try { await GoogleSignin.signOut() } catch {}
-    queryClient.clear()
-    setUser(null)
   }
 
   async function refreshUser() {
