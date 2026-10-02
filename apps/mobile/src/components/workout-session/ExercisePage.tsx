@@ -26,6 +26,7 @@ import { ProgressionBanner } from './ProgressionBanner'
 import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
+import { progressionCopy } from './progressionCopy'
 import { SetOptionsMenu } from './SetOptionsMenu'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
@@ -78,6 +79,11 @@ export function ExercisePage({
   const [editReps, setEditReps] = useState('')
 
   const [setMenuSetNumber, setSetMenuSetNumber] = useState<number | null>(null)
+  // The progression banner's one choice: "Use <lighter>" fills the Weight
+  // field and marks it lowered; "Keep" just dismisses. Per exercise, since this
+  // page remounts on every switch.
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [loweredApplied, setLoweredApplied] = useState(false)
 
   const { session_exercise, logged_sets, previous_sets } = exerciseDetail
   const exercise = session_exercise.exercise
@@ -95,6 +101,33 @@ export function ExercisePage({
   const firstPendingSetNumber = firstPending?.setNumber ?? null
   const defaultWeight = firstPending?.kind === 'pending' ? firstPending.prefill.weight : (session_exercise.target_weight ?? 0)
   const defaultReps = firstPending?.kind === 'pending' ? firstPending.prefill.reps : minReps
+
+  const banner = useMemo(
+    () =>
+      progressionCopy({
+        status: progressionStatus,
+        progressionMode,
+        weighted: allowWeightLogging,
+        weightUnit,
+        targetWeight: session_exercise.target_weight,
+        weightStep: session_exercise.weight_step,
+        loweredWeight: session_exercise.target_weight_lowered,
+        maxTargetReps: maxReps,
+        totalRepsPrevious: session_exercise.total_reps_previous,
+        totalRepsTarget: session_exercise.total_reps_target,
+        previousWeight: previous_sets[0]?.weight ?? null,
+      }),
+    [progressionStatus, progressionMode, allowWeightLogging, weightUnit, session_exercise, maxReps, previous_sets]
+  )
+  const weightBadge = !allowWeightLogging
+    ? null
+    : loweredApplied
+      ? 'lowered'
+      : progressionStatus === 'no_history'
+        ? 'estimated'
+        : progressionStatus === 'ready'
+          ? 'raised'
+          : null
 
   // logSet is deliberately absent: it is optimistic, so an in-flight log is
   // not a reason to grey out the rest of the page.
@@ -299,15 +332,18 @@ export function ExercisePage({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Progression banner */}
-      {logged_sets.length === 0 && (
-        <View style={{ marginTop: 16 }}>
+      {/* Progression banner: where today's targets came from, and the one choice it may offer. */}
+      {logged_sets.length === 0 && banner && !bannerDismissed && (
+        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <ProgressionBanner
-            status={progressionStatus}
-            maxTargetReps={maxReps}
-            progressionMode={progressionMode}
-            totalRepsPrevious={session_exercise.total_reps_previous}
-            totalRepsTarget={session_exercise.total_reps_target}
+            copy={banner}
+            weightUnit={weightUnit}
+            onUseWeight={(w) => {
+              onLogWeightChange(formatWeight(w))
+              setLoweredApplied(true)
+              setBannerDismissed(true)
+            }}
+            onKeep={() => setBannerDismissed(true)}
           />
         </View>
       )}
@@ -362,8 +398,9 @@ export function ExercisePage({
                 allowWeightLogging={allowWeightLogging}
                 goalMinReps={minReps}
                 goalMaxReps={maxReps}
-                goalWeight={session_exercise.target_weight}
-                totalRepsPrevious={slot.previousReps}
+                weightBadge={weightBadge}
+                previousWeight={slot.previousWeight}
+                previousReps={slot.previousReps}
                 totalRepsTarget={session_exercise.total_reps_target}
                 showTimerButton={!isRestRunning && !!session_exercise.rest_seconds}
                 weightUnit={weightUnit}

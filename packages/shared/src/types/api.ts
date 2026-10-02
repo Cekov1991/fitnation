@@ -360,6 +360,10 @@ export interface WorkoutSessionExerciseResource {
   max_target_reps: number | null;
   progression_status: 'no_history' | 'below_min' | 'working' | 'ready';
   target_weight: number | null; // formatted for the user's unit_system
+  /** The equipment step behind target_weight (what a raise adds), in the user's unit; null for bodyweight. */
+  weight_step: number | null;
+  /** One step below target_weight, offered after a session that was too hard; null when there is none. */
+  target_weight_lowered: number | null;
   total_reps_previous: number | null;
   total_reps_target: number | null;
   rest_seconds: number | null;
