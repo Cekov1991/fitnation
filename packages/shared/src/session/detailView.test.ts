@@ -30,11 +30,13 @@ function detail(
     session_exercise: {
       id: 1, workout_session_id: 1, exercise_id: 1, exercise: null, order: 1,
       progression_mode: 'double_progression', target_sets: 4, min_target_reps: 8, max_target_reps: 12,
-      progression_status: 'working', target_weight: null, total_reps_previous: null, total_reps_target: null,
+      progression_status: 'working', target_weight: null, weight_step: null, target_weight_lowered: null,
+      total_reps_previous: null, total_reps_target: null,
       rest_seconds: null, created_at: '', updated_at: '', ...extra,
     },
     logged_sets: logged,
     previous_sets: previous,
+    best_set: null,
     is_completed: true,
   };
 }

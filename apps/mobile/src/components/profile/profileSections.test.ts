@@ -49,6 +49,11 @@ describe('profile sections', () => {
   it('validateSection reports bounds in the unit being typed, and ignores blanks', () => {
     expect(validateSection('about', { height: 300 }, 'metric').height).toMatch(/Height must be between/)
     expect(validateSection('about', { height: 70 }, 'imperial')).toEqual({})
+    // Metric numbers left under an imperial label (finding #7): the height is
+    // caught in inches, the weight happens to be plausible in pounds.
+    expect(validateSection('about', { height: 175, weight: 88 }, 'imperial')).toEqual({
+      height: 'Height must be between 39 and 98 in',
+    })
     expect(validateSection('about', {}, 'metric')).toEqual({})
     expect(validateSection('account', { email: 'nope' }, 'metric').email).toMatch(/email/i)
   })

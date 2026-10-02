@@ -35,6 +35,12 @@ describe('query key registry', () => {
     expect(isPrefix(histories, queryKeys.exercises.history(56, { limit: 10 }))).toBe(false);
   });
 
+  it('names the signed-in user and the RevenueCat cache, which the mobile app used to key inline', () => {
+    expect(queryKeys.user.current()).toEqual(['user']);
+    expect(queryKeys.revenueCat.customerInfo()).toEqual(['revenuecat', 'customer-info']);
+    expect(isPrefix(queryKeys.user.current(), queryKeys.revenueCat.customerInfo())).toBe(false);
+  });
+
   it('keeps siblings apart: detail, today and calendar do not cover each other', () => {
     expect(isPrefix(queryKeys.sessions.today(), queryKeys.sessions.detail(3))).toBe(false);
     expect(isPrefix(queryKeys.sessions.detail(3), queryKeys.sessions.today())).toBe(false);

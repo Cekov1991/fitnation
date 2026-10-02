@@ -1,10 +1,23 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Timer, MoreVertical } from 'lucide-react-native'
+import { Timer, MoreVertical, History, Sparkles, TrendingDown, TrendingUp } from 'lucide-react-native'
+import type { LucideIcon } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../ui/Button'
 import type { WeightUnit } from '@fit-nation/shared'
 import { sanitizeDecimalText, withAlpha, formatWeight } from '@fit-nation/shared'
+import { setLogHints, type ColumnHint } from './setLogHints'
+
+/** The hint row under each field: a "Last …" chip and a plain note beside it. */
+export const SET_LOG_HINT = { text: 12, icon: 12, chipRadius: 8, chipPaddingX: 8, chipPaddingY: 4, gap: 10 } as const
+
+/** The small badge on the Weight label: where today's placeholder weight comes from. */
+export type WeightBadge = 'estimated' | 'raised' | 'lowered'
+const WEIGHT_BADGE: Record<WeightBadge, { label: string; Icon: LucideIcon }> = {
+  estimated: { label: 'Estimated', Icon: Sparkles },
+  raised: { label: 'Raised', Icon: TrendingUp },
+  lowered: { label: 'Lowered', Icon: TrendingDown },
+}
 
 interface SetLogCardProps {
   setNumber: number
@@ -21,8 +34,11 @@ interface SetLogCardProps {
   allowWeightLogging: boolean
   goalMinReps: number
   goalMaxReps: number
-  goalWeight?: number | null
-  totalRepsPrevious?: number | null
+  /** Where the placeholder weight comes from; null shows no badge. */
+  weightBadge?: WeightBadge | null
+  /** Last session's set in this slot, for the "last time" line. */
+  previousWeight?: number | null
+  previousReps?: number | null
   totalRepsTarget?: number | null
   showTimerButton?: boolean
   /** Required so a missed call site is a compile error. */
@@ -43,17 +59,55 @@ export function SetLogCard({
   allowWeightLogging,
   goalMinReps,
   goalMaxReps,
-  goalWeight,
-  totalRepsPrevious,
+  weightBadge = null,
+  previousWeight,
+  previousReps,
   totalRepsTarget,
   showTimerButton = false,
   weightUnit,
 }: SetLogCardProps) {
   const { colors } = useTheme()
 
-  const showGoalWeightBadge =
-    goalWeight != null && goalWeight > 0 && goalWeight !== defaultWeight
-  const showTotalRepsHint = totalRepsTarget != null
+  // A hint under each field says where its placeholder comes from, and the
+  // reps one carries the target. The fields stay empty on purpose: a pre-filled
+  // value would have to be deleted whenever the lift goes differently.
+  const hints = setLogHints({
+    allowWeightLogging,
+    weightUnit,
+    goalMinReps,
+    goalMaxReps,
+    totalRepsTarget,
+    defaultWeight,
+    defaultReps,
+    previousWeight,
+    previousReps,
+  })
+  const renderHint = (hint: ColumnHint) =>
+    hint.last || hint.note ? (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SET_LOG_HINT.gap, marginTop: 8 }}>
+        {hint.last && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingHorizontal: SET_LOG_HINT.chipPaddingX,
+              paddingVertical: SET_LOG_HINT.chipPaddingY,
+              borderRadius: SET_LOG_HINT.chipRadius,
+              backgroundColor: colors.imageScrim,
+            }}
+          >
+            <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
+            <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>{hint.last}</Text>
+          </View>
+        )}
+        {hint.note && (
+          <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
+            {hint.note}
+          </Text>
+        )}
+      </View>
+    ) : null
 
   return (
     <LinearGradient
@@ -109,16 +163,28 @@ export function SetLogCard({
       <View style={{ flexDirection: 'row', gap: 14 }}>
         {allowWeightLogging && (
           <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                color: withAlpha(colors.textButton, 0.902),
-                marginBottom: 8,
-              }}
-            >
-              Weight
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: withAlpha(colors.textButton, 0.902) }}>Weight</Text>
+              {weightBadge && (() => {
+                const { label, Icon } = WEIGHT_BADGE[weightBadge]
+                return (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 3,
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      borderRadius: SET_LOG_HINT.chipRadius,
+                      backgroundColor: withAlpha(colors.textButton, 0.18),
+                    }}
+                  >
+                    <Icon size={11} color={colors.textButton} strokeWidth={2.5} />
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textButton }}>{label}</Text>
+                  </View>
+                )
+              })()}
+            </View>
             <View
               style={{
                 flexDirection: 'row',
@@ -158,17 +224,7 @@ export function SetLogCard({
                 {weightUnit}
               </Text>
             </View>
-            {showGoalWeightBadge && (
-              <Text
-                style={{
-                  marginTop: 6,
-                  fontSize: 11,
-                  color: withAlpha(colors.textButton, 0.702),
-                }}
-              >
-                Suggested: {formatWeight(goalWeight!)} {weightUnit}
-              </Text>
-            )}
+            {hints.weight && renderHint(hints.weight)}
           </View>
         )}
 
@@ -220,29 +276,7 @@ export function SetLogCard({
               reps
             </Text>
           </View>
-          {showTotalRepsHint ? (
-            <Text
-              style={{
-                marginTop: 6,
-                fontSize: 11,
-                color: withAlpha(colors.textButton, 0.702),
-              }}
-            >
-              {totalRepsPrevious != null
-                ? `Last: ${totalRepsPrevious} reps`
-                : `Target: ${goalMinReps}-${goalMaxReps} reps`}
-            </Text>
-          ) : (
-            <Text
-              style={{
-                marginTop: 6,
-                fontSize: 11,
-                color: withAlpha(colors.textButton, 0.702),
-              }}
-            >
-              Target: {goalMinReps}-{goalMaxReps} reps
-            </Text>
-          )}
+          {renderHint(hints.reps)}
         </View>
       </View>
 

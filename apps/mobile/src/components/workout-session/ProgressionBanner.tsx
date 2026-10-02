@@ -1,87 +1,89 @@
-import { View, Text } from 'react-native'
-import { AlertTriangle, Info, Sparkles, Target } from 'lucide-react-native'
+import { StyleSheet, Text, View } from 'react-native'
+import { Sparkles, Target, TrendingDown, TrendingUp } from 'lucide-react-native'
+import type { LucideIcon } from 'lucide-react-native'
+import { formatWeight, withAlpha } from '@fit-nation/shared'
+import type { WeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../ui/Card'
+import { Button } from '../ui/Button'
+import { RADIUS } from '../../constants/layout'
+import type { ProgressionCopy, ProgressionKind } from './progressionCopy'
+
+/**
+ * Above the first set: where today's targets came from — a new exercise, a
+ * tough last session, a session that earned more weight — and, after a tough
+ * one, the choice between one step down and the current weight. The words are
+ * progressionCopy(); this only draws them.
+ */
+export const PROGRESSION_BANNER = { tile: 36, icon: 18, title: 15, body: 13 } as const
+
+const ICONS: Record<ProgressionKind, LucideIcon> = {
+  new: Sparkles,
+  tough: TrendingDown,
+  heavier: TrendingUp,
+  total: Target,
+}
 
 interface ProgressionBannerProps {
-  status: 'no_history' | 'below_min' | 'working' | 'ready'
-  maxTargetReps: number
-  progressionMode: 'double_progression' | 'total_reps'
-  totalRepsPrevious?: number | null
-  totalRepsTarget?: number | null
+  copy: ProgressionCopy
+  weightUnit: WeightUnit
+  /** "Use 60 kg": put the lighter weight into the Weight field. */
+  onUseWeight?: (weight: number) => void
+  /** "Keep 62.5": stay with today's suggestion and dismiss the banner. */
+  onKeep?: () => void
 }
 
-const WEIGHTED_COPY = {
-  no_history: "First time logging this exercise! We've estimated a starting weight for you.",
-  below_min: 'Last session was tough — consider lowering your weight to hit your target reps.',
-  ready: (reps: number) => `Weight increase! You hit ${reps} reps last time.`,
-}
-
-const BODYWEIGHT_COPY = {
-  no_history: "First time logging this exercise! Give it your best effort.",
-  below_min: 'Last session was tough — keep pushing toward your rep target.',
-  ready: (reps: number) => `Great work! You hit ${reps} reps last time — try to beat it.`,
-}
-
-export function ProgressionBanner({
-  status,
-  maxTargetReps,
-  progressionMode,
-  totalRepsPrevious,
-  totalRepsTarget,
-}: ProgressionBannerProps) {
+export function ProgressionBanner({ copy, weightUnit, onUseWeight, onKeep }: ProgressionBannerProps) {
   const { colors } = useTheme()
-
-  if (status === 'working' && progressionMode === 'double_progression') return null
-
-  const statusMeta = {
-    no_history: { color: colors.primary, Icon: Info },
-    below_min: { color: colors.warning, Icon: AlertTriangle },
-    working: { color: colors.primary, Icon: Target },
-    ready: { color: colors.success, Icon: Sparkles },
-  }
-
-  if (status === 'working' && progressionMode === 'total_reps') {
-    if (totalRepsTarget == null) return null
-    const text =
-      totalRepsPrevious != null
-        ? `Nice work hitting ${totalRepsPrevious} total reps! Go for ${totalRepsTarget} this time.`
-        : `Go for ${totalRepsTarget} total reps this session.`
-    const { color, Icon } = statusMeta.working
-    return (
-      <View
-        className="flex-row items-center gap-3 rounded-xl border px-4 py-3 mx-6 mb-4"
-        style={{
-          backgroundColor: `${color}10`,
-          borderColor: `${color}20`,
-        }}
-      >
-        <Icon size={16} color={color} />
-        <Text className="flex-1 text-xs leading-relaxed" style={{ color: colors.textSecondary }}>
-          {text}
-        </Text>
-      </View>
-    )
-  }
-
-  const { color, Icon } = statusMeta[status]
-  const copy = progressionMode === 'double_progression' ? WEIGHTED_COPY : BODYWEIGHT_COPY
-  const text =
-    status === 'ready'
-      ? copy.ready(maxTargetReps)
-      : copy[status as 'no_history' | 'below_min']
+  const tone = { info: colors.primary, warning: colors.warning, success: colors.success }[copy.tone]
+  const Icon = ICONS[copy.kind]
 
   return (
-    <View
-      className="flex-row items-center gap-3 rounded-xl border px-4 py-3 mx-6 mb-4"
-      style={{
-        backgroundColor: `${color}10`,
-        borderColor: `${color}20`,
-      }}
-    >
-      <Icon size={16} color={color} />
-      <Text className="flex-1 text-xs leading-relaxed" style={{ color: colors.textSecondary }}>
-        {text}
-      </Text>
-    </View>
+    <Card style={styles.card}>
+      <View style={styles.row}>
+        <View style={[styles.tile, { backgroundColor: withAlpha(tone, 0.12) }]}>
+          <Icon size={PROGRESSION_BANNER.icon} color={tone} />
+        </View>
+        <View style={styles.text}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{copy.title}</Text>
+          <Text style={[styles.body, { color: colors.textSecondary }]}>{copy.body}</Text>
+        </View>
+      </View>
+
+      {copy.offer && onUseWeight && onKeep && (
+        <View style={styles.actions}>
+          <Button
+            size="sm"
+            label={`Use ${formatWeight(copy.offer.use)} ${weightUnit}`}
+            onPress={() => onUseWeight(copy.offer!.use)}
+            style={styles.action}
+          />
+          <Button
+            size="sm"
+            variant="secondary"
+            label={`Keep ${formatWeight(copy.offer.keep)}`}
+            onPress={onKeep}
+            style={styles.action}
+          />
+        </View>
+      )}
+    </Card>
   )
 }
+
+const styles = StyleSheet.create({
+  card: { marginBottom: 0, paddingHorizontal: 16, paddingVertical: 14 },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  tile: {
+    width: PROGRESSION_BANNER.tile,
+    height: PROGRESSION_BANNER.tile,
+    borderRadius: RADIUS.control,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: { flex: 1, minWidth: 0 },
+  title: { fontSize: PROGRESSION_BANNER.title, fontWeight: '700' },
+  body: { fontSize: PROGRESSION_BANNER.body, lineHeight: 18, marginTop: 2 },
+  actions: { flexDirection: 'row', gap: 12, marginTop: 12 },
+  action: { flex: 1 },
+})

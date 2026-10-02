@@ -2,6 +2,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
 import { useLaunchPermissionCheck } from '../hooks/useLaunchPermissionCheck'
 import { NotificationPermissionSheet } from '../components/ui/NotificationPermissionSheet'
+import { useEntitlements, Entitlement } from '../hooks/useEntitlements'
+import { entryRoute } from './gate'
 import { TabNavigator } from './TabNavigator'
 import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
@@ -17,6 +19,7 @@ import { WorkoutPreviewExercisePickerScreen } from '../screens/placeholders/Work
 import { CreatePlanScreen } from '../screens/placeholders/CreatePlanScreen'
 import { EditPlanScreen } from '../screens/placeholders/EditPlanScreen'
 import { EditProfileSectionScreen } from '../screens/placeholders/EditProfileSectionScreen'
+import { SubscriptionScreen } from '../screens/placeholders/SubscriptionScreen'
 import { CreateWorkoutScreen } from '../screens/placeholders/CreateWorkoutScreen'
 import { EditWorkoutScreen } from '../screens/placeholders/EditWorkoutScreen'
 import { ManageExercisesScreen } from '../screens/placeholders/ManageExercisesScreen'
@@ -25,6 +28,7 @@ import { ProgramDetailScreen } from '../screens/placeholders/ProgramDetailScreen
 import { RoutineDetailScreen } from '../screens/placeholders/RoutineDetailScreen'
 import { RoutineWorkoutDetailScreen } from '../screens/placeholders/RoutineWorkoutDetailScreen'
 import { SessionDetailScreen } from '../screens/placeholders/SessionDetailScreen'
+import { PaywallScreen } from '../screens/PaywallScreen'
 import type { AppStackParamList } from './types'
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
@@ -36,12 +40,8 @@ interface AppNavigatorProps {
 
 export function AppNavigator({ launchReady }: AppNavigatorProps) {
   const { user } = useAuth()
-  const needsVerification = !user?.email_verified_at
-  const needsOnboarding = !user?.onboarding_completed_at
-
-  const initialRouteName = needsVerification
-    ? 'EmailVerification'
-    : needsOnboarding ? 'Onboarding' : 'Tabs'
+  const { has } = useEntitlements()
+  const initialRouteName = entryRoute(user, has(Entitlement.AppAccess))
 
   // 0013 R10: the permission explainer, at most weekly, only on a launch that
   // lands on Tabs — EmailVerification and Onboarding keep their own moments.
@@ -63,6 +63,11 @@ export function AppNavigator({ launchReady }: AppNavigatorProps) {
         name="Onboarding"
         component={OnboardingScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="Paywall"
+        component={PaywallScreen}
+        options={{ gestureEnabled: false }}
       />
       <Stack.Screen
         name="WorkoutSession"
@@ -104,6 +109,7 @@ export function AppNavigator({ launchReady }: AppNavigatorProps) {
       <Stack.Screen name="CreatePlan" component={CreatePlanScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="EditPlan" component={EditPlanScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="EditProfileSection" component={EditProfileSectionScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="EditWorkout" component={EditWorkoutScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="ManageExercises" component={ManageExercisesScreen} options={{ animation: 'slide_from_right' }} />

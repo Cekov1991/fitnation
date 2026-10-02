@@ -8,7 +8,9 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://admin.fitnation.mk/api"
+        "EXPO_PUBLIC_API_URL": "https://admin.fitnation.mk/api",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "goog_QcQsZwUbhZRHKtnXOXCDyIUSeTM",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_KmsVdUVFEsFIfkgEepWDcVOEFJC"
       }
     },
     "preview": {
@@ -17,7 +19,16 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://admin.fitnation.mk/api"
+        "EXPO_PUBLIC_API_URL": "https://fitnation-backend-dev-dev-6njzbc.laravel.cloud/api",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "goog_QcQsZwUbhZRHKtnXOXCDyIUSeTM",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_KmsVdUVFEsFIfkgEepWDcVOEFJC"
+      }
+    },
+    "preview-play": {
+      "extends": "preview",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
       }
     },
     "production": {
@@ -26,7 +37,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://admin.fitnation.mk/api"
+        "EXPO_PUBLIC_API_URL": "https://admin.fitnation.mk/api",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "goog_QcQsZwUbhZRHKtnXOXCDyIUSeTM",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_KmsVdUVFEsFIfkgEepWDcVOEFJC"
       }
     }
   },

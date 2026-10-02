@@ -207,7 +207,7 @@ export const devicesApi = {
   // Idempotent for the calling session: the server upserts the Device bound to
   // this bearer token. Requires a bearer token (400 for cookie sessions).
   register: async (data: RegisterDeviceInput): Promise<DataResponse<DeviceResource>> => {
-    return unauthenticated<DataResponse<DeviceResource>>('/devices', {
+    return authed<DataResponse<DeviceResource>>('/devices', {
       method: 'PUT',
       body: JSON.stringify(data)
     });

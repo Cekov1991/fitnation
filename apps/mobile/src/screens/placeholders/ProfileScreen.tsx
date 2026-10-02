@@ -4,16 +4,14 @@ import * as Application from 'expo-application'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { User, Ruler, Target, Dumbbell, LogOut, Trash2 } from 'lucide-react-native'
+import { User, Ruler, Target, Dumbbell, LogOut } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import {
   useProfile,
   useUpdateNotificationSettings,
-  useDeleteAccount,
   useWeightUnit,
   useHeightUnit,
   setPushEnabled,
-  deleteAccountAndSignOut,
   labelFor,
   FITNESS_GOAL_OPTIONS,
   TRAINING_EXPERIENCE_OPTIONS,
@@ -21,21 +19,20 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { SCREEN } from '../../constants/layout'
-import { Button, BUTTON, useButtonContentColor } from '../../components/ui/Button'
 import { PageTitle } from '../../components/ui/ScreenHeader'
 import { SectionLabel } from '../../components/ui/SectionLabel'
 import { Card } from '../../components/ui/Card'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { DeleteAccountDialog } from '../../components/ui/DeleteAccountDialog'
 import { ProfileSectionRow } from '../../components/profile/ProfileSectionRow'
 import { NotificationsCard } from '../../components/profile/NotificationsCard'
+import { SubscriptionCard } from '../../components/profile/SubscriptionCard'
 import { PROFILE_SECTIONS } from '../../components/profile'
 import type { ProfileSectionKey } from '../../components/profile'
-import { showToast } from '../../lib/toast'
 import { grantPushPermission } from '../../lib/notifications'
 import { usePushPermissionStatus } from '../../hooks/usePushPermissionStatus'
+import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
 import type { AppStackParamList } from '../../navigation/types'
 
 type Nav = NativeStackNavigationProp<AppStackParamList>
@@ -53,11 +50,11 @@ const NOT_SET = 'Not set'
 export function ProfileScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation<Nav>()
-  const destructiveButtonContent = useButtonContentColor('destructive')
-  const { logout, user } = useAuth()
+  const { logout } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateNotificationSettings = useUpdateNotificationSettings()
-  const deleteAccount = useDeleteAccount()
+  const { has } = useEntitlements()
+  const hasAccess = has(Entitlement.AppAccess)
   const [logoutVisible, setLogoutVisible] = useState(false)
 
   // M8: the switch is the server's global `push_enabled`; the OS permission is
@@ -65,7 +62,6 @@ export function ProfileScreen() {
   const pushPermission = usePushPermissionStatus()
   const [optimisticPush, setOptimisticPush] = useState<boolean | null>(null)
   const pushEnabled = optimisticPush ?? profile?.push_enabled ?? true
-  const [deleteVisible, setDeleteVisible] = useState(false)
 
   // The backend formats height/weight for the stored unit_system, so these
   // are label-only. Never convert on the client.
@@ -180,6 +176,15 @@ export function ProfileScreen() {
           ))}
         </Card>
 
+        {/* Subscribing is one tap from here. A plan that exists is managed —
+            changed, cancelled — under Account → Subscription, not on the hub. */}
+        {!hasAccess && (
+          <>
+            <SectionLabel style={{ marginTop: 8 }}>Subscription</SectionLabel>
+            <SubscriptionCard manage={false} onSeePlans={() => navigation.navigate('Paywall')} />
+          </>
+        )}
+
         <SectionLabel style={{ marginTop: 8 }}>Notifications</SectionLabel>
         <NotificationsCard
           pushEnabled={pushEnabled}
@@ -189,24 +194,10 @@ export function ProfileScreen() {
           onAllow={handleAllowPush}
         />
 
-        {/* Log Out */}
-        <Button
-          label="Log Out"
-          variant="destructive"
-          icon={<LogOut size={BUTTON.md.icon} color={destructiveButtonContent} />}
-          onPress={handleLogout}
-          style={{ marginTop: 8, marginBottom: 16 }}
-        />
-
-        {/* Delete Account */}
-        <Button
-          label="Delete Account"
-          variant="destructive"
-          size="sm"
-          icon={<Trash2 size={BUTTON.sm.icon} color={destructiveButtonContent} />}
-          onPress={() => setDeleteVisible(true)}
-          style={{ marginBottom: 32 }}
-        />
+        {/* Log out: a row like the ones above, confirmed before it runs. */}
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <ProfileSectionRow icon={LogOut} title="Log out" first chevron={false} onPress={handleLogout} />
+        </Card>
 
         {/* App version */}
         <Text className="text-xs text-center mb-8" style={{ color: colors.textMuted }}>
@@ -222,23 +213,6 @@ export function ProfileScreen() {
         confirmLabel="Log Out"
         destructive
         onConfirm={performLogout}
-      />
-
-      <DeleteAccountDialog
-        visible={deleteVisible}
-        requiresPassword={user?.has_password ?? true}
-        onClose={() => setDeleteVisible(false)}
-        onConfirm={async (password) => {
-          // Delete then sign out as one named action (0026): a sign-out that
-          // throws after the delete is retried, and never shown as an error
-          // for an account that no longer exists.
-          const outcome = await deleteAccountAndSignOut(
-            { deleteAccount: pw => deleteAccount.mutateAsync(pw), signOut: () => logout() },
-            { password }
-          )
-          if (!outcome.ok && outcome.failed === 'delete') throw outcome.error
-          if (!outcome.ok) showToast('Your account was deleted. Restart the app to finish signing out.', 'error')
-        }}
       />
     </SafeAreaView>
   )

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { initAuth, setOnUnauthorized } from './auth';
+import { initAuth, setOnSubscriptionRequired, setOnUnauthorized } from './auth';
 import { initApi } from './config';
 import { ApiFailure, failureOf, firstFieldError, isApiFailure, normaliseFieldErrors, request } from './http';
 
@@ -20,6 +20,7 @@ describe('request', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     setOnUnauthorized(null);
+    setOnSubscriptionRequired(null);
   });
 
   it('returns the parsed body, typed by the caller', async () => {
@@ -80,6 +81,25 @@ describe('request', () => {
     const failure = await request('/login', { auth: 'none', method: 'POST' }).catch(e => e);
     expect(failure).toMatchObject({ kind: 'unauthorized', unauthorizedHandled: false, message: 'Bad credentials' });
     expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it('a 403 from the subscription gate is its own failure and tells the app to show the paywall', async () => {
+    fetchMock.mockResolvedValue(reply(403, { message: 'Subscription required.', code: 'subscription_required' }));
+    store.set('authToken', 'tok');
+    const onSubscriptionRequired = vi.fn();
+    setOnSubscriptionRequired(onSubscriptionRequired);
+    const failure = await request('/muscle-groups', { auth: 'bearer' }).catch(e => e);
+    expect(failure).toMatchObject({ kind: 'subscription_required', status: 403, message: 'Subscription required.' });
+    expect(onSubscriptionRequired).toHaveBeenCalledTimes(1);
+    expect(store.has('authToken')).toBe(true);
+  });
+
+  it('any other 403 is a plain http failure and does not touch the paywall hook', async () => {
+    fetchMock.mockResolvedValue(reply(403, { message: 'This action is unauthorized.' }));
+    const onSubscriptionRequired = vi.fn();
+    setOnSubscriptionRequired(onSubscriptionRequired);
+    expect(await request('/plans/9', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'http', status: 403 });
+    expect(onSubscriptionRequired).not.toHaveBeenCalled();
   });
 
   it('other statuses are http failures with their status; no answer at all is a network failure', async () => {

@@ -19,6 +19,14 @@ export type PlanType = 'routine' | 'program';
 // USER RESOURCES
 // ============================================
 
+export interface SubscriptionResource {
+  status: 'active' | 'cancelled' | 'expired' | 'billing_issue' | 'paused' | null;
+  expires_at: string | null;
+  is_trial: boolean;
+  is_sponsored_by_gym: boolean;
+  grace_period_ends_at: string | null;
+}
+
 export interface UserResource {
   id: number;
   name: string;
@@ -32,6 +40,8 @@ export interface UserResource {
   // Global push switch (PATCH /notification-settings). Off ⇒ the server sends
   // nothing; registered Devices are kept.
   push_enabled: boolean;
+  entitlements: string[];
+  subscription: SubscriptionResource | null;
   created_at: string;
   updated_at: string;
 }
@@ -350,6 +360,10 @@ export interface WorkoutSessionExerciseResource {
   max_target_reps: number | null;
   progression_status: 'no_history' | 'below_min' | 'working' | 'ready';
   target_weight: number | null; // formatted for the user's unit_system
+  /** The equipment step behind target_weight (what a raise adds), in the user's unit; null for bodyweight. */
+  weight_step: number | null;
+  /** One step below target_weight, offered after a session that was too hard; null when there is none. */
+  target_weight_lowered: number | null;
   total_reps_previous: number | null;
   total_reps_target: number | null;
   rest_seconds: number | null;
@@ -369,10 +383,18 @@ export interface SetLogResource {
   created_at: string;
   updated_at: string;
 }
+/** The user's best set ever on an exercise: the highest estimated one-rep max, reps deciding a tie. */
+export interface BestSetResource {
+  weight: number; // formatted for the user's unit_system; 0 for bodyweight
+  reps: number;
+  performed_at: string;
+}
 export interface SessionExerciseDetail {
   session_exercise: WorkoutSessionExerciseResource;
   logged_sets: SetLogResource[];
   previous_sets: SetLogResource[];
+  /** Before this session; null without completed history. */
+  best_set: BestSetResource | null;
   is_completed: boolean;
 }
 export interface SessionProgress {

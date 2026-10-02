@@ -3,7 +3,7 @@ export { ProgramDashboard } from './ProgramDashboard';
 export { QuickStartCard } from './QuickStartCard';
 export { WorkoutCardSmall } from './WorkoutCardSmall';
 export { CreateCustomPlanCard } from './CreateCustomPlanCard';
-export { AIGeneratorCard } from './AIGeneratorCard';
+export { WorkoutGeneratorCard } from './WorkoutGeneratorCard';
 export { ProgramControls } from './ProgramControls';
 export { DaySelector } from './DaySelector';
 export { WorkoutTemplateSelector } from './WorkoutTemplateSelector';

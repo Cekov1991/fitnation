@@ -21,8 +21,20 @@ export function onboardingReducer(state: OnboardingState, action: OnboardingActi
       return { ...state, currentStep: Math.min(state.currentStep + 1, TOTAL_STEPS) }
     case 'BACK':
       return { ...state, currentStep: Math.max(state.currentStep - 1, FIRST_STEP) }
-    case 'SET':
-      return { ...state, ...action.payload }
+    case 'SET': {
+      // Height and weight are typed in the unit shown and the client converts
+      // nothing (spec 0001), so a unit switch cannot carry the numbers over:
+      // "175" would silently turn into 175 in and the server would reject it.
+      // Clear them so they are re-typed in the new unit; the fields' own
+      // placeholders show a plausible value. Numbers sent along with the switch
+      // (payload last) still win.
+      const switchesUnit =
+        action.payload.unit_system !== undefined &&
+        action.payload.unit_system !== (state.unit_system ?? 'metric')
+      return switchesUnit
+        ? { ...state, height: undefined, weight: undefined, ...action.payload }
+        : { ...state, ...action.payload }
+    }
     default:
       return state
   }
