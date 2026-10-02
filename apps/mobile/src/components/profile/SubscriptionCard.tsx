@@ -1,29 +1,21 @@
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native'
 import { CreditCard, ExternalLink, Sparkles } from 'lucide-react-native'
-import { formatDate, withAlpha } from '@fit-nation/shared'
-import type { SubscriptionResource } from '@fit-nation/shared'
+import { withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { Card } from '../ui/Card'
 import { Button, BUTTON, useButtonContentColor } from '../ui/Button'
 import { RADIUS } from '../../constants/layout'
 import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
+import { subscriptionCopy } from './subscriptionCopy'
 
 /**
- * The Profile hub's subscription block: what grants access today (a plan, a
- * trial, the gym), when it renews or ends, and the one way to act on it —
- * the store's subscription page for a paid plan, the paywall when there is
- * no access. Reads entitlements itself; the screen only says where "See
- * Plans" goes.
+ * The subscription block: what grants access today (a plan, a trial, the
+ * gym), when it renews or ends, and the way to act on it — the paywall when
+ * there is no access, the store's subscription page for a paid plan. Reads
+ * entitlements itself; the screen says where "See Plans" goes and whether
+ * managing belongs here.
  */
 export const SUBSCRIPTION_CARD = { tile: 36, icon: 18 } as const
-
-const STATUS_LABELS: Record<NonNullable<SubscriptionResource['status']>, string> = {
-  active: 'Active',
-  billing_issue: 'Payment failed',
-  cancelled: 'Cancelled',
-  expired: 'Expired',
-  paused: 'Paused',
-}
 
 const STORE_SUBSCRIPTIONS_URL =
   Platform.OS === 'ios'
@@ -33,40 +25,21 @@ const STORE_SUBSCRIPTIONS_URL =
 interface SubscriptionCardProps {
   /** Opens the paywall. Shown only when the user has no app access. */
   onSeePlans?: () => void
+  /**
+   * Offer "Manage Subscription" (the store page, where a plan is changed or
+   * cancelled) when a paid plan exists. The Profile tab passes false: there
+   * the card is the way in, and managing lives under Account → Subscription.
+   */
+  manage?: boolean
 }
 
-export function SubscriptionCard({ onSeePlans }: SubscriptionCardProps) {
+export function SubscriptionCard({ onSeePlans, manage = true }: SubscriptionCardProps) {
   const { colors } = useTheme()
   const secondaryContent = useButtonContentColor('secondary')
   const { subscription, has } = useEntitlements()
   const hasAccess = has(Entitlement.AppAccess)
-  const isSponsored = subscription?.is_sponsored_by_gym ?? false
-  const status = subscription?.status ?? null
-
-  const title = isSponsored
-    ? 'Gym-sponsored access'
-    : subscription?.is_trial
-      ? 'Free trial'
-      : status
-        ? 'Premium subscription'
-        : 'No active plan'
-
-  const summary = isSponsored
-    ? 'Provided through your gym.'
-    : status
-      ? [
-          STATUS_LABELS[status],
-          subscription?.expires_at
-            ? `${status === 'cancelled' || status === 'expired' ? 'Access until' : 'Renews'} ${formatDate(subscription.expires_at, 'long')}`
-            : null,
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : hasAccess
-        ? 'Included for now.'
-        : 'Subscribe to unlock workouts, plans and progress tracking.'
-
-  const Icon = isSponsored ? Sparkles : CreditCard
+  const copy = subscriptionCopy(subscription, hasAccess)
+  const Icon = copy.isSponsored ? Sparkles : CreditCard
 
   return (
     <Card style={[styles.card, { borderColor: colors.border }]}>
@@ -75,12 +48,12 @@ export function SubscriptionCard({ onSeePlans }: SubscriptionCardProps) {
           <Icon size={SUBSCRIPTION_CARD.icon} color={colors.primary} />
         </View>
         <View style={styles.text}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
-          <Text style={[styles.summary, { color: colors.textMuted }]}>{summary}</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{copy.title}</Text>
+          <Text style={[styles.summary, { color: colors.textMuted }]}>{copy.summary}</Text>
         </View>
       </View>
 
-      {status && !isSponsored && (
+      {manage && copy.manageable && (
         <Button
           variant="secondary"
           size="sm"

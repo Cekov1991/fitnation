@@ -51,6 +51,7 @@ export type AppStackParamList = {
   CreatePlan: undefined
   EditPlan: { planId: number }
   EditProfileSection: { section: ProfileSectionKey }
+  Subscription: undefined
   CreateWorkout: { planId?: number; planName?: string } | undefined
   EditWorkout: { templateId: number }
   ManageExercises: { templateId: number }

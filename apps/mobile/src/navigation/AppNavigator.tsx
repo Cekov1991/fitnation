@@ -19,6 +19,7 @@ import { WorkoutPreviewExercisePickerScreen } from '../screens/placeholders/Work
 import { CreatePlanScreen } from '../screens/placeholders/CreatePlanScreen'
 import { EditPlanScreen } from '../screens/placeholders/EditPlanScreen'
 import { EditProfileSectionScreen } from '../screens/placeholders/EditProfileSectionScreen'
+import { SubscriptionScreen } from '../screens/placeholders/SubscriptionScreen'
 import { CreateWorkoutScreen } from '../screens/placeholders/CreateWorkoutScreen'
 import { EditWorkoutScreen } from '../screens/placeholders/EditWorkoutScreen'
 import { ManageExercisesScreen } from '../screens/placeholders/ManageExercisesScreen'
@@ -108,6 +109,7 @@ export function AppNavigator({ launchReady }: AppNavigatorProps) {
       <Stack.Screen name="CreatePlan" component={CreatePlanScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="EditPlan" component={EditPlanScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="EditProfileSection" component={EditProfileSectionScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="EditWorkout" component={EditWorkoutScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="ManageExercises" component={ManageExercisesScreen} options={{ animation: 'slide_from_right' }} />
