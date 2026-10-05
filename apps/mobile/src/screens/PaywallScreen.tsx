@@ -13,7 +13,8 @@ import { Card } from '../components/ui/Card'
 import { ErrorState } from '../components/ui/ErrorState'
 import { SectionLabel } from '../components/ui/SectionLabel'
 import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
-import { Entitlement } from '../hooks/useEntitlements'
+import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
+import { paywallHero } from './paywallCopy'
 import { showToast } from '../lib/toast'
 import type { AppScreenProps } from '../navigation/types'
 
@@ -36,6 +37,7 @@ const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } a
 export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   const { colors } = useTheme()
   const { logout } = useAuth()
+  const { subscription } = useEntitlements()
   const queryClient = useQueryClient()
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([])
@@ -154,11 +156,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
       : !!selectedPkg.product.introPrice && trialEligibility[selectedPkg.product.identifier] === true
     : false
 
-  const headline = selectedHasTrial ? 'Start Your 7-Day Free Trial' : 'Unlock Your Full Potential'
-  const subheadline = selectedHasTrial
-    ? 'Full access to everything, free for 7 days. Cancel anytime before it ends.'
-    : 'Full access to personalized training, the exercise library and progress tracking.'
-  const ctaLabel = selectedHasTrial ? 'Start 7-Day Free Trial' : 'Subscribe Now'
+  const { headline, subheadline, ctaLabel } = paywallHero(selectedHasTrial, subscription)
 
   const signOut = <Button variant="ghost" label="Sign Out" onPress={() => logout()} />
 
