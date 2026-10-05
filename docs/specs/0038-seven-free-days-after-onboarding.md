@@ -1,6 +1,6 @@
 # Feature: Seven free days after onboarding, then the paywall (backend, mobile, stores)
 
-Status: in progress — implemented on `dev` in both repos 2026-10-05, uncommitted, waiting for Kiril's review
+Status: done on `dev` — backend `0cc6a76`, app `2581bd2`, verified on the emulator against dev 2026-10-05; reaches `main` with the dev → main PRs
 Origin: Kiril, 2026-10-05 — "user downloads the app, registers, finishes onboarding and
 gets 7 days without leaving a card; when the 7 days expire we show the paywall."
 Scope: `fitnation-backend` (`dev`), `apps/mobile`, the two store consoles. The web app

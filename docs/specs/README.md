@@ -63,7 +63,7 @@ a dependency order.
 | 0035 | Feature | One place to customise the personalised plan (mobile) | done | mobile |
 | 0036 | Feature | Exercise filters as two dropdowns (mobile) | done | mobile |
 | 0037 | Feature | Session Details as a summary card with collapsible exercises (mobile) | in progress | mobile, shared |
-| 0038 | Feature | Seven free days after onboarding, then the paywall | in progress | back-end, mobile, stores |
+| 0038 | Feature | Seven free days after onboarding, then the paywall | done on `dev` (2026-10-05) | back-end, mobile, stores |
 
 ### Suggested order
 
