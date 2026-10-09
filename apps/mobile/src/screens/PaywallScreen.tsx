@@ -14,7 +14,7 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { SectionLabel } from '../components/ui/SectionLabel'
 import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
-import { paywallHero, purchaseOutcomeMessage } from './paywallCopy'
+import { paywallHero, purchaseOutcomeMessage, type PurchaseAction } from './paywallCopy'
 import { runPurchaseFlow, type PurchaseFlowResult } from '../lib/purchaseFlow'
 import { revenueCatIdentity } from '../lib/revenuecat'
 import { showToast } from '../lib/toast'
@@ -90,7 +90,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
    * must hold this user, then the backend syncs and we wait (~10 s at most) for
    * /user to agree before entering. Toasts any outcome that doesn't enter.
    */
-  async function runFlow(action: 'purchase' | 'restore', transact: () => Promise<boolean>): Promise<void> {
+  async function runFlow(action: PurchaseAction, transact: () => Promise<boolean>): Promise<void> {
     const result: PurchaseFlowResult = user
       ? await runPurchaseFlow({
           userId: user.id,

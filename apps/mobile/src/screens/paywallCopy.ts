@@ -35,13 +35,15 @@ export function paywallHero(
   }
 }
 
+export type PurchaseAction = 'purchase' | 'restore'
+
 /**
  * The toast after a purchase or restore, by the purchase flow's outcome; null
  * when the user simply goes in. A purchase the store completed without granting
  * `app_access` (026/12) is pointed at Restore rather than left silent.
  */
 export function purchaseOutcomeMessage(
-  action: 'purchase' | 'restore',
+  action: PurchaseAction,
   outcome: PurchaseFlowResult['kind'],
 ): string | null {
   switch (outcome) {

@@ -83,9 +83,9 @@ export function normaliseFieldErrors(raw: unknown): Record<string, string[]> {
 }
 
 /** How long a request may go unanswered before it fails as `timeout`. */
-export const DEFAULT_TIMEOUT_MS = 15_000;
+const DEFAULT_TIMEOUT_MS = 15_000;
 /** A multipart upload (photo, exercise video) gets longer on a slow connection. */
-export const UPLOAD_TIMEOUT_MS = 120_000;
+const UPLOAD_TIMEOUT_MS = 120_000;
 
 export interface RequestOptions extends RequestInit {
   /** `bearer` sends the stored token and treats a rejected one as a sign-out; `none` sends nothing. */
@@ -99,8 +99,9 @@ export async function request<T>(url: string, { auth, timeoutMs, ...init }: Requ
     Accept: 'application/json',
     ...(init.headers as Record<string, string> | undefined),
   };
+  const isUpload = init.body instanceof FormData;
   // FormData sets its own multipart boundary.
-  if (!(init.body instanceof FormData) && !('Content-Type' in headers)) {
+  if (!isUpload && !('Content-Type' in headers)) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -111,7 +112,7 @@ export async function request<T>(url: string, { auth, timeoutMs, ...init }: Requ
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const limit = timeoutMs ?? (init.body instanceof FormData ? UPLOAD_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
+  const limit = timeoutMs ?? (isUpload ? UPLOAD_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
   const { response, text } = await fetchWithin(`${getConfig().baseUrl}${url}`, { ...init, headers }, limit);
 
   if (!response.ok) {
@@ -170,7 +171,13 @@ async function fetchWithin(url: string, init: RequestInit, limit: number): Promi
 
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
-    return { response, text: await response.text() };
+    try {
+      return { response, text: await response.text() };
+    } catch (cause) {
+      // An error status is the answer even if its body is lost: a 401 must still sign out.
+      if (!response.ok) return { response, text: '' };
+      throw cause;
+    }
   } catch (cause) {
     if (timedOut) throw new ApiFailure('timeout', 'The server took too long to answer.', { cause });
     throw new ApiFailure('network', 'Could not reach the server.', { cause });

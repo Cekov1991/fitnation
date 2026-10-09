@@ -109,6 +109,16 @@ describe('request', () => {
     expect(await request('/o', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'network', status: null });
   });
 
+  it('an error status still counts when its body cannot be read', async () => {
+    const brokenBody = () => new ReadableStream({ start: c => c.error(new TypeError('connection reset')) });
+    fetchMock.mockImplementation(() => Promise.resolve(new Response(brokenBody(), { status: 401 })));
+    store.set('authToken', 'stale');
+    const onUnauthorized = vi.fn();
+    setOnUnauthorized(onUnauthorized);
+    expect(await request('/me', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'unauthorized', unauthorizedHandled: true });
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+
   /** A fetch that never answers on its own; it rejects like the platform's when its signal aborts. */
   const hangingFetch = () =>
     fetchMock.mockImplementation(
