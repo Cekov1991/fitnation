@@ -1,5 +1,5 @@
 import { formatDate } from '@fit-nation/shared'
-import type { SubscriptionResource } from '@fit-nation/shared'
+import type { FreeAccessKind, SubscriptionResource } from '@fit-nation/shared'
 
 /**
  * The words for a subscription state, shared by the Profile tab's card, the
@@ -18,10 +18,14 @@ export const SUBSCRIPTION_STATUS_LABELS: Record<NonNullable<SubscriptionResource
 export interface SubscriptionCopy {
   title: string
   summary: string
+  /** Title and summary as one line, for a row that has room for one (Account → Subscription). */
+  line: string
   isSponsored: boolean
-  /** The sign-up trial (spec 0038): free days with no store plan behind them. */
-  isTrial: boolean
+  /** The Free Access granting access today — Signup Trial or Complimentary Access — or null. */
+  freeAccess: FreeAccessKind | null
   manageable: boolean
+  /** False while subscriptions are not enforced: there is no card to show (026). */
+  shown: boolean
 }
 
 /**
@@ -35,33 +39,39 @@ export function trialDaysLeft(endsAt: string, now: Date = new Date()): number {
 
 /**
  * A store plan that still counts: any status but expired, and not past its
- * expiry. A plan that has lapsed is history — it must not hide a trial that
- * is granting access now, nor claim the paywall from a trial that ended after it.
+ * expiry. A plan that has lapsed is history — it must not hide Free Access
+ * that is granting access now, nor claim the paywall from a trial that ended after it.
  */
 export function storePlanIsCurrent(subscription: SubscriptionResource | null | undefined, now: Date = new Date()): boolean {
   if (!subscription?.status || subscription.status === 'expired') return false
   return !subscription.expires_at || new Date(subscription.expires_at).getTime() > now.getTime()
 }
 
-/** True while the sign-up trial grants access: a future date and no current store plan. */
+/**
+ * The kind of Free Access granting access now — a future date, no gym and no
+ * current store plan — or null. A date without a kind reads as Complimentary
+ * Access, as the backend reads it.
+ */
+function runningFreeAccess(subscription: SubscriptionResource | null | undefined, now: Date): FreeAccessKind | null {
+  if (!subscription?.grace_period_ends_at || subscription.is_sponsored_by_gym || storePlanIsCurrent(subscription, now)) return null
+  if (new Date(subscription.grace_period_ends_at).getTime() <= now.getTime()) return null
+  return subscription.free_access_kind ?? 'complimentary'
+}
+
+/** True while the Signup Trial grants access: a future date and no current store plan. */
 export function isSignupTrialActive(subscription: SubscriptionResource | null | undefined, now: Date = new Date()): boolean {
-  return (
-    !subscription?.is_sponsored_by_gym &&
-    !storePlanIsCurrent(subscription, now) &&
-    !!subscription?.grace_period_ends_at &&
-    new Date(subscription.grace_period_ends_at).getTime() > now.getTime()
-  )
+  return runningFreeAccess(subscription, now) === 'signup_trial'
 }
 
 /**
- * True once the sign-up trial has run out and nothing took over: no current
+ * True once the Signup Trial has run out and nothing took over: no current
  * store plan, and no lapsed plan that outlived the trial (a former subscriber
  * whose plan ended after the free days is sold the subscription, not told
- * about a trial).
+ * about a trial). Ended Complimentary Access is never a trial.
  */
 export function hasSignupTrialEnded(subscription: SubscriptionResource | null | undefined, now: Date = new Date()): boolean {
   if (subscription?.is_sponsored_by_gym || storePlanIsCurrent(subscription, now)) return false
-  if (!subscription?.grace_period_ends_at) return false
+  if (subscription?.free_access_kind !== 'signup_trial' || !subscription.grace_period_ends_at) return false
   const trialEnd = new Date(subscription.grace_period_ends_at).getTime()
   if (trialEnd > now.getTime()) return false
   const planEnd = subscription.expires_at ? new Date(subscription.expires_at).getTime() : 0
@@ -73,18 +83,23 @@ export function subscriptionCopy(
   hasAccess: boolean,
   now: Date = new Date(),
 ): SubscriptionCopy {
+  // While not enforced, Free Access is not a countdown to anything (026).
+  const enforced = subscription?.enforced !== false
   const isSponsored = subscription?.is_sponsored_by_gym ?? false
-  const isTrial = isSignupTrialActive(subscription, now)
-  // A lapsed plan is still described (status, access until) — unless a trial is running.
-  const status = isTrial ? null : (subscription?.status ?? null)
+  const freeAccess = enforced ? runningFreeAccess(subscription, now) : null
+  const endsAt = subscription?.grace_period_ends_at ?? ''
+  // A lapsed plan is still described (status, access until) — unless Free Access is running.
+  const status = freeAccess ? null : (subscription?.status ?? null)
 
   const title = isSponsored
     ? 'Gym-sponsored access'
-    : subscription?.is_trial || isTrial
-      ? 'Free trial'
-      : status
-        ? 'Premium subscription'
-        : 'No active plan'
+    : freeAccess === 'complimentary'
+      ? 'Free access'
+      : subscription?.is_trial || freeAccess === 'signup_trial'
+        ? 'Free trial'
+        : status
+          ? 'Premium subscription'
+          : 'No active plan'
 
   const summary = isSponsored
     ? 'Provided through your gym.'
@@ -97,21 +112,31 @@ export function subscriptionCopy(
         ]
           .filter(Boolean)
           .join(' · ')
-      : isTrial
-        ? trialSummary(subscription!.grace_period_ends_at!, now)
-        : hasAccess
-          ? 'Included for now.'
-          : 'Subscribe to unlock workouts, plans and progress tracking.'
+      : freeAccess === 'signup_trial'
+        ? daysLeft(endsAt, now)
+        : freeAccess === 'complimentary'
+          ? `Until ${formatDate(endsAt, 'long')}`
+          : hasAccess
+            ? 'Included for now.'
+            : 'Subscribe to unlock workouts, plans and progress tracking.'
 
-  return { title, summary, isSponsored, isTrial, manageable: !!status && !isSponsored }
+  const manageable = !!status && !isSponsored
+  const line = manageable
+    ? summary
+    : freeAccess === 'signup_trial'
+      ? `${title} · ${summary}`
+      : freeAccess === 'complimentary'
+        ? `Free access until ${formatDate(endsAt, 'long')}`
+        : title
+
+  return { title, summary, line, isSponsored, freeAccess, manageable, shown: enforced }
 }
 
-/** `Ends Oct 12, 2026 · 7 days left`, then `Ends tomorrow`, then `Ends today`. */
-function trialSummary(endsAt: string, now: Date): string {
+/** `7 days left`, then `1 day left`, then `Ends today`. */
+function daysLeft(endsAt: string, now: Date): string {
   const days = trialDaysLeft(endsAt, now)
   if (days <= 0) return 'Ends today'
-  if (days === 1) return 'Ends tomorrow'
-  return `Ends ${formatDate(endsAt, 'long')} · ${days} days left`
+  return `${days} ${days === 1 ? 'day' : 'days'} left`
 }
 
 /**
@@ -121,8 +146,9 @@ function trialSummary(endsAt: string, now: Date): string {
  */
 export function subscriptionIntro(copy: SubscriptionCopy, storeName: string): string {
   if (copy.isSponsored) return 'Your access is provided through your gym, so there is no plan to manage here.'
-  if (copy.isTrial) {
-    return `Your free trial is on. When it ends, plans are billed through ${storeName} and can be changed or cancelled there.`
+  if (copy.freeAccess) {
+    const lead = copy.freeAccess === 'signup_trial' ? 'Your free trial is on.' : 'You have free access for now.'
+    return `${lead} When it ends, plans are billed through ${storeName} and can be changed or cancelled there.`
   }
   if (copy.manageable) {
     return `Plans are billed through ${storeName}. Changing or cancelling happens there, and your access runs to the end of the period you have paid for.`

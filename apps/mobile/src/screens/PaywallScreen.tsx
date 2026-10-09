@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Purchases, { type CustomerInfo, type PurchasesPackage, INTRO_ELIGIBILITY_STATUS, PURCHASES_ERROR_CODE } from 'react-native-purchases'
+import Purchases, { type CustomerInfo, type PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases'
 import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Zap } from 'lucide-react-native'
 import { privacyPolicy, termsOfService } from '@fit-nation/legal'
@@ -46,7 +46,6 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([])
   const [selectedPkg, setSelectedPkg] = useState<PurchasesPackage | null>(null)
-  const [trialEligibility, setTrialEligibility] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   const [restoring, setRestoring] = useState(false)
@@ -75,22 +74,6 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   useEffect(() => {
     loadOfferings()
   }, [loadOfferings])
-
-  useEffect(() => {
-    // iOS only — on Android this API always returns UNKNOWN; trial presence
-    // there is read from the product's default option instead (see below).
-    if (Platform.OS !== 'ios' || packages.length === 0) return
-    const ids = packages.map(p => p.product.identifier)
-    Purchases.checkTrialOrIntroductoryPriceEligibility(ids)
-      .then(result => {
-        const map: Record<string, boolean> = {}
-        for (const [id, info] of Object.entries(result)) {
-          map[id] = info.status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE
-        }
-        setTrialEligibility(map)
-      })
-      .catch(() => {})
-  }, [packages])
 
   // Both entitlement sources, then straight to Tabs. EntitlementWatcher would
   // get there too once the user query lands; the reset just makes it instant.
@@ -168,17 +151,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
       ? Math.round((1 - annualPkg.product.price / 12 / monthlyPkg.product.price) * 100)
       : 0
 
-  // iOS: introPrice + the eligibility API (reliable there). Android: the
-  // eligibility API is useless (UNKNOWN), but Play already tailors returned
-  // offers to the current user — a free phase on the default option means a
-  // trial is genuinely on offer.
-  const selectedHasTrial = selectedPkg
-    ? Platform.OS === 'android'
-      ? selectedPkg.product.defaultOption?.freePhase != null
-      : !!selectedPkg.product.introPrice && trialEligibility[selectedPkg.product.identifier] === true
-    : false
-
-  const { headline, subheadline, ctaLabel } = paywallHero(selectedHasTrial, subscription)
+  const { headline, subheadline, ctaLabel } = paywallHero(subscription)
 
   const signOut = <Button variant="ghost" label="Sign Out" onPress={() => logout()} />
 

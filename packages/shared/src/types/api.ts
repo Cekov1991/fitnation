@@ -24,8 +24,31 @@ export interface SubscriptionResource {
   expires_at: string | null;
   is_trial: boolean;
   is_sponsored_by_gym: boolean;
+  /** Until-date of the user's Free Access (either kind); may be past. */
   grace_period_ends_at: string | null;
+  /** Where today's access comes from (the backend's Access Source); the same whether enforced or not. */
+  access_source: AccessSource;
+  /** Why the user has (or had) Free Access; null only when `grace_period_ends_at` is null. Outlives the date. */
+  free_access_kind: FreeAccessKind | null;
+  /** Whether subscriptions are enforced. While false everyone gets in and no trial countdown is shown. */
+  enforced: boolean;
+  /** The configured Signup Trial length in days; 0 = no Signup Trial. */
+  signup_trial_days: number;
 }
+
+export type AccessSource =
+  | 'subscribed'
+  | 'trial'
+  | 'cancelled'
+  | 'billing_issue'
+  | 'paused'
+  | 'sponsored'
+  | 'signup_trial'
+  | 'complimentary'
+  | 'none';
+
+/** Signup Trial (every new user, once) or Complimentary Access (an admin grant). */
+export type FreeAccessKind = 'signup_trial' | 'complimentary';
 
 export interface UserResource {
   id: number;

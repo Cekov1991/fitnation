@@ -196,7 +196,7 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
                 <ProfileSectionRow
                   icon={CreditCard}
                   title="Subscription"
-                  summary={plan.manageable ? plan.summary : plan.isTrial ? `${plan.title} · ${plan.summary}` : plan.title}
+                  summary={plan.line}
                   first
                   onPress={() => navigation.navigate('Subscription')}
                 />

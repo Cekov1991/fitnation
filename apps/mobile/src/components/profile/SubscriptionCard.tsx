@@ -9,7 +9,7 @@ import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
 import { subscriptionCopy } from './subscriptionCopy'
 
 /**
- * The subscription block: what grants access today (a plan, a trial, the
+ * The subscription block: what grants access today (a plan, Free Access, the
  * gym), when it renews or ends, and the way to act on it — the paywall when
  * there is no access, the store's subscription page for a paid plan. Reads
  * entitlements itself; the screen says where "See Plans" goes and whether
@@ -43,6 +43,8 @@ export function SubscriptionCard({ onSeePlans, manage = true }: SubscriptionCard
   const hasAccess = has(Entitlement.AppAccess)
   const copy = subscriptionCopy(subscription, hasAccess)
   const Icon = copy.isSponsored ? Sparkles : CreditCard
+  // No card at all while subscriptions are not enforced (026).
+  if (!copy.shown) return null
 
   return (
     <Card style={[styles.card, { borderColor: colors.border }]}>
