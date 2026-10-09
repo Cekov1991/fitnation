@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ApiFailure, type UserResource } from '@fit-nation/shared'
-import { createSubscriptionRecovery, mutationErrorMessage, SYNC_COOLDOWN_MS, type SubscriptionRecoveryDeps } from './subscriptionRecovery'
+import { createSubscriptionRecovery, SYNC_COOLDOWN_MS, type SubscriptionRecoveryDeps } from './subscriptionRecovery'
 
 const paid = { id: 7, entitlements: ['app_access'] } as unknown as UserResource
 const unpaid = { id: 7, entitlements: [] } as unknown as UserResource
@@ -98,23 +98,5 @@ describe('subscription_required recovery', () => {
     const { deps, recover } = setup({ sync: vi.fn(async () => ({ user: bare })) })
     expect(await recover()).toBe('refused')
     expect(deps.onRecovered).not.toHaveBeenCalled()
-  })
-})
-
-// Decision 2026-10-09 (Q2): a mutation caught by the gate is never retried for the user; it says try again.
-describe('mutationErrorMessage', () => {
-  it('turns subscription_required into a plain try-again', () => {
-    expect(mutationErrorMessage(new ApiFailure('subscription_required', 'Subscription required.', { status: 403 })))
-      .toBe('Something went wrong — try again.')
-  })
-
-  it('keeps any other failure message', () => {
-    expect(mutationErrorMessage(new ApiFailure('validation', 'The name field is required.', { status: 422 })))
-      .toBe('The name field is required.')
-    expect(mutationErrorMessage(new Error('Boom'))).toBe('Boom')
-  })
-
-  it('falls back when nothing readable was thrown', () => {
-    expect(mutationErrorMessage(undefined)).toBe('Something went wrong')
   })
 })

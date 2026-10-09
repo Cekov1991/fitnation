@@ -1,4 +1,4 @@
-import { isApiFailure, type UserResource } from '@fit-nation/shared'
+import type { UserResource } from '@fit-nation/shared'
 import { hasBackendAppAccess } from '../navigation/gate'
 
 export interface SubscriptionRecoveryDeps {
@@ -78,16 +78,4 @@ export function createSubscriptionRecovery(deps: SubscriptionRecoveryDeps): () =
     inFlight ??= run().finally(() => { inFlight = null })
     return inFlight
   }
-}
-
-/**
- * What the global mutation toast says. A mutation the gate answered with
- * `subscription_required` is not retried — recovery runs behind it, and the
- * user may be on their way to the paywall — so it reads as a plain, retryable
- * failure rather than the server's "Subscription required." (decision
- * 2026-10-09, ticket 13).
- */
-export function mutationErrorMessage(error: unknown): string {
-  if (isApiFailure(error) && error.kind === 'subscription_required') return 'Something went wrong — try again.'
-  return error instanceof Error ? error.message : 'Something went wrong'
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { entitlementReroute, entryRoute, gateEntitlements, gateRoute, hasBackendAppAccess } from './gate'
+import { entitlementReroute, entryRoute, gateEntitlements, gateRoute, hasBackendAppAccess, purchaseLiftsRefusal } from './gate'
 
 const verified = { email_verified_at: '2026-10-02T10:00:00Z', onboarding_completed_at: null }
 const onboarded = { ...verified, onboarding_completed_at: '2026-10-02T10:05:00Z' }
@@ -41,6 +41,21 @@ describe('gateEntitlements', () => {
 
   it('lets the backend grant through a refusal', () => {
     expect(gateEntitlements({ backend: ['app_access'], store: ['app_access'], backendRefused: true })).toEqual(['app_access'])
+  })
+})
+
+describe('purchaseLiftsRefusal', () => {
+  it('lifts when the backend grants after the purchase or restore', () => {
+    expect(purchaseLiftsRefusal({ entitlements: ['app_access'] })).toBe(true)
+  })
+
+  it('lifts when no backend answer was seen (fallback: trust RevenueCat)', () => {
+    expect(purchaseLiftsRefusal(null)).toBe(true)
+  })
+
+  // Otherwise Restore would enter Tabs on RevenueCat's word, 403, and bounce back.
+  it('keeps the refusal when the backend answered and still grants nothing', () => {
+    expect(purchaseLiftsRefusal({ entitlements: [] })).toBe(false)
   })
 })
 

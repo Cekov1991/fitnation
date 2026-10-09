@@ -89,7 +89,8 @@ describe('request', () => {
     const onSubscriptionRequired = vi.fn();
     setOnSubscriptionRequired(onSubscriptionRequired);
     const failure = await request('/muscle-groups', { auth: 'bearer' }).catch(e => e);
-    expect(failure).toMatchObject({ kind: 'subscription_required', status: 403, message: 'Subscription required.' });
+    // Mobile 026/13: whatever surfaces this (a toast, an inline error) reads as a plain retryable failure.
+    expect(failure).toMatchObject({ kind: 'subscription_required', status: 403, message: 'Something went wrong — try again.' });
     expect(onSubscriptionRequired).toHaveBeenCalledTimes(1);
     expect(store.has('authToken')).toBe(true);
   });

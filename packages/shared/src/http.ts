@@ -20,7 +20,7 @@ export type ApiFailureKind =
   | 'validation'
   /** 401: the token was rejected; `unauthorizedHandled` says whether it was already cleared. */
   | 'unauthorized'
-  /** 403 with `code: subscription_required`: the subscription gate; the app has been told to show the paywall. */
+  /** 403 with `code: subscription_required`: the subscription gate; the app has been told. Never retried automatically. */
   | 'subscription_required'
   /** Any other non-2xx, with its status. */
   | 'http'
@@ -82,6 +82,9 @@ export function normaliseFieldErrors(raw: unknown): Record<string, string[]> {
   return out;
 }
 
+/** What a `subscription_required` failure says to the user. */
+const SUBSCRIPTION_REQUIRED_MESSAGE = 'Something went wrong — try again.';
+
 /** How long a request may go unanswered before it fails as `timeout`. */
 const DEFAULT_TIMEOUT_MS = 15_000;
 /** A multipart upload (photo, exercise video) gets longer on a slow connection. */
@@ -138,10 +141,12 @@ export async function request<T>(url: string, { auth, timeoutMs, ...init }: Requ
     }
     if (response.status === 403 && body.code === 'subscription_required') {
       // Entitlements changed server-side (expiry, refund) while the client
-      // still granted access. Tell the app so it refreshes and shows the
-      // paywall instead of a generic error.
+      // still granted access. Tell the app so it recovers or shows the
+      // paywall. The failure itself reads as a plain retryable error wherever
+      // a screen surfaces it, not the server's "Subscription required."
+      // (mobile 026/13): recovery may well let the next try through.
       await notifySubscriptionRequired();
-      throw new ApiFailure('subscription_required', message, { status: 403 });
+      throw new ApiFailure('subscription_required', SUBSCRIPTION_REQUIRED_MESSAGE, { status: 403 });
     }
     throw new ApiFailure('http', message, { status: response.status, errors: body.errors });
   }

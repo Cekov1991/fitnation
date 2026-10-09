@@ -16,6 +16,7 @@ import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
 import { paywallHero, purchaseOutcomeMessage, type PurchaseAction } from './paywallCopy'
 import { runPurchaseFlow, type PurchaseFlowResult } from '../lib/purchaseFlow'
+import { purchaseLiftsRefusal } from '../navigation/gate'
 import { revenueCatIdentity } from '../lib/revenuecat'
 import { showToast } from '../lib/toast'
 import type { AppScreenProps } from '../navigation/types'
@@ -40,7 +41,7 @@ const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } a
 
 export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   const { colors } = useTheme()
-  const { user, logout, setUser, liftBackendRefusal } = useAuth()
+  const { user, logout, setUser, backendRefused, liftBackendRefusal } = useAuth()
   const { subscription } = useEntitlements()
   const queryClient = useQueryClient()
 
@@ -102,14 +103,16 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
         })
       : { kind: 'identity-mismatch' }
     if (result.kind === 'entered') {
-      // A purchase or restore lifts a backend refusal (ticket 026/13): trust
-      // RevenueCat again until the next sync says otherwise.
-      liftBackendRefusal()
       if (result.user) setUser(result.user)
-      await enterApp()
-      return
+      // A purchase or restore lifts a backend refusal (ticket 026/13), unless
+      // the backend answered it and still grants nothing: then stay here.
+      if (!backendRefused || purchaseLiftsRefusal(result.user)) {
+        liftBackendRefusal()
+        await enterApp()
+        return
+      }
     }
-    const message = purchaseOutcomeMessage(action, result.kind)
+    const message = purchaseOutcomeMessage(action, result.kind === 'entered' ? 'not-granted' : result.kind)
     if (message) showToast(message, 'error')
   }
 

@@ -48,6 +48,17 @@ export function gateEntitlements({ backend, store, backendRefused }: {
   return Array.from(new Set(backendRefused ? backend : [...backend, ...store]))
 }
 
+/**
+ * Whether a purchase or restore that entered lifts a backend refusal, given
+ * the freshest backend user the flow saw. It does when the backend grants, or
+ * when no backend answer came (the fallback trusts RevenueCat); not when the
+ * backend answered and still grants nothing — entering on RevenueCat's word
+ * would only 403 and bounce back to the paywall.
+ */
+export function purchaseLiftsRefusal(user: Pick<UserResource, 'entitlements'> | null): boolean {
+  return user === null || hasBackendAppAccess(user)
+}
+
 // Screens that come before the paywall and must never be overridden by it.
 const BLOCKING_SCREENS: ReadonlySet<string> = new Set<EntryRoute>(['EmailVerification', 'Onboarding'])
 

@@ -61,8 +61,11 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [backendRefused, setBackendRefused] = useState(false)
-  const liftBackendRefusal = useCallback(() => setBackendRefused(false), [])
+  // The user the backend refused after a sync, so a refusal never outlives a
+  // change of account, not even for one render.
+  const [refusedUserId, setRefusedUserId] = useState<number | null>(null)
+  const backendRefused = refusedUserId !== null && refusedUserId === user?.id
+  const liftBackendRefusal = useCallback(() => setRefusedUserId(null), [])
   const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
 
@@ -95,14 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnUnauthorized(null)
   }, [queryClient, setUser])
 
-  // A `/user` with access, however it arrived (setUser, a refetch), lifts a
-  // backend refusal.
+  // New `/user` data with access, however it arrived (setUser, a refetch),
+  // lifts a backend refusal.
   useEffect(() => {
     const userHash = hashKey(queryKeys.user.current())
     return queryClient.getQueryCache().subscribe((event) => {
-      if (event.type === 'updated' && event.query.queryHash === userHash && hasBackendAppAccess(event.query.state.data as UserResource | undefined)) {
-        setBackendRefused(false)
-      }
+      if (event.type !== 'updated' || event.action.type !== 'success' || event.query.queryHash !== userHash) return
+      if (hasBackendAppAccess(event.query.state.data as UserResource | undefined)) setRefusedUserId(null)
     })
   }, [queryClient])
 
@@ -127,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       onRefused: (synced) => {
         if (!current) return
         setUser(synced)
-        setBackendRefused(true)
+        setRefusedUserId(synced.id)
       },
       onUnrecovered: () => {
         if (!current) return
@@ -141,7 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       current = false
       setOnSubscriptionRequired(null)
-      setBackendRefused(false)
     }
   }, [queryClient, setUser, userId])
 
