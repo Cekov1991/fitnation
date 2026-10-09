@@ -40,7 +40,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const insets = useSafeAreaInsets()
   // Read once, before the finish grants the Signup Trial and the refreshed
   // user stops qualifying for it mid-build.
-  const [trialOffer] = useState(() => signupTrialOffer(user))
+  const [signupTrialPromise] = useState(() => signupTrialOffer(user))
 
   // Pre-fill from existing profile so re-entrant users see their saved data
   const [state, dispatch] = useReducer(onboardingReducer, {
@@ -196,7 +196,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
         firstName={user?.name?.trim().split(' ')[0] ?? null}
         goalLabel={labelFor(FITNESS_GOAL_OPTIONS, state.fitness_goal)}
         days={state.training_days_per_week ?? 0}
-        trialOffer={trialOffer}
+        signupTrialPromise={signupTrialPromise}
         onRetry={() => submitMutation.mutate()}
         onBack={backToQuestions}
         onFinished={leaveOnboarding}
@@ -262,7 +262,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
 // ─── Step 4: Building your plan ──────────────────────────────────────────────
 
-function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, trialOffer, onRetry, onBack, onFinished, sheetVisible, onSheetClose }: {
+function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, signupTrialPromise, onRetry, onBack, onFinished, sheetVisible, onSheetClose }: {
   colors: ReturnType<typeof useTheme>['colors']
   phase: Phase
   errorMsg: string | null
@@ -270,7 +270,7 @@ function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, trialO
   goalLabel: string
   days: number
   /** "7 days free" when the finish starts a Signup Trial, else null. */
-  trialOffer: string | null
+  signupTrialPromise: string | null
   onRetry: () => void
   onBack: () => void
   onFinished: () => void
@@ -306,7 +306,10 @@ function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, trialO
       <PlanBuildingContent
         stage={phase === 'saving-profile' ? 'preparing' : phase === 'done' ? 'done' : 'building'}
         title="Building your plan"
-        subtitle={`A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.${trialOffer ? ` Then enjoy ${trialOffer}.` : ''}`}
+        subtitle={[
+          `A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.`,
+          signupTrialPromise && `Then enjoy ${signupTrialPromise}.`,
+        ].filter(Boolean).join(' ')}
         goalLabel={goalLabel}
         daysPerWeek={days}
       />

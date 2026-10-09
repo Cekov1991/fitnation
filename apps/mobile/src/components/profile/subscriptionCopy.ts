@@ -22,9 +22,9 @@ export interface SubscriptionCopy {
   line: string
   isSponsored: boolean
   /** The Free Access granting access today — Signup Trial or Complimentary Access — or null. */
-  freeAccess: FreeAccessKind | null
+  freeAccessKind: FreeAccessKind | null
   manageable: boolean
-  /** False while subscriptions are not enforced: there is no card to show (026). */
+  /** False while subscriptions are not enforced: the Profile tab shows no subscription card then (026). */
   shown: boolean
 }
 
@@ -58,7 +58,7 @@ function runningFreeAccess(subscription: SubscriptionResource | null | undefined
   return subscription.free_access_kind ?? 'complimentary'
 }
 
-/** True while the Signup Trial grants access: a future date and no current store plan. */
+/** True while the Signup Trial grants access: its date ahead, no gym and no current store plan. */
 export function isSignupTrialActive(subscription: SubscriptionResource | null | undefined, now: Date = new Date()): boolean {
   return runningFreeAccess(subscription, now) === 'signup_trial'
 }
@@ -86,16 +86,16 @@ export function subscriptionCopy(
   // While not enforced, Free Access is not a countdown to anything (026).
   const enforced = subscription?.enforced !== false
   const isSponsored = subscription?.is_sponsored_by_gym ?? false
-  const freeAccess = enforced ? runningFreeAccess(subscription, now) : null
+  const freeAccessKind = enforced ? runningFreeAccess(subscription, now) : null
   const endsAt = subscription?.grace_period_ends_at ?? ''
   // A lapsed plan is still described (status, access until) — unless Free Access is running.
-  const status = freeAccess ? null : (subscription?.status ?? null)
+  const status = freeAccessKind ? null : (subscription?.status ?? null)
 
   const title = isSponsored
     ? 'Gym-sponsored access'
-    : freeAccess === 'complimentary'
+    : freeAccessKind === 'complimentary'
       ? 'Free access'
-      : subscription?.is_trial || freeAccess === 'signup_trial'
+      : subscription?.is_trial || freeAccessKind === 'signup_trial'
         ? 'Free trial'
         : status
           ? 'Premium subscription'
@@ -112,9 +112,9 @@ export function subscriptionCopy(
         ]
           .filter(Boolean)
           .join(' · ')
-      : freeAccess === 'signup_trial'
+      : freeAccessKind === 'signup_trial'
         ? daysLeft(endsAt, now)
-        : freeAccess === 'complimentary'
+        : freeAccessKind === 'complimentary'
           ? `Until ${formatDate(endsAt, 'long')}`
           : hasAccess
             ? 'Included for now.'
@@ -123,13 +123,15 @@ export function subscriptionCopy(
   const manageable = !!status && !isSponsored
   const line = manageable
     ? summary
-    : freeAccess === 'signup_trial'
+    : freeAccessKind === 'signup_trial'
       ? `${title} · ${summary}`
-      : freeAccess === 'complimentary'
+      : freeAccessKind === 'complimentary'
         ? `Free access until ${formatDate(endsAt, 'long')}`
-        : title
+        : !isSponsored && !subscription?.is_trial && hasAccess
+          ? 'Included for now'
+          : title
 
-  return { title, summary, line, isSponsored, freeAccess, manageable, shown: enforced }
+  return { title, summary, line, isSponsored, freeAccessKind, manageable, shown: enforced }
 }
 
 /** `7 days left`, then `1 day left`, then `Ends today`. */
@@ -146,8 +148,8 @@ function daysLeft(endsAt: string, now: Date): string {
  */
 export function subscriptionIntro(copy: SubscriptionCopy, storeName: string): string {
   if (copy.isSponsored) return 'Your access is provided through your gym, so there is no plan to manage here.'
-  if (copy.freeAccess) {
-    const lead = copy.freeAccess === 'signup_trial' ? 'Your free trial is on.' : 'You have free access for now.'
+  if (copy.freeAccessKind) {
+    const lead = copy.freeAccessKind === 'signup_trial' ? 'Your free trial is on.' : 'You have free access for now.'
     return `${lead} When it ends, plans are billed through ${storeName} and can be changed or cancelled there.`
   }
   if (copy.manageable) {

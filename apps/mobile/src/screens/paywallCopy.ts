@@ -13,6 +13,9 @@ export interface PaywallHero {
  * Access — sells the subscription. The stores offer no free trial (026), so
  * the paywall never promises one.
  */
+/** No store trial is offered, so the CTA only ever subscribes. */
+const CTA_LABEL = 'Subscribe Now'
+
 export function paywallHero(
   subscription: SubscriptionResource | null | undefined,
   now: Date = new Date(),
@@ -21,12 +24,12 @@ export function paywallHero(
     return {
       headline: 'Your free trial has ended',
       subheadline: 'Subscribe to keep your plans, workouts and progress.',
-      ctaLabel: 'Subscribe Now',
+      ctaLabel: CTA_LABEL,
     }
   }
   return {
     headline: 'Unlock Your Full Potential',
     subheadline: 'Full access to personalized training, the exercise library and progress tracking.',
-    ctaLabel: 'Subscribe Now',
+    ctaLabel: CTA_LABEL,
   }
 }

@@ -43,8 +43,6 @@ export function SubscriptionCard({ onSeePlans, manage = true }: SubscriptionCard
   const hasAccess = has(Entitlement.AppAccess)
   const copy = subscriptionCopy(subscription, hasAccess)
   const Icon = copy.isSponsored ? Sparkles : CreditCard
-  // No card at all while subscriptions are not enforced (026).
-  if (!copy.shown) return null
 
   return (
     <Card style={[styles.card, { borderColor: colors.border }]}>

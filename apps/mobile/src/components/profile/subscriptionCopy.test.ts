@@ -28,7 +28,7 @@ describe('subscriptionCopy', () => {
       summary: 'Subscribe to unlock workouts, plans and progress tracking.',
       line: 'No active plan',
       isSponsored: false,
-      freeAccess: null,
+      freeAccessKind: null,
       manageable: false,
       shown: true,
     })
@@ -36,6 +36,7 @@ describe('subscriptionCopy', () => {
 
   it('no plan but access (grace, flag off): included for now', () => {
     expect(subscriptionCopy(sub({}), true).summary).toBe('Included for now.')
+    expect(subscriptionCopy(sub({ enforced: false }), true).line).toBe('Included for now')
   })
 
   it('a paid plan reads its status and renewal, and is manageable in the store', () => {
@@ -73,7 +74,7 @@ describe('subscriptionCopy', () => {
       summary: 'Provided through your gym.',
       line: 'Gym-sponsored access',
       isSponsored: true,
-      freeAccess: null,
+      freeAccessKind: null,
       manageable: false,
       shown: true,
     })
@@ -139,7 +140,7 @@ describe('subscriptionCopy for Free Access', () => {
     expect(copy.title).toBe('Free trial')
     expect(copy.summary).toBe('7 days left')
     expect(copy.line).toBe('Free trial · 7 days left')
-    expect(copy.freeAccess).toBe('signup_trial')
+    expect(copy.freeAccessKind).toBe('signup_trial')
     expect(copy.manageable).toBe(false)
     expect(copy.shown).toBe(true)
   })
@@ -154,7 +155,7 @@ describe('subscriptionCopy for Free Access', () => {
     expect(copy.title).toBe('Free access')
     expect(copy.summary).toBe('Until Oct 12, 2026')
     expect(copy.line).toBe('Free access until Oct 12, 2026')
-    expect(copy.freeAccess).toBe('complimentary')
+    expect(copy.freeAccessKind).toBe('complimentary')
     expect(copy.manageable).toBe(false)
   })
 
@@ -163,7 +164,7 @@ describe('subscriptionCopy for Free Access', () => {
       const copy = subscriptionCopy(s, false, new Date(2026, 9, 13))
       expect(copy.title).toBe('No active plan')
       expect(copy.summary).toBe('Subscribe to unlock workouts, plans and progress tracking.')
-      expect(copy.freeAccess).toBe(null)
+      expect(copy.freeAccessKind).toBe(null)
     }
   })
 
@@ -188,14 +189,14 @@ describe('subscriptionCopy for Free Access', () => {
     const copy = subscriptionCopy(comp({ status: 'active', expires_at: '2026-11-05T12:00:00Z' }), true, NOW)
     expect(copy.title).toBe('Premium subscription')
     expect(copy.summary).toBe('Active · Renews Nov 5, 2026')
-    expect(copy.freeAccess).toBe(null)
+    expect(copy.freeAccessKind).toBe(null)
     expect(copy.manageable).toBe(true)
   })
 
   it('the gym outranks everything', () => {
     const copy = subscriptionCopy(trial({ is_sponsored_by_gym: true }), true, NOW)
     expect(copy.title).toBe('Gym-sponsored access')
-    expect(copy.freeAccess).toBe(null)
+    expect(copy.freeAccessKind).toBe(null)
   })
 
   it('the Subscription page intro names the kind of Free Access and where billing happens after it', () => {
@@ -212,8 +213,8 @@ describe('subscriptionCopy while subscriptions are not enforced', () => {
   it('shows no card and no countdown', () => {
     const copy = subscriptionCopy(trial({ enforced: false }), true, NOW)
     expect(copy.shown).toBe(false)
-    expect(copy.freeAccess).toBe(null)
-    expect(copy.line).not.toMatch(/trial|left|until/i)
+    expect(copy.freeAccessKind).toBe(null)
+    expect(copy.line).toBe('Included for now')
     expect(subscriptionCopy(comp({ enforced: false }), true, NOW).line).not.toMatch(/free access|until/i)
   })
 

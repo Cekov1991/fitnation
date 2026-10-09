@@ -28,6 +28,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { ProfileSectionRow } from '../../components/profile/ProfileSectionRow'
 import { NotificationsCard } from '../../components/profile/NotificationsCard'
 import { SubscriptionCard } from '../../components/profile/SubscriptionCard'
+import { subscriptionCopy } from '../../components/profile/subscriptionCopy'
 import { PROFILE_SECTIONS } from '../../components/profile'
 import type { ProfileSectionKey } from '../../components/profile'
 import { grantPushPermission } from '../../lib/notifications'
@@ -53,7 +54,7 @@ export function ProfileScreen() {
   const { logout } = useAuth()
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateNotificationSettings = useUpdateNotificationSettings()
-  const { has } = useEntitlements()
+  const { has, subscription } = useEntitlements()
   const hasAccess = has(Entitlement.AppAccess)
   const [logoutVisible, setLogoutVisible] = useState(false)
 
@@ -178,7 +179,8 @@ export function ProfileScreen() {
 
         {/* Subscribing is one tap from here. A plan that exists is managed —
             changed, cancelled — under Account → Subscription, not on the hub. */}
-        {!hasAccess && (
+        {/* No card at all while subscriptions are not enforced (026). */}
+        {!hasAccess && subscriptionCopy(subscription, hasAccess).shown && (
           <>
             <SectionLabel style={{ marginTop: 8 }}>Subscription</SectionLabel>
             <SubscriptionCard manage={false} onSeePlans={() => navigation.navigate('Paywall')} />
