@@ -1,3 +1,5 @@
+import { isApiFailure } from '../http';
+
 /**
  * Named orchestrations for the multi-write invariants (spec 0026).
  *
@@ -24,11 +26,16 @@ export type Outcome<Step extends string, Extra = object> =
       compensated: boolean;
     } & Partial<Extra>);
 
-/** Run `fn`; on rejection run it once more. Resolves with the first success, rejects with the last error. */
+/**
+ * Run `fn`; on rejection run it once more. Resolves with the first success,
+ * rejects with the last error. A refusal from the subscription gate is not
+ * retried (mobile 026/13): it rejects at once.
+ */
 export async function retryOnce<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
-  } catch {
+  } catch (e) {
+    if (isApiFailure(e) && e.kind === 'subscription_required') throw e;
     return await fn();
   }
 }

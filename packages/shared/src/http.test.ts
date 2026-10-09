@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { initAuth, setOnUnauthorized } from './auth';
+import { initAuth, setOnSubscriptionRequired, setOnUnauthorized } from './auth';
 import { initApi } from './config';
 import { ApiFailure, failureOf, firstFieldError, isApiFailure, normaliseFieldErrors, request } from './http';
 
@@ -20,6 +20,7 @@ describe('request', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     setOnUnauthorized(null);
+    setOnSubscriptionRequired(null);
   });
 
   it('returns the parsed body, typed by the caller', async () => {
@@ -82,11 +83,111 @@ describe('request', () => {
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
 
+  it('a 403 from the subscription gate is its own failure and tells the app to show the paywall', async () => {
+    fetchMock.mockResolvedValue(reply(403, { message: 'Subscription required.', code: 'subscription_required' }));
+    store.set('authToken', 'tok');
+    const onSubscriptionRequired = vi.fn();
+    setOnSubscriptionRequired(onSubscriptionRequired);
+    const failure = await request('/muscle-groups', { auth: 'bearer' }).catch(e => e);
+    // Mobile 026/13: whatever surfaces this (a toast, an inline error) reads as a plain retryable failure.
+    expect(failure).toMatchObject({ kind: 'subscription_required', status: 403, message: 'Something went wrong — try again.' });
+    expect(onSubscriptionRequired).toHaveBeenCalledTimes(1);
+    expect(store.has('authToken')).toBe(true);
+  });
+
+  it('any other 403 is a plain http failure and does not touch the paywall hook', async () => {
+    fetchMock.mockResolvedValue(reply(403, { message: 'This action is unauthorized.' }));
+    const onSubscriptionRequired = vi.fn();
+    setOnSubscriptionRequired(onSubscriptionRequired);
+    expect(await request('/plans/9', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'http', status: 403 });
+    expect(onSubscriptionRequired).not.toHaveBeenCalled();
+  });
+
   it('other statuses are http failures with their status; no answer at all is a network failure', async () => {
     fetchMock.mockResolvedValue(reply(409, { message: 'Onboarding has already been completed' }));
     expect(await request('/o', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'http', status: 409 });
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
     expect(await request('/o', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'network', status: null });
+  });
+
+  it('an error status still counts when its body cannot be read', async () => {
+    const brokenBody = () => new ReadableStream({ start: c => c.error(new TypeError('connection reset')) });
+    fetchMock.mockImplementation(() => Promise.resolve(new Response(brokenBody(), { status: 401 })));
+    store.set('authToken', 'stale');
+    const onUnauthorized = vi.fn();
+    setOnUnauthorized(onUnauthorized);
+    expect(await request('/me', { auth: 'bearer' }).catch(e => e)).toMatchObject({ kind: 'unauthorized', unauthorizedHandled: true });
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+
+  /** A fetch that never answers on its own; it rejects like the platform's when its signal aborts. */
+  const hangingFetch = () =>
+    fetchMock.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+        })
+    );
+
+  describe('timeout', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('gives up after 15 s with a timeout failure', async () => {
+      hangingFetch();
+      const pending = request('/user', { auth: 'bearer' }).catch(e => e);
+      await vi.advanceTimersByTimeAsync(14_999);
+      expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toMatchObject({ kind: 'timeout', status: null });
+    });
+
+    it('counts reading the body against the limit too', async () => {
+      fetchMock.mockImplementation((_url: string, init: RequestInit) => {
+        const body = new ReadableStream({
+          start(c) {
+            init.signal?.addEventListener('abort', () => c.error(new DOMException('Aborted', 'AbortError')));
+          },
+        });
+        return Promise.resolve(new Response(body, { status: 200 }));
+      });
+      const pending = request('/user', { auth: 'bearer' }).catch(e => e);
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(await pending).toMatchObject({ kind: 'timeout' });
+    });
+
+    it('takes a per-request override, for calls that legitimately run long', async () => {
+      hangingFetch();
+      const pending = request('/exercises/1', { auth: 'bearer', timeoutMs: 60_000 }).catch(e => e);
+      await vi.advanceTimersByTimeAsync(59_999);
+      expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toMatchObject({ kind: 'timeout' });
+    });
+
+    it('gives an upload longer than an ordinary call', async () => {
+      hangingFetch();
+      const pending = request('/profile', { auth: 'bearer', method: 'POST', body: new FormData() }).catch(e => e);
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(await pending).toMatchObject({ kind: 'timeout' });
+    });
+
+    it("a caller's own abort is a network failure, not a timeout", async () => {
+      hangingFetch();
+      const controller = new AbortController();
+      const pending = request('/user', { auth: 'bearer', signal: controller.signal }).catch(e => e);
+      await vi.advanceTimersByTimeAsync(0);
+      controller.abort();
+      expect(await pending).toMatchObject({ kind: 'network' });
+    });
+
+    it('an answer in time clears the timer', async () => {
+      fetchMock.mockResolvedValue(reply(200, { ok: true }));
+      await expect(request('/user', { auth: 'bearer' })).resolves.toEqual({ ok: true });
+      expect(vi.getTimerCount()).toBe(0);
+    });
   });
 });
 

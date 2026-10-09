@@ -93,6 +93,7 @@ describe('formatDate', () => {
     // Parsed as-is this is UTC midnight, i.e. Aug 26 in the Americas.
     expect(formatDate('2026-08-27', 'short')).toBe('Aug 27');
     expect(formatDate('2026-08-27', 'long')).toBe('Aug 27, 2026');
+    expect(formatDate('2026-09-28', 'weekdayShort')).toBe('Mon, Sep 28');
   });
 
   it('names the weekday in the device locale', () => {

@@ -3,10 +3,11 @@ import { View, Text, ScrollView, Animated, StyleSheet } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useMutation } from '@tanstack/react-query'
 import { profileApi, onboardingApi, plansApi, submitOnboarding, withAlpha, FITNESS_GOAL_OPTIONS, labelFor } from '@fit-nation/shared'
-import type { UpdateProfileInput } from '@fit-nation/shared'
+import type { UpdateProfileInput, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { onboardingReducer, FIRST_STEP } from '../Onboarding/onboardingReducer'
+import { signupTrialOffer } from '../Onboarding/signupTrialCopy'
 import { PlanBuildingContent, PLAN_BUILD_BG } from '../../components/ui/PlanGeneratingOverlay'
 import { Button } from '../../components/ui/Button'
 import { ErrorState } from '../../components/ui/ErrorState'
@@ -26,6 +27,7 @@ import { isOnline } from '../../lib/connectivity'
 import { getPermissionStatus } from '../../lib/notifications'
 import { readPushPromptLastShownAt, shouldShowPermissionSheet } from '../../lib/pushPrompt'
 import type { AppScreenProps } from '../../navigation/types'
+import { gateRoute, hasBackendAppAccess, type GateRoute } from '../../navigation/gate'
 
 // Steps 1-3 are the questions; step 4 builds the plan.
 const TOTAL_DATA_STEPS = 3
@@ -36,6 +38,9 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const { colors } = useTheme()
   const { user, refreshUser } = useAuth()
   const insets = useSafeAreaInsets()
+  // Read once, before the finish grants the Signup Trial and the refreshed
+  // user stops qualifying for it mid-build.
+  const [signupTrialPromise] = useState(() => signupTrialOffer(user))
 
   // Pre-fill from existing profile so re-entrant users see their saved data
   const [state, dispatch] = useReducer(onboardingReducer, {
@@ -139,13 +144,20 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   // Ask for push permission here, behind an explainer — the contextual moment
   // (0012 M3, cadence per 0013 R10–R12: not if granted, nor within 7 days of
   // the sheet last showing). Onboarding always uses the 'ask' variant.
+  // Where the wizard hands over: Tabs with app access, the Paywall without.
+  // Decided on the fresh user, before the push sheet, so the sheet's close goes
+  // to the same place (finding #5: this used to be a bare 'Tabs').
+  const exitRouteRef = useRef<GateRoute>('Paywall')
+
   async function leaveOnboarding() {
-    try { await refreshUser() } catch { /* proceed anyway */ }
+    let fresh: UserResource | null = null
+    try { fresh = await refreshUser() } catch { /* proceed on what we have */ }
+    exitRouteRef.current = gateRoute(hasBackendAppAccess(fresh ?? user))
     if (await shouldAskForPush()) {
       setSheetVisible(true)
       return
     }
-    navigation.replace('Tabs')
+    navigation.replace(exitRouteRef.current)
   }
 
   async function shouldAskForPush(): Promise<boolean> {
@@ -184,11 +196,12 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
         firstName={user?.name?.trim().split(' ')[0] ?? null}
         goalLabel={labelFor(FITNESS_GOAL_OPTIONS, state.fitness_goal)}
         days={state.training_days_per_week ?? 0}
+        signupTrialPromise={signupTrialPromise}
         onRetry={() => submitMutation.mutate()}
         onBack={backToQuestions}
         onFinished={leaveOnboarding}
         sheetVisible={sheetVisible}
-        onSheetClose={() => navigation.replace('Tabs')}
+        onSheetClose={() => navigation.replace(exitRouteRef.current)}
       />
     )
   }
@@ -249,13 +262,15 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
 // ─── Step 4: Building your plan ──────────────────────────────────────────────
 
-function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, onRetry, onBack, onFinished, sheetVisible, onSheetClose }: {
+function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, signupTrialPromise, onRetry, onBack, onFinished, sheetVisible, onSheetClose }: {
   colors: ReturnType<typeof useTheme>['colors']
   phase: Phase
   errorMsg: string | null
   firstName: string | null
   goalLabel: string
   days: number
+  /** "7 days free" when the finish starts a Signup Trial, else null. */
+  signupTrialPromise: string | null
   onRetry: () => void
   onBack: () => void
   onFinished: () => void
@@ -291,7 +306,10 @@ function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, onRetr
       <PlanBuildingContent
         stage={phase === 'saving-profile' ? 'preparing' : phase === 'done' ? 'done' : 'building'}
         title="Building your plan"
-        subtitle={`A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.`}
+        subtitle={[
+          `A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.`,
+          signupTrialPromise && `Then enjoy ${signupTrialPromise}.`,
+        ].filter(Boolean).join(' ')}
         goalLabel={goalLabel}
         daysPerWeek={days}
       />
