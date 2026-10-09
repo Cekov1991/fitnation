@@ -1,5 +1,6 @@
 import Purchases, { LOG_LEVEL } from 'react-native-purchases'
 import { Platform } from 'react-native'
+import { Entitlement } from './entitlements'
 
 let configured = false
 
@@ -44,4 +45,22 @@ export const logOutRevenueCat = async () => {
   } catch (e) {
     console.warn('[RC] logOut failed', e)
   }
+}
+
+/**
+ * RevenueCat's identity, as the purchase flow reads it. Unlike
+ * identifyRevenueCatUser, a failed log-in throws: the flow must know.
+ */
+export const revenueCatIdentity = {
+  currentUserId: () => Purchases.getAppUserID(),
+  logIn: async (userId: string) => {
+    await Purchases.logIn(userId)
+  },
+}
+
+/** Whether RevenueCat's customerInfo grants `app_access`. Throws when it can't be read. */
+export const revenueCatGrantsAppAccess = async (): Promise<boolean> => {
+  if (!configured) return false
+  const info = await Purchases.getCustomerInfo()
+  return Entitlement.AppAccess in info.entitlements.active
 }

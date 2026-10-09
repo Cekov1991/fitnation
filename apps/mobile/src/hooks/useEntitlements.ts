@@ -4,11 +4,12 @@ import { authApi, queryKeys } from '@fit-nation/shared'
 import Purchases from 'react-native-purchases'
 import { useAuth } from '../context/AuthContext'
 import { Entitlement } from '../lib/entitlements'
+import { gateEntitlements } from '../navigation/gate'
 
 export { Entitlement } from '../lib/entitlements'
 
 export function useEntitlements() {
-  const { user: authUser } = useAuth()
+  const { user: authUser, backendRefused } = useAuth()
 
   const userQuery = useQuery({
     queryKey: queryKeys.user.current(),
@@ -18,7 +19,8 @@ export function useEntitlements() {
   })
 
   // RC's locally-cached customerInfo. Used as an offline fallback so the
-  // paywall doesn't lock out a paying user when the backend is unreachable.
+  // paywall doesn't lock out a paying user when the backend is unreachable —
+  // but not once the backend refused after a sync (gateEntitlements).
   const rcQuery = useQuery({
     queryKey: queryKeys.revenueCat.customerInfo(),
     queryFn: () => Purchases.getCustomerInfo(),
@@ -27,11 +29,11 @@ export function useEntitlements() {
     retry: false,
   })
 
-  const entitlements = useMemo(() => {
-    const beEntitlements = userQuery.data?.entitlements ?? []
-    const rcEntitlements = Object.keys(rcQuery.data?.entitlements.active ?? {})
-    return Array.from(new Set([...beEntitlements, ...rcEntitlements]))
-  }, [userQuery.data, rcQuery.data])
+  const entitlements = useMemo(() => gateEntitlements({
+    backend: userQuery.data?.entitlements ?? [],
+    store: Object.keys(rcQuery.data?.entitlements.active ?? {}),
+    backendRefused,
+  }), [userQuery.data, rcQuery.data, backendRefused])
 
   const has = useCallback(
     (e: Entitlement | string) => entitlements.includes(e),

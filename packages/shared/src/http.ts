@@ -20,12 +20,14 @@ export type ApiFailureKind =
   | 'validation'
   /** 401: the token was rejected; `unauthorizedHandled` says whether it was already cleared. */
   | 'unauthorized'
-  /** 403 with `code: subscription_required`: the subscription gate; the app has been told to show the paywall. */
+  /** 403 with `code: subscription_required`: the subscription gate; the app has been told. Never retried automatically. */
   | 'subscription_required'
   /** Any other non-2xx, with its status. */
   | 'http'
-  /** The request never got an HTTP answer — offline, DNS, TLS, aborted. */
-  | 'network';
+  /** The request never got an HTTP answer — offline, DNS, TLS, aborted by the caller. */
+  | 'network'
+  /** No answer within the request's time limit (`DEFAULT_TIMEOUT_MS` unless overridden); the request was aborted. */
+  | 'timeout';
 
 export class ApiFailure extends Error {
   readonly kind: ApiFailureKind;
@@ -80,18 +82,29 @@ export function normaliseFieldErrors(raw: unknown): Record<string, string[]> {
   return out;
 }
 
+/** What a `subscription_required` failure says to the user. */
+const SUBSCRIPTION_REQUIRED_MESSAGE = 'Something went wrong — try again.';
+
+/** How long a request may go unanswered before it fails as `timeout`. */
+const DEFAULT_TIMEOUT_MS = 15_000;
+/** A multipart upload (photo, exercise video) gets longer on a slow connection. */
+const UPLOAD_TIMEOUT_MS = 120_000;
+
 export interface RequestOptions extends RequestInit {
   /** `bearer` sends the stored token and treats a rejected one as a sign-out; `none` sends nothing. */
   auth: 'bearer' | 'none';
+  /** Overrides the time limit: `DEFAULT_TIMEOUT_MS`, or `UPLOAD_TIMEOUT_MS` for a FormData body. */
+  timeoutMs?: number;
 }
 
-export async function request<T>(url: string, { auth, ...init }: RequestOptions): Promise<T> {
+export async function request<T>(url: string, { auth, timeoutMs, ...init }: RequestOptions): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(init.headers as Record<string, string> | undefined),
   };
+  const isUpload = init.body instanceof FormData;
   // FormData sets its own multipart boundary.
-  if (!(init.body instanceof FormData) && !('Content-Type' in headers)) {
+  if (!isUpload && !('Content-Type' in headers)) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -102,15 +115,11 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${getConfig().baseUrl}${url}`, { ...init, headers });
-  } catch (cause) {
-    throw new ApiFailure('network', 'Could not reach the server.', { cause });
-  }
+  const limit = timeoutMs ?? (isUpload ? UPLOAD_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
+  const { response, text } = await fetchWithin(`${getConfig().baseUrl}${url}`, { ...init, headers }, limit);
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as { message?: string; errors?: unknown; code?: string };
+    const body = parseOr<{ message?: string; errors?: unknown; code?: string } | null>(text, null) ?? {};
     const message = body.message || `Request failed (${response.status})`;
     if (response.status === 422) {
       throw new ApiFailure('validation', message, { status: 422, errors: body.errors });
@@ -132,10 +141,12 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
     }
     if (response.status === 403 && body.code === 'subscription_required') {
       // Entitlements changed server-side (expiry, refund) while the client
-      // still granted access. Tell the app so it refreshes and shows the
-      // paywall instead of a generic error.
+      // still granted access. Tell the app so it recovers or shows the
+      // paywall. The failure itself reads as a plain retryable error wherever
+      // a screen surfaces it, not the server's "Subscription required."
+      // (mobile 026/13): recovery may well let the next try through.
       await notifySubscriptionRequired();
-      throw new ApiFailure('subscription_required', message, { status: 403 });
+      throw new ApiFailure('subscription_required', SUBSCRIPTION_REQUIRED_MESSAGE, { status: 403 });
     }
     throw new ApiFailure('http', message, { status: response.status, errors: body.errors });
   }
@@ -143,5 +154,48 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
   if (response.status === 204 || response.headers.get('content-length') === '0') {
     return undefined as T;
   }
-  return (await response.json()) as T;
+  return JSON.parse(text) as T;
+}
+
+/**
+ * Fetch and read the body, all within `limit` ms, else a `timeout` failure.
+ * Our own controller does the aborting; a caller's signal is forwarded to it
+ * (Hermes has no AbortSignal.any / AbortSignal.timeout).
+ */
+async function fetchWithin(url: string, init: RequestInit, limit: number): Promise<{ response: Response; text: string }> {
+  const controller = new AbortController();
+  const callerSignal = init.signal;
+  const forwardAbort = () => controller.abort();
+  if (callerSignal?.aborted) controller.abort();
+  else callerSignal?.addEventListener('abort', forwardAbort);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, limit);
+
+  try {
+    const response = await fetch(url, { ...init, signal: controller.signal });
+    try {
+      return { response, text: await response.text() };
+    } catch (cause) {
+      // An error status is the answer even if its body is lost: a 401 must still sign out.
+      if (!response.ok) return { response, text: '' };
+      throw cause;
+    }
+  } catch (cause) {
+    if (timedOut) throw new ApiFailure('timeout', 'The server took too long to answer.', { cause });
+    throw new ApiFailure('network', 'Could not reach the server.', { cause });
+  } finally {
+    clearTimeout(timer);
+    callerSignal?.removeEventListener('abort', forwardAbort);
+  }
+}
+
+function parseOr<T>(text: string, fallback: T): T {
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return fallback;
+  }
 }

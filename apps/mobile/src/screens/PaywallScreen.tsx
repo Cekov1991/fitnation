@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Purchases, { type PurchasesPackage, INTRO_ELIGIBILITY_STATUS, PURCHASES_ERROR_CODE } from 'react-native-purchases'
+import Purchases, { type CustomerInfo, type PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases'
 import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Zap } from 'lucide-react-native'
 import { privacyPolicy, termsOfService } from '@fit-nation/legal'
-import { queryKeys, withAlpha } from '@fit-nation/shared'
+import { authApi, queryKeys, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { Button } from '../components/ui/Button'
@@ -14,7 +14,10 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { SectionLabel } from '../components/ui/SectionLabel'
 import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
-import { paywallHero } from './paywallCopy'
+import { paywallHero, purchaseOutcomeMessage, type PurchaseAction } from './paywallCopy'
+import { runPurchaseFlow, type PurchaseFlowResult } from '../lib/purchaseFlow'
+import { purchaseLiftsRefusal } from '../navigation/gate'
+import { revenueCatIdentity } from '../lib/revenuecat'
 import { showToast } from '../lib/toast'
 import type { AppScreenProps } from '../navigation/types'
 
@@ -31,18 +34,19 @@ const FEATURES = [
   'Unlimited workout sessions',
 ]
 
+const hasAppAccess = (info: CustomerInfo) => !!info.entitlements.active[Entitlement.AppAccess]
+
 /** Sizes this screen owns; everything else comes from the primitives. */
 const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } as const
 
 export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   const { colors } = useTheme()
-  const { logout } = useAuth()
+  const { user, logout, setUser, backendRefused, liftBackendRefusal } = useAuth()
   const { subscription } = useEntitlements()
   const queryClient = useQueryClient()
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([])
   const [selectedPkg, setSelectedPkg] = useState<PurchasesPackage | null>(null)
-  const [trialEligibility, setTrialEligibility] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   const [restoring, setRestoring] = useState(false)
@@ -72,22 +76,6 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
     loadOfferings()
   }, [loadOfferings])
 
-  useEffect(() => {
-    // iOS only — on Android this API always returns UNKNOWN; trial presence
-    // there is read from the product's default option instead (see below).
-    if (Platform.OS !== 'ios' || packages.length === 0) return
-    const ids = packages.map(p => p.product.identifier)
-    Purchases.checkTrialOrIntroductoryPriceEligibility(ids)
-      .then(result => {
-        const map: Record<string, boolean> = {}
-        for (const [id, info] of Object.entries(result)) {
-          map[id] = info.status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE
-        }
-        setTrialEligibility(map)
-      })
-      .catch(() => {})
-  }, [packages])
-
   // Both entitlement sources, then straight to Tabs. EntitlementWatcher would
   // get there too once the user query lands; the reset just makes it instant.
   async function enterApp() {
@@ -98,14 +86,41 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
     navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })
   }
 
+  /**
+   * Purchase or restore through the purchase flow (ticket 026/07): RevenueCat
+   * must hold this user, then the backend syncs and we wait (~10 s at most) for
+   * /user to agree before entering. Toasts any outcome that doesn't enter.
+   */
+  async function runFlow(action: PurchaseAction, transact: () => Promise<boolean>): Promise<void> {
+    const result: PurchaseFlowResult = user
+      ? await runPurchaseFlow({
+          userId: user.id,
+          revenueCat: revenueCatIdentity,
+          transact,
+          sync: () => authApi.syncSubscription(),
+          fetchUser: () => authApi.getCurrentUser().then(r => r.user),
+          log: (message, error) => console.warn(message, error),
+        })
+      : { kind: 'identity-mismatch' }
+    if (result.kind === 'entered') {
+      if (result.user) setUser(result.user)
+      // A purchase or restore lifts a backend refusal (ticket 026/13), unless
+      // the backend answered it and still grants nothing: then stay here.
+      if (!backendRefused || purchaseLiftsRefusal(result.user)) {
+        liftBackendRefusal()
+        await enterApp()
+        return
+      }
+    }
+    const message = purchaseOutcomeMessage(action, result.kind === 'entered' ? 'not-granted' : result.kind)
+    if (message) showToast(message, 'error')
+  }
+
   async function handlePurchase() {
     if (!selectedPkg) return
     try {
       setPurchasing(true)
-      const { customerInfo } = await Purchases.purchasePackage(selectedPkg)
-      if (customerInfo.entitlements.active[Entitlement.AppAccess]) {
-        await enterApp()
-      }
+      await runFlow('purchase', async () => hasAppAccess((await Purchases.purchasePackage(selectedPkg)).customerInfo))
     } catch (e: unknown) {
       const err = e as { code?: PURCHASES_ERROR_CODE; userCancelled?: boolean; message?: string }
       if (err.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
@@ -124,12 +139,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   async function handleRestore() {
     try {
       setRestoring(true)
-      const customerInfo = await Purchases.restorePurchases()
-      if (customerInfo.entitlements.active[Entitlement.AppAccess]) {
-        await enterApp()
-      } else {
-        showToast('No active subscription was found for this account.', 'error')
-      }
+      await runFlow('restore', async () => hasAppAccess(await Purchases.restorePurchases()))
     } catch (e: unknown) {
       showToast((e as { message?: string }).message ?? 'Unable to restore purchases. Please try again.', 'error')
     } finally {
@@ -146,17 +156,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
       ? Math.round((1 - annualPkg.product.price / 12 / monthlyPkg.product.price) * 100)
       : 0
 
-  // iOS: introPrice + the eligibility API (reliable there). Android: the
-  // eligibility API is useless (UNKNOWN), but Play already tailors returned
-  // offers to the current user — a free phase on the default option means a
-  // trial is genuinely on offer.
-  const selectedHasTrial = selectedPkg
-    ? Platform.OS === 'android'
-      ? selectedPkg.product.defaultOption?.freePhase != null
-      : !!selectedPkg.product.introPrice && trialEligibility[selectedPkg.product.identifier] === true
-    : false
-
-  const { headline, subheadline, ctaLabel } = paywallHero(selectedHasTrial, subscription)
+  const { headline, subheadline, ctaLabel } = paywallHero(subscription)
 
   const signOut = <Button variant="ghost" label="Sign Out" onPress={() => logout()} />
 

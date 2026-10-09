@@ -7,6 +7,7 @@ import type { UpdateProfileInput, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { onboardingReducer, FIRST_STEP } from '../Onboarding/onboardingReducer'
+import { signupTrialOffer } from '../Onboarding/signupTrialCopy'
 import { PlanBuildingContent, PLAN_BUILD_BG } from '../../components/ui/PlanGeneratingOverlay'
 import { Button } from '../../components/ui/Button'
 import { ErrorState } from '../../components/ui/ErrorState'
@@ -37,6 +38,9 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
   const { colors } = useTheme()
   const { user, refreshUser } = useAuth()
   const insets = useSafeAreaInsets()
+  // Read once, before the finish grants the Signup Trial and the refreshed
+  // user stops qualifying for it mid-build.
+  const [signupTrialPromise] = useState(() => signupTrialOffer(user))
 
   // Pre-fill from existing profile so re-entrant users see their saved data
   const [state, dispatch] = useReducer(onboardingReducer, {
@@ -192,6 +196,7 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
         firstName={user?.name?.trim().split(' ')[0] ?? null}
         goalLabel={labelFor(FITNESS_GOAL_OPTIONS, state.fitness_goal)}
         days={state.training_days_per_week ?? 0}
+        signupTrialPromise={signupTrialPromise}
         onRetry={() => submitMutation.mutate()}
         onBack={backToQuestions}
         onFinished={leaveOnboarding}
@@ -257,13 +262,15 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
 
 // ─── Step 4: Building your plan ──────────────────────────────────────────────
 
-function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, onRetry, onBack, onFinished, sheetVisible, onSheetClose }: {
+function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, signupTrialPromise, onRetry, onBack, onFinished, sheetVisible, onSheetClose }: {
   colors: ReturnType<typeof useTheme>['colors']
   phase: Phase
   errorMsg: string | null
   firstName: string | null
   goalLabel: string
   days: number
+  /** "7 days free" when the finish starts a Signup Trial, else null. */
+  signupTrialPromise: string | null
   onRetry: () => void
   onBack: () => void
   onFinished: () => void
@@ -299,7 +306,10 @@ function BuildStep({ colors, phase, errorMsg, firstName, goalLabel, days, onRetr
       <PlanBuildingContent
         stage={phase === 'saving-profile' ? 'preparing' : phase === 'done' ? 'done' : 'building'}
         title="Building your plan"
-        subtitle={`A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.`}
+        subtitle={[
+          `A few seconds. Hang tight${firstName ? `, ${firstName}` : ''}.`,
+          signupTrialPromise && `Then enjoy ${signupTrialPromise}.`,
+        ].filter(Boolean).join(' ')}
         goalLabel={goalLabel}
         daysPerWeek={days}
       />

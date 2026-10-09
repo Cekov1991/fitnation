@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { initAuth } from './auth';
 import { initApi } from './config';
-import { devicesApi } from './api';
+import { authApi, devicesApi } from './api';
 
 const store = new Map<string, string>();
 initAuth({ storage: { getItem: k => store.get(k) ?? null, setItem: (k, v) => void store.set(k, v), removeItem: k => void store.delete(k) } });
@@ -33,5 +33,30 @@ describe('devicesApi.register', () => {
     expect(url).toBe('https://api.test/devices');
     expect(init.method).toBe('PUT');
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
+  });
+});
+
+describe('authApi.syncSubscription', () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    store.clear();
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  // Subscription Sync (spec 026): the backend re-reads RevenueCat for the
+  // calling user and answers the same payload as GET /user.
+  it('POSTs /subscription/sync with the bearer token and returns the user', async () => {
+    fetchMock.mockResolvedValue(ok({ user: { id: 42, entitlements: ['app_access'] } }));
+    store.set('authToken', 'tok');
+
+    const out = await authApi.syncSubscription();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.test/subscription/sync');
+    expect(init.method).toBe('POST');
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
+    expect(out.user.entitlements).toEqual(['app_access']);
   });
 });

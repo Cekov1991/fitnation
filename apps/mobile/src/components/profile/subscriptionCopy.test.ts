@@ -7,29 +7,24 @@ import {
   subscriptionIntro,
   trialDaysLeft,
 } from './subscriptionCopy'
-
-const sub = (patch: Partial<SubscriptionResource>): SubscriptionResource => ({
-  status: null,
-  expires_at: null,
-  is_trial: false,
-  is_sponsored_by_gym: false,
-  grace_period_ends_at: null,
-  ...patch,
-})
+import { sub } from '../../test/fixtures'
 
 describe('subscriptionCopy', () => {
   it('no plan, no access: the subscribe prompt, nothing to manage', () => {
     expect(subscriptionCopy(null, false)).toEqual({
       title: 'No active plan',
       summary: 'Subscribe to unlock workouts, plans and progress tracking.',
+      line: 'No active plan',
       isSponsored: false,
-      isTrial: false,
+      freeAccessKind: null,
       manageable: false,
+      shown: true,
     })
   })
 
   it('no plan but access (grace, flag off): included for now', () => {
     expect(subscriptionCopy(sub({}), true).summary).toBe('Included for now.')
+    expect(subscriptionCopy(sub({ enforced: false }), true).line).toBe('Included for now')
   })
 
   it('a paid plan reads its status and renewal, and is manageable in the store', () => {
@@ -65,18 +60,24 @@ describe('subscriptionCopy', () => {
     expect(subscriptionCopy(sub({ is_sponsored_by_gym: true }), true)).toEqual({
       title: 'Gym-sponsored access',
       summary: 'Provided through your gym.',
+      line: 'Gym-sponsored access',
       isSponsored: true,
-      isTrial: false,
+      freeAccessKind: null,
       manageable: false,
+      shown: true,
     })
   })
 })
 
-// --- The sign-up trial (spec 0038) ---------------------------------------------
+// --- Free Access: the Signup Trial and Complimentary Access (026) ----------
 
 // Onboarding finished 2026-10-05 at noon local time: the trial ends on the 12th.
 const NOW = new Date(2026, 9, 5, 12, 0, 0)
 const ENDS = new Date(2026, 9, 12, 12, 0, 0).toISOString()
+const trial = (patch: Partial<SubscriptionResource> = {}) =>
+  sub({ grace_period_ends_at: ENDS, free_access_kind: 'signup_trial', access_source: 'signup_trial', ...patch })
+const comp = (patch: Partial<SubscriptionResource> = {}) =>
+  sub({ grace_period_ends_at: ENDS, free_access_kind: 'complimentary', access_source: 'complimentary', ...patch })
 
 describe('trialDaysLeft', () => {
   it('counts calendar days, not 24-hour blocks', () => {
@@ -87,22 +88,27 @@ describe('trialDaysLeft', () => {
   })
 })
 
-describe('the sign-up trial state', () => {
+describe('the Signup Trial state', () => {
   it('is active while the date is ahead and no store plan exists', () => {
-    expect(isSignupTrialActive(sub({ grace_period_ends_at: ENDS }), NOW)).toBe(true)
-    expect(hasSignupTrialEnded(sub({ grace_period_ends_at: ENDS }), NOW)).toBe(false)
+    expect(isSignupTrialActive(trial(), NOW)).toBe(true)
+    expect(hasSignupTrialEnded(trial(), NOW)).toBe(false)
   })
 
   it('has ended once the date has passed with nothing taking over', () => {
     const later = new Date(2026, 9, 12, 12, 0, 1)
-    expect(isSignupTrialActive(sub({ grace_period_ends_at: ENDS }), later)).toBe(false)
-    expect(hasSignupTrialEnded(sub({ grace_period_ends_at: ENDS }), later)).toBe(true)
+    expect(isSignupTrialActive(trial(), later)).toBe(false)
+    expect(hasSignupTrialEnded(trial(), later)).toBe(true)
+  })
+
+  it('Complimentary Access is never a Signup Trial, running or ended', () => {
+    expect(isSignupTrialActive(comp(), NOW)).toBe(false)
+    expect(hasSignupTrialEnded(comp(), new Date(2026, 9, 13))).toBe(false)
   })
 
   it('is neither when a current store plan or the gym is behind the access', () => {
-    expect(isSignupTrialActive(sub({ grace_period_ends_at: ENDS, status: 'active' }), NOW)).toBe(false)
-    expect(hasSignupTrialEnded(sub({ grace_period_ends_at: ENDS, status: 'active', expires_at: '2026-12-01T00:00:00Z' }), new Date(2026, 10, 1))).toBe(false)
-    expect(isSignupTrialActive(sub({ grace_period_ends_at: ENDS, is_sponsored_by_gym: true }), NOW)).toBe(false)
+    expect(isSignupTrialActive(trial({ status: 'active' }), NOW)).toBe(false)
+    expect(hasSignupTrialEnded(trial({ status: 'active', expires_at: '2026-12-01T00:00:00Z' }), new Date(2026, 10, 1))).toBe(false)
+    expect(isSignupTrialActive(trial({ is_sponsored_by_gym: true }), NOW)).toBe(false)
     expect(isSignupTrialActive(sub({}), NOW)).toBe(false)
     expect(hasSignupTrialEnded(null, NOW)).toBe(false)
   })
@@ -110,67 +116,99 @@ describe('the sign-up trial state', () => {
   it('once over, the trial is named only if it outlived any lapsed plan', () => {
     const over = new Date(2026, 9, 13)
     // plan expired on the 3rd, trial ran to the 12th: the trial is the recent lapse
-    expect(hasSignupTrialEnded(sub({ grace_period_ends_at: ENDS, status: 'expired', expires_at: '2026-10-03T20:57:30Z' }), over)).toBe(true)
+    expect(hasSignupTrialEnded(trial({ status: 'expired', expires_at: '2026-10-03T20:57:30Z' }), over)).toBe(true)
     // plan outlived the trial: a former subscriber, not a trial user
-    expect(hasSignupTrialEnded(sub({ grace_period_ends_at: ENDS, status: 'expired', expires_at: '2026-10-12T20:00:00Z' }), over)).toBe(false)
+    expect(hasSignupTrialEnded(trial({ status: 'expired', expires_at: '2026-10-12T20:00:00Z' }), over)).toBe(false)
   })
 })
 
-describe('subscriptionCopy for the sign-up trial', () => {
-  it('a running trial: title, end date and the countdown; nothing to manage', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS }), true, NOW)
+describe('subscriptionCopy for Free Access', () => {
+  it('a running Signup Trial: "Free trial · N days left"; nothing to manage', () => {
+    const copy = subscriptionCopy(trial(), true, NOW)
     expect(copy.title).toBe('Free trial')
-    expect(copy.summary).toBe('Ends Oct 12, 2026 · 7 days left')
-    expect(copy.isTrial).toBe(true)
+    expect(copy.summary).toBe('7 days left')
+    expect(copy.line).toBe('Free trial · 7 days left')
+    expect(copy.freeAccessKind).toBe('signup_trial')
+    expect(copy.manageable).toBe(false)
+    expect(copy.shown).toBe(true)
+  })
+
+  it('the last two days read as one day left and ends today', () => {
+    expect(subscriptionCopy(trial(), true, new Date(2026, 9, 11, 9)).line).toBe('Free trial · 1 day left')
+    expect(subscriptionCopy(trial(), true, new Date(2026, 9, 12, 9)).line).toBe('Free trial · Ends today')
+  })
+
+  it('running Complimentary Access: "Free access until {date}", never a trial', () => {
+    const copy = subscriptionCopy(comp(), true, NOW)
+    expect(copy.title).toBe('Free access')
+    expect(copy.summary).toBe('Until Oct 12, 2026')
+    expect(copy.line).toBe('Free access until Oct 12, 2026')
+    expect(copy.freeAccessKind).toBe('complimentary')
     expect(copy.manageable).toBe(false)
   })
 
-  it('the last two days read as tomorrow and today', () => {
-    expect(subscriptionCopy(sub({ grace_period_ends_at: ENDS }), true, new Date(2026, 9, 11, 9)).summary).toBe('Ends tomorrow')
-    expect(subscriptionCopy(sub({ grace_period_ends_at: ENDS }), true, new Date(2026, 9, 12, 9)).summary).toBe('Ends today')
+  it('ended Free Access with no plan is the plain no-plan prompt', () => {
+    for (const s of [trial(), comp()]) {
+      const copy = subscriptionCopy(s, false, new Date(2026, 9, 13))
+      expect(copy.title).toBe('No active plan')
+      expect(copy.summary).toBe('Subscribe to unlock workouts, plans and progress tracking.')
+      expect(copy.freeAccessKind).toBe(null)
+    }
   })
 
-  it('an ended trial with no plan is the plain no-plan prompt', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS }), false, new Date(2026, 9, 13))
-    expect(copy.title).toBe('No active plan')
-    expect(copy.summary).toBe('Subscribe to unlock workouts, plans and progress tracking.')
-    expect(copy.isTrial).toBe(false)
-  })
-
-  it('a lapsed store plan never hides a running trial (dev user 5 after the Play tests)', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS, status: 'expired', expires_at: '2026-10-03T20:57:30Z' }), true, NOW)
-    expect(copy.title).toBe('Free trial')
-    expect(copy.summary).toBe('Ends Oct 12, 2026 · 7 days left')
-    expect(copy.isTrial).toBe(true)
+  it('a lapsed store plan never hides running Free Access (dev user 5 after the Play tests)', () => {
+    const copy = subscriptionCopy(trial({ status: 'expired', expires_at: '2026-10-03T20:57:30Z' }), true, NOW)
+    expect(copy.line).toBe('Free trial · 7 days left')
     expect(copy.manageable).toBe(false)
-    expect(isSignupTrialActive(sub({ grace_period_ends_at: ENDS, status: 'cancelled', expires_at: '2026-10-03T20:57:30Z' }), NOW)).toBe(true)
+    expect(isSignupTrialActive(trial({ status: 'cancelled', expires_at: '2026-10-03T20:57:30Z' }), NOW)).toBe(true)
+    expect(subscriptionCopy(comp({ status: 'expired', expires_at: '2026-10-03T20:57:30Z' }), true, NOW).line)
+      .toBe('Free access until Oct 12, 2026')
   })
 
-  it('a cancelled plan that still runs outranks the trial, and is manageable', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS, status: 'cancelled', expires_at: '2026-10-20T12:00:00Z' }), true, NOW)
+  it('a cancelled plan that still runs outranks Free Access, and is manageable', () => {
+    const copy = subscriptionCopy(trial({ status: 'cancelled', expires_at: '2026-10-20T12:00:00Z' }), true, NOW)
     expect(copy.title).toBe('Premium subscription')
     expect(copy.summary).toBe('Cancelled · Access until Oct 20, 2026')
+    expect(copy.line).toBe('Cancelled · Access until Oct 20, 2026')
     expect(copy.manageable).toBe(true)
   })
 
-  it('a store plan outranks the trial date', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS, status: 'active', expires_at: '2026-11-05T12:00:00Z' }), true, NOW)
+  it('a store plan outranks the Free Access date', () => {
+    const copy = subscriptionCopy(comp({ status: 'active', expires_at: '2026-11-05T12:00:00Z' }), true, NOW)
     expect(copy.title).toBe('Premium subscription')
     expect(copy.summary).toBe('Active · Renews Nov 5, 2026')
-    expect(copy.isTrial).toBe(false)
+    expect(copy.freeAccessKind).toBe(null)
     expect(copy.manageable).toBe(true)
   })
 
   it('the gym outranks everything', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS, is_sponsored_by_gym: true }), true, NOW)
+    const copy = subscriptionCopy(trial({ is_sponsored_by_gym: true }), true, NOW)
     expect(copy.title).toBe('Gym-sponsored access')
-    expect(copy.isTrial).toBe(false)
+    expect(copy.freeAccessKind).toBe(null)
   })
 
-  it('the Subscription page intro names the trial and where billing happens after it', () => {
-    const copy = subscriptionCopy(sub({ grace_period_ends_at: ENDS }), true, NOW)
-    expect(subscriptionIntro(copy, 'the App Store')).toBe(
+  it('the Subscription page intro names the kind of Free Access and where billing happens after it', () => {
+    expect(subscriptionIntro(subscriptionCopy(trial(), true, NOW), 'the App Store')).toBe(
       'Your free trial is on. When it ends, plans are billed through the App Store and can be changed or cancelled there.'
     )
+    expect(subscriptionIntro(subscriptionCopy(comp(), true, NOW), 'Google Play')).toBe(
+      'You have free access for now. When it ends, plans are billed through Google Play and can be changed or cancelled there.'
+    )
+  })
+})
+
+describe('subscriptionCopy while subscriptions are not enforced', () => {
+  it('shows no card and no countdown', () => {
+    const copy = subscriptionCopy(trial({ enforced: false }), true, NOW)
+    expect(copy.shown).toBe(false)
+    expect(copy.freeAccessKind).toBe(null)
+    expect(copy.line).toBe('Included for now')
+    expect(subscriptionCopy(comp({ enforced: false }), true, NOW).line).not.toMatch(/free access|until/i)
+  })
+
+  it('still describes a paid plan where it is listed', () => {
+    const copy = subscriptionCopy(sub({ enforced: false, status: 'active', expires_at: '2026-11-05T12:00:00Z' }), true, NOW)
+    expect(copy.shown).toBe(false)
+    expect(copy.line).toBe('Active · Renews Nov 5, 2026')
   })
 })
