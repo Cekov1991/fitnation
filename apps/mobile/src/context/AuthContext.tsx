@@ -82,24 +82,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnUnauthorized(null)
   }, [queryClient, setUser])
 
-  // A gated endpoint returned 403 subscription_required. If RevenueCat says
-  // the user has paid, the backend is behind: sync it once, take the fresh
-  // user and refetch everything else (the 403'd screens). Otherwise refresh
-  // both entitlement sources; EntitlementWatcher reroutes to the paywall once
-  // the fresh user lands. GET /api/user and the sync are pre-paywall, and
-  // createSubscriptionRecovery syncs at most once per cooldown, so this cannot
-  // loop. A fresh recovery per signed-in user. Spec 026, ticket 08.
+  // A gated endpoint returned 403 subscription_required: re-sync the backend
+  // if RevenueCat says the user paid, else refresh both entitlement sources so
+  // EntitlementWatcher can reroute. See createSubscriptionRecovery (no loop).
+  // One recovery per signed-in user; a late answer for a previous one is dropped.
   const userId = user?.id
   useEffect(() => {
+    let current = true
     const recover = createSubscriptionRecovery({
       storeGrantsAccess: revenueCatGrantsAppAccess,
       sync: () => authApi.syncSubscription(),
       onRecovered: (fresh) => {
+        if (!current) return
         setUser(fresh)
         const userHash = hashKey(queryKeys.user.current())
         queryClient.invalidateQueries({ predicate: (q) => q.queryHash !== userHash })
       },
-      onPaywall: () => {
+      onUnrecovered: () => {
+        if (!current) return
         queryClient.invalidateQueries({ queryKey: queryKeys.user.current() })
         queryClient.invalidateQueries({ queryKey: queryKeys.revenueCat.customerInfo() })
       },
@@ -107,7 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
     // Not awaited: the failing request rejects at once; recovery runs behind it.
     setOnSubscriptionRequired(() => { void recover() })
-    return () => setOnSubscriptionRequired(null)
+    return () => {
+      current = false
+      setOnSubscriptionRequired(null)
+    }
   }, [queryClient, setUser, userId])
 
   // Boot: restore the session from the stored token. Only a rejected token

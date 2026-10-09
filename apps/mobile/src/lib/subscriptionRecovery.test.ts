@@ -11,7 +11,7 @@ function setup(overrides: Partial<SubscriptionRecoveryDeps> = {}) {
     storeGrantsAccess: vi.fn(async () => true),
     sync: vi.fn(async () => ({ user: paid })),
     onRecovered: vi.fn(),
-    onPaywall: vi.fn(),
+    onUnrecovered: vi.fn(),
     now: () => clock,
     ...overrides,
   }
@@ -21,9 +21,9 @@ function setup(overrides: Partial<SubscriptionRecoveryDeps> = {}) {
 describe('subscription_required recovery', () => {
   it('goes to the paywall without syncing when RevenueCat grants no access', async () => {
     const { deps, recover } = setup({ storeGrantsAccess: vi.fn(async () => false) })
-    expect(await recover()).toBe('paywall')
+    expect(await recover()).toBe('unrecovered')
     expect(deps.sync).not.toHaveBeenCalled()
-    expect(deps.onPaywall).toHaveBeenCalledTimes(1)
+    expect(deps.onUnrecovered).toHaveBeenCalledTimes(1)
     expect(deps.onRecovered).not.toHaveBeenCalled()
   })
 
@@ -32,20 +32,20 @@ describe('subscription_required recovery', () => {
     expect(await recover()).toBe('recovered')
     expect(deps.sync).toHaveBeenCalledTimes(1)
     expect(deps.onRecovered).toHaveBeenCalledWith(paid)
-    expect(deps.onPaywall).not.toHaveBeenCalled()
+    expect(deps.onUnrecovered).not.toHaveBeenCalled()
   })
 
   it('falls back to the paywall when the sync fails (502, 429, network)', async () => {
     const { deps, recover } = setup({ sync: vi.fn(async () => { throw new Error('502') }) })
-    expect(await recover()).toBe('paywall')
-    expect(deps.onPaywall).toHaveBeenCalledTimes(1)
+    expect(await recover()).toBe('unrecovered')
+    expect(deps.onUnrecovered).toHaveBeenCalledTimes(1)
     expect(deps.onRecovered).not.toHaveBeenCalled()
   })
 
   it('falls back to the paywall when the backend still grants nothing after the sync', async () => {
     const { deps, recover } = setup({ sync: vi.fn(async () => ({ user: unpaid })) })
-    expect(await recover()).toBe('paywall')
-    expect(deps.onPaywall).toHaveBeenCalledTimes(1)
+    expect(await recover()).toBe('unrecovered')
+    expect(deps.onUnrecovered).toHaveBeenCalledTimes(1)
     expect(deps.onRecovered).not.toHaveBeenCalled()
   })
 
@@ -63,9 +63,9 @@ describe('subscription_required recovery', () => {
     const { deps, recover, advance } = setup({ sync: vi.fn(async () => { throw new Error('500') }) })
     await recover()
     advance(5_000)
-    expect(await recover()).toBe('paywall')
+    expect(await recover()).toBe('unrecovered')
     expect(deps.sync).toHaveBeenCalledTimes(1)
-    expect(deps.onPaywall).toHaveBeenCalledTimes(2)
+    expect(deps.onUnrecovered).toHaveBeenCalledTimes(2)
   })
 
   it('may sync again once the cooldown has passed', async () => {
@@ -78,8 +78,15 @@ describe('subscription_required recovery', () => {
 
   it('falls back to the paywall when RevenueCat cannot be read', async () => {
     const { deps, recover } = setup({ storeGrantsAccess: vi.fn(async () => { throw new Error('offline') }) })
-    expect(await recover()).toBe('paywall')
+    expect(await recover()).toBe('unrecovered')
     expect(deps.sync).not.toHaveBeenCalled()
-    expect(deps.onPaywall).toHaveBeenCalledTimes(1)
+    expect(deps.onUnrecovered).toHaveBeenCalledTimes(1)
+  })
+
+  it('treats a synced user without an entitlements list as not recovered', async () => {
+    const bare = { id: 7 } as unknown as UserResource
+    const { deps, recover } = setup({ sync: vi.fn(async () => ({ user: bare })) })
+    expect(await recover()).toBe('unrecovered')
+    expect(deps.onRecovered).not.toHaveBeenCalled()
   })
 })
