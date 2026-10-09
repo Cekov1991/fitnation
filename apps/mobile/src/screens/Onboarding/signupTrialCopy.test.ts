@@ -31,6 +31,10 @@ describe('signupTrialOffer (end of onboarding)', () => {
     expect(signupTrialOffer(null)).toBeNull()
   })
 
+  it('says nothing while subscriptions are not enforced: there is no paywall to escape yet', () => {
+    expect(signupTrialOffer(user(sub({ enforced: false })))).toBeNull()
+  })
+
   it('says nothing to a user who will not get one: once per account', () => {
     // regenerating a plan after onboarding
     expect(signupTrialOffer(user(sub(), '2026-10-01T10:00:00Z'))).toBeNull()
