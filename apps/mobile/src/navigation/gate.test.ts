@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { entitlementReroute, entryRoute, gateRoute, hasBackendAppAccess } from './gate'
+import { entitlementReroute, entryRoute, gateEntitlements, gateRoute, hasBackendAppAccess } from './gate'
 
 const verified = { email_verified_at: '2026-10-02T10:00:00Z', onboarding_completed_at: null }
 const onboarded = { ...verified, onboarding_completed_at: '2026-10-02T10:05:00Z' }
@@ -24,6 +24,23 @@ describe('hasBackendAppAccess', () => {
     expect(hasBackendAppAccess({ entitlements: ['app_access'] })).toBe(true)
     expect(hasBackendAppAccess({ entitlements: [] })).toBe(false)
     expect(hasBackendAppAccess(null)).toBe(false)
+  })
+})
+
+describe('gateEntitlements', () => {
+  it('trusts RevenueCat or the backend', () => {
+    expect(gateEntitlements({ backend: [], store: ['app_access'], backendRefused: false })).toContain('app_access')
+    expect(gateEntitlements({ backend: ['app_access'], store: [], backendRefused: false })).toContain('app_access')
+    expect(gateEntitlements({ backend: [], store: [], backendRefused: false })).not.toContain('app_access')
+  })
+
+  // Ticket 13: a successful sync that still grants nothing beats RevenueCat's cache.
+  it('ignores RevenueCat once the backend refused after a sync', () => {
+    expect(gateEntitlements({ backend: [], store: ['app_access'], backendRefused: true })).toEqual([])
+  })
+
+  it('lets the backend grant through a refusal', () => {
+    expect(gateEntitlements({ backend: ['app_access'], store: ['app_access'], backendRefused: true })).toEqual(['app_access'])
   })
 })
 

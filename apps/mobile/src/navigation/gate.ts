@@ -33,6 +33,21 @@ export function hasBackendAppAccess(user: Pick<UserResource, 'entitlements'> | n
   return user?.entitlements?.includes(Entitlement.AppAccess) ?? false
 }
 
+/**
+ * The entitlements the gate goes by: the backend's, plus RevenueCat's cached
+ * ones (so a paying user isn't locked out while the backend is behind or
+ * unreachable) — unless the backend refused: a Subscription Sync answered and
+ * still granted nothing. Then the backend wins until a purchase or restore, or
+ * a `/user` with access, lifts the refusal (decision 2026-10-09, ticket 13).
+ */
+export function gateEntitlements({ backend, store, backendRefused }: {
+  backend: readonly string[]
+  store: readonly string[]
+  backendRefused: boolean
+}): string[] {
+  return Array.from(new Set(backendRefused ? backend : [...backend, ...store]))
+}
+
 // Screens that come before the paywall and must never be overridden by it.
 const BLOCKING_SCREENS: ReadonlySet<string> = new Set<EntryRoute>(['EmailVerification', 'Onboarding'])
 

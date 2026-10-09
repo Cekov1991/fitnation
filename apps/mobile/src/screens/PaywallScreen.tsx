@@ -40,7 +40,7 @@ const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } a
 
 export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   const { colors } = useTheme()
-  const { user, logout, setUser } = useAuth()
+  const { user, logout, setUser, liftBackendRefusal } = useAuth()
   const { subscription } = useEntitlements()
   const queryClient = useQueryClient()
 
@@ -102,6 +102,9 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
         })
       : { kind: 'identity-mismatch' }
     if (result.kind === 'entered') {
+      // A purchase or restore lifts a backend refusal (ticket 026/13): trust
+      // RevenueCat again until the next sync says otherwise.
+      liftBackendRefusal()
       if (result.user) setUser(result.user)
       await enterApp()
       return

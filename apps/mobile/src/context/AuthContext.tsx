@@ -8,6 +8,7 @@ import type { UserResource } from '@fit-nation/shared'
 import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
 import { identifyRevenueCatUser, logOutRevenueCat, revenueCatGrantsAppAccess } from '../lib/revenuecat'
 import { createSubscriptionRecovery } from '../lib/subscriptionRecovery'
+import { hasBackendAppAccess } from '../navigation/gate'
 import { restoreSession } from '../lib/session'
 import { readCachedUser, writeCachedUser } from '../lib/userCache'
 
@@ -29,6 +30,14 @@ interface AuthContextValue {
   setUser: (user: UserResource | null) => void
   /** Re-reads GET /api/user into the context and returns it, for callers that must route on the fresh answer. */
   refreshUser: () => Promise<UserResource | null>
+  /**
+   * A Subscription Sync answered and the backend still granted nothing, so the
+   * gate ignores RevenueCat's cache (ticket 026/13). Lifted by a `/user` with
+   * access, a purchase or restore, or a change of user.
+   */
+  backendRefused: boolean
+  /** A purchase or restore went through: trust RevenueCat again. */
+  liftBackendRefusal: () => void
 }
 
 // Configure Google Sign-In once at module load
@@ -45,11 +54,15 @@ const AuthContext = createContext<AuthContextValue>({
   logout: async () => {},
   setUser: () => {},
   refreshUser: async () => null,
+  backendRefused: false,
+  liftBackendRefusal: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<UserResource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [backendRefused, setBackendRefused] = useState(false)
+  const liftBackendRefusal = useCallback(() => setBackendRefused(false), [])
   const queryClient = useQueryClient()
   const appStateRef = useRef<AppStateStatus>(AppState.currentState)
 
@@ -82,9 +95,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnUnauthorized(null)
   }, [queryClient, setUser])
 
+  // A `/user` with access, however it arrived (setUser, a refetch), lifts a
+  // backend refusal.
+  useEffect(() => {
+    const userHash = hashKey(queryKeys.user.current())
+    return queryClient.getQueryCache().subscribe((event) => {
+      if (event.type === 'updated' && event.query.queryHash === userHash && hasBackendAppAccess(event.query.state.data as UserResource | undefined)) {
+        setBackendRefused(false)
+      }
+    })
+  }, [queryClient])
+
   // A gated endpoint returned 403 subscription_required: re-sync the backend
   // if RevenueCat says the user paid, else refresh both entitlement sources so
-  // EntitlementWatcher can reroute. See createSubscriptionRecovery (no loop).
+  // EntitlementWatcher can reroute. A sync that answers without access is the
+  // backend's refusal: the gate then sends the user to the paywall even though
+  // RevenueCat grants (ticket 13). See createSubscriptionRecovery (no loop).
   // One recovery per signed-in user; a late answer for a previous one is dropped.
   const userId = user?.id
   useEffect(() => {
@@ -98,6 +124,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userHash = hashKey(queryKeys.user.current())
         queryClient.invalidateQueries({ predicate: (q) => q.queryHash !== userHash })
       },
+      onRefused: (synced) => {
+        if (!current) return
+        setUser(synced)
+        setBackendRefused(true)
+      },
       onUnrecovered: () => {
         if (!current) return
         queryClient.invalidateQueries({ queryKey: queryKeys.user.current() })
@@ -110,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       current = false
       setOnSubscriptionRequired(null)
+      setBackendRefused(false)
     }
   }, [queryClient, setUser, userId])
 
@@ -222,7 +254,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, loginWithSocial, logout, setUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginWithSocial, logout, setUser, refreshUser, backendRefused, liftBackendRefusal }}>
       {children}
     </AuthContext.Provider>
   )

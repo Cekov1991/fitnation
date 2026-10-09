@@ -34,6 +34,7 @@ import { OfflineBanner } from './src/components/ui/OfflineBanner'
 import { ErrorBoundary } from './src/components/ui/error-boundary'
 import { ToastHost } from './src/components/ui/ToastHost'
 import { showToast } from './src/lib/toast'
+import { mutationErrorMessage } from './src/lib/subscriptionRecovery'
 import { configureForegroundHandler } from './src/lib/notifications'
 
 // M4: a push that arrives while the app is open becomes a toast, not an OS banner.
@@ -51,8 +52,9 @@ const queryClient = new QueryClient({
       // Best-effort background work (the Device heartbeat) opts out of the
       // global error toast.
       if (mutation.meta?.silent) return
-      const msg = error instanceof Error ? error.message : 'Something went wrong'
-      showToast(msg, 'error')
+      // Mutations are never retried (TanStack's default); a 403 from the
+      // subscription gate reads as a plain try-again (ticket 026/13).
+      showToast(mutationErrorMessage(error), 'error')
     },
   }),
 })

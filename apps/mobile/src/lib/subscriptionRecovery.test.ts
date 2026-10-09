@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { UserResource } from '@fit-nation/shared'
-import { createSubscriptionRecovery, SYNC_COOLDOWN_MS, type SubscriptionRecoveryDeps } from './subscriptionRecovery'
+import { ApiFailure, type UserResource } from '@fit-nation/shared'
+import { createSubscriptionRecovery, mutationErrorMessage, SYNC_COOLDOWN_MS, type SubscriptionRecoveryDeps } from './subscriptionRecovery'
 
 const paid = { id: 7, entitlements: ['app_access'] } as unknown as UserResource
 const unpaid = { id: 7, entitlements: [] } as unknown as UserResource
@@ -12,6 +12,7 @@ function setup(overrides: Partial<SubscriptionRecoveryDeps> = {}) {
     sync: vi.fn(async () => ({ user: paid })),
     onRecovered: vi.fn(),
     onUnrecovered: vi.fn(),
+    onRefused: vi.fn(),
     now: () => clock,
     ...overrides,
   }
@@ -42,11 +43,20 @@ describe('subscription_required recovery', () => {
     expect(deps.onRecovered).not.toHaveBeenCalled()
   })
 
-  it('falls back to the paywall when the backend still grants nothing after the sync', async () => {
+  // Decision 2026-10-09 (Q1): the backend's answer to a successful sync wins over RevenueCat's cache.
+  it('hands over the backend refusal when a successful sync still grants nothing', async () => {
     const { deps, recover } = setup({ sync: vi.fn(async () => ({ user: unpaid })) })
+    expect(await recover()).toBe('refused')
+    expect(deps.onRefused).toHaveBeenCalledWith(unpaid)
+    expect(deps.onUnrecovered).not.toHaveBeenCalled()
+    expect(deps.onRecovered).not.toHaveBeenCalled()
+  })
+
+  it('keeps the fallback, not a refusal, when the sync times out', async () => {
+    const { deps, recover } = setup({ sync: vi.fn(async () => { throw new ApiFailure('timeout', 'Timed out') }) })
     expect(await recover()).toBe('unrecovered')
     expect(deps.onUnrecovered).toHaveBeenCalledTimes(1)
-    expect(deps.onRecovered).not.toHaveBeenCalled()
+    expect(deps.onRefused).not.toHaveBeenCalled()
   })
 
   it('joins concurrent 403s into one recovery with one sync', async () => {
@@ -83,10 +93,28 @@ describe('subscription_required recovery', () => {
     expect(deps.onUnrecovered).toHaveBeenCalledTimes(1)
   })
 
-  it('treats a synced user without an entitlements list as not recovered', async () => {
+  it('treats a synced user without an entitlements list as a refusal', async () => {
     const bare = { id: 7 } as unknown as UserResource
     const { deps, recover } = setup({ sync: vi.fn(async () => ({ user: bare })) })
-    expect(await recover()).toBe('unrecovered')
+    expect(await recover()).toBe('refused')
     expect(deps.onRecovered).not.toHaveBeenCalled()
+  })
+})
+
+// Decision 2026-10-09 (Q2): a mutation caught by the gate is never retried for the user; it says try again.
+describe('mutationErrorMessage', () => {
+  it('turns subscription_required into a plain try-again', () => {
+    expect(mutationErrorMessage(new ApiFailure('subscription_required', 'Subscription required.', { status: 403 })))
+      .toBe('Something went wrong — try again.')
+  })
+
+  it('keeps any other failure message', () => {
+    expect(mutationErrorMessage(new ApiFailure('validation', 'The name field is required.', { status: 422 })))
+      .toBe('The name field is required.')
+    expect(mutationErrorMessage(new Error('Boom'))).toBe('Boom')
+  })
+
+  it('falls back when nothing readable was thrown', () => {
+    expect(mutationErrorMessage(undefined)).toBe('Something went wrong')
   })
 })
