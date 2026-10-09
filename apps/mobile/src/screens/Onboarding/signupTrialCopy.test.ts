@@ -1,19 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { SubscriptionResource, UserResource } from '@fit-nation/shared'
 import { signupTrialOffer } from './signupTrialCopy'
-
-const sub = (patch: Partial<SubscriptionResource> = {}): SubscriptionResource => ({
-  status: null,
-  expires_at: null,
-  is_trial: false,
-  is_sponsored_by_gym: false,
-  grace_period_ends_at: null,
-  access_source: 'none',
-  free_access_kind: null,
-  enforced: true,
-  signup_trial_days: 7,
-  ...patch,
-})
+import { sub } from '../../test/fixtures'
 
 const user = (subscription: SubscriptionResource | null, onboarding_completed_at: string | null = null) =>
   ({ onboarding_completed_at, subscription }) as Pick<UserResource, 'onboarding_completed_at' | 'subscription'>

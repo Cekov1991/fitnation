@@ -1,19 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { SubscriptionResource } from '@fit-nation/shared'
 import { deleteAccountMessage, isDeleteConfirmed } from './deleteAccountCopy'
-
-const sub = (patch: Partial<SubscriptionResource>): SubscriptionResource => ({
-  status: null,
-  expires_at: null,
-  is_trial: false,
-  is_sponsored_by_gym: false,
-  grace_period_ends_at: null,
-  access_source: 'none',
-  free_access_kind: null,
-  enforced: true,
-  signup_trial_days: 7,
-  ...patch,
-})
+import { sub } from '../../test/fixtures'
 
 describe('isDeleteConfirmed', () => {
   it('accepts the word, whatever the case and spacing', () => {
