@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Purchases, { type PurchasesPackage, INTRO_ELIGIBILITY_STATUS, PURCHASES_ERROR_CODE } from 'react-native-purchases'
+import Purchases, { type CustomerInfo, type PurchasesPackage, INTRO_ELIGIBILITY_STATUS, PURCHASES_ERROR_CODE } from 'react-native-purchases'
 import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Zap } from 'lucide-react-native'
 import { privacyPolicy, termsOfService } from '@fit-nation/legal'
-import { queryKeys, withAlpha } from '@fit-nation/shared'
+import { authApi, queryKeys, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { Button } from '../components/ui/Button'
@@ -15,6 +15,8 @@ import { SectionLabel } from '../components/ui/SectionLabel'
 import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
 import { paywallHero } from './paywallCopy'
+import { runPurchaseFlow } from '../lib/purchaseFlow'
+import { revenueCatIdentity } from '../lib/revenuecat'
 import { showToast } from '../lib/toast'
 import type { AppScreenProps } from '../navigation/types'
 
@@ -36,7 +38,7 @@ const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } a
 
 export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   const { colors } = useTheme()
-  const { logout } = useAuth()
+  const { user, logout, setUser } = useAuth()
   const { subscription } = useEntitlements()
   const queryClient = useQueryClient()
 
@@ -98,14 +100,37 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
     navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })
   }
 
+  /**
+   * Purchase or restore through the purchase flow (ticket 026/07): RevenueCat
+   * must hold this user, then the backend syncs and we wait (~10 s at most) for
+   * /user to agree before entering. Answers whether the store granted access.
+   */
+  async function runFlow(transact: () => Promise<boolean>): Promise<boolean> {
+    if (!user) return false
+    const result = await runPurchaseFlow({
+      userId: user.id,
+      revenueCat: revenueCatIdentity,
+      transact,
+      sync: () => authApi.syncSubscription(),
+      fetchUser: () => authApi.getCurrentUser().then(r => r.user),
+      log: (message, error) => console.warn(message, error),
+    })
+    if (result.kind === 'identity-mismatch') {
+      showToast("We couldn't confirm your account. Please try again.", 'error')
+    } else if (result.kind === 'entered') {
+      if (result.user) setUser(result.user)
+      await enterApp()
+    }
+    return result.kind !== 'not-granted'
+  }
+
+  const hasAppAccess = (info: CustomerInfo) => !!info.entitlements.active[Entitlement.AppAccess]
+
   async function handlePurchase() {
     if (!selectedPkg) return
     try {
       setPurchasing(true)
-      const { customerInfo } = await Purchases.purchasePackage(selectedPkg)
-      if (customerInfo.entitlements.active[Entitlement.AppAccess]) {
-        await enterApp()
-      }
+      await runFlow(async () => hasAppAccess((await Purchases.purchasePackage(selectedPkg)).customerInfo))
     } catch (e: unknown) {
       const err = e as { code?: PURCHASES_ERROR_CODE; userCancelled?: boolean; message?: string }
       if (err.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
@@ -124,12 +149,8 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   async function handleRestore() {
     try {
       setRestoring(true)
-      const customerInfo = await Purchases.restorePurchases()
-      if (customerInfo.entitlements.active[Entitlement.AppAccess]) {
-        await enterApp()
-      } else {
-        showToast('No active subscription was found for this account.', 'error')
-      }
+      const granted = await runFlow(async () => hasAppAccess(await Purchases.restorePurchases()))
+      if (!granted) showToast('No active subscription was found for this account.', 'error')
     } catch (e: unknown) {
       showToast((e as { message?: string }).message ?? 'Unable to restore purchases. Please try again.', 'error')
     } finally {

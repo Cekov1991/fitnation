@@ -45,3 +45,14 @@ export const logOutRevenueCat = async () => {
     console.warn('[RC] logOut failed', e)
   }
 }
+
+/**
+ * RevenueCat's identity, as the purchase flow reads it. Unlike
+ * identifyRevenueCatUser, a failed log-in throws: the flow must know.
+ */
+export const revenueCatIdentity = {
+  currentUserId: () => Purchases.getAppUserID(),
+  logIn: async (userId: string) => {
+    await Purchases.logIn(userId)
+  },
+}
