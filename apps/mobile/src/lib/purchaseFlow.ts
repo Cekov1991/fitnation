@@ -19,8 +19,6 @@ export interface PurchaseFlowDeps {
   sync: () => Promise<{ user: UserResource }>
   /** `GET /api/user`. */
   fetchUser: () => Promise<UserResource>
-  now?: () => number
-  sleep?: (ms: number) => Promise<void>
   log?: (message: string, error?: unknown) => void
 }
 
@@ -56,33 +54,40 @@ async function ensureIdentity(deps: PurchaseFlowDeps): Promise<boolean> {
  * 3. Subscription Sync. A failure is logged, never blocking: the webhook still
  *    gets there.
  * 4. If the store granted access, poll `GET /user` until it carries
- *    `app_access`, up to ~10 s, then enter regardless (the access gate also
- *    trusts RevenueCat). If it didn't, enter only on the sync's word.
+ *    `app_access`, then enter regardless (the access gate also trusts
+ *    RevenueCat). If it didn't, enter only on the sync's word.
+ *
+ * Steps 3–4 share one ~10 s budget: a request still pending at the deadline is
+ * left behind (026/12), so a slow backend can't stretch the wait.
  */
 export async function runPurchaseFlow(deps: PurchaseFlowDeps): Promise<PurchaseFlowResult> {
   if (!(await ensureIdentity(deps))) return { kind: 'identity-mismatch' }
   const granted = await deps.transact()
 
+  const now = Date.now
+  const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+  const deadline = now() + POLL_TIMEOUT_MS
+  /** The request's answer, or `undefined` if the deadline comes first. */
+  const beforeDeadline = <T>(pending: Promise<T>): Promise<T | undefined> =>
+    Promise.race([pending, sleep(Math.max(0, deadline - now())).then(() => undefined)])
+
   let user: UserResource | null = null
   try {
-    user = (await deps.sync()).user
+    user = (await beforeDeadline(deps.sync()))?.user ?? null
   } catch (e) {
     deps.log?.('[purchase] subscription sync failed', e)
   }
   if (hasAccess(user)) return { kind: 'entered', user }
   if (!granted) return { kind: 'not-granted' }
 
-  const now = deps.now ?? Date.now
-  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)))
-  const deadline = now() + POLL_TIMEOUT_MS
   while (now() < deadline) {
     try {
-      user = await deps.fetchUser()
+      user = (await beforeDeadline(deps.fetchUser())) ?? user
       if (hasAccess(user)) break
     } catch (e) {
       deps.log?.('[purchase] /user poll failed', e)
     }
-    await sleep(Math.min(POLL_INTERVAL_MS, deadline - now()))
+    await sleep(Math.min(POLL_INTERVAL_MS, Math.max(0, deadline - now())))
   }
   return { kind: 'entered', user }
 }
