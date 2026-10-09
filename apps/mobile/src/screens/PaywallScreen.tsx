@@ -14,7 +14,7 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { SectionLabel } from '../components/ui/SectionLabel'
 import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
-import { paywallHero } from './paywallCopy'
+import { paywallHero, purchaseOutcomeMessage } from './paywallCopy'
 import { runPurchaseFlow, type PurchaseFlowResult } from '../lib/purchaseFlow'
 import { revenueCatIdentity } from '../lib/revenuecat'
 import { showToast } from '../lib/toast'
@@ -88,9 +88,9 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   /**
    * Purchase or restore through the purchase flow (ticket 026/07): RevenueCat
    * must hold this user, then the backend syncs and we wait (~10 s at most) for
-   * /user to agree before entering. Toasts the "try again" case itself.
+   * /user to agree before entering. Toasts any outcome that doesn't enter.
    */
-  async function runFlow(transact: () => Promise<boolean>): Promise<PurchaseFlowResult['kind']> {
+  async function runFlow(action: 'purchase' | 'restore', transact: () => Promise<boolean>): Promise<void> {
     const result: PurchaseFlowResult = user
       ? await runPurchaseFlow({
           userId: user.id,
@@ -101,20 +101,20 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
           log: (message, error) => console.warn(message, error),
         })
       : { kind: 'identity-mismatch' }
-    if (result.kind === 'identity-mismatch') {
-      showToast("We couldn't confirm your account. Please try again.", 'error')
-    } else if (result.kind === 'entered') {
+    if (result.kind === 'entered') {
       if (result.user) setUser(result.user)
       await enterApp()
+      return
     }
-    return result.kind
+    const message = purchaseOutcomeMessage(action, result.kind)
+    if (message) showToast(message, 'error')
   }
 
   async function handlePurchase() {
     if (!selectedPkg) return
     try {
       setPurchasing(true)
-      await runFlow(async () => hasAppAccess((await Purchases.purchasePackage(selectedPkg)).customerInfo))
+      await runFlow('purchase', async () => hasAppAccess((await Purchases.purchasePackage(selectedPkg)).customerInfo))
     } catch (e: unknown) {
       const err = e as { code?: PURCHASES_ERROR_CODE; userCancelled?: boolean; message?: string }
       if (err.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
@@ -133,8 +133,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   async function handleRestore() {
     try {
       setRestoring(true)
-      const outcome = await runFlow(async () => hasAppAccess(await Purchases.restorePurchases()))
-      if (outcome === 'not-granted') showToast('No active subscription was found for this account.', 'error')
+      await runFlow('restore', async () => hasAppAccess(await Purchases.restorePurchases()))
     } catch (e: unknown) {
       showToast((e as { message?: string }).message ?? 'Unable to restore purchases. Please try again.', 'error')
     } finally {

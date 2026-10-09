@@ -1,5 +1,6 @@
 import type { SubscriptionResource } from '@fit-nation/shared'
 import { hasSignupTrialEnded } from '../components/profile/subscriptionCopy'
+import type { PurchaseFlowResult } from '../lib/purchaseFlow'
 
 export interface PaywallHero {
   headline: string
@@ -31,5 +32,26 @@ export function paywallHero(
     headline: 'Unlock Your Full Potential',
     subheadline: 'Full access to personalized training, the exercise library and progress tracking.',
     ctaLabel: CTA_LABEL,
+  }
+}
+
+/**
+ * The toast after a purchase or restore, by the purchase flow's outcome; null
+ * when the user simply goes in. A purchase the store completed without granting
+ * `app_access` (026/12) is pointed at Restore rather than left silent.
+ */
+export function purchaseOutcomeMessage(
+  action: 'purchase' | 'restore',
+  outcome: PurchaseFlowResult['kind'],
+): string | null {
+  switch (outcome) {
+    case 'entered':
+      return null
+    case 'identity-mismatch':
+      return "We couldn't confirm your account. Please try again."
+    case 'not-granted':
+      return action === 'purchase'
+        ? "Purchase didn't go through — try Restore."
+        : 'No active subscription was found for this account.'
   }
 }

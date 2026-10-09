@@ -1,19 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { SubscriptionResource } from '@fit-nation/shared'
-import { paywallHero } from './paywallCopy'
-
-const sub = (patch: Partial<SubscriptionResource>): SubscriptionResource => ({
-  status: null,
-  expires_at: null,
-  is_trial: false,
-  is_sponsored_by_gym: false,
-  grace_period_ends_at: null,
-  access_source: 'none',
-  free_access_kind: null,
-  enforced: true,
-  signup_trial_days: 7,
-  ...patch,
-})
+import { paywallHero, purchaseOutcomeMessage } from './paywallCopy'
+import { sub } from '../test/fixtures'
 
 const NOW = new Date(2026, 9, 13, 12)
 const ENDED = new Date(2026, 9, 12, 12).toISOString()
@@ -51,5 +38,25 @@ describe('paywallHero', () => {
     expect(
       paywallHero(sub({ status: 'expired', expires_at: '2026-10-03T20:57:30Z', grace_period_ends_at: ENDED, free_access_kind: 'signup_trial' }), NOW).headline,
     ).toBe('Your free trial has ended')
+  })
+})
+
+describe('purchaseOutcomeMessage', () => {
+  it('a purchase the store did not grant points to Restore', () => {
+    expect(purchaseOutcomeMessage('purchase', 'not-granted')).toBe("Purchase didn't go through — try Restore.")
+  })
+
+  it('a restore that found nothing says so', () => {
+    expect(purchaseOutcomeMessage('restore', 'not-granted')).toBe('No active subscription was found for this account.')
+  })
+
+  it('an unconfirmed account asks to try again, whichever the action', () => {
+    expect(purchaseOutcomeMessage('purchase', 'identity-mismatch')).toBe("We couldn't confirm your account. Please try again.")
+    expect(purchaseOutcomeMessage('restore', 'identity-mismatch')).toBe("We couldn't confirm your account. Please try again.")
+  })
+
+  it('entering needs no message', () => {
+    expect(purchaseOutcomeMessage('purchase', 'entered')).toBeNull()
+    expect(purchaseOutcomeMessage('restore', 'entered')).toBeNull()
   })
 })
