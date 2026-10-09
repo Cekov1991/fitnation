@@ -24,8 +24,10 @@ export type ApiFailureKind =
   | 'subscription_required'
   /** Any other non-2xx, with its status. */
   | 'http'
-  /** The request never got an HTTP answer — offline, DNS, TLS, aborted. */
-  | 'network';
+  /** The request never got an HTTP answer — offline, DNS, TLS, aborted by the caller. */
+  | 'network'
+  /** No answer within the request's time limit (`DEFAULT_TIMEOUT_MS` unless overridden); the request was aborted. */
+  | 'timeout';
 
 export class ApiFailure extends Error {
   readonly kind: ApiFailureKind;
@@ -80,12 +82,19 @@ export function normaliseFieldErrors(raw: unknown): Record<string, string[]> {
   return out;
 }
 
+/** How long a request may go unanswered before it fails as `timeout`. */
+export const DEFAULT_TIMEOUT_MS = 15_000;
+/** A multipart upload (photo, exercise video) gets longer on a slow connection. */
+export const UPLOAD_TIMEOUT_MS = 120_000;
+
 export interface RequestOptions extends RequestInit {
   /** `bearer` sends the stored token and treats a rejected one as a sign-out; `none` sends nothing. */
   auth: 'bearer' | 'none';
+  /** Overrides the time limit: `DEFAULT_TIMEOUT_MS`, or `UPLOAD_TIMEOUT_MS` for a FormData body. */
+  timeoutMs?: number;
 }
 
-export async function request<T>(url: string, { auth, ...init }: RequestOptions): Promise<T> {
+export async function request<T>(url: string, { auth, timeoutMs, ...init }: RequestOptions): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(init.headers as Record<string, string> | undefined),
@@ -102,15 +111,11 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${getConfig().baseUrl}${url}`, { ...init, headers });
-  } catch (cause) {
-    throw new ApiFailure('network', 'Could not reach the server.', { cause });
-  }
+  const limit = timeoutMs ?? (init.body instanceof FormData ? UPLOAD_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
+  const { response, text } = await fetchWithin(`${getConfig().baseUrl}${url}`, { ...init, headers }, limit);
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as { message?: string; errors?: unknown; code?: string };
+    const body = parseOr<{ message?: string; errors?: unknown; code?: string } | null>(text, null) ?? {};
     const message = body.message || `Request failed (${response.status})`;
     if (response.status === 422) {
       throw new ApiFailure('validation', message, { status: 422, errors: body.errors });
@@ -143,5 +148,42 @@ export async function request<T>(url: string, { auth, ...init }: RequestOptions)
   if (response.status === 204 || response.headers.get('content-length') === '0') {
     return undefined as T;
   }
-  return (await response.json()) as T;
+  return JSON.parse(text) as T;
+}
+
+/**
+ * Fetch and read the body, all within `limit` ms, else a `timeout` failure.
+ * Our own controller does the aborting; a caller's signal is forwarded to it
+ * (Hermes has no AbortSignal.any / AbortSignal.timeout).
+ */
+async function fetchWithin(url: string, init: RequestInit, limit: number): Promise<{ response: Response; text: string }> {
+  const controller = new AbortController();
+  const callerSignal = init.signal;
+  const forwardAbort = () => controller.abort();
+  if (callerSignal?.aborted) controller.abort();
+  else callerSignal?.addEventListener('abort', forwardAbort);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, limit);
+
+  try {
+    const response = await fetch(url, { ...init, signal: controller.signal });
+    return { response, text: await response.text() };
+  } catch (cause) {
+    if (timedOut) throw new ApiFailure('timeout', 'The server took too long to answer.', { cause });
+    throw new ApiFailure('network', 'Could not reach the server.', { cause });
+  } finally {
+    clearTimeout(timer);
+    callerSignal?.removeEventListener('abort', forwardAbort);
+  }
+}
+
+function parseOr<T>(text: string, fallback: T): T {
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return fallback;
+  }
 }
