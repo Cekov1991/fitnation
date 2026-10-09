@@ -91,16 +91,44 @@ describe('runPurchaseFlow', () => {
     const out = await runPurchaseFlow(d)
 
     expect(out).toEqual({ kind: 'entered', user: withoutAccess })
-    expect(c.now()).toBeGreaterThanOrEqual(10_000)
-    expect(c.now()).toBeLessThanOrEqual(11_000)
+    expect(c.now()).toBe(10_000)
     expect(fetchUser.mock.calls.length).toBeGreaterThan(1)
   })
 
-  it('a restore that finds no app_access reports it, without syncing or entering', async () => {
-    const d = deps({ transact: vi.fn(async () => false) })
+  it('a store that grants no app_access still syncs, but reports it instead of waiting and entering', async () => {
+    const d = deps({ transact: vi.fn(async () => false), sync: vi.fn(async () => ({ user: withoutAccess })) })
 
     expect(await runPurchaseFlow(d)).toEqual({ kind: 'not-granted' })
-    expect(d.sync).not.toHaveBeenCalled()
+    expect(d.sync).toHaveBeenCalledTimes(1)
     expect(d.fetchUser).not.toHaveBeenCalled()
+  })
+
+  it('a store that grants no app_access enters when the sync finds it on the backend', async () => {
+    const d = deps({ transact: vi.fn(async () => false) })
+
+    expect(await runPurchaseFlow(d)).toEqual({ kind: 'entered', user: withAccess })
+  })
+
+  it('a sync that answers without app_access is followed by polling until /user has it', async () => {
+    const fetchUser = vi.fn().mockResolvedValueOnce(withoutAccess).mockResolvedValueOnce(withAccess)
+    const d = deps({ sync: async () => ({ user: withoutAccess }), fetchUser })
+
+    expect(await runPurchaseFlow(d)).toEqual({ kind: 'entered', user: withAccess })
+    expect(fetchUser).toHaveBeenCalledTimes(2)
+  })
+
+  it('treats an unreadable RevenueCat user id like a mismatch', async () => {
+    const d = deps({ revenueCat: { currentUserId: async () => { throw new Error('not configured') }, logIn: vi.fn(async () => {}) } })
+
+    expect(await runPurchaseFlow(d)).toEqual({ kind: 'identity-mismatch' })
+    expect(d.transact).not.toHaveBeenCalled()
+  })
+
+  it('lets a store error (cancelled sheet, already purchased) reach the caller unchanged', async () => {
+    const storeError = Object.assign(new Error('cancelled'), { userCancelled: true })
+    const d = deps({ transact: vi.fn(async () => { throw storeError }) })
+
+    await expect(runPurchaseFlow(d)).rejects.toBe(storeError)
+    expect(d.sync).not.toHaveBeenCalled()
   })
 })
