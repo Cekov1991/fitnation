@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
-import { useQueryClient } from '@tanstack/react-query'
+import { hashKey, useQueryClient } from '@tanstack/react-query'
 import * as SecureStore from 'expo-secure-store'
 import { initAuth, setOnUnauthorized, setOnSubscriptionRequired, AUTH_TOKEN_KEY, authApi, queryKeys } from '@fit-nation/shared'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import type { UserResource } from '@fit-nation/shared'
 import { useDeviceRegistration, clearLastDeviceRegistration } from '../hooks/useDeviceRegistration'
-import { identifyRevenueCatUser, logOutRevenueCat } from '../lib/revenuecat'
+import { identifyRevenueCatUser, logOutRevenueCat, revenueCatGrantsAppAccess } from '../lib/revenuecat'
+import { createSubscriptionRecovery } from '../lib/subscriptionRecovery'
 import { restoreSession } from '../lib/session'
 import { readCachedUser, writeCachedUser } from '../lib/userCache'
 
@@ -81,17 +82,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnUnauthorized(null)
   }, [queryClient, setUser])
 
-  // A gated endpoint returned 403 subscription_required — entitlements changed
-  // server-side while the cached user still granted access. Refresh both
-  // entitlement sources; EntitlementWatcher reroutes to the paywall once the
-  // fresh user lands. GET /api/user is pre-paywall, so this cannot loop.
+  // A gated endpoint returned 403 subscription_required. If RevenueCat says
+  // the user has paid, the backend is behind: sync it once, take the fresh
+  // user and refetch everything else (the 403'd screens). Otherwise refresh
+  // both entitlement sources; EntitlementWatcher reroutes to the paywall once
+  // the fresh user lands. GET /api/user and the sync are pre-paywall, and
+  // createSubscriptionRecovery syncs at most once per cooldown, so this cannot
+  // loop. A fresh recovery per signed-in user. Spec 026, ticket 08.
+  const userId = user?.id
   useEffect(() => {
-    setOnSubscriptionRequired(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.current() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.revenueCat.customerInfo() })
+    const recover = createSubscriptionRecovery({
+      storeGrantsAccess: revenueCatGrantsAppAccess,
+      sync: () => authApi.syncSubscription(),
+      onRecovered: (fresh) => {
+        setUser(fresh)
+        const userHash = hashKey(queryKeys.user.current())
+        queryClient.invalidateQueries({ predicate: (q) => q.queryHash !== userHash })
+      },
+      onPaywall: () => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.user.current() })
+        queryClient.invalidateQueries({ queryKey: queryKeys.revenueCat.customerInfo() })
+      },
+      log: (message, error) => console.warn(message, error),
     })
+    // Not awaited: the failing request rejects at once; recovery runs behind it.
+    setOnSubscriptionRequired(() => { void recover() })
     return () => setOnSubscriptionRequired(null)
-  }, [queryClient])
+  }, [queryClient, setUser, userId])
 
   // Boot: restore the session from the stored token. Only a rejected token
   // signs out (the HTTP layer has already dropped it); no network falls back

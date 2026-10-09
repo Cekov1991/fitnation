@@ -1,5 +1,6 @@
 import Purchases, { LOG_LEVEL } from 'react-native-purchases'
 import { Platform } from 'react-native'
+import { Entitlement } from './entitlements'
 
 let configured = false
 
@@ -55,4 +56,11 @@ export const revenueCatIdentity = {
   logIn: async (userId: string) => {
     await Purchases.logIn(userId)
   },
+}
+
+/** Whether RevenueCat's customerInfo grants `app_access`. Throws when it can't be read. */
+export const revenueCatGrantsAppAccess = async (): Promise<boolean> => {
+  if (!configured) return false
+  const info = await Purchases.getCustomerInfo()
+  return Entitlement.AppAccess in info.entitlements.active
 }
