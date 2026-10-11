@@ -55,7 +55,7 @@ export function ProfileScreen() {
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const updateNotificationSettings = useUpdateNotificationSettings()
   const { has, subscription } = useEntitlements()
-  const hasAccess = has(Entitlement.AppAccess)
+  const plan = subscriptionCopy(subscription, has(Entitlement.AppAccess))
   const [logoutVisible, setLogoutVisible] = useState(false)
 
   // M8: the switch is the server's global `push_enabled`; the OS permission is
@@ -177,13 +177,15 @@ export function ProfileScreen() {
           ))}
         </Card>
 
-        {/* Subscribing is one tap from here. A plan that exists is managed —
-            changed, cancelled — under Account → Subscription, not on the hub. */}
+        {/* Subscribing is one tap from here: without access, and through the
+            Signup Trial, whose days left show on the card. A plan that exists
+            is managed — changed, cancelled — under Account → Subscription, not
+            on the hub. */}
         {/* No card at all while subscriptions are not enforced (026). */}
-        {!hasAccess && subscriptionCopy(subscription, hasAccess).shown && (
+        {plan.shown && plan.offersPlans && (
           <>
             <SectionLabel style={{ marginTop: 8 }}>Subscription</SectionLabel>
-            <SubscriptionCard manage={false} onSeePlans={() => navigation.navigate('Paywall')} />
+            <SubscriptionCard manage={false} onSeePlans={() => navigation.navigate('SubscriptionPlans')} />
           </>
         )}
 

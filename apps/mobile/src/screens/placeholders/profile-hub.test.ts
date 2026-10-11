@@ -19,9 +19,10 @@ describe('the Profile hub', () => {
   const account = read('EditProfileSectionScreen.tsx')
   const sheet = read('../../components/profile/DeleteAccountSheet.tsx')
 
+  // Since 2026-10-12 that includes the Signup Trial, whose days left the card shows.
   it('shows the subscription card only to subscribe, and only while enforced, without the store button', () => {
-    expect(hub).toMatch(/\{!hasAccess && subscriptionCopy\(subscription, hasAccess\)\.shown && \(/)
-    expect(hub).toMatch(/<SubscriptionCard manage=\{false\}/)
+    expect(hub).toMatch(/\{plan\.shown && plan\.offersPlans && \(/)
+    expect(hub).toMatch(/<SubscriptionCard manage=\{false\} onSeePlans=\{\(\) => navigation\.navigate\('SubscriptionPlans'\)\}/)
   })
 
   it('logs out from a settings row, not a button', () => {

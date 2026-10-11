@@ -64,7 +64,9 @@ const BLOCKING_SCREENS: ReadonlySet<string> = new Set<EntryRoute>(['EmailVerific
 
 /**
  * The reset EntitlementWatcher performs given the current route, or null to
- * leave the stack alone.
+ * leave the stack alone. SubscriptionPlans (the paywall opened by choice
+ * during the Signup Trial) is a gated screen like any other: left alone while
+ * access lasts, handed to the Paywall when it ends.
  */
 export function entitlementReroute(currentRoute: string | undefined, hasAppAccess: boolean): GateRoute | null {
   if (!currentRoute || BLOCKING_SCREENS.has(currentRoute)) return null

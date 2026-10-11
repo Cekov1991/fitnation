@@ -18,6 +18,7 @@ describe('subscriptionCopy', () => {
       isSponsored: false,
       freeAccessKind: null,
       manageable: false,
+      offersPlans: true,
       shown: true,
     })
   })
@@ -64,6 +65,7 @@ describe('subscriptionCopy', () => {
       isSponsored: true,
       freeAccessKind: null,
       manageable: false,
+      offersPlans: false,
       shown: true,
     })
   })
@@ -187,6 +189,15 @@ describe('subscriptionCopy for Free Access', () => {
     expect(copy.freeAccessKind).toBe(null)
   })
 
+  it('offers the plans during the Signup Trial, but not to Complimentary Access or a running plan', () => {
+    expect(subscriptionCopy(trial(), true, NOW).offersPlans).toBe(true)
+    expect(subscriptionCopy(comp(), true, NOW).offersPlans).toBe(false)
+    expect(subscriptionCopy(trial({ status: 'active', expires_at: '2026-11-05T12:00:00Z' }), true, NOW).offersPlans).toBe(false)
+    expect(subscriptionCopy(trial({ is_sponsored_by_gym: true }), true, NOW).offersPlans).toBe(false)
+    // Over, with nothing taking over: no access, so the plans as before.
+    expect(subscriptionCopy(trial(), false, new Date(2026, 9, 13)).offersPlans).toBe(true)
+  })
+
   it('the Subscription page intro names the kind of Free Access and where billing happens after it', () => {
     expect(subscriptionIntro(subscriptionCopy(trial(), true, NOW), 'the App Store')).toBe(
       'Your free trial is on. When it ends, plans are billed through the App Store and can be changed or cancelled there.'
@@ -202,6 +213,7 @@ describe('subscriptionCopy while subscriptions are not enforced', () => {
     const copy = subscriptionCopy(trial({ enforced: false }), true, NOW)
     expect(copy.shown).toBe(false)
     expect(copy.freeAccessKind).toBe(null)
+    expect(copy.offersPlans).toBe(false)
     expect(copy.line).toBe('Included for now')
     expect(subscriptionCopy(comp({ enforced: false }), true, NOW).line).not.toMatch(/free access|until/i)
   })

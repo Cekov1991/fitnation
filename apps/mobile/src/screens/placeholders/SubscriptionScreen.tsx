@@ -23,7 +23,7 @@ export function SubscriptionScreen({ navigation }: AppScreenProps<'Subscription'
       <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <ScreenHeader title="Subscription" subtitle="Your plan" onBack={() => navigation.goBack()} />
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{intro}</Text>
-        <SubscriptionCard onSeePlans={() => navigation.navigate('Paywall')} />
+        <SubscriptionCard onSeePlans={() => navigation.navigate('SubscriptionPlans')} />
       </ScrollView>
     </SafeAreaView>
   )

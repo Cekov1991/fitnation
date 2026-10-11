@@ -19,6 +19,19 @@ describe('paywallHero', () => {
     })
   })
 
+  it('a running Signup Trial (the plans opened from Profile) says what is left and that paying starts today', () => {
+    const trial = (ends: Date) => sub({ grace_period_ends_at: ends.toISOString(), free_access_kind: 'signup_trial' })
+    expect(paywallHero(trial(new Date(2026, 9, 18, 12)), NOW)).toEqual({
+      headline: 'Keep going after your trial',
+      subheadline: 'Your free trial has 5 days left. Subscribing now starts your paid plan today.',
+      ctaLabel: 'Subscribe Now',
+    })
+    expect(paywallHero(trial(new Date(2026, 9, 14, 9)), NOW).subheadline).toMatch(/^Your free trial has 1 day left\./)
+    expect(paywallHero(trial(new Date(2026, 9, 13, 20)), NOW).subheadline).toMatch(/^Your free trial ends today\./)
+    // Complimentary Access never reaches the plans by choice, and is never called a trial.
+    expect(paywallHero(sub({ grace_period_ends_at: new Date(2026, 9, 18).toISOString(), free_access_kind: 'complimentary' }), NOW)).toEqual(SELL)
+  })
+
   it('ended Complimentary Access is not called a trial', () => {
     expect(paywallHero(sub({ grace_period_ends_at: ENDED, free_access_kind: 'complimentary' }), NOW)).toEqual(SELL)
   })

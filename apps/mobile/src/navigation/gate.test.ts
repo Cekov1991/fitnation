@@ -78,4 +78,9 @@ describe('entitlementReroute', () => {
     expect(entitlementReroute('Tabs', true)).toBeNull()
     expect(entitlementReroute('ProgramDetail', true)).toBeNull()
   })
+
+  it('leaves the plans opened during the Signup Trial alone, and hands them to the Paywall once access ends', () => {
+    expect(entitlementReroute('SubscriptionPlans', true)).toBeNull()
+    expect(entitlementReroute('SubscriptionPlans', false)).toBe('Paywall')
+  })
 })

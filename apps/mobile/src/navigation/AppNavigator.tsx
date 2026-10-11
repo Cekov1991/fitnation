@@ -69,6 +69,7 @@ export function AppNavigator({ launchReady }: AppNavigatorProps) {
         component={PaywallScreen}
         options={{ gestureEnabled: false }}
       />
+      <Stack.Screen name="SubscriptionPlans" component={PaywallScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen
         name="WorkoutSession"
         component={WorkoutSessionScreen}

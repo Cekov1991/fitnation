@@ -24,6 +24,11 @@ export interface SubscriptionCopy {
   /** The Free Access granting access today — Signup Trial or Complimentary Access — or null. */
   freeAccessKind: FreeAccessKind | null
   manageable: boolean
+  /**
+   * Offer the plans ("See Plans"): without access, and while the Signup Trial
+   * runs, where subscribing starts the paid plan before the free days are up.
+   */
+  offersPlans: boolean
   /** False while subscriptions are not enforced: the Profile tab shows no subscription card then (026). */
   shown: boolean
 }
@@ -131,7 +136,9 @@ export function subscriptionCopy(
           ? 'Included for now'
           : title
 
-  return { title, summary, line, isSponsored, freeAccessKind, manageable, shown: enforced }
+  const offersPlans = !hasAccess || freeAccessKind === 'signup_trial'
+
+  return { title, summary, line, isSponsored, freeAccessKind, manageable, offersPlans, shown: enforced }
 }
 
 /** `7 days left`, then `1 day left`, then `Ends today`. */

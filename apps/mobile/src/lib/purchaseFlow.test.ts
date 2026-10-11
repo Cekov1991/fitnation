@@ -138,6 +138,21 @@ describe('runPurchaseFlow', () => {
     expect(fetchUser).toHaveBeenCalledTimes(2)
   })
 
+  // The plans opened during the Signup Trial: the backend grants access anyway.
+  it('with access from before, a store grant enters right after the sync, without polling', async () => {
+    const d = deps({ hadAccess: true })
+
+    expect(await run(d)).toEqual({ kind: 'entered', user: withAccess })
+    expect(d.sync).toHaveBeenCalledTimes(1)
+    expect(d.fetchUser).not.toHaveBeenCalled()
+  })
+
+  it('with access from before, a store that grants nothing is reported though the backend still grants access', async () => {
+    const d = deps({ hadAccess: true, transact: vi.fn(async () => false) })
+
+    expect(await run(d)).toEqual({ kind: 'not-granted' })
+  })
+
   it('treats an unreadable RevenueCat user id like a mismatch', async () => {
     const d = deps({ revenueCat: { currentUserId: async () => { throw new Error('not configured') }, logIn: vi.fn(async () => {}) } })
 

@@ -27,6 +27,8 @@ export type AppStackParamList = {
   EmailVerification: undefined
   Onboarding: undefined
   Paywall: undefined
+  /** The paywall opened by choice (See Plans during the Signup Trial): not the gate, so it can be left. */
+  SubscriptionPlans: undefined
   WorkoutSession: { sessionId: string }
   WorkoutSummary: { sessionId: string; newPrs?: NewPrResource[] }
   WorkoutSessionExerciseDetail: { sessionId: string; exerciseId: number }

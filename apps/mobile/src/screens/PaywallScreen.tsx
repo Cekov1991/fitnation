@@ -11,10 +11,11 @@ import { useTheme } from '../context/ThemeContext'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ErrorState } from '../components/ui/ErrorState'
+import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { SectionLabel } from '../components/ui/SectionLabel'
 import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
-import { paywallHero, purchaseOutcomeMessage, type PurchaseAction } from './paywallCopy'
+import { paywallHero, purchaseOutcomeMessage, SUBSCRIBED_MESSAGE, type PurchaseAction } from './paywallCopy'
 import { runPurchaseFlow, type PurchaseFlowResult } from '../lib/purchaseFlow'
 import { purchaseLiftsRefusal } from '../navigation/gate'
 import { revenueCatIdentity } from '../lib/revenuecat'
@@ -26,6 +27,10 @@ import type { AppScreenProps } from '../navigation/types'
  * user has no `app_access` entitlement (AppNavigator), and re-entered by
  * EntitlementWatcher when access lapses at runtime. Nothing behind it is
  * reachable, so it carries its own Sign Out.
+ *
+ * The same screen, as SubscriptionPlans, is the plans opened by choice during
+ * the Signup Trial (See Plans on the Profile tab). That one is not the gate: it
+ * has a back button instead of Sign Out, and goes back after a purchase.
  */
 const FEATURES = [
   'Personalized workout plans',
@@ -39,11 +44,12 @@ const hasAppAccess = (info: CustomerInfo) => !!info.entitlements.active[Entitlem
 /** Sizes this screen owns; everything else comes from the primitives. */
 const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } as const
 
-export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
+export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 'SubscriptionPlans'>) {
   const { colors } = useTheme()
   const { user, logout, setUser, backendRefused, liftBackendRefusal } = useAuth()
-  const { subscription } = useEntitlements()
+  const { subscription, has } = useEntitlements()
   const queryClient = useQueryClient()
+  const isGate = route.name === 'Paywall'
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([])
   const [selectedPkg, setSelectedPkg] = useState<PurchasesPackage | null>(null)
@@ -78,12 +84,18 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
 
   // Both entitlement sources, then straight to Tabs. EntitlementWatcher would
   // get there too once the user query lands; the reset just makes it instant.
+  // The plans opened during the trial go back to where they were opened.
   async function enterApp() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.user.current() }),
       queryClient.invalidateQueries({ queryKey: queryKeys.revenueCat.customerInfo() }),
     ])
-    navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })
+    if (isGate) {
+      navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] })
+    } else {
+      showToast(SUBSCRIBED_MESSAGE, 'success')
+      navigation.goBack()
+    }
   }
 
   /**
@@ -99,6 +111,7 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
           transact,
           sync: () => authApi.syncSubscription(),
           fetchUser: () => authApi.getCurrentUser().then(r => r.user),
+          hadAccess: has(Entitlement.AppAccess),
           log: (message, error) => console.warn(message, error),
         })
       : { kind: 'identity-mismatch' }
@@ -158,12 +171,17 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
 
   const { headline, subheadline, ctaLabel } = paywallHero(subscription)
 
-  const signOut = <Button variant="ghost" label="Sign Out" onPress={() => logout()} />
+  // The gate has nothing behind it, so it signs out; the plans opened by choice go back.
+  const signOut = isGate ? <Button variant="ghost" label="Sign Out" onPress={() => logout()} /> : null
+  const header = isGate ? null : <ScreenHeader title="Choose a Plan" onBack={() => navigation.goBack()} />
 
   if (loading) {
     return (
-      <SafeAreaView edges={['top', 'bottom']} style={[styles.centered, { backgroundColor: colors.bgBase }]}>
-        <ActivityIndicator color={colors.primary} size="large" />
+      <SafeAreaView edges={['top', 'bottom']} style={[styles.fill, { backgroundColor: colors.bgBase }]}>
+        {header && <View style={styles.header}>{header}</View>}
+        <View style={styles.centered}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
       </SafeAreaView>
     )
   }
@@ -171,8 +189,9 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   if (error) {
     return (
       <SafeAreaView edges={['top', 'bottom']} style={[styles.fill, { backgroundColor: colors.bgBase }]}>
+        {header && <View style={styles.header}>{header}</View>}
         <ErrorState message={error} onRetry={loadOfferings} />
-        <View style={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}>{signOut}</View>
+        {signOut && <View style={{ paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottom }}>{signOut}</View>}
       </SafeAreaView>
     )
   }
@@ -180,9 +199,16 @@ export function PaywallScreen({ navigation }: AppScreenProps<'Paywall'>) {
   return (
     <SafeAreaView edges={['top', 'bottom']} style={[styles.fill, { backgroundColor: colors.bgBase }]}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: SCREEN.paddingX, paddingTop: SCREEN.paddingTop, paddingBottom: SCREEN.paddingBottom }}
+        contentContainerStyle={{
+          paddingHorizontal: SCREEN.paddingX,
+          // ScreenHeader brings its own top padding.
+          paddingTop: header ? 0 : SCREEN.paddingTop,
+          paddingBottom: SCREEN.paddingBottom,
+        }}
         showsVerticalScrollIndicator={false}
       >
+        {header}
+
         {/* Hero */}
         <View style={styles.hero}>
           <View style={[styles.heroTile, { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
@@ -322,6 +348,7 @@ function PlanTile({ caption, price, period, note, badge, selected, onPress, styl
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  header: { paddingHorizontal: SCREEN.paddingX },
   hero: { alignItems: 'center', marginBottom: 32 },
   heroTile: {
     width: PAYWALL.heroTile,

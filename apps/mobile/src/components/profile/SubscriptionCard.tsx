@@ -10,10 +10,10 @@ import { subscriptionCopy } from './subscriptionCopy'
 
 /**
  * The subscription block: what grants access today (a plan, Free Access, the
- * gym), when it renews or ends, and the way to act on it — the paywall when
- * there is no access, the store's subscription page for a paid plan. Reads
- * entitlements itself; the screen says where "See Plans" goes and whether
- * managing belongs here.
+ * gym), when it renews or ends, and the way to act on it — the plans when
+ * there is no access or the Signup Trial runs, the store's subscription page
+ * for a paid plan. Reads entitlements itself; the screen says where "See
+ * Plans" goes and whether managing belongs here.
  */
 export const SUBSCRIPTION_CARD = { tile: 36, icon: 18 } as const
 
@@ -26,7 +26,7 @@ const STORE_SUBSCRIPTIONS_URL =
 export const STORE_NAME = Platform.OS === 'ios' ? 'the App Store' : 'Google Play'
 
 interface SubscriptionCardProps {
-  /** Opens the paywall. Shown only when the user has no app access. */
+  /** Opens the plans. Shown without app access, and during the Signup Trial. */
   onSeePlans?: () => void
   /**
    * Offer "Manage Subscription" (the store page, where a plan is changed or
@@ -66,7 +66,7 @@ export function SubscriptionCard({ onSeePlans, manage = true }: SubscriptionCard
           style={styles.action}
         />
       )}
-      {!hasAccess && onSeePlans && (
+      {copy.offersPlans && onSeePlans && (
         <Button size="sm" label="See Plans" onPress={onSeePlans} style={styles.action} />
       )}
     </Card>

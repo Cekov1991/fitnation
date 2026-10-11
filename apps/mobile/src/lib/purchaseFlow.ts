@@ -19,6 +19,11 @@ export interface PurchaseFlowDeps {
   sync: () => Promise<{ user: UserResource }>
   /** `GET /api/user`. */
   fetchUser: () => Promise<UserResource>
+  /**
+   * The user had app access before this (a Signup Trial), so the backend
+   * granting it says nothing about the purchase: only the store's grant counts.
+   */
+  hadAccess?: boolean
   log?: (message: string, error?: unknown) => void
 }
 
@@ -56,6 +61,7 @@ async function ensureIdentity(deps: PurchaseFlowDeps): Promise<boolean> {
  * 4. If the store granted access, poll `GET /user` until it carries
  *    `app_access`, then enter regardless (the access gate also trusts
  *    RevenueCat). If it didn't, enter only on the sync's word.
+ *    With access from before (`hadAccess`), the store's grant alone decides.
  *
  * Steps 3–4 share one ~10 s budget: a request still pending at the deadline is
  * left behind (026/12), so a slow backend can't stretch the wait.
@@ -77,6 +83,7 @@ export async function runPurchaseFlow(deps: PurchaseFlowDeps): Promise<PurchaseF
   } catch (e) {
     deps.log?.('[purchase] subscription sync failed', e)
   }
+  if (deps.hadAccess) return granted ? { kind: 'entered', user } : { kind: 'not-granted' }
   if (hasAccess(user)) return { kind: 'entered', user }
   if (!granted) return { kind: 'not-granted' }
 
