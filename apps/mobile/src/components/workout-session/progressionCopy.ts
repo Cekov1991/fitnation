@@ -69,7 +69,14 @@ export function progressionCopy(i: ProgressionCopyInput): ProgressionCopy | null
       }
 
     case 'below_min': {
-      const canLower = i.weighted && i.loweredWeight != null && i.targetWeight != null && i.targetWeight > 0
+      // A real step down or no offer: a lighter weight that reads the same as
+      // today's ("Use 20 lbs / Keep 20", lbs rounding) or reaches 0 is no choice.
+      const canLower =
+        i.weighted &&
+        i.loweredWeight != null &&
+        i.targetWeight != null &&
+        i.loweredWeight > 0 &&
+        i.loweredWeight < i.targetWeight
       return {
         kind: 'tough',
         tone: 'warning',

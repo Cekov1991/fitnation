@@ -49,6 +49,17 @@ describe('progressionCopy', () => {
     })
   })
 
+  // Reported 2026-10-12: lbs rounding put the same number on both buttons.
+  it('a lighter weight that reads the same as today, or reaches 0, is not offered', () => {
+    const lbs = { ...base, status: 'below_min' as const, weightUnit: 'lbs' as const, targetWeight: 20 }
+    expect(progressionCopy({ ...lbs, loweredWeight: 20 })).toMatchObject({
+      body: 'You missed your target reps. Aim for the full range today.',
+      offer: null,
+    })
+    expect(progressionCopy({ ...lbs, loweredWeight: 0 })?.offer).toBeNull()
+    expect(progressionCopy({ ...lbs, loweredWeight: 15 })?.offer).toEqual({ use: 15, keep: 20 })
+  })
+
   it('ready to go heavier names what was added, from last time when known', () => {
     expect(progressionCopy({ ...base, status: 'ready', previousWeight: 60 })).toMatchObject({
       kind: 'heavier',
