@@ -8,8 +8,12 @@ import type { WeightUnit } from '@fit-nation/shared'
 import { sanitizeDecimalText, withAlpha, formatWeight } from '@fit-nation/shared'
 import { setLogHints, type ColumnHint } from './setLogHints'
 
-/** The hint row under each field: a "Last …" chip and a plain note beside it. */
-export const SET_LOG_HINT = { text: 12, icon: 12, chipRadius: 8, chipPaddingX: 8, chipPaddingY: 4, gap: 10 } as const
+/**
+ * The hint row under each field: a "Last …" chip and a plain note beside it,
+ * or under it when the column is too narrow for both ("Last 100 lbs" and
+ * "Suggested 95 lbs" overran into the Reps column).
+ */
+export const SET_LOG_HINT = { text: 12, icon: 12, chipRadius: 8, chipPaddingX: 8, chipPaddingY: 4, gap: 10, rowGap: 4 } as const
 
 /** The small badge on the Weight label: where today's placeholder weight comes from. */
 export type WeightBadge = 'estimated' | 'raised' | 'lowered'
@@ -84,7 +88,16 @@ export function SetLogCard({
   })
   const renderHint = (hint: ColumnHint) =>
     hint.last || hint.note ? (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SET_LOG_HINT.gap, marginTop: 8 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          columnGap: SET_LOG_HINT.gap,
+          rowGap: SET_LOG_HINT.rowGap,
+          marginTop: 8,
+        }}
+      >
         {hint.last && (
           <View
             style={{
@@ -102,7 +115,7 @@ export function SetLogCard({
           </View>
         )}
         {hint.note && (
-          <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
+          <Text style={{ flexShrink: 1, fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
             {hint.note}
           </Text>
         )}

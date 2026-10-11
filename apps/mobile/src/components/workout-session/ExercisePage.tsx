@@ -41,6 +41,13 @@ import type { SessionExerciseDetail } from '@fit-nation/shared'
 // docs/specs/0007-default-target-autopatch-never-retries.md.
 const autoFixedSessionExerciseIds = new Set<number>()
 
+// The progression banner's answer per exercise, for this app session: "Use
+// <lighter>" takes that weight for every set still to log, "Keep" stays with
+// today's suggestion. Held here rather than in the page, which remounts on
+// every exercise switch; like the screen's drafts, an app restart forgets it.
+// Keyed like the drafts, so a swapped-in exercise never inherits the answer.
+type ProgressionChoice = { kind: 'lowered'; weight: number } | { kind: 'kept' }
+const progressionChoices = new Map<string, ProgressionChoice>()
 
 interface ExercisePageProps {
   exerciseDetail: SessionExerciseDetail
@@ -81,14 +88,21 @@ export function ExercisePage({
   const [editReps, setEditReps] = useState('')
 
   const [setMenuSetNumber, setSetMenuSetNumber] = useState<number | null>(null)
-  // The progression banner's one choice: "Use <lighter>" fills the Weight
-  // field and marks it lowered; "Keep" just dismisses. Per exercise, since this
-  // page remounts on every switch.
-  const [bannerDismissed, setBannerDismissed] = useState(false)
-  const [loweredApplied, setLoweredApplied] = useState(false)
 
   const { session_exercise, logged_sets, previous_sets } = exerciseDetail
   const exercise = session_exercise.exercise
+
+  // The progression banner's one choice (see progressionChoices): "Use
+  // <lighter>" fills the Weight field and makes that weight the default for
+  // every set of this exercise; "Keep" just dismisses.
+  const choiceKey = `${session_exercise.id}:${session_exercise.exercise_id}`
+  const [progressionChoice, setProgressionChoice] = useState(() => progressionChoices.get(choiceKey) ?? null)
+  const chooseProgression = (choice: ProgressionChoice) => {
+    progressionChoices.set(choiceKey, choice)
+    setProgressionChoice(choice)
+  }
+  const loweredWeight = progressionChoice?.kind === 'lowered' ? progressionChoice.weight : null
+
   // Fall back to sane defaults so the UI is always usable even when the server
   // row has null targets. A background patch (see effect below) persists these.
   const { sets: targetSets, minReps, maxReps } = exerciseTargets(exerciseDetail)
@@ -101,7 +115,9 @@ export function ExercisePage({
 
   const firstPending = slots.find(s => s.kind === 'pending')
   const firstPendingSetNumber = firstPending?.setNumber ?? null
-  const defaultWeight = firstPending?.kind === 'pending' ? firstPending.prefill.weight : (session_exercise.target_weight ?? 0)
+  // A lighter weight taken from the banner holds for every set, not just the first.
+  const defaultWeight =
+    loweredWeight ?? (firstPending?.kind === 'pending' ? firstPending.prefill.weight : (session_exercise.target_weight ?? 0))
   const defaultReps = firstPending?.kind === 'pending' ? firstPending.prefill.reps : minReps
 
   const banner = useMemo(
@@ -123,7 +139,7 @@ export function ExercisePage({
   )
   const weightBadge = !allowWeightLogging
     ? null
-    : loweredApplied
+    : loweredWeight != null
       ? 'lowered'
       : progressionStatus === 'no_history'
         ? 'estimated'
@@ -335,17 +351,16 @@ export function ExercisePage({
       keyboardShouldPersistTaps="handled"
     >
       {/* Progression banner: where today's targets came from, and the one choice it may offer. */}
-      {logged_sets.length === 0 && banner && !bannerDismissed && (
+      {logged_sets.length === 0 && banner && !progressionChoice && (
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <ProgressionBanner
             copy={banner}
             weightUnit={weightUnit}
             onUseWeight={(w) => {
               onLogWeightChange(formatWeight(w))
-              setLoweredApplied(true)
-              setBannerDismissed(true)
+              chooseProgression({ kind: 'lowered', weight: w })
             }}
-            onKeep={() => setBannerDismissed(true)}
+            onKeep={() => chooseProgression({ kind: 'kept' })}
           />
         </View>
       )}
