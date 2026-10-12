@@ -76,8 +76,9 @@ export type SetSlot =
       setNumber: number;
       /** What the log card opens with. */
       prefill: { weight: number; reps: number };
-      /** Last session's reps for this slot, for the "previous" hint. */
+      /** Last session's set in this slot, for the "last time" hint. */
       previousReps: number | null;
+      previousWeight: number | null;
     };
 
 /** How many rows the exercise renders: the target, or further if the user logged past it. */
@@ -120,6 +121,7 @@ export function buildSlots(detail: SessionExerciseDetail): SetSlot[] {
         reps: prev?.reps ?? (row.progression_mode === 'total_reps' ? 0 : targets.minReps),
       },
       previousReps: prev?.reps ?? null,
+      previousWeight: prev?.weight ?? null,
     };
   });
 }

@@ -7,6 +7,7 @@ import { deleteAccountAndSignOut } from './deleteAccountAndSignOut';
 import { setPushEnabled } from './setPushEnabled';
 import { swapWorkoutDays } from './swapWorkoutDays';
 import { retryOnce } from './outcome';
+import { ApiFailure } from '../http';
 
 /**
  * Every sequence, driven with a later write rejecting — the assertion that was
@@ -23,6 +24,14 @@ describe('retryOnce', () => {
     await expect(retryOnce(fn)).resolves.toBeUndefined();
     expect(fn).toHaveBeenCalledTimes(2);
     await expect(retryOnce(fail('still'))).rejects.toThrow('still');
+  });
+
+  // Mobile 026/13: a write the subscription gate refused is never retried automatically.
+  it('does not retry a write the subscription gate refused', async () => {
+    const refused = new ApiFailure('subscription_required', 'Something went wrong — try again.', { status: 403 });
+    const fn = vi.fn().mockRejectedValue(refused);
+    await expect(retryOnce(fn)).rejects.toBe(refused);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });
 

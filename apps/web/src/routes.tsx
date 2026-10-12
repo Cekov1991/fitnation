@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { EmailVerificationPage } from './components/EmailVerificationPage';
 import { OnboardingFlow } from './components/onboarding';
+import { SubscribePage } from './components/SubscribePage';
 import { AuthGuard } from './components/AuthGuard';
 import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
 import { ProgramDashboardSkeleton } from './components/dashboard/ProgramDashboardSkeleton';
@@ -98,6 +99,12 @@ export function AppRoutes() {
           <Route exact path="/onboarding">
             <AuthGuard>
               <OnboardingFlow />
+            </AuthGuard>
+          </Route>
+
+          <Route exact path="/subscribe">
+            <AuthGuard>
+              <SubscribePage />
             </AuthGuard>
           </Route>
 

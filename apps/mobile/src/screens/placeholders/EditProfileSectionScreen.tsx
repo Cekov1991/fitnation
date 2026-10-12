@@ -2,11 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useProfile, useUpdateProfile, usePrograms } from '@fit-nation/shared'
+import { CreditCard, Trash2 } from 'lucide-react-native'
+import { useProfile, useUpdateProfile, usePrograms, useDeleteAccount, deleteAccountAndSignOut } from '@fit-nation/shared'
 import type { UnitSystem, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { useAuth } from '../../context/AuthContext'
 import { SCREEN } from '../../constants/layout'
 import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
+import { SectionLabel } from '../../components/ui/SectionLabel'
+import { DeleteAccountSheet } from '../../components/profile/DeleteAccountSheet'
+import { STORE_NAME } from '../../components/profile/SubscriptionCard'
+import { ProfileSectionRow } from '../../components/profile/ProfileSectionRow'
+import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
 import { ScreenHeader } from '../../components/ui/ScreenHeader'
 import { SkeletonBox } from '../../components/ui/SkeletonBox'
 import { ErrorState } from '../../components/ui/ErrorState'
@@ -19,6 +27,8 @@ import {
   PROFILE_SECTIONS,
   isSectionDirty,
   pickSection,
+  deleteAccountMessage,
+  subscriptionCopy,
   validateSection,
 } from '../../components/profile'
 import type { ProfileDraft, SectionErrors } from '../../components/profile'
@@ -41,6 +51,15 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
   // once the app has been on the home tab.
   const { data: programs = [] } = usePrograms()
   const hasActivePlan = programs.some((p) => p.is_active)
+
+  // Account only: the Subscription row and the Danger Zone (Delete account)
+  // live on this page, so the Profile tab keeps a single, prominent way in —
+  // subscribing.
+  const { logout } = useAuth()
+  const deleteAccount = useDeleteAccount()
+  const { subscription, has } = useEntitlements()
+  const plan = subscriptionCopy(subscription, has(Entitlement.AppAccess))
+  const [deleteVisible, setDeleteVisible] = useState(false)
 
   const [draft, setDraft] = useState<ProfileDraft>(() => seedDraft(profile))
   const [saved, setSaved] = useState<ProfileDraft>(() => seedDraft(profile))
@@ -168,7 +187,34 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
           {header}
           <Text style={[styles.hint, { color: colors.textSecondary }]}>{meta.hint}</Text>
 
-          {section === 'account' && <AccountSection draft={draft} onChange={handleChange} errors={errors} />}
+          {section === 'account' && (
+            <>
+              <AccountSection draft={draft} onChange={handleChange} errors={errors} />
+
+              <SectionLabel style={styles.sectionLabel}>Subscription</SectionLabel>
+              <Card style={styles.rows}>
+                <ProfileSectionRow
+                  icon={CreditCard}
+                  title="Subscription"
+                  summary={plan.line}
+                  first
+                  onPress={() => navigation.navigate('Subscription')}
+                />
+              </Card>
+
+              <SectionLabel style={styles.sectionLabel}>Danger Zone</SectionLabel>
+              <Card style={styles.rows}>
+                <ProfileSectionRow
+                  tone="danger"
+                  icon={Trash2}
+                  title="Delete account"
+                  summary="Permanently erase your data and history"
+                  first
+                  onPress={() => setDeleteVisible(true)}
+                />
+              </Card>
+            </>
+          )}
           {section === 'goal' && <GoalSection value={draft.fitness_goal} onChange={(fitness_goal) => handleChange({ fitness_goal })} />}
           {section === 'about' && <AboutSection draft={draft} onChange={handleChange} errors={errors} />}
           {section === 'training' && <TrainingSection draft={draft} onChange={handleChange} />}
@@ -192,6 +238,24 @@ export function EditProfileSectionScreen({ navigation, route }: AppScreenProps<'
         confirmLabel="Adjust Plan"
         cancelLabel="Not Now"
         onConfirm={() => { adjustChosenRef.current = true }}
+      />
+
+      <DeleteAccountSheet
+        visible={deleteVisible}
+        message={deleteAccountMessage(subscription, STORE_NAME)}
+        onClose={() => setDeleteVisible(false)}
+        onConfirm={async () => {
+          // Delete then sign out as one named action (0026): a sign-out that
+          // throws after the delete is retried, and never shown as an error
+          // for an account that no longer exists. The sheet's typed word is
+          // the whole confirmation (deleteAccountCopy.ts).
+          const outcome = await deleteAccountAndSignOut(
+            { deleteAccount: () => deleteAccount.mutateAsync(undefined), signOut: () => logout() },
+            {}
+          )
+          if (!outcome.ok && outcome.failed === 'delete') throw outcome.error
+          if (!outcome.ok) showToast('Your account was deleted. Restart the app to finish signing out.', 'error')
+        }}
       />
     </SafeAreaView>
   )
@@ -221,5 +285,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: SCREEN.paddingX, paddingBottom: SCREEN.paddingBottomWithFooter },
   hint: { fontSize: 14, lineHeight: 20, marginBottom: 24 },
+  sectionLabel: { marginTop: 8 },
+  rows: { padding: 0, overflow: 'hidden' },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: SCREEN.paddingX, paddingTop: 12 },
 })

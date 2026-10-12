@@ -120,6 +120,13 @@ export const authApi = {
   getCurrentUser: async (): Promise<{ user: UserResource }> => {
     return authed<{ user: UserResource }>('/user');
   },
+  // Subscription Sync: the backend re-reads this user's subscription from
+  // RevenueCat now, instead of waiting for the webhook. Same payload as GET
+  // /user. Not behind the subscription gate. 429 past 10/min; 502 when
+  // RevenueCat is unreachable (retryable); 500 when the server lacks the key.
+  syncSubscription: async (): Promise<{ user: UserResource }> => {
+    return authed<{ user: UserResource }>('/subscription/sync', { method: 'POST' });
+  },
   forgotPassword: async (email: string): Promise<MessageResponse> => {
     return unauthenticated<MessageResponse>('/forgot-password', {
       method: 'POST',

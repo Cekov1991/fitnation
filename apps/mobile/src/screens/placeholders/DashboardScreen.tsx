@@ -541,7 +541,7 @@ export function DashboardScreen() {
         {/* ═══ Custom Plans Tab ═══ */}
         {activeTab === 'customPlans' && (
           <>
-            {/* AI Generator Card — matches web AIGeneratorCard */}
+            {/* Generator card — matches the web's WorkoutGeneratorCard */}
             <View
               style={{
                 borderRadius: 16,
@@ -585,7 +585,7 @@ export function DashboardScreen() {
                   color: colors.textButton,
                 }}
               >
-                Let our AI generate a perfect workout based on your recovery and goals.
+                Let Fit Nation build a workout around your recovery and goals.
               </Text>
 
               <Button

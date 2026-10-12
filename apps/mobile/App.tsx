@@ -7,8 +7,10 @@ import { KeyboardProvider } from 'react-native-keyboard-controller'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { MutationCache, QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query'
 import * as Updates from 'expo-updates'
+import Purchases from 'react-native-purchases'
 import * as SplashScreen from 'expo-splash-screen'
-import { initApi } from '@fit-nation/shared'
+import { initApi, queryKeys } from '@fit-nation/shared'
+import { configureRevenueCat, isRevenueCatConfigured } from './src/lib/revenuecat'
 
 // Hold the native splash until RootNavigator's overlay is laid out, so the swap
 // happens between two identical frames. `fade: false` keeps the teardown instant
@@ -37,10 +39,11 @@ import { configureForegroundHandler } from './src/lib/notifications'
 // M4: a push that arrives while the app is open becomes a toast, not an OS banner.
 configureForegroundHandler()
 
-// Initialise API
+// Initialise API + RevenueCat
 initApi({
   baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api',
 })
+configureRevenueCat()
 
 const queryClient = new QueryClient({
   mutationCache: new MutationCache({
@@ -53,6 +56,17 @@ const queryClient = new QueryClient({
     },
   }),
 })
+
+// Listen for RevenueCat customer-info changes (renewals, refunds, cross-device
+// purchases, sandbox expirations) and invalidate cached user data so the
+// EntitlementWatcher can reroute when access is gained or lost. Registering a
+// listener on an unconfigured SDK throws, so gate on configure success.
+if (isRevenueCatConfigured()) {
+  Purchases.addCustomerInfoUpdateListener(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.user.current() })
+    queryClient.invalidateQueries({ queryKey: queryKeys.revenueCat.customerInfo() })
+  })
+}
 
 function useOTAUpdates() {
   useEffect(() => {

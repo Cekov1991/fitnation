@@ -1,10 +1,10 @@
 import { Zap, ChevronRight } from 'lucide-react';
 
-interface AIGeneratorCardProps {
+interface WorkoutGeneratorCardProps {
   onGenerate: () => void;
 }
 
-export function AIGeneratorCard({ onGenerate }: AIGeneratorCardProps) {
+export function WorkoutGeneratorCard({ onGenerate }: WorkoutGeneratorCardProps) {
   return (
     <div 
       className="rounded-2xl p-6 shadow-lg text-white relative overflow-hidden mb-8"
@@ -35,8 +35,7 @@ export function AIGeneratorCard({ onGenerate }: AIGeneratorCardProps) {
           className="text-sm mb-6 leading-relaxed opacity-80"
           style={{ color: 'var(--color-text-button)' }}
         >
-          Let our AI generate a perfect workout based on your recovery and
-          goals.
+          Let Fit Nation build a workout around your recovery and goals.
         </p>
 
         <button 
