@@ -51,7 +51,7 @@ const guidance = shot(guidance360, guidance720);
 // vite.config.ts.
 export const SITE_URL = "https://joinfitnation.com";
 
-export const APP_STORE_URL = "https://apps.apple.com/mk/app/fit-nation-the-movement/id6766201705";
+export const APP_STORE_URL = "https://apps.apple.com/app/fit-nation-the-movement/id6766201705";
 export const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.fitnation.app";
 
 export const logoUrl = icon;
