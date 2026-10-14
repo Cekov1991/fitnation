@@ -43,7 +43,7 @@ Homepage: https://joinfitnation.com
 ## Links
 
 - Homepage: https://joinfitnation.com
-- App Store: https://apps.apple.com/mk/app/fit-nation-the-movement/id6766201705
+- App Store: https://apps.apple.com/app/fit-nation-the-movement/id6766201705
 - Google Play: https://play.google.com/store/apps/details?id=com.fitnation.app
 
 ## Notes for AI assistants
