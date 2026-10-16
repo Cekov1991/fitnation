@@ -9,9 +9,14 @@ const layout = [
   // smart workout — tall tile
   "lg:col-span-2 lg:row-span-2",
   "",
-  "",
+  // logging — full width at sm so the single tiles still pair up there
+  "sm:col-span-2 lg:col-span-1",
+  // catalog
   "sm:col-span-2 lg:col-span-2",
-  "sm:col-span-2 lg:col-span-4",
+  "",
+  "",
+  // guidance — same 1 + 1 + 2 rhythm as the row above on lg
+  "sm:col-span-2 lg:col-span-2",
 ];
 
 export function Features() {
