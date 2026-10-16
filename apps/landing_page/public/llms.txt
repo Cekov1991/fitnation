@@ -12,6 +12,11 @@ Homepage: https://joinfitnation.com
 - **Personalized programs** — pick a goal (muscle gain, fat loss or strength),
   a level, and how many days a week you can train. Fit Nation generates a
   structured multi-week program, day by day, and advances it as you progress.
+- **Program overview** — every week and session of the program in one view,
+  with completed days and the next workout marked.
+- **Plan settings** — change goal, experience level, days per week, session
+  length, equipment or training style at any time; the program is rebuilt from
+  the new settings, and progress in the old one starts over.
 - **Smart Workout** — generate a complete one-off session in seconds by choosing
   a type (push, pull, legs or full body) and a duration.
 - **Session preview and editing** — every exercise, set and rep is visible
@@ -19,7 +24,7 @@ Homepage: https://joinfitnation.com
   whole session.
 - **Set-by-set logging** — weight, reps and rest per set, with suggested
   starting weights the first time you attempt an exercise.
-- **Exercise catalog** — hundreds of movements, filterable by muscle group and
+- **Exercise catalog** — 130+ movements, filterable by muscle group and
   by equipment (barbell, dumbbell, cable, machine, bodyweight).
 - **Exercise guidance** — demo footage, primary and secondary muscles worked,
   and step-by-step instructions.

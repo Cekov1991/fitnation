@@ -10,6 +10,10 @@ import catalog360 from "@/assets/catalog-360.webp";
 import catalog720 from "@/assets/catalog-720.webp";
 import guidance360 from "@/assets/guidance-360.webp";
 import guidance720 from "@/assets/guidance-720.webp";
+import overview360 from "@/assets/overview-360.webp";
+import overview720 from "@/assets/overview-720.webp";
+import customize360 from "@/assets/customize-360.webp";
+import customize720 from "@/assets/customize-720.webp";
 import icon from "@/assets/fitnation-icon.png";
 
 /**
@@ -45,6 +49,8 @@ const workoutPreview = shot(workoutPreview360, workoutPreview720);
 const logging = shot(logging360, logging720);
 const catalog = shot(catalog360, catalog720);
 const guidance = shot(guidance360, guidance720);
+const overview = shot(overview360, overview720);
+const customize = shot(customize360, customize720);
 
 // Canonical origin, no trailing slash. Used for canonical/og:url and anywhere
 // else an absolute URL is required. Keep in sync with `sitemap.host` in
@@ -62,13 +68,13 @@ export const features = [
     title: "A program built around you",
     body: "Pick your goal, level and how many days you can train. Fit Nation builds the weekly plan and keeps it moving forward.",
     image: dashboard,
-    alt: "Fit Nation dashboard showing a personalized muscle gain program with Day 1 Push Day",
+    alt: "Fit Nation dashboard showing week 3 of a personalized plan with Pull Day up next",
   },
   {
     title: "Smart Workout in seconds",
     body: "No time to think? Choose push, pull, legs or full body, set a duration, and get a complete session instantly.",
     image: smartWorkout,
-    alt: "Smart Workout screen with quick select workout types and duration options",
+    alt: "Smart Workout screen with workout type, duration, equipment and training style options",
   },
   {
     title: "Review before you lift",
@@ -80,19 +86,31 @@ export const features = [
     title: "Log every set",
     body: "Weight, reps and rest tracked set by set, with suggested starting weights the first time you try an exercise.",
     image: logging,
-    alt: "Active workout screen logging weight and reps for set one of barbell bench press",
+    alt: "Active workout screen logging incline barbell bench press with a rest timer running between sets",
   },
   {
     title: "A full exercise catalog",
-    body: "Search hundreds of movements filtered by muscle group and equipment — barbell, dumbbell, cable or machine.",
+    body: "Search 130+ movements filtered by muscle group and equipment — barbell, dumbbell, cable or machine.",
     image: catalog,
-    alt: "Exercise catalog with search and filters for muscle group and equipment",
+    alt: "Exercise catalog filtered to chest exercises, with search and an equipment filter",
+  },
+  {
+    title: "See the whole program",
+    body: "Every week and session mapped out, with what's done and what's next. Start the next workout in one tap.",
+    image: overview,
+    alt: "Program overview showing week 3 of a 5-week plan, with two days done and Pull Day up next",
+  },
+  {
+    title: "Change it any time",
+    body: "New goal, fewer days or different equipment? Update your settings and the plan rebuilds around them.",
+    image: customize,
+    alt: "Customize Your Plan sheet with goal, experience, days per week, workout duration, equipment and training style",
   },
   {
     title: "Know what you are training",
     body: "Real demo footage, primary and secondary muscles, and step-by-step guidance for every exercise.",
     image: guidance,
-    alt: "Exercise guidance screen showing demo video and muscles worked diagram",
+    alt: "Exercise guidance for the wide-grip lat pulldown, with demo video and muscles worked diagram",
   },
 ];
 
