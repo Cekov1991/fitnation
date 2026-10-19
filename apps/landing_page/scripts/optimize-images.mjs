@@ -29,8 +29,8 @@ const OUT = "src/assets";
 const QUALITY = "82";
 
 /*
- * Phone screenshots. Every master is 887x1920 or 739x1600, i.e. the same 0.462
- * aspect within a rounding error, so all variants are forced to one exact size.
+ * Phone screenshots. Every master is 1344x2912, an Android emulator capture
+ * cropped to the same 0.462 aspect, so all variants are forced to one exact size.
  * That keeps the srcset candidates aspect-consistent and lets one width/height
  * pair describe every shot.
  *
@@ -39,7 +39,16 @@ const QUALITY = "82";
  * 180px feature tiles.
  */
 const SHOTS = {
-  files: ["dashboard", "smart-workout", "workout-preview", "logging", "catalog", "guidance"],
+  files: [
+    "dashboard",
+    "smart-workout",
+    "workout-preview",
+    "logging",
+    "catalog",
+    "guidance",
+    "overview",
+    "customize",
+  ],
   ext: ".jpeg",
   variants: [
     { w: 360, h: 780 },

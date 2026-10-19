@@ -50,6 +50,7 @@
   --color-navy-foreground: var(--navy-foreground);
   --color-sky: var(--sky);
   --color-surface: var(--surface);
+  --color-phone: var(--phone);
   --color-store-badge: var(--store-badge);
   --color-store-badge-foreground: var(--store-badge-foreground);
   --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
@@ -82,6 +83,8 @@
   --navy-foreground: oklch(0.985 0.004 240);
   --sky: oklch(0.83 0.077 227);
   --surface: oklch(0.975 0.005 236);
+  /* Bezel of the screenshot phone frames: near-black like real hardware. */
+  --phone: oklch(0.18 0.012 250);
   --store-badge: oklch(0 0 0);
   --store-badge-foreground: oklch(1 0 0);
   --gradient-brand: linear-gradient(100deg, oklch(0.7 0.117 205), oklch(0.7 0.183 42));

@@ -96,7 +96,7 @@ export function Hero() {
                 Bench press
               </p>
               <p className="font-display text-xl font-bold tracking-display text-navy">
-                30 kg <span className="text-base text-primary">× 8</span>
+                135 lbs <span className="text-base text-primary">× 8</span>
               </p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export function Hero() {
               Bench press
             </p>
             <p className="font-display text-xl font-bold tracking-display text-navy">
-              30 kg <span className="text-base text-primary">× 8</span>
+              135 lbs <span className="text-base text-primary">× 8</span>
             </p>
           </div>
         </div>

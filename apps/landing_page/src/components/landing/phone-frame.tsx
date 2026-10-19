@@ -23,30 +23,35 @@ export function PhoneFrame({
   elevation?: "high" | "soft";
 }) {
   return (
-    <div
-      className={cn(
-        "relative mx-auto w-full max-w-[260px] rounded-[2.5rem] bg-navy p-[5px]",
-        elevation === "high" ? "shadow-phone" : "elev-2",
-        className,
-      )}
-    >
-      <div className="absolute left-1/2 top-[10px] z-10 h-[5px] w-14 -translate-x-1/2 rounded-full bg-navy-foreground/25" />
-      <img
-        src={shot.src}
-        srcSet={shot.srcSet}
-        sizes={sizes}
-        // width/height give the box an intrinsic aspect ratio, so a lazy tile
-        // reserves its full height before the bytes arrive instead of being
-        // zero-high and shoving the page around as it decodes. `h-auto` is what
-        // stops the height attribute being taken as a literal 1560px.
-        width={shot.width}
-        height={shot.height}
-        alt={alt}
-        loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
-        decoding="async"
-        className="block h-auto w-full rounded-[2.15rem] bg-surface object-cover"
-      />
+    // Bezel, corners and camera are sized in cqw (this wrapper's width), so the
+    // 180px feature tiles keep the hero phone's proportions. In fixed px the
+    // same radius that suits the hero turned the small phones into pills and
+    // cut into the screenshots' corners.
+    <div className={cn("@container mx-auto w-full max-w-[260px]", className)}>
+      <div
+        className={cn(
+          "relative rounded-[12.5cqw] bg-phone p-[2.5cqw]",
+          elevation === "high" ? "shadow-phone" : "elev-2",
+        )}
+      >
+        <div className="absolute left-1/2 top-[6.2cqw] z-10 size-[3.4cqw] -translate-x-1/2 rounded-full bg-phone" />
+        <img
+          src={shot.src}
+          srcSet={shot.srcSet}
+          sizes={sizes}
+          // width/height give the box an intrinsic aspect ratio, so a lazy tile
+          // reserves its full height before the bytes arrive instead of being
+          // zero-high and shoving the page around as it decodes. `h-auto` is what
+          // stops the height attribute being taken as a literal 1560px.
+          width={shot.width}
+          height={shot.height}
+          alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
+          className="block h-auto w-full rounded-[10cqw] bg-surface object-cover"
+        />
+      </div>
     </div>
   );
 }
