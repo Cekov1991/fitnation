@@ -70,7 +70,16 @@
           "defaultChannel": "default"
         }
       ],
-      "./modules/rest-timer/plugin/withRestTimerService.js"
+      "./modules/rest-timer/plugin/withRestTimerService.js",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true
+          }
+        }
+      ],
+      "./plugins/withGradleJvmArgs.js"
     ],
     "extra": {
       "apiUrl": "$EXPO_PUBLIC_API_URL",
