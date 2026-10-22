@@ -13,8 +13,9 @@ import { initApi, queryKeys } from '@fit-nation/shared'
 import { configureRevenueCat, isRevenueCatConfigured } from './src/lib/revenuecat'
 
 // Hold the native splash until RootNavigator's overlay is laid out, so the swap
-// happens between two identical frames. `fade: false` keeps the teardown instant
-// — a native cross-dissolve would be visible against an identical view.
+// happens between two blank, same-coloured frames (the Lottie assembles the logo
+// after the handoff). `fade: false` keeps the teardown instant — a native
+// cross-dissolve would be visible against an identical view.
 // RootNavigator calls hideAsync(); this timer is the safety net, so a failure
 // there can never leave the splash up forever.
 SplashScreen.preventAutoHideAsync().catch(() => {})
