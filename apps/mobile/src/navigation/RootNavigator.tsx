@@ -1,6 +1,6 @@
 import { NavigationContainer, DarkTheme, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native'
 import { useCallback, useEffect, useState } from 'react'
-import { StyleSheet, View, Image, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native'
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
 import * as SplashScreen from 'expo-splash-screen'
+import LottieView from 'lottie-react-native'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { AuthNavigator } from './AuthNavigator'
@@ -17,11 +18,18 @@ import { linking } from './linking'
 import { EntitlementWatcher } from './EntitlementWatcher'
 import type { AppStackParamList } from './types'
 
-// Keep in sync with the `imageWidth` of the expo-splash-screen plugin in app.json —
-// the native splash hands off to this overlay, so at rest they must render identically.
-const SPLASH_LOGO_SIZE = 200
+// The native splash is background-colour only (a transparent image in app.json —
+// its backgroundColor must stay equal to bgBase in both themes). The Lottie's first
+// frame is also blank, so the native→JS handoff swaps two plain surfaces.
+// The logo fills the 512px composition edge to edge, so this is the logo's visual
+// size. Deliberately larger than the 200px static splash used to be — chosen on
+// device. JS-only, so it tunes over OTA without a native build.
+const SPLASH_ANIMATION_SIZE = 284
 const EXIT_DURATION = 300
 const EXIT_SCALE = 1.08
+// Lottie is 132 frames @ 60fps ≈ 2.2s. If onAnimationFinish never fires (e.g. the
+// view was never driven), this timer marks it done so the exit can't be blocked.
+const ANIMATION_FAILSAFE_MS = 3000
 
 export function RootNavigator() {
   const { user, isLoading } = useAuth()
@@ -30,11 +38,13 @@ export function RootNavigator() {
   const navRef = useNavigationContainerRef<AppStackParamList>()
 
   const [showOverlay, setShowOverlay] = useState(true)
-  // 0 = at rest, pixel-identical to the native splash. 1 = fully exited.
+  const [animationDone, setAnimationDone] = useState(false)
+  // 0 = at rest (opaque, over the app). 1 = fully exited.
   const progress = useSharedValue(0)
 
-  // Tear down the native splash only once the overlay has been laid out. At
-  // progress 0 the overlay matches it exactly, so the swap is invisible.
+  // Tear down the native splash only once the overlay has been laid out. The
+  // overlay's blank background matches the blank native splash, so the swap is
+  // invisible, and the Lottie assembles the logo from there.
   const onLayout = useCallback(async () => {
     try {
       await SplashScreen.hideAsync()
@@ -43,10 +53,16 @@ export function RootNavigator() {
     }
   }, [])
 
-  // Auth has resolved, so the navigator below is mounted and laid out. Grow the
-  // logo slightly and fade the overlay out to reveal it.
   useEffect(() => {
-    if (isLoading || !showOverlay) return
+    const t = setTimeout(() => setAnimationDone(true), ANIMATION_FAILSAFE_MS)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Auth has resolved and the assemble animation has finished (the Lottie holds
+  // its last frame — the logo at rest), so the navigator below is mounted and
+  // laid out. Grow the logo slightly and fade the overlay out to reveal it.
+  useEffect(() => {
+    if (isLoading || !animationDone || !showOverlay) return
     progress.value = withTiming(
       1,
       { duration: EXIT_DURATION, easing: Easing.out(Easing.cubic) },
@@ -54,7 +70,7 @@ export function RootNavigator() {
         if (finished) scheduleOnRN(setShowOverlay, false)
       }
     )
-  }, [isLoading, showOverlay, progress])
+  }, [isLoading, animationDone, showOverlay, progress])
 
   const overlayStyle = useAnimatedStyle(() => ({ opacity: 1 - progress.value }))
   const logoStyle = useAnimatedStyle(() => ({
@@ -89,10 +105,14 @@ export function RootNavigator() {
           ]}
         >
           <Animated.View style={logoStyle}>
-            <Image
-              source={require('../../assets/logo.png')}
-              style={{ width: SPLASH_LOGO_SIZE, height: SPLASH_LOGO_SIZE }}
-              resizeMode="contain"
+            <LottieView
+              source={require('../../assets/splash-staged.json')}
+              autoPlay
+              loop={false}
+              onAnimationFinish={(isCancelled) => {
+                if (!isCancelled) setAnimationDone(true)
+              }}
+              style={{ width: SPLASH_ANIMATION_SIZE, height: SPLASH_ANIMATION_SIZE }}
             />
           </Animated.View>
         </Animated.View>
