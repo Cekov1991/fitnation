@@ -21,10 +21,10 @@ import type { AppStackParamList } from './types'
 // The native splash is background-colour only (a transparent image in app.json —
 // its backgroundColor must stay equal to bgBase in both themes). The Lottie's first
 // frame is also blank, so the native→JS handoff swaps two plain surfaces.
-// The logo fills the 512px composition edge to edge (verified on-device against
-// the old static splash), so 200px of animation renders the resting logo at the
-// 200px the static splash used to show.
-const SPLASH_ANIMATION_SIZE = 200
+// The logo fills the 512px composition edge to edge, so this is the logo's visual
+// size. Deliberately larger than the 200px static splash used to be — chosen on
+// device. JS-only, so it tunes over OTA without a native build.
+const SPLASH_ANIMATION_SIZE = 284
 const EXIT_DURATION = 300
 const EXIT_SCALE = 1.08
 // Lottie is 132 frames @ 60fps ≈ 2.2s. If onAnimationFinish never fires (e.g. the
