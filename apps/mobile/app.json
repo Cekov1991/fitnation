@@ -3,7 +3,7 @@
     "name": "Fit Nation",
     "slug": "fit-nation",
     "scheme": "fitnation",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -47,6 +47,7 @@
           "resizeMode": "contain",
           "backgroundColor": "#F2F2F2",
           "dark": {
+            "image": "./assets/splash-blank.png",
             "backgroundColor": "#0A0A0A"
           }
         }
