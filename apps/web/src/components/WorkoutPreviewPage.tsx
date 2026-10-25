@@ -17,7 +17,7 @@ import {
   useWeightUnit
 } from '@fit-nation/shared';
 import { SessionExerciseDetail, GenerateWorkoutInput, MuscleGroupResource } from '@fit-nation/shared';
-import { formatRepRange } from '@fit-nation/shared';
+import { targetLabels } from '@fit-nation/shared';
 
 interface LocationState {
   generationParams?: GenerateWorkoutInput;
@@ -239,7 +239,8 @@ export function WorkoutPreviewPage() {
                 const sessionExercise = exerciseDetail.session_exercise;
                 const exercise = sessionExercise?.exercise;
                 if (!exercise) return null;
-                
+                const labels = targetLabels(exerciseDetail);
+
                 return (
                   <div
                     key={sessionExercise.id}
@@ -265,11 +266,9 @@ export function WorkoutPreviewPage() {
                         {exercise.name}
                       </h3>
                       <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                        <span style={{ color: 'var(--color-primary)' }}>{sessionExercise.target_sets} sets</span>
-                        <span className="mx-1 opacity-40">×</span>
-                        <span style={{ color: 'var(--color-primary)' }}>
-                          {formatRepRange(sessionExercise.min_target_reps || 0, sessionExercise.max_target_reps || 0)} reps
-                        </span>
+                        <span style={{ color: 'var(--color-primary)' }}>{labels.sets}</span>
+                        <span className="mx-1 opacity-40">{labels.perSet ? '×' : '·'}</span>
+                        <span style={{ color: 'var(--color-primary)' }}>{labels.reps}</span>
                         {sessionExercise.target_weight && sessionExercise.target_weight > 0 && (
                           <>
                             <span className="mx-1 opacity-40">×</span>
