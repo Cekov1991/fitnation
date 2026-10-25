@@ -14,6 +14,7 @@ import {
   nextIncompleteIndex,
   sessionTotals,
   slotCount,
+  targetLabels,
 } from './readModel';
 
 function log(setNumber: number, weight = 60, reps = 10): SetLogResource {
@@ -124,6 +125,22 @@ describe('pending-row prefill — identical on both platforms', () => {
     const slot = buildSlots(detail([], 3, { progression_mode: 'total_reps', min_target_reps: null }))[0];
     expect(slot).toMatchObject({ kind: 'pending', prefill: { reps: 0 } });
   });
+});
+
+describe('targetLabels — a generated workout preview row', () => {
+  const bodyweight = { progression_mode: 'total_reps' as const, min_target_reps: null, max_target_reps: null };
+
+  it('shows the rep range of each set', () =>
+    expect(targetLabels(detail([], 4))).toEqual({ sets: '4 sets', reps: '8-12 reps', perSet: true }));
+  it('says 1 set, not 1 sets', () => expect(targetLabels(detail([], 1)).sets).toBe('1 set'));
+  it('shows a total-reps exercise its total instead of 0 reps', () =>
+    expect(targetLabels(detail([], 4, { ...bodyweight, total_reps_target: 30 }))).toEqual({
+      sets: '4 sets',
+      reps: '30 total reps',
+      perSet: false,
+    }));
+  it('falls back to the default range before a total-reps exercise has a total', () =>
+    expect(targetLabels(detail([], 4, bodyweight))).toEqual({ sets: '4 sets', reps: '8-12 reps', perSet: true }));
 });
 
 describe('progress and session completion', () => {

@@ -14,7 +14,7 @@ import {
   useUpdateSessionExercise,
   useReorderSessionExercises,
   useWeightUnit,
-  formatRepRange,
+  targetLabels,
   sanitizeDecimalText,
   withAlpha,
   formatWeight,
@@ -297,6 +297,7 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
             const se = exerciseDetail.session_exercise
             const ex = se.exercise
             if (!ex) return null
+            const labels = targetLabels(exerciseDetail)
             return (
               <ReanimatedSwipeable
                 ref={(ref) => {
@@ -359,11 +360,9 @@ export function WorkoutPreviewScreen({ route, navigation }: Props) {
                     onPressImage={() => navigation.navigate('ExerciseDetail', { exerciseName: ex.name })}
                     meta={
                       <>
-                        <Text style={{ color: colors.primary }}>{se.target_sets} sets</Text>
-                        <Text style={{ color: colors.textMuted }}> × </Text>
-                        <Text style={{ color: colors.primary }}>
-                          {formatRepRange(se.min_target_reps ?? 0, se.max_target_reps ?? 0)} reps
-                        </Text>
+                        <Text style={{ color: colors.primary }}>{labels.sets}</Text>
+                        <Text style={{ color: colors.textMuted }}>{labels.perSet ? ' × ' : ' · '}</Text>
+                        <Text style={{ color: colors.primary }}>{labels.reps}</Text>
                         {se.target_weight && se.target_weight > 0 ? (
                           <>
                             <Text style={{ color: colors.textMuted }}> × </Text>

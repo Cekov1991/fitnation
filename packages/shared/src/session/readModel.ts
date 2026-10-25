@@ -1,4 +1,5 @@
 import type { ExerciseResource, SessionExerciseDetail, SetLogResource } from '../types/api';
+import { formatRepRange } from '../utils/repRange';
 
 /**
  * The Workout Session read model (spec 0023).
@@ -47,6 +48,32 @@ export function exerciseTargets(detail: SessionExerciseDetail): ExerciseTargets 
     sets: row.target_sets || DEFAULT_TARGET_SETS,
     minReps: row.min_target_reps || DEFAULT_MIN_REPS,
     maxReps: row.max_target_reps || DEFAULT_MAX_REPS,
+  };
+}
+
+export interface TargetLabels {
+  /** "4 sets", "1 set". */
+  sets: string;
+  /** "8-12 reps" in each set, or "30 total reps" across them. */
+  reps: string;
+  /** False when `reps` is a total, which is not "× reps" per set. */
+  perSet: boolean;
+}
+
+/**
+ * A planned row's sets and reps in words, as the generated-workout preview
+ * shows them on both apps. A total-reps (bodyweight) exercise comes with null
+ * rep bounds, which read as "4 sets × 0 reps": it shows its total-reps target
+ * instead, or before it has one the default range the set hint shows.
+ */
+export function targetLabels(detail: SessionExerciseDetail): TargetLabels {
+  const { sets, minReps, maxReps } = exerciseTargets(detail);
+  const row = detail.session_exercise;
+  const total = row.progression_mode === 'total_reps' ? row.total_reps_target : null;
+  return {
+    sets: `${sets} set${sets === 1 ? '' : 's'}`,
+    reps: total != null ? `${total} total reps` : `${formatRepRange(minReps, maxReps)} reps`,
+    perSet: total == null,
   };
 }
 
