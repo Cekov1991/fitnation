@@ -2,9 +2,11 @@ import QRCode from 'react-qr-code';
 import { LogOut, Smartphone } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
+import { pickStoreUrl, APP_STORE_URL, PLAY_STORE_URL } from '../utils/storeUrl';
 
-// The backend's device-aware store redirect (routes/web.php `app.get`):
-// phones land on their store, so the QR and the mobile CTA both point here.
+// The backend's device-aware store redirect (routes/web.php `app.get`): a QR
+// scan always comes from a real phone UA, so the server-side sniff is safe
+// there. The on-page CTA picks the store client-side instead (storeUrl.ts).
 const GET_APP_URL =
   (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '') + '/get';
 
@@ -60,7 +62,7 @@ export function AppDownloadPage() {
           {/* Store badges */}
           <div className="flex flex-col items-center gap-3">
             <a
-              href="https://apps.apple.com/app/fit-nation-the-movement/id6766201705"
+              href={APP_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Download Fit Nation on the App Store"
@@ -69,7 +71,7 @@ export function AppDownloadPage() {
               <img src="/app-store-badge-420.webp" alt="Download on the App Store" className="h-[52px] w-auto" />
             </a>
             <a
-              href="https://play.google.com/store/apps/details?id=com.fitnation.app"
+              href={PLAY_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Get Fit Nation on Google Play"
@@ -89,9 +91,11 @@ export function AppDownloadPage() {
             </p>
           </div>
 
-          {/* Direct link for phones */}
+          {/* Direct link for phones — store chosen client-side (storeUrl.ts) */}
           <a
-            href={GET_APP_URL}
+            href={pickStoreUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
             className="sm:hidden w-full py-4 rounded-xl font-bold text-lg text-center text-white shadow-lg"
             style={{ backgroundImage: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
           >
