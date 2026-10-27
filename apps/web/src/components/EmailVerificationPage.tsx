@@ -22,7 +22,7 @@ export function EmailVerificationPage() {
   // Guard: if already verified (e.g. direct nav), redirect away
   useEffect(() => {
     if (user?.email_verified_at) {
-      history.replace(user.onboarding_completed_at ? '/' : '/onboarding');
+      history.replace(user.onboarding_completed_at ? '/' : '/get-the-app');
     }
   }, [user?.email_verified_at]);
 

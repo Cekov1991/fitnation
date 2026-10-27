@@ -51,7 +51,10 @@ export function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
-      history.replace('/verify-email');
+      // Gym Signups are auto-verified (ADR-0004) and head straight for the
+      // App Download Screen; a House signup gets bounced to /verify-email
+      // by the AuthGuard gate.
+      history.replace('/get-the-app');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     }
