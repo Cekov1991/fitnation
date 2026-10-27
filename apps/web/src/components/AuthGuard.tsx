@@ -36,13 +36,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
   if (redirect) {
     return <Redirect to={redirect} />;
   }
-  // On a prerequisite screen the gate let through — render it, skip the
-  // active-session redirect below
-  if (
-    user.email_verified_at === null ||
-    user.onboarding_completed_at === null ||
-    !user.entitlements.includes('app_access')
-  ) {
+  // The gate lets a prerequisite screen through only for the user who
+  // belongs on it — render it and skip the active-session redirect below
+  if (['/verify-email', '/get-the-app', '/subscribe'].includes(location.pathname)) {
     return <>{children}</>;
   }
 
