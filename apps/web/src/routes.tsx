@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, Switch, BrowserRouter } from 'react-router-dom';
+import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom';
 import { LoginPage } from './components/LoginPage';
 import { RegisterPage } from './components/RegisterPage';
 import { TermsOfServicePage } from './components/TermsOfServicePage';
@@ -8,7 +8,7 @@ import { SupportPage } from './components/SupportPage';
 import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { EmailVerificationPage } from './components/EmailVerificationPage';
-import { OnboardingFlow } from './components/onboarding';
+import { AppDownloadPage } from './components/AppDownloadPage';
 import { SubscribePage } from './components/SubscribePage';
 import { AuthGuard } from './components/AuthGuard';
 import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
@@ -96,9 +96,14 @@ export function AppRoutes() {
             </AuthGuard>
           </Route>
 
+          {/* Onboarding moved to the app (ADR-0003); old links land on the gate */}
           <Route exact path="/onboarding">
+            <Redirect to="/" />
+          </Route>
+
+          <Route exact path="/get-the-app">
             <AuthGuard>
-              <OnboardingFlow />
+              <AppDownloadPage />
             </AuthGuard>
           </Route>
 

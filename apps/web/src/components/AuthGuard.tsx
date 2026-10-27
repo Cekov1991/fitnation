@@ -2,6 +2,7 @@ import React from 'react';
 import { Redirect, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTodayWorkout } from '@fit-nation/shared';
+import { gateRedirect } from '../utils/authGate';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -30,39 +31,14 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return <Redirect to={{ pathname: '/login', state: { from: location } }} />;
   }
 
-  // Gate on email verification before anything else
-  if (user.email_verified_at === null && location.pathname !== '/verify-email') {
-    return <Redirect to="/verify-email" />;
+  // Verify-email → App Download Screen → subscription, decided in authGate.ts
+  const redirect = gateRedirect(user, location.pathname);
+  if (redirect) {
+    return <Redirect to={redirect} />;
   }
-  if (user.email_verified_at !== null && location.pathname === '/verify-email') {
-    return <Redirect to={user.onboarding_completed_at === null ? '/onboarding' : '/'} />;
-  }
-  // Unverified user is on /verify-email — render it and skip all further checks
-  if (user.email_verified_at === null) {
-    return <>{children}</>;
-  }
-
-  // Check if onboarding is completed
-  // If onboarding_completed_at is null, redirect to onboarding (unless already on onboarding page)
-  if (user.onboarding_completed_at === null && location.pathname !== '/onboarding') {
-    return <Redirect to="/onboarding" />;
-  }
-
-  // If onboarding is completed but user is on onboarding page, redirect to dashboard
-  if (user.onboarding_completed_at !== null && location.pathname === '/onboarding') {
-    return <Redirect to="/" />;
-  }
-
-  // Gate on subscription/entitlement
-  const hasAppAccess = user.entitlements.includes('app_access');
-  if (!hasAppAccess && location.pathname !== '/subscribe') {
-    return <Redirect to="/subscribe" />;
-  }
-  if (hasAppAccess && location.pathname === '/subscribe') {
-    return <Redirect to="/" />;
-  }
-  // Unsubscribed user is on /subscribe — render it and skip further checks
-  if (!hasAppAccess) {
+  // The gate lets a prerequisite screen through only for the user who
+  // belongs on it — render it and skip the active-session redirect below
+  if (['/verify-email', '/get-the-app', '/subscribe'].includes(location.pathname)) {
     return <>{children}</>;
   }
 

@@ -19,12 +19,9 @@ export function EmailVerificationPage() {
 
   const logoUrl = user?.partner?.visual_identity?.logo ?? null;
 
-  // Guard: if already verified (e.g. direct nav), redirect away
-  useEffect(() => {
-    if (user?.email_verified_at) {
-      history.replace(user.onboarding_completed_at ? '/' : '/onboarding');
-    }
-  }, [user?.email_verified_at]);
+  // No redirect-away effect here: the AuthGuard gate (utils/authGate.ts)
+  // bounces a verified user off /verify-email, so the decision lives in
+  // one place (ADR-0001).
 
   // Cooldown ticker
   useEffect(() => {
