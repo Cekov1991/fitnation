@@ -8,12 +8,10 @@ import { appGetUrl } from '../../utils/station';
  * and a small gradient button — never a takeover.
  */
 export function StationCta({
-  title,
   code,
   exerciseId,
   benefit,
 }: {
-  title: string;
   /** The Station's Short code — funnel attribution and the click event. */
   code: string;
   /** Set on the exercise detail page only. */
@@ -49,8 +47,10 @@ export function StationCta({
         style={{ backgroundColor: 'var(--color-bg-modal)', borderColor: 'var(--color-border)' }}
       >
         <div className="min-w-0">
+          {/* Title and body come from the same benefit, so the copy shown and
+              the benefit key recorded on events always tell one story. */}
           <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
-            {title}
+            {benefit.title}
           </p>
           <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
             {benefit.body}

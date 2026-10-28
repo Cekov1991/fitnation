@@ -81,6 +81,7 @@ export function pickBenefit(random: () => number = Math.random): Benefit {
  */
 const benefitByCode = new Map<string, Benefit>();
 const scannedCodes = new Set<string>();
+const openedExercises = new Set<string>();
 
 /**
  * The benefit this Scan shows — chosen once per Short code per page load, so
@@ -107,10 +108,23 @@ export function claimScan(code: string): boolean {
   return true;
 }
 
+/**
+ * True exactly once per (Short code, exercise) per page load: the caller that
+ * gets `true` records the `exercise_open` event. Same job as `claimScan` —
+ * StrictMode double effects, refetches and remounts all hit this guard.
+ */
+export function claimExerciseOpen(code: string, exerciseId: number): boolean {
+  const key = `${code}#${exerciseId}`;
+  if (openedExercises.has(key)) return false;
+  openedExercises.add(key);
+  return true;
+}
+
 /** Test seam: a fresh "page load" for the per-Scan state. */
 export function resetScanState(): void {
   benefitByCode.clear();
   scannedCodes.clear();
+  openedExercises.clear();
 }
 
 /** The funnel parameters a CTA tap carries onto `/get` (ticket 04). */

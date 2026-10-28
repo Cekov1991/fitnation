@@ -16,7 +16,10 @@ import { StationFallback } from './StationFallback';
  * Station skips straight to the detail page.
  */
 export function StationPage() {
-  const { code } = useParams<{ code: string }>();
+  const { code: rawCode } = useParams<{ code: string }>();
+  // React Router v5 hands params back still URL-encoded; decode once at the
+  // page boundary so API calls and funnel params never double-encode.
+  const code = decodeURIComponent(rawCode);
   useNoIndex();
   const { data, isPending, error, refetch } = usePublicStation(code);
 
@@ -74,7 +77,7 @@ export function StationPage() {
         )}
       </main>
 
-      <StationCta title={`Track your workouts at ${station.partner.name}`} code={code} benefit={benefitForScan(code)} />
+      <StationCta code={code} benefit={benefitForScan(code)} />
     </div>
   );
 }

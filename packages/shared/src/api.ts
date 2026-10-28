@@ -672,6 +672,10 @@ export const publicStationsApi = {
       method: 'POST',
       auth: 'none',
       body: JSON.stringify(event),
+      // cta_click is followed by a full-page navigation to /get; without
+      // keepalive the browser aborts the in-flight POST on unload and the
+      // conversion event the funnel exists to measure is lost.
+      keepalive: true,
     }).then(
       () => undefined,
       () => undefined

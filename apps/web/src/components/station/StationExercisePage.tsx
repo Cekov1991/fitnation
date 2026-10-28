@@ -5,7 +5,7 @@ import { publicStationsApi, usePublicStationExercise } from '@fit-nation/shared'
 import type { PublicStationExerciseResource } from '@fit-nation/shared';
 import { ExerciseImage } from '../ExerciseImage';
 import { useNoIndex } from '../../hooks/useNoIndex';
-import { benefitForScan, guidanceOf, mistakesOf, parseExerciseId, stationProblemOf } from '../../utils/station';
+import { benefitForScan, claimExerciseOpen, guidanceOf, mistakesOf, parseExerciseId, stationProblemOf } from '../../utils/station';
 import { StationCta } from './StationCta';
 import { StationFallback } from './StationFallback';
 
@@ -17,16 +17,21 @@ import { StationFallback } from './StationFallback';
  * sticky download CTA.
  */
 export function StationExercisePage() {
-  const { code, exerciseId: rawExerciseId } = useParams<{ code: string; exerciseId: string }>();
+  const { code: rawCode, exerciseId: rawExerciseId } = useParams<{ code: string; exerciseId: string }>();
+  // React Router v5 hands params back still URL-encoded; decode once at the
+  // page boundary so API calls and funnel params never double-encode.
+  const code = decodeURIComponent(rawCode);
   useNoIndex();
   const exerciseId = parseExerciseId(rawExerciseId);
   const { data, isPending, error, refetch } = usePublicStationExercise(code, exerciseId ?? 0);
 
-  // One `exercise_open` per detail load, once the fetch confirms the exercise
-  // is really on this Station. Fire-and-forget: `recordEvent` never throws.
+  // One `exercise_open` per (Station, exercise) per page load, once the fetch
+  // confirms the exercise is really on this Station: `claimExerciseOpen`
+  // guards StrictMode double effects and remounts the way `claimScan` does
+  // for the scan. Fire-and-forget: `recordEvent` never throws.
   const loaded = !!data;
   useEffect(() => {
-    if (!loaded || exerciseId === null) return;
+    if (!loaded || exerciseId === null || !claimExerciseOpen(code, exerciseId)) return;
     void publicStationsApi.recordEvent(code, {
       type: 'exercise_open',
       exercise_id: exerciseId,
@@ -80,12 +85,7 @@ export function StationExercisePage() {
         )}
       </main>
 
-      <StationCta
-        title="Track your sets on this exercise"
-        code={code}
-        exerciseId={exercise.id}
-        benefit={benefitForScan(code)}
-      />
+      <StationCta code={code} exerciseId={exercise.id} benefit={benefitForScan(code)} />
     </div>
   );
 }

@@ -1,14 +1,16 @@
 import QRCode from 'react-qr-code';
 import { LogOut, Smartphone } from 'lucide-react';
+import { getConfig } from '@fit-nation/shared';
 import { useAuth } from '../hooks/useAuth';
 import { useBranding } from '../hooks/useBranding';
+import { appGetUrl } from '../utils/station';
 import { pickStoreUrl, APP_STORE_URL, PLAY_STORE_URL } from '../utils/storeUrl';
 
 // The backend's device-aware store redirect (routes/web.php `app.get`): a QR
 // scan always comes from a real phone UA, so the server-side sniff is safe
 // there. The on-page CTA picks the store client-side instead (storeUrl.ts).
-const GET_APP_URL =
-  (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '') + '/get';
+// Derived from the API base via the shared helper so this page and the QR
+// station CTA can never drift apart.
 
 /**
  * The App Download Screen (ADR-0003): where a registered, not-yet-onboarded
@@ -17,6 +19,7 @@ const GET_APP_URL =
  */
 export function AppDownloadPage() {
   const { logout } = useAuth();
+  const getAppUrl = appGetUrl(getConfig().baseUrl);
   const { logo, partnerName, hasBranding } = useBranding();
 
   return (
@@ -84,7 +87,7 @@ export function AppDownloadPage() {
           {/* QR for desktop visitors */}
           <div className="hidden sm:flex flex-col items-center gap-3">
             <div className="p-3 rounded-2xl bg-white">
-              <QRCode value={GET_APP_URL} size={132} aria-label="QR code linking to the app download" />
+              <QRCode value={getAppUrl} size={132} aria-label="QR code linking to the app download" />
             </div>
             <p className="text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
               Scan with your phone to download

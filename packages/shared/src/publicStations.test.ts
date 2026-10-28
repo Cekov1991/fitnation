@@ -126,6 +126,9 @@ describe('publicStationsApi', () => {
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
     expect(JSON.parse(init.body as string)).toEqual({ type: 'exercise_open', exercise_id: 7, benefit: 'track_sets' });
+    // cta_click is followed by a full-page navigation to /get; keepalive is
+    // what stops the browser aborting the POST on unload.
+    expect(init.keepalive).toBe(true);
   });
 
   it('a scan event carries just the type and benefit', async () => {

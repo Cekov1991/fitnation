@@ -4,6 +4,7 @@ import {
   BENEFITS,
   appGetUrl,
   benefitForScan,
+  claimExerciseOpen,
   claimScan,
   guidanceOf,
   mistakesOf,
@@ -123,6 +124,16 @@ describe('per-Scan state', () => {
     const first = benefitForScan('abc123');
     expect(BENEFITS).toContain(first);
     expect(benefitForScan('abc123')).toBe(first);
+  });
+
+  it('claimExerciseOpen is true exactly once per (code, exercise) — guards StrictMode double effects', () => {
+    expect(claimExerciseOpen('abc123', 7)).toBe(true);
+    expect(claimExerciseOpen('abc123', 7)).toBe(false);
+    // Another exercise on the same station, or the same id elsewhere, is its own open.
+    expect(claimExerciseOpen('abc123', 8)).toBe(true);
+    expect(claimExerciseOpen('xyz789', 7)).toBe(true);
+    resetScanState();
+    expect(claimExerciseOpen('abc123', 7)).toBe(true);
   });
 
   it('claimScan is true exactly once per code — the single-scan-event guarantee', () => {
