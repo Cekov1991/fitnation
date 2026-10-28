@@ -4,7 +4,7 @@ export { initAuth, getAuthStorage, setOnUnauthorized, setOnSubscriptionRequired,
 export type { AuthStorage } from './auth'
 
 // API
-export { api, authApi, partnersApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, exercisesApi, muscleGroupsApi, categoriesApi, classificationsApi, metricsApi, plansApi, programsApi, routinesApi, templatesApi, plannerApi, sessionsApi } from './api'
+export { api, authApi, partnersApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, exercisesApi, muscleGroupsApi, categoriesApi, classificationsApi, metricsApi, plansApi, programsApi, routinesApi, templatesApi, plannerApi, sessionsApi, publicStationsApi } from './api'
 
 // Types
 export type * from './types/api'
@@ -34,7 +34,7 @@ export * from './utils/repRange'
 export * from './utils/calendarWeek'
 
 // The typed HTTP seam — one request function, one failure type (0025)
-export { request, ApiFailure, isApiFailure, failureOf, firstFieldError, type ApiFailureKind } from './http'
+export { request, publicGet, ApiFailure, isApiFailure, failureOf, firstFieldError, type ApiFailureKind } from './http'
 
 // Partner visual identity — one resolution of tenant, colours and alpha (0029)
 export * from './partner/visualIdentity'

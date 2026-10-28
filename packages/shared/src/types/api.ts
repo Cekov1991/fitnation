@@ -770,5 +770,62 @@ export interface DataMessageResponse<T> {
   message: string;
 }
 
+// ============================================
+// QR STATIONS — public, unauthenticated payloads (ADR-0005)
+// ============================================
+
+/** The Partner identity a Station's public page is branded with. */
+export interface PublicStationPartner {
+  name: string;
+  slug: string;
+}
+
+/** The Station context echoed next to a public exercise detail. */
+export interface PublicStationContext {
+  name: string;
+  short_code: string;
+  partner: PublicStationPartner;
+}
+
+/** One row of a Station's chooser list. */
+export interface PublicStationExerciseSummary {
+  id: number;
+  name: string;
+  image: string | null;
+  difficulty: string | null;
+  equipment: string | null;
+  primary_muscles: string[];
+}
+
+/** `GET /public/stations/{code}` */
+export interface PublicStationResponse {
+  data: PublicStationContext & {
+    exercises: PublicStationExerciseSummary[];
+  };
+}
+
+/** One Exercise as the public detail page renders it (partner overrides applied server-side). */
+export interface PublicStationExerciseResource {
+  id: number;
+  name: string;
+  description: string | null;
+  /** Structured steps; null until the backfill has run — fall back to `description`. */
+  instructions: string[] | null;
+  common_mistakes: string[] | null;
+  image: string | null;
+  video: string | null;
+  muscle_group_image: string | null;
+  difficulty: string | null;
+  equipment: string | null;
+  primary_muscles: string[];
+  secondary_muscles: string[];
+}
+
+/** `GET /public/stations/{code}/exercises/{exerciseId}` */
+export interface PublicStationExerciseResponse {
+  data: PublicStationExerciseResource;
+  station: PublicStationContext;
+}
+
 // Errors are thrown as `ApiFailure` from ./http — a class, so a catch block can
 // branch on its `kind` instead of sniffing an `any`.

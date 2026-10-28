@@ -40,6 +40,7 @@ const sessionsRoot = ['sessions'] as const;
 const exercisesRoot = ['exercises'] as const;
 const partnersRoot = ['partners'] as const;
 const userRoot = ['user'] as const;
+const stationsRoot = ['stations'] as const;
 const revenueCatRoot = ['revenuecat'] as const;
 
 export const queryKeys = {
@@ -97,6 +98,15 @@ export const queryKeys = {
   /** RevenueCat's locally cached customer info — the offline fallback for entitlements. */
   revenueCat: {
     customerInfo: () => [...revenueCatRoot, 'customer-info'] as const,
+  },
+  /** QR Stations — public, unauthenticated pages reached from printed stickers (ADR-0005). */
+  stations: {
+    all: () => stationsRoot,
+    /** One Station's public chooser payload, by immutable Short code. */
+    publicStation: (code: string) => [...stationsRoot, 'public', code] as const,
+    /** One Exercise's public detail in that Station's context. */
+    publicExercise: (code: string, exerciseId: number) =>
+      [...stationsRoot, 'public', code, 'exercise', exerciseId] as const,
   },
   partners: {
     all: () => partnersRoot,
