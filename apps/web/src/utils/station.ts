@@ -51,13 +51,92 @@ export function mistakesOf(exercise: { common_mistakes: string[] | null }): stri
 }
 
 /**
+ * One app benefit the CTA nudges with. The `key` is the stable identifier
+ * that travels on the funnel URL and in the events — copy may be reworded,
+ * keys never change, or the conversion data stops lining up.
+ */
+export interface Benefit {
+  key: string;
+  title: string;
+  body: string;
+}
+
+/** Hardcoded by design (v1): no backend-served or A/B-managed copy yet. */
+export const BENEFITS: readonly Benefit[] = [
+  { key: 'track_sets', title: 'Track every set', body: 'Log reps and weight in seconds — right from this exercise.' },
+  { key: 'see_progress', title: 'See your progress', body: 'Charts of your strength on this exact machine, week over week.' },
+  { key: 'personal_plan', title: 'A plan built for you', body: 'Get a full training program generated around your goals.' },
+  { key: 'last_weight', title: 'Never guess again', body: 'Know exactly what weight you lifted here last time.' },
+];
+
+/** One benefit, uniformly at random; `random` is injectable for tests. */
+export function pickBenefit(random: () => number = Math.random): Benefit {
+  return BENEFITS[Math.min(Math.floor(random() * BENEFITS.length), BENEFITS.length - 1)];
+}
+
+/**
+ * Per-Scan state, keyed by Short code and scoped to the page's lifetime: a
+ * module-level map survives chooser → detail navigation (and React remounts)
+ * but resets on a fresh page load — which is exactly what "per Scan" means.
+ */
+const benefitByCode = new Map<string, Benefit>();
+const scannedCodes = new Set<string>();
+
+/**
+ * The benefit this Scan shows — chosen once per Short code per page load, so
+ * the chooser CTA, the detail CTA, the funnel URL and every event all tell
+ * the same story.
+ */
+export function benefitForScan(code: string): Benefit {
+  let benefit = benefitByCode.get(code);
+  if (!benefit) {
+    benefit = pickBenefit();
+    benefitByCode.set(code, benefit);
+  }
+  return benefit;
+}
+
+/**
+ * True exactly once per Short code per page load: the caller that gets
+ * `true` records the `scan` event. Guards against StrictMode double
+ * effects, query refetches, remounts, and the single-exercise redirect.
+ */
+export function claimScan(code: string): boolean {
+  if (scannedCodes.has(code)) return false;
+  scannedCodes.add(code);
+  return true;
+}
+
+/** Test seam: a fresh "page load" for the per-Scan state. */
+export function resetScanState(): void {
+  benefitByCode.clear();
+  scannedCodes.clear();
+}
+
+/** The funnel parameters a CTA tap carries onto `/get` (ticket 04). */
+export interface QrFunnel {
+  /** The Station's Short code. */
+  station: string;
+  /** Set on the exercise detail page only. */
+  exercise?: number;
+  /** The stable key of the benefit the CTA showed. */
+  benefit?: string;
+}
+
+/**
  * The backend's device-aware `/get` store redirect, derived from the API base
  * the way AppDownloadPage does: a QR visit always comes from a real phone UA,
- * so the server-side sniff is safe. Ticket 04 appends the funnel parameters
- * (`funnel=qr`, station, exercise, benefit key) here.
+ * so the server-side sniff is safe. With a funnel, the QR attribution
+ * parameters (`funnel=qr`, station, exercise, benefit key) ride along.
  */
-export function appGetUrl(apiBase: string): string {
-  return apiBase.replace(/\/api\/?$/, '') + '/get';
+export function appGetUrl(apiBase: string, funnel?: QrFunnel): string {
+  const base = apiBase.replace(/\/api\/?$/, '') + '/get';
+  if (!funnel) return base;
+
+  const params = new URLSearchParams({ funnel: 'qr', station: funnel.station });
+  if (funnel.exercise !== undefined) params.set('exercise', String(funnel.exercise));
+  if (funnel.benefit !== undefined) params.set('benefit', funnel.benefit);
+  return `${base}?${params.toString()}`;
 }
 
 /** The exercise id as the route carries it — a positive integer or nothing. */

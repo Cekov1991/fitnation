@@ -1,10 +1,11 @@
+import { useEffect } from 'react';
 import { ChevronLeft, Dumbbell } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { usePublicStationExercise } from '@fit-nation/shared';
+import { publicStationsApi, usePublicStationExercise } from '@fit-nation/shared';
 import type { PublicStationExerciseResource } from '@fit-nation/shared';
 import { ExerciseImage } from '../ExerciseImage';
 import { useNoIndex } from '../../hooks/useNoIndex';
-import { guidanceOf, mistakesOf, parseExerciseId, stationProblemOf } from '../../utils/station';
+import { benefitForScan, guidanceOf, mistakesOf, parseExerciseId, stationProblemOf } from '../../utils/station';
 import { StationCta } from './StationCta';
 import { StationFallback } from './StationFallback';
 
@@ -20,6 +21,18 @@ export function StationExercisePage() {
   useNoIndex();
   const exerciseId = parseExerciseId(rawExerciseId);
   const { data, isPending, error, refetch } = usePublicStationExercise(code, exerciseId ?? 0);
+
+  // One `exercise_open` per detail load, once the fetch confirms the exercise
+  // is really on this Station. Fire-and-forget: `recordEvent` never throws.
+  const loaded = !!data;
+  useEffect(() => {
+    if (!loaded || exerciseId === null) return;
+    void publicStationsApi.recordEvent(code, {
+      type: 'exercise_open',
+      exercise_id: exerciseId,
+      benefit: benefitForScan(code).key,
+    });
+  }, [loaded, code, exerciseId]);
 
   // A hand-mangled URL is the same dead end as an exercise that left the Station.
   if (exerciseId === null) return <StationFallback problem="not_found" />;
@@ -67,7 +80,12 @@ export function StationExercisePage() {
         )}
       </main>
 
-      <StationCta title="Track your sets on this exercise" />
+      <StationCta
+        title="Track your sets on this exercise"
+        code={code}
+        exerciseId={exercise.id}
+        benefit={benefitForScan(code)}
+      />
     </div>
   );
 }

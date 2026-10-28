@@ -81,7 +81,10 @@ describe('publicStationsApi', () => {
     fetchMock.mockReset();
     vi.stubGlobal('fetch', fetchMock);
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setOnUnauthorized(null);
+  });
 
   it('GETs the Station by Short code, URL-encoded, without auth', async () => {
     const station = {
@@ -110,5 +113,46 @@ describe('publicStationsApi', () => {
     expect((fetchMock.mock.calls[0] as [string])[0]).toBe('https://api.test/public/stations/abc123/exercises/7');
     expect(out.data.instructions).toEqual(['Sit back.']);
     expect(out.station.short_code).toBe('abc123');
+  });
+
+  it('POSTs an event without auth, URL-encoded, with the exact payload', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    store.set('authToken', 'tok');
+
+    await publicStationsApi.recordEvent('ab/12', { type: 'exercise_open', exercise_id: 7, benefit: 'track_sets' });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.test/public/stations/ab%2F12/events');
+    expect(init.method).toBe('POST');
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
+    expect(JSON.parse(init.body as string)).toEqual({ type: 'exercise_open', exercise_id: 7, benefit: 'track_sets' });
+  });
+
+  it('a scan event carries just the type and benefit', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+
+    await publicStationsApi.recordEvent('abc123', { type: 'scan', benefit: 'last_weight' });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.test/public/stations/abc123/events');
+    expect(JSON.parse(init.body as string)).toEqual({ type: 'scan', benefit: 'last_weight' });
+  });
+
+  it('swallows every failure — analytics must never degrade the page', async () => {
+    const onUnauthorized = vi.fn();
+    setOnUnauthorized(onUnauthorized);
+
+    // An HTTP refusal (throttled)…
+    fetchMock.mockResolvedValueOnce(reply(429, { message: 'Too Many Attempts.' }));
+    await expect(publicStationsApi.recordEvent('abc123', { type: 'cta_click' })).resolves.toBeUndefined();
+
+    // …a dead sticker…
+    fetchMock.mockResolvedValueOnce(reply(410, { status: 'gone', message: 'Gone.' }));
+    await expect(publicStationsApi.recordEvent('abc123', { type: 'scan' })).resolves.toBeUndefined();
+
+    // …and no network at all: none of them throw or trigger sign-out.
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    await expect(publicStationsApi.recordEvent('abc123', { type: 'scan' })).resolves.toBeUndefined();
+    expect(onUnauthorized).not.toHaveBeenCalled();
   });
 });

@@ -827,5 +827,16 @@ export interface PublicStationExerciseResponse {
   station: PublicStationContext;
 }
 
+/** What the public pages record about themselves (ticket 04). */
+export type PublicStationEventType = 'scan' | 'exercise_open' | 'cta_click';
+
+/** `POST /public/stations/{code}/events` — anonymous by design: nothing here identifies the visitor. */
+export interface PublicStationEventInput {
+  type: PublicStationEventType;
+  exercise_id?: number;
+  /** The stable key of the app benefit the CTA showed. */
+  benefit?: string;
+}
+
 // Errors are thrown as `ApiFailure` from ./http — a class, so a catch block can
 // branch on its `kind` instead of sniffing an `any`.

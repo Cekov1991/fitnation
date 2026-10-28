@@ -57,6 +57,7 @@ import type {
   WorkoutSessionExerciseResource,
   PublicStationResponse,
   PublicStationExerciseResponse,
+  PublicStationEventInput,
 } from './types/api';
 
 // The choice of authentication is visible at every call site (0025). `authed`
@@ -658,6 +659,22 @@ export const publicStationsApi = {
   getStationExercise: async (code: string, exerciseId: number): Promise<PublicStationExerciseResponse> => {
     return publicGet<PublicStationExerciseResponse>(
       `/public/stations/${encodeURIComponent(code)}/exercises/${exerciseId}`
+    );
+  },
+  /**
+   * Fire-and-forget scan analytics (ticket 04). Never throws: a dropped
+   * event is worth nothing against a degraded public page, so every failure
+   * — network, throttle, stale sticker — is swallowed here, and no caller
+   * has to remember to catch.
+   */
+  recordEvent: (code: string, event: PublicStationEventInput): Promise<void> => {
+    return request<void>(`/public/stations/${encodeURIComponent(code)}/events`, {
+      method: 'POST',
+      auth: 'none',
+      body: JSON.stringify(event),
+    }).then(
+      () => undefined,
+      () => undefined
     );
   },
 };

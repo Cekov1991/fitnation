@@ -1,10 +1,11 @@
+import { useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Link, Redirect, useParams } from 'react-router-dom';
-import { usePublicStation } from '@fit-nation/shared';
+import { publicStationsApi, usePublicStation } from '@fit-nation/shared';
 import type { PublicStationExerciseSummary } from '@fit-nation/shared';
 import { ExerciseImage } from '../ExerciseImage';
 import { useNoIndex } from '../../hooks/useNoIndex';
-import { stationProblemOf } from '../../utils/station';
+import { benefitForScan, claimScan, stationProblemOf } from '../../utils/station';
 import { StationCta } from './StationCta';
 import { StationFallback } from './StationFallback';
 
@@ -18,6 +19,17 @@ export function StationPage() {
   const { code } = useParams<{ code: string }>();
   useNoIndex();
   const { data, isPending, error, refetch } = usePublicStation(code);
+
+  // The Scan is recorded when the station fetch succeeds — a mistyped or dead
+  // code is not a Scan. `claimScan` makes it exactly one per page load:
+  // StrictMode double effects, refetches, and the single-exercise redirect
+  // below (whose effect runs before the chooser unmounts) all hit the same
+  // guard. Fire-and-forget: `recordEvent` never throws.
+  const loaded = !!data;
+  useEffect(() => {
+    if (!loaded || !claimScan(code)) return;
+    void publicStationsApi.recordEvent(code, { type: 'scan', benefit: benefitForScan(code).key });
+  }, [loaded, code]);
 
   if (error) return <StationFallback problem={stationProblemOf(error)} onRetry={() => refetch()} />;
   if (isPending || !data) return <StationSkeleton />;
@@ -62,7 +74,7 @@ export function StationPage() {
         )}
       </main>
 
-      <StationCta title={`Track your workouts at ${station.partner.name}`} />
+      <StationCta title={`Track your workouts at ${station.partner.name}`} code={code} benefit={benefitForScan(code)} />
     </div>
   );
 }

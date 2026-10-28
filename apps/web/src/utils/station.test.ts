@@ -1,6 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ApiFailure } from '@fit-nation/shared';
-import { appGetUrl, guidanceOf, mistakesOf, parseExerciseId, stationProblemOf } from './station';
+import {
+  BENEFITS,
+  appGetUrl,
+  benefitForScan,
+  claimScan,
+  guidanceOf,
+  mistakesOf,
+  parseExerciseId,
+  pickBenefit,
+  resetScanState,
+  stationProblemOf,
+} from './station';
 
 describe('stationProblemOf', () => {
   it('reads the backend answers for stale stickers', () => {
@@ -59,6 +70,67 @@ describe('appGetUrl', () => {
     expect(appGetUrl('https://app.fitnation.mk/api')).toBe('https://app.fitnation.mk/get');
     expect(appGetUrl('https://app.fitnation.mk/api/')).toBe('https://app.fitnation.mk/get');
     expect(appGetUrl('http://localhost:8000/api')).toBe('http://localhost:8000/get');
+  });
+
+  it('carries the QR funnel parameters when given a funnel', () => {
+    expect(appGetUrl('https://app.fitnation.mk/api', { station: 'abc123', exercise: 7, benefit: 'track_sets' })).toBe(
+      'https://app.fitnation.mk/get?funnel=qr&station=abc123&exercise=7&benefit=track_sets'
+    );
+  });
+
+  it('a chooser-page tap has no exercise; station and benefit still ride along', () => {
+    expect(appGetUrl('https://app.fitnation.mk/api', { station: 'abc123', benefit: 'last_weight' })).toBe(
+      'https://app.fitnation.mk/get?funnel=qr&station=abc123&benefit=last_weight'
+    );
+  });
+
+  it('URL-encodes whatever the funnel carries', () => {
+    expect(appGetUrl('https://app.fitnation.mk/api', { station: 'a&b=c' })).toBe(
+      'https://app.fitnation.mk/get?funnel=qr&station=a%26b%3Dc'
+    );
+  });
+});
+
+describe('benefits', () => {
+  it('every benefit has a stable, distinct key and its copy', () => {
+    // Pinned on purpose: these keys are what the funnel URLs and recorded
+    // events carry — renaming one breaks conversion data continuity.
+    expect(BENEFITS.map(b => b.key)).toEqual(['track_sets', 'see_progress', 'personal_plan', 'last_weight']);
+    for (const benefit of BENEFITS) {
+      expect(benefit.title).toBeTruthy();
+      expect(benefit.body).toBeTruthy();
+    }
+  });
+
+  it('pickBenefit maps the random draw onto the array, edges included', () => {
+    expect(pickBenefit(() => 0)).toBe(BENEFITS[0]);
+    expect(pickBenefit(() => 0.999999)).toBe(BENEFITS[BENEFITS.length - 1]);
+    // Even a rogue random() === 1 never lands out of bounds.
+    expect(BENEFITS).toContain(pickBenefit(() => 1));
+  });
+
+  it('an undirected pick is always a valid benefit', () => {
+    for (let i = 0; i < 50; i++) {
+      expect(BENEFITS).toContain(pickBenefit());
+    }
+  });
+});
+
+describe('per-Scan state', () => {
+  beforeEach(() => resetScanState());
+
+  it('benefitForScan is chosen once per code and then stable for the page lifetime', () => {
+    const first = benefitForScan('abc123');
+    expect(BENEFITS).toContain(first);
+    expect(benefitForScan('abc123')).toBe(first);
+  });
+
+  it('claimScan is true exactly once per code — the single-scan-event guarantee', () => {
+    expect(claimScan('abc123')).toBe(true);
+    expect(claimScan('abc123')).toBe(false);
+    expect(claimScan('abc123')).toBe(false);
+    // A different Station in the same SPA session is its own Scan.
+    expect(claimScan('xyz789')).toBe(true);
   });
 });
 
