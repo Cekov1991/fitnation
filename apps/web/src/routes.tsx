@@ -9,6 +9,8 @@ import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { EmailVerificationPage } from './components/EmailVerificationPage';
 import { AppDownloadPage } from './components/AppDownloadPage';
+import { StationPage } from './components/station/StationPage';
+import { StationExercisePage } from './components/station/StationExercisePage';
 import { SubscribePage } from './components/SubscribePage';
 import { AuthGuard } from './components/AuthGuard';
 import { AuthenticatedLayout } from './route-wrappers/AuthenticatedLayout';
@@ -69,6 +71,16 @@ export function AppRoutes() {
 
           <Route exact path="/support">
             <SupportPage />
+          </Route>
+
+          {/* QR Stations (ADR-0005): what a printed sticker opens. Public —
+              no AuthGuard, so a scan never bounces through login. */}
+          <Route exact path="/s/:code">
+            <StationPage />
+          </Route>
+
+          <Route exact path="/s/:code/e/:exerciseId">
+            <StationExercisePage />
           </Route>
 
           <Route exact path="/login">

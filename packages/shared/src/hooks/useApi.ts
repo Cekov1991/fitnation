@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi, partnersApi } from '../api';
+import { authApi, profileApi, onboardingApi, devicesApi, notificationSettingsApi, plansApi, programsApi, routinesApi, templatesApi, exercisesApi, sessionsApi, metricsApi, plannerApi, muscleGroupsApi, categoriesApi, classificationsApi, partnersApi, publicStationsApi } from '../api';
 import { getAuthStorage, AUTH_TOKEN_KEY } from '../auth';
+import { failureOf } from '../http';
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -903,5 +904,37 @@ export function usePartnerBranding(slug: string | null) {
     },
     enabled: !!slug,
     staleTime: Infinity,
+  });
+}
+
+// ============================================================================
+// QR STATIONS — public pages reached from printed stickers (ADR-0005)
+// ============================================================================
+
+// A 404 (unknown code, exercise not on the Station) or 410 (Station deleted)
+// is the server's definitive answer, rendered as the graceful fallback —
+// retrying it only delays the page. Anything else (gym wifi) gets one retry.
+const retryUnlessStationAnswered = (failureCount: number, error: unknown) => {
+  const status = failureOf(error).status;
+  if (status === 404 || status === 410) return false;
+  return failureCount < 1;
+};
+
+/** A Station's public chooser payload, by immutable Short code. Unauthenticated. */
+export function usePublicStation(code: string) {
+  return useQuery({
+    queryKey: queryKeys.stations.publicStation(code),
+    queryFn: () => publicStationsApi.getStation(code),
+    retry: retryUnlessStationAnswered,
+  });
+}
+
+/** One Exercise's public detail in a Station's context. Unauthenticated. */
+export function usePublicStationExercise(code: string, exerciseId: number) {
+  return useQuery({
+    queryKey: queryKeys.stations.publicExercise(code, exerciseId),
+    queryFn: () => publicStationsApi.getStationExercise(code, exerciseId),
+    enabled: Number.isInteger(exerciseId) && exerciseId > 0,
+    retry: retryUnlessStationAnswered,
   });
 }

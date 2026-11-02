@@ -1,6 +1,6 @@
 // Fit Nation API Service Layer
 
-import { request } from './http'
+import { publicGet, request } from './http'
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -55,6 +55,9 @@ import type {
   CompleteSessionResponse,
   SetLogResource,
   WorkoutSessionExerciseResource,
+  PublicStationResponse,
+  PublicStationExerciseResponse,
+  PublicStationEventInput,
 } from './types/api';
 
 // The choice of authentication is visible at every call site (0025). `authed`
@@ -640,6 +643,46 @@ export const sessionsApi = {
   }
 };
 
+// ============================================================================
+// QR STATIONS — public, unauthenticated reads (ADR-0005)
+// ============================================================================
+
+// Scanned from printed stickers by anonymous phones: always through
+// `publicGet`, never the bearer path, so a stale token on the device can
+// neither be sent nor signed out by a 401. Unknown codes answer 404 and
+// soft-deleted Stations 410; both surface as an ApiFailure with that status
+// for the web app's graceful fallback.
+export const publicStationsApi = {
+  getStation: async (code: string): Promise<PublicStationResponse> => {
+    return publicGet<PublicStationResponse>(`/public/stations/${encodeURIComponent(code)}`);
+  },
+  getStationExercise: async (code: string, exerciseId: number): Promise<PublicStationExerciseResponse> => {
+    return publicGet<PublicStationExerciseResponse>(
+      `/public/stations/${encodeURIComponent(code)}/exercises/${exerciseId}`
+    );
+  },
+  /**
+   * Fire-and-forget scan analytics (ticket 04). Never throws: a dropped
+   * event is worth nothing against a degraded public page, so every failure
+   * — network, throttle, stale sticker — is swallowed here, and no caller
+   * has to remember to catch.
+   */
+  recordEvent: (code: string, event: PublicStationEventInput): Promise<void> => {
+    return request<void>(`/public/stations/${encodeURIComponent(code)}/events`, {
+      method: 'POST',
+      auth: 'none',
+      body: JSON.stringify(event),
+      // cta_click is followed by a full-page navigation to /get; without
+      // keepalive the browser aborts the in-flight POST on unload and the
+      // conversion event the funnel exists to measure is lost.
+      keepalive: true,
+    }).then(
+      () => undefined,
+      () => undefined
+    );
+  },
+};
+
 export const api = {
   auth: authApi,
   partners: partnersApi,
@@ -658,4 +701,5 @@ export const api = {
   templates: templatesApi,
   planner: plannerApi,
   sessions: sessionsApi,
+  publicStations: publicStationsApi,
 }

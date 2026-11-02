@@ -158,6 +158,16 @@ export async function request<T>(url: string, { auth, timeoutMs, ...init }: Requ
 }
 
 /**
+ * A GET for the public, unauthenticated endpoints (QR Stations): no token
+ * header ever, and — because `request` only clears the token and notifies the
+ * app for a rejected *bearer* call — no 401 sign-out side effects. A scan from
+ * a phone that happens to hold a stale token must never bounce a session.
+ */
+export function publicGet<T>(url: string, init: Omit<RequestInit, 'method'> = {}): Promise<T> {
+  return request<T>(url, { ...init, method: 'GET', auth: 'none' });
+}
+
+/**
  * Fetch and read the body, all within `limit` ms, else a `timeout` failure.
  * Our own controller does the aborting; a caller's signal is forwarded to it
  * (Hermes has no AbortSignal.any / AbortSignal.timeout).
