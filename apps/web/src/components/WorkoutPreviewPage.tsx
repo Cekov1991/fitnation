@@ -4,7 +4,6 @@ import { Check, RefreshCw, X, Edit2, Plus } from 'lucide-react';
 import { ExerciseImage } from './ExerciseImage';
 import { LoadingButton } from './ui/LoadingButton';
 import { WorkoutPreviewPageSkeleton } from './WorkoutPreviewPageSkeleton';
-import { BackgroundGradients } from './BackgroundGradients';
 import { ExerciseEditMenu } from './ExerciseEditMenu';
 import { EditSetsRepsModal } from './EditSetsRepsModal';
 import {
@@ -168,7 +167,6 @@ export function WorkoutPreviewPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
-        <BackgroundGradients />
         <WorkoutPreviewPageSkeleton />
       </div>
     );
@@ -177,7 +175,6 @@ export function WorkoutPreviewPage() {
   if (!draftSession) {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
-        <BackgroundGradients />
         <main className="relative z-10 max-w-md mx-auto px-4 py-8">
           <div className="text-center py-8">
             <p style={{ color: 'var(--color-text-secondary)' }}>Draft session not found</p>
@@ -196,7 +193,6 @@ export function WorkoutPreviewPage() {
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-bg-base)' }}>
-      <BackgroundGradients />
       <main className="relative z-10 max-w-md mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
