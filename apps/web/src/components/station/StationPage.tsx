@@ -5,6 +5,7 @@ import { publicStationsApi, usePublicStation } from '@fit-nation/shared';
 import type { PublicStationExerciseSummary } from '@fit-nation/shared';
 import { ExerciseImage } from '../ExerciseImage';
 import { useNoIndex } from '../../hooks/useNoIndex';
+import { useStationBranding } from '../../hooks/useStationBranding';
 import { benefitForScan, claimScan, stationProblemOf } from '../../utils/station';
 import { StationCta } from './StationCta';
 import { StationFallback } from './StationFallback';
@@ -22,6 +23,9 @@ export function StationPage() {
   const code = decodeURIComponent(rawCode);
   useNoIndex();
   const { data, isPending, error, refetch } = usePublicStation(code);
+  // The gym's own colours on the gym's own QR page, keyed by the fetched
+  // Station's Partner — until it lands the defaults show.
+  useStationBranding(data?.data.partner.slug);
 
   // The Scan is recorded when the station fetch succeeds — a mistyped or dead
   // code is not a Scan. `claimScan` makes it exactly one per page load:
@@ -77,7 +81,7 @@ export function StationPage() {
         )}
       </main>
 
-      <StationCta code={code} benefit={benefitForScan(code)} />
+      <StationCta code={code} partnerSlug={station.partner.slug} benefit={benefitForScan(code)} />
     </div>
   );
 }

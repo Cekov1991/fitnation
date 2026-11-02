@@ -5,6 +5,7 @@ import { publicStationsApi, usePublicStationExercise } from '@fit-nation/shared'
 import type { PublicStationExerciseResource } from '@fit-nation/shared';
 import { ExerciseImage } from '../ExerciseImage';
 import { useNoIndex } from '../../hooks/useNoIndex';
+import { useStationBranding } from '../../hooks/useStationBranding';
 import { benefitForScan, claimExerciseOpen, guidanceOf, mistakesOf, parseExerciseId, stationProblemOf } from '../../utils/station';
 import { StationCta } from './StationCta';
 import { StationFallback } from './StationFallback';
@@ -24,6 +25,9 @@ export function StationExercisePage() {
   useNoIndex();
   const exerciseId = parseExerciseId(rawExerciseId);
   const { data, isPending, error, refetch } = usePublicStationExercise(code, exerciseId ?? 0);
+  // The gym's own colours on the gym's own QR page, keyed by the fetched
+  // Station's Partner — until it lands the defaults show.
+  useStationBranding(data?.station.partner.slug);
 
   // One `exercise_open` per (Station, exercise) per page load, once the fetch
   // confirms the exercise is really on this Station: `claimExerciseOpen`
@@ -85,7 +89,7 @@ export function StationExercisePage() {
         )}
       </main>
 
-      <StationCta code={code} exerciseId={exercise.id} benefit={benefitForScan(code)} />
+      <StationCta code={code} partnerSlug={partner.slug} exerciseId={exercise.id} benefit={benefitForScan(code)} />
     </div>
   );
 }

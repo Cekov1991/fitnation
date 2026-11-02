@@ -137,6 +137,13 @@ export interface QrFunnel {
   benefit?: string;
 }
 
+function qrFunnelParams(funnel: QrFunnel): URLSearchParams {
+  const params = new URLSearchParams({ funnel: 'qr', station: funnel.station });
+  if (funnel.exercise !== undefined) params.set('exercise', String(funnel.exercise));
+  if (funnel.benefit !== undefined) params.set('benefit', funnel.benefit);
+  return params;
+}
+
 /**
  * The backend's device-aware `/get` store redirect, derived from the API base
  * the way AppDownloadPage does: a QR visit always comes from a real phone UA,
@@ -146,11 +153,39 @@ export interface QrFunnel {
 export function appGetUrl(apiBase: string, funnel?: QrFunnel): string {
   const base = apiBase.replace(/\/api\/?$/, '') + '/get';
   if (!funnel) return base;
+  return `${base}?${qrFunnelParams(funnel).toString()}`;
+}
 
-  const params = new URLSearchParams({ funnel: 'qr', station: funnel.station });
-  if (funnel.exercise !== undefined) params.set('exercise', String(funnel.exercise));
-  if (funnel.benefit !== undefined) params.set('benefit', funnel.benefit);
-  return `${base}?${params.toString()}`;
+/**
+ * Where a Station CTA tap goes: the Partner's own register page. Stations are
+ * B2B — a visitor always signs up under the gym whose QR they scanned, never
+ * a bare store download — so the CTA targets the Partner's white-label host
+ * (`{slug}.fitnation.mk/register`), where RegisterPage resolves the partner
+ * and BrandingProvider the colours from the subdomain. The QR attribution
+ * parameters ride along.
+ *
+ * On a dev host (localhost / an IP / a single-label name) there are no
+ * subdomains; same-origin `/register` with the `?partner=` dev fallback that
+ * `getPartnerSlugFromSubdomain` reads is the equivalent.
+ */
+export function partnerRegisterUrl(
+  loc: { protocol: string; hostname: string; port: string },
+  partnerSlug: string,
+  funnel: QrFunnel
+): string {
+  const params = qrFunnelParams(funnel);
+  const parts = loc.hostname.split('.');
+
+  if (parts.length < 2 || /^[\d.]+$/.test(loc.hostname)) {
+    params.set('partner', partnerSlug);
+    return `/register?${params.toString()}`;
+  }
+
+  // The apex the partner hosts hang off: `www.`/`app.` (or a stray partner
+  // subdomain) is replaced, a bare apex is kept — mirrors subdomain.ts.
+  const apex = parts.length > 2 ? parts.slice(1).join('.') : loc.hostname;
+  const port = loc.port ? `:${loc.port}` : '';
+  return `${loc.protocol}//${partnerSlug}.${apex}${port}/register?${params.toString()}`;
 }
 
 /** The exercise id as the route carries it — a positive integer or nothing. */

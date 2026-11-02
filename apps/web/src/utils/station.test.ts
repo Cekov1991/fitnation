@@ -9,6 +9,7 @@ import {
   guidanceOf,
   mistakesOf,
   parseExerciseId,
+  partnerRegisterUrl,
   pickBenefit,
   resetScanState,
   stationProblemOf,
@@ -83,6 +84,48 @@ describe('appGetUrl', () => {
     expect(appGetUrl('https://app.fitnation.mk/api', { station: 'abc123', benefit: 'last_weight' })).toBe(
       'https://app.fitnation.mk/get?funnel=qr&station=abc123&benefit=last_weight'
     );
+  });
+});
+
+describe('partnerRegisterUrl', () => {
+  const funnel = { station: 'abc123', exercise: 7, benefit: 'track_sets' } as const;
+
+  it("targets the Partner's white-label register page from the bare apex", () => {
+    expect(partnerRegisterUrl({ protocol: 'https:', hostname: 'fitnation.mk', port: '' }, 'iron-works', funnel)).toBe(
+      'https://iron-works.fitnation.mk/register?funnel=qr&station=abc123&exercise=7&benefit=track_sets'
+    );
+  });
+
+  it('replaces a www/app subdomain with the Partner slug', () => {
+    expect(
+      partnerRegisterUrl({ protocol: 'https:', hostname: 'app.fitnation.mk', port: '' }, 'iron-works', {
+        station: 'abc123',
+      })
+    ).toBe('https://iron-works.fitnation.mk/register?funnel=qr&station=abc123');
+    expect(
+      partnerRegisterUrl({ protocol: 'https:', hostname: 'www.fitnation.mk', port: '' }, 'iron-works', {
+        station: 'abc123',
+      })
+    ).toBe('https://iron-works.fitnation.mk/register?funnel=qr&station=abc123');
+  });
+
+  it('a dev host has no subdomains: same-origin /register with the ?partner= fallback', () => {
+    expect(partnerRegisterUrl({ protocol: 'http:', hostname: 'localhost', port: '5173' }, 'iron-works', funnel)).toBe(
+      '/register?funnel=qr&station=abc123&exercise=7&benefit=track_sets&partner=iron-works'
+    );
+    expect(
+      partnerRegisterUrl({ protocol: 'http:', hostname: '127.0.0.1', port: '5173' }, 'iron-works', {
+        station: 'abc123',
+      })
+    ).toBe('/register?funnel=qr&station=abc123&partner=iron-works');
+  });
+
+  it('keeps an explicit port on the white-label URL', () => {
+    expect(
+      partnerRegisterUrl({ protocol: 'http:', hostname: 'fitnation.test', port: '8000' }, 'iron-works', {
+        station: 'abc123',
+      })
+    ).toBe('http://iron-works.fitnation.test:8000/register?funnel=qr&station=abc123');
   });
 
   it('URL-encodes whatever the funnel carries', () => {
