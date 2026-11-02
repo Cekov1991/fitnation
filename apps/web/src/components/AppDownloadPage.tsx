@@ -27,18 +27,6 @@ export function AppDownloadPage() {
       className="min-h-screen w-full flex items-center justify-center px-6"
       style={{ backgroundColor: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
     >
-      {/* Background Gradients */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div
-          className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-30"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)' }}
-        />
-        <div
-          className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-30"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--color-secondary) 20%, transparent)' }}
-        />
-      </div>
-
       <div className="relative z-10 w-full max-w-md">
         {/* Logo and Header */}
         <div className="flex flex-col items-center mb-8">
