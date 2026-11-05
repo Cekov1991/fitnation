@@ -37,7 +37,21 @@ export function SessionClock({ elapsedSV, color, fontSize = 14, fontWeight = '50
       editable={false}
       underlineColorAndroid="transparent"
       defaultValue={formatElapsed(0)}
-      style={{ color, fontSize, fontWeight: fontWeight as any, padding: 0, margin: 0 }}
+      // A TextInput's width is measured once from its initial text and never
+      // re-measured when the UI-thread worklet swaps the text in, so a wider
+      // time ("05:03", later "1:05:03") gets ellipsized. Tabular digits keep
+      // every tick the same width, and the minWidth reserves room up to
+      // h:mm:ss so the hour transition cannot truncate either.
+      style={{
+        color,
+        fontSize,
+        fontWeight: fontWeight as any,
+        padding: 0,
+        margin: 0,
+        fontVariant: ['tabular-nums'],
+        textAlign: 'center',
+        minWidth: fontSize * 4.3,
+      }}
     />
   )
 }
