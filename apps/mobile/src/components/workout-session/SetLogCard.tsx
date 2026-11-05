@@ -274,6 +274,26 @@ export function SetLogCard({
               </View>
               {stepperButton(() => bumpWeight(1), Plus)}
             </View>
+            {previousWeight != null && previousReps != null && (
+              <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    paddingHorizontal: SET_LOG_HINT.chipPaddingX,
+                    paddingVertical: SET_LOG_HINT.chipPaddingY,
+                    borderRadius: SET_LOG_HINT.chipRadius,
+                    backgroundColor: colors.imageScrim,
+                  }}
+                >
+                  <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
+                  <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>
+                    {`Last ${formatWeight(previousWeight)} ${weightUnit} × ${previousReps}`}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         )}
 
@@ -318,48 +338,44 @@ export function SetLogCard({
             </View>
             {stepperButton(() => bumpReps(1), Plus)}
           </View>
-        </View>
-      </View>
-
-      {/* One hint line for the whole card: last time's set and the target. */}
-      {(hints.weight?.last || hints.reps.last || hints.reps.note) && (
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            columnGap: SET_LOG_HINT.gap,
-            rowGap: SET_LOG_HINT.rowGap,
-            marginTop: 10,
-          }}
-        >
-          {(hints.weight?.last || hints.reps.last) && (
+          {(hints.reps.note || (!allowWeightLogging && hints.reps.last)) && (
             <View
               style={{
                 flexDirection: 'row',
+                flexWrap: 'wrap',
                 alignItems: 'center',
-                gap: 4,
-                paddingHorizontal: SET_LOG_HINT.chipPaddingX,
-                paddingVertical: SET_LOG_HINT.chipPaddingY,
-                borderRadius: SET_LOG_HINT.chipRadius,
-                backgroundColor: colors.imageScrim,
+                columnGap: SET_LOG_HINT.gap,
+                rowGap: SET_LOG_HINT.rowGap,
+                marginTop: 8,
               }}
             >
-              <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
-              <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>
-                {allowWeightLogging && previousWeight != null && previousReps != null
-                  ? `Last ${formatWeight(previousWeight)} ${weightUnit} × ${previousReps}`
-                  : hints.reps.last}
-              </Text>
+              {!allowWeightLogging && hints.reps.last && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    paddingHorizontal: SET_LOG_HINT.chipPaddingX,
+                    paddingVertical: SET_LOG_HINT.chipPaddingY,
+                    borderRadius: SET_LOG_HINT.chipRadius,
+                    backgroundColor: colors.imageScrim,
+                  }}
+                >
+                  <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
+                  <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>
+                    {hints.reps.last}
+                  </Text>
+                </View>
+              )}
+              {hints.reps.note && (
+                <Text style={{ flexShrink: 1, fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
+                  {hints.reps.note}
+                </Text>
+              )}
             </View>
           )}
-          {hints.reps.note && (
-            <Text style={{ flexShrink: 1, fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
-              {hints.reps.note}
-            </Text>
-          )}
         </View>
-      )}
+      </View>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
         {/* No pending state: useLogSet is optimistic, so by the time a request
