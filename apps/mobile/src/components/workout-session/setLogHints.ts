@@ -2,11 +2,13 @@ import { formatWeight } from '@fit-nation/shared'
 import type { WeightUnit } from '@fit-nation/shared'
 
 /**
- * The hints under the set-log fields. The fields stay empty with placeholders
- * — a pre-filled value would have to be deleted whenever the lift goes
- * differently — so under each one a "Last …" chip says what the placeholder is
- * based on, and a plain note beside it adds the target (reps) or the plan's
- * suggestion when it differs from last time (weight).
+ * The hint chips under the set-log steppers. The steppers open on the
+ * suggestion (as a placeholder, named by the weight badge), so the hints only
+ * say what happened last time. On a weighted exercise the Weight column gets
+ * one combined chip — "Last 48 kg × 8", or "Last 8 reps" when the previous set
+ * recorded no weight — and the Reps column keeps only the target note. On a
+ * bodyweight exercise the "Last …" chip sits under Reps instead, beside the
+ * target.
  */
 export interface SetLogHintInput {
   allowWeightLogging: boolean
@@ -15,9 +17,6 @@ export interface SetLogHintInput {
   goalMaxReps: number
   /** A total-reps exercise: the count is the point, not a range per set. */
   totalRepsTarget?: number | null
-  /** What the fields open with (the placeholders). */
-  defaultWeight: number
-  defaultReps: number
   /** Last session's set in this slot, when there was one. */
   previousWeight?: number | null
   previousReps?: number | null
@@ -43,17 +42,22 @@ export function setLogHints(i: SetLogHintInput): SetLogHints {
 
   let weightHint: ColumnHint | null = null
   if (i.allowWeightLogging) {
-    const last = hasHistory && i.previousWeight != null ? `Last ${weight(i.previousWeight)}` : null
-    // The plan may suggest a heavier (or lighter) weight than last time; the
-    // placeholder shows it, so name it next to what it is based on.
-    const differs = i.previousWeight == null || i.defaultWeight !== i.previousWeight
-    const note = i.defaultWeight > 0 && (!hasHistory || differs) ? `Suggested ${weight(i.defaultWeight)}` : null
-    weightHint = { last, note }
+    // The previous set may have reps without a recorded weight; the chip then
+    // still names the reps rather than vanishing.
+    const last = !hasHistory
+      ? null
+      : i.previousWeight != null
+        ? `Last ${weight(i.previousWeight)} × ${i.previousReps}`
+        : `Last ${i.previousReps} reps`
+    weightHint = { last, note: null }
   }
 
   const target = i.totalRepsTarget != null ? `Target ${i.totalRepsTarget} total` : `Target ${i.goalMinReps}–${i.goalMaxReps}`
   return {
     weight: weightHint,
-    reps: { last: hasHistory ? `Last ${i.previousReps}` : null, note: target },
+    reps: {
+      last: !i.allowWeightLogging && hasHistory ? `Last ${i.previousReps}` : null,
+      note: target,
+    },
   }
 }

@@ -1,21 +1,23 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Timer, MoreVertical, History, Sparkles, TrendingDown, TrendingUp } from 'lucide-react-native'
+import { Timer, MoreVertical, Info, History, Sparkles, TrendingDown, TrendingUp } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../ui/Button'
 import type { WeightUnit } from '@fit-nation/shared'
-import { sanitizeDecimalText, withAlpha, formatWeight } from '@fit-nation/shared'
-import { setLogHints, type ColumnHint } from './setLogHints'
+import { withAlpha, formatWeight, sanitizeDecimalText } from '@fit-nation/shared'
+import { setLogHints } from './setLogHints'
+import { StepperField, DEFAULT_WEIGHT_STEP } from './StepperField'
 
 /**
- * The hint row under each field: a "Last …" chip and a plain note beside it,
- * or under it when the column is too narrow for both ("Last 100 lbs" and
- * "Suggested 95 lbs" overran into the Reps column).
+ * PROTOTYPE (variant D of the logging-screen prototype): the weight/reps
+ * keyboard inputs are replaced by − / + steppers so a set is logged without
+ * typing, and the ⓘ button opens the exercise-info sheet that now holds the
+ * reference blocks. The hint row is collapsed to one line under the controls.
  */
 export const SET_LOG_HINT = { text: 12, icon: 12, chipRadius: 8, chipPaddingX: 8, chipPaddingY: 4, gap: 10, rowGap: 4 } as const
 
-/** The small badge on the Weight label: where today's placeholder weight comes from. */
+/** The small badge on the Weight label: where today's suggested weight comes from. */
 export type WeightBadge = 'estimated' | 'raised' | 'lowered'
 const WEIGHT_BADGE: Record<WeightBadge, { label: string; Icon: LucideIcon }> = {
   estimated: { label: 'Estimated', Icon: Sparkles },
@@ -25,6 +27,7 @@ const WEIGHT_BADGE: Record<WeightBadge, { label: string; Icon: LucideIcon }> = {
 
 interface SetLogCardProps {
   setNumber: number
+  /** Draft values as strings, still owned by the screen; empty means "use the default". */
   weight: string
   reps: string
   onWeightChange: (v: string) => void
@@ -33,12 +36,18 @@ interface SetLogCardProps {
   onStartTimer?: () => void
   /** When provided, shows a ⋯ menu on the active set (used to remove the last set). */
   onOpenMenu?: () => void
+  /** Opens the exercise-info sheet (last session, best set, progression). */
+  onOpenInfo?: () => void
+  /** True while the progression banner in the sheet still wants an answer. */
+  infoAttention?: boolean
   defaultWeight: number
   defaultReps: number
+  /** One tap on − / + moves the weight by this much. */
+  weightStep?: number | null
   allowWeightLogging: boolean
   goalMinReps: number
   goalMaxReps: number
-  /** Where the placeholder weight comes from; null shows no badge. */
+  /** Where the suggested weight comes from; null shows no badge. */
   weightBadge?: WeightBadge | null
   /** Last session's set in this slot, for the "last time" line. */
   previousWeight?: number | null
@@ -58,8 +67,11 @@ export function SetLogCard({
   onLog,
   onStartTimer,
   onOpenMenu,
+  onOpenInfo,
+  infoAttention = false,
   defaultWeight,
   defaultReps,
+  weightStep,
   allowWeightLogging,
   goalMinReps,
   goalMaxReps,
@@ -72,55 +84,50 @@ export function SetLogCard({
 }: SetLogCardProps) {
   const { colors } = useTheme()
 
-  // A hint under each field says where its placeholder comes from, and the
-  // reps one carries the target. The fields stay empty on purpose: a pre-filled
-  // value would have to be deleted whenever the lift goes differently.
+  // The stepper's centre is a tappable input: the suggestion shows as a
+  // placeholder until the user steps or types, and both paths write the same
+  // draft, so Log Set records whatever is on screen either way.
+  const parsedWeight = parseFloat(weight)
+  const currentWeight = isNaN(parsedWeight) ? defaultWeight : parsedWeight
+  const parsedReps = parseInt(reps, 10)
+  const currentReps = isNaN(parsedReps) || parsedReps <= 0 ? defaultReps : parsedReps
+  const step = weightStep && weightStep > 0 ? weightStep : DEFAULT_WEIGHT_STEP
+
+  const bumpWeight = (dir: 1 | -1) => {
+    const next = Math.max(0, +(currentWeight + dir * step).toFixed(2))
+    onWeightChange(formatWeight(next))
+  }
+  const bumpReps = (dir: 1 | -1) => {
+    onRepsChange(String(Math.max(1, currentReps + dir)))
+  }
+
   const hints = setLogHints({
     allowWeightLogging,
     weightUnit,
     goalMinReps,
     goalMaxReps,
     totalRepsTarget,
-    defaultWeight,
-    defaultReps,
     previousWeight,
     previousReps,
   })
-  const renderHint = (hint: ColumnHint) =>
-    hint.last || hint.note ? (
-      <View
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          columnGap: SET_LOG_HINT.gap,
-          rowGap: SET_LOG_HINT.rowGap,
-          marginTop: 8,
-        }}
-      >
-        {hint.last && (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-              paddingHorizontal: SET_LOG_HINT.chipPaddingX,
-              paddingVertical: SET_LOG_HINT.chipPaddingY,
-              borderRadius: SET_LOG_HINT.chipRadius,
-              backgroundColor: colors.imageScrim,
-            }}
-          >
-            <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
-            <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>{hint.last}</Text>
-          </View>
-        )}
-        {hint.note && (
-          <Text style={{ flexShrink: 1, fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
-            {hint.note}
-          </Text>
-        )}
-      </View>
-    ) : null
+
+  // The "Last …" chip, identical under either column.
+  const renderHintChip = (label: string) => (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: SET_LOG_HINT.chipPaddingX,
+        paddingVertical: SET_LOG_HINT.chipPaddingY,
+        borderRadius: SET_LOG_HINT.chipRadius,
+        backgroundColor: colors.imageScrim,
+      }}
+    >
+      <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
+      <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>{label}</Text>
+    </View>
+  )
 
   return (
     <LinearGradient
@@ -154,30 +161,64 @@ export function SetLogCard({
         >
           Set {setNumber}
         </Text>
-        {onOpenMenu && (
-          <TouchableOpacity
-            onPress={onOpenMenu}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 14,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: withAlpha(colors.textButton, 0.18),
-            }}
-          >
-            <MoreVertical size={16} color={colors.textButton} />
-          </TouchableOpacity>
-        )}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {onOpenInfo && (
+            <TouchableOpacity
+              onPress={onOpenInfo}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: withAlpha(colors.textButton, 0.18),
+              }}
+            >
+              <Info size={16} color={colors.textButton} />
+              {infoAttention && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: colors.warning,
+                  }}
+                />
+              )}
+            </TouchableOpacity>
+          )}
+          {onOpenMenu && (
+            <TouchableOpacity
+              onPress={onOpenMenu}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: withAlpha(colors.textButton, 0.18),
+              }}
+            >
+              <MoreVertical size={16} color={colors.textButton} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={{ flexDirection: 'row', gap: 14 }}>
         {allowWeightLogging && (
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: withAlpha(colors.textButton, 0.902) }}>Weight</Text>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: withAlpha(colors.textButton, 0.902) }}>
+                Weight · ±{formatWeight(step)}
+              </Text>
               {weightBadge && (() => {
                 const { label, Icon } = WEIGHT_BADGE[weightBadge]
                 return (
@@ -198,46 +239,17 @@ export function SetLogCard({
                 )
               })()}
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-                backgroundColor: withAlpha(colors.textButton, 0.122),
-                borderWidth: 2,
-                borderColor: withAlpha(colors.textButton, 0.2),
-              }}
-            >
-              <TextInput
-                style={{
-                  flex: 1,
-                  color: colors.textButton,
-                  fontSize: 18,
-                  fontWeight: '700',
-                  padding: 0,
-                }}
-                value={weight}
-                // decimal-pad emits ',' on some locales; parseFloat('154,5') would
-                // silently truncate to 154, so normalise before it reaches state.
-                onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
-                keyboardType="decimal-pad"
-                placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
-                placeholderTextColor={withAlpha(colors.textButton, 0.502)}
-              />
-              <Text
-                style={{
-                  color: withAlpha(colors.textButton, 0.851),
-                  fontSize: 13,
-                  fontWeight: '600',
-                  marginLeft: 4,
-                }}
-              >
-                {weightUnit}
-              </Text>
-            </View>
-            {hints.weight && renderHint(hints.weight)}
+            <StepperField
+              value={weight}
+              onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
+              onStep={bumpWeight}
+              unit={weightUnit}
+              keyboardType="decimal-pad"
+              placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
+            />
+            {hints.weight?.last && (
+              <View style={{ flexDirection: 'row', marginTop: 8 }}>{renderHintChip(hints.weight.last)}</View>
+            )}
           </View>
         )}
 
@@ -252,44 +264,33 @@ export function SetLogCard({
           >
             Reps
           </Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              borderRadius: 12,
-              paddingHorizontal: 14,
-              paddingVertical: 10,
-              backgroundColor: withAlpha(colors.textButton, 0.122),
-              borderWidth: 2,
-              borderColor: withAlpha(colors.textButton, 0.2),
-            }}
-          >
-            <TextInput
+          <StepperField
+            value={reps}
+            onChangeText={onRepsChange}
+            onStep={bumpReps}
+            unit="reps"
+            keyboardType="number-pad"
+            placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
+          />
+          {(hints.reps.note || hints.reps.last) && (
+            <View
               style={{
-                flex: 1,
-                color: colors.textButton,
-                fontSize: 18,
-                fontWeight: '700',
-                padding: 0,
-              }}
-              value={reps}
-              onChangeText={onRepsChange}
-              keyboardType="number-pad"
-              placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
-              placeholderTextColor={withAlpha(colors.textButton, 0.502)}
-            />
-            <Text
-              style={{
-                color: withAlpha(colors.textButton, 0.851),
-                fontSize: 13,
-                fontWeight: '600',
-                marginLeft: 4,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                columnGap: SET_LOG_HINT.gap,
+                rowGap: SET_LOG_HINT.rowGap,
+                marginTop: 8,
               }}
             >
-              reps
-            </Text>
-          </View>
-          {renderHint(hints.reps)}
+              {hints.reps.last && renderHintChip(hints.reps.last)}
+              {hints.reps.note && (
+                <Text style={{ flexShrink: 1, fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
+                  {hints.reps.note}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
       </View>
 

@@ -1,12 +1,14 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { WeightUnit } from '@fit-nation/shared'
-import { sanitizeDecimalText, withAlpha } from '@fit-nation/shared'
+import { formatWeight, sanitizeDecimalText, withAlpha } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../ui/Button'
+import { StepperField, DEFAULT_WEIGHT_STEP } from './StepperField'
 
 interface SetEditCardProps {
   setNumber: number
+  /** The logged values as strings; editing starts from them, so never empty. */
   weight: string
   reps: string
   onWeightChange: (v: string) => void
@@ -14,6 +16,8 @@ interface SetEditCardProps {
   onSave: () => void
   onCancel: () => void
   allowWeightLogging: boolean
+  /** One tap on − / + moves the weight by this much (the equipment step). */
+  weightStep?: number | null
   /** Required so a missed call site is a compile error. */
   weightUnit: WeightUnit
 }
@@ -27,9 +31,22 @@ export function SetEditCard({
   onSave,
   onCancel,
   allowWeightLogging,
+  weightStep,
   weightUnit,
 }: SetEditCardProps) {
   const { colors } = useTheme()
+
+  const step = weightStep && weightStep > 0 ? weightStep : DEFAULT_WEIGHT_STEP
+  const bumpWeight = (dir: 1 | -1) => {
+    const current = parseFloat(weight)
+    const base = isNaN(current) ? 0 : current
+    onWeightChange(formatWeight(Math.max(0, +(base + dir * step).toFixed(2))))
+  }
+  const bumpReps = (dir: 1 | -1) => {
+    const current = parseInt(reps, 10)
+    const base = isNaN(current) ? 0 : current
+    onRepsChange(String(Math.max(1, base + dir)))
+  }
 
   return (
     <LinearGradient
@@ -68,39 +85,15 @@ export function SetEditCard({
                 marginBottom: 8,
               }}
             >
-              Weight
+              Weight · ±{formatWeight(step)}
             </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-                backgroundColor: withAlpha(colors.textButton, 0.122),
-                borderWidth: 2,
-                borderColor: withAlpha(colors.textButton, 0.2),
-              }}
-            >
-              <TextInput
-                style={{ flex: 1, color: colors.textButton, fontSize: 18, fontWeight: '700', padding: 0 }}
-                value={weight}
-                // See SetLogCard: normalise the locale decimal separator.
-                onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
-                keyboardType="decimal-pad"
-                placeholderTextColor={withAlpha(colors.textButton, 0.502)}
-              />
-              <Text
-                style={{
-                  color: withAlpha(colors.textButton, 0.851),
-                  fontSize: 13,
-                  fontWeight: '600',
-                  marginLeft: 4,
-                }}
-              >
-                {weightUnit}
-              </Text>
-            </View>
+            <StepperField
+              value={weight}
+              onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
+              onStep={bumpWeight}
+              unit={weightUnit}
+              keyboardType="decimal-pad"
+            />
           </View>
         )}
 
@@ -115,36 +108,13 @@ export function SetEditCard({
           >
             Reps
           </Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              borderRadius: 12,
-              paddingHorizontal: 14,
-              paddingVertical: 10,
-              backgroundColor: withAlpha(colors.textButton, 0.122),
-              borderWidth: 2,
-              borderColor: withAlpha(colors.textButton, 0.2),
-            }}
-          >
-            <TextInput
-              style={{ flex: 1, color: colors.textButton, fontSize: 18, fontWeight: '700', padding: 0 }}
-              value={reps}
-              onChangeText={onRepsChange}
-              keyboardType="number-pad"
-              placeholderTextColor={withAlpha(colors.textButton, 0.502)}
-            />
-            <Text
-              style={{
-                color: withAlpha(colors.textButton, 0.851),
-                fontSize: 13,
-                fontWeight: '600',
-                marginLeft: 4,
-              }}
-            >
-              reps
-            </Text>
-          </View>
+          <StepperField
+            value={reps}
+            onChangeText={onRepsChange}
+            onStep={bumpReps}
+            unit="reps"
+            keyboardType="number-pad"
+          />
         </View>
       </View>
 

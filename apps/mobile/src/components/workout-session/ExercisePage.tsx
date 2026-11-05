@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
-import { ArrowRight, Plus } from 'lucide-react-native'
+import { ArrowRight, Info, Plus } from 'lucide-react-native'
 import {
   useLogSet,
   useUpdateSet,
@@ -22,13 +22,11 @@ import {
   formatWeight,
 } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
-import { ProgressionBanner } from './ProgressionBanner'
 import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
 import { progressionCopy } from './progressionCopy'
-import { LastSessionCard } from './LastSessionCard'
-import { BestSetCard } from './BestSetCard'
+import { ExerciseInfoSheet } from './ExerciseInfoSheet'
 import { SetOptionsMenu } from './SetOptionsMenu'
 import { showToast } from '../../lib/toast'
 import type { SessionExerciseDetail } from '@fit-nation/shared'
@@ -88,6 +86,8 @@ export function ExercisePage({
   const [editReps, setEditReps] = useState('')
 
   const [setMenuSetNumber, setSetMenuSetNumber] = useState<number | null>(null)
+  // PROTOTYPE (variant D): the reference blocks moved behind the ⓘ sheet.
+  const [infoOpen, setInfoOpen] = useState(false)
 
   const { session_exercise, logged_sets, previous_sets } = exerciseDetail
   const exercise = session_exercise.exercise
@@ -350,22 +350,8 @@ export function ExercisePage({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Progression banner: where today's targets came from, and the one choice it may offer. */}
-      {logged_sets.length === 0 && banner && !progressionChoice && (
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <ProgressionBanner
-            copy={banner}
-            weightUnit={weightUnit}
-            onUseWeight={(w) => {
-              onLogWeightChange(formatWeight(w))
-              chooseProgression({ kind: 'lowered', weight: w })
-            }}
-            onKeep={() => chooseProgression({ kind: 'kept' })}
-          />
-        </View>
-      )}
-
-      {/* Sets */}
+      {/* Sets — the progression banner, best set and last session now live in
+          the ⓘ sheet (ExerciseInfoSheet), so the scroll holds only the sets. */}
       <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
         {slots.map(slot => {
           if (slot.kind === 'completed') {
@@ -381,6 +367,7 @@ export function ExercisePage({
                   onSave={handleSaveEdit}
                   onCancel={handleCancelEdit}
                   allowWeightLogging={allowWeightLogging}
+                  weightStep={session_exercise.weight_step}
                   weightUnit={weightUnit}
                 />
               )
@@ -410,8 +397,11 @@ export function ExercisePage({
                 onRepsChange={onLogRepsChange}
                 onLog={handleLog}
                 onStartTimer={handleStartTimer}
+                onOpenInfo={() => setInfoOpen(true)}
+                infoAttention={banner?.offer != null && !progressionChoice && logged_sets.length === 0}
                 defaultWeight={defaultWeight}
                 defaultReps={defaultReps}
+                weightStep={session_exercise.weight_step}
                 allowWeightLogging={allowWeightLogging}
                 goalMinReps={minReps}
                 goalMaxReps={maxReps}
@@ -471,58 +461,114 @@ export function ExercisePage({
 
         {/* Next exercise — tabs are the only other way to move, so the linear
             case gets a button. Filled once this exercise is done. */}
-        {onNext && !editingLogId && (
-          <TouchableOpacity
-            onPress={onNext}
-            activeOpacity={0.75}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              padding: 16,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: isComplete ? colors.success : colors.borderSubtle,
-              backgroundColor: isComplete ? colors.success : colors.bgSurface,
-            }}
-          >
-            <Text
-              style={{
-                color: isComplete ? colors.textButton : colors.textSecondary,
-                fontSize: 14,
-                fontWeight: '700',
-              }}
-            >
-              Next Exercise
-            </Text>
-            <ArrowRight size={18} color={isComplete ? colors.textButton : colors.textSecondary} />
-          </TouchableOpacity>
-        )}
-
-        {/* The best set ever on this exercise, above last time's sets so a weaker day never hides it. */}
-        {exerciseDetail.best_set && (
-          <View style={{ marginTop: 10 }}>
-            <BestSetCard best={exerciseDetail.best_set} weighted={allowWeightLogging} weightUnit={weightUnit} />
-          </View>
-        )}
-
-        {/* Previous session (at bottom for reference) */}
-        {previous_sets.length > 0 && (
-          <View style={{ marginTop: 10 }}>
-            <LastSessionCard
-              sets={previous_sets}
-              weighted={allowWeightLogging}
-              weightUnit={weightUnit}
-              minReps={minReps}
-              maxReps={maxReps}
-              progressionMode={progressionMode}
-              totalRepsTarget={session_exercise.total_reps_target}
-            />
+        {!editingLogId && (onNext || isComplete) && (
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {onNext && (
+              <TouchableOpacity
+                onPress={onNext}
+                activeOpacity={0.75}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: 16,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: isComplete ? colors.success : colors.borderSubtle,
+                  backgroundColor: isComplete ? colors.success : colors.bgSurface,
+                }}
+              >
+                <Text
+                  style={{
+                    color: isComplete ? colors.textButton : colors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: '700',
+                  }}
+                >
+                  Next Exercise
+                </Text>
+                <ArrowRight size={18} color={isComplete ? colors.textButton : colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            {isComplete && onNext && (
+              <TouchableOpacity
+                onPress={() => setInfoOpen(true)}
+                activeOpacity={0.75}
+                style={{
+                  width: 52,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: colors.borderSubtle,
+                  backgroundColor: colors.bgSurface,
+                }}
+              >
+                <Info size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            {isComplete && !onNext && (
+              <TouchableOpacity
+                onPress={() => setInfoOpen(true)}
+                activeOpacity={0.75}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: 16,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: colors.borderSubtle,
+                  backgroundColor: colors.bgSurface,
+                }}
+              >
+                <Info size={18} color={colors.textSecondary} />
+                <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '700' }}>
+                  Exercise Info
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
       </View>
+
+      <ExerciseInfoSheet
+        visible={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        exerciseName={exercise?.name ?? 'Exercise'}
+        metaLine={`${targetSets} sets · ${minReps}–${maxReps} reps${session_exercise.rest_seconds ? ` · rest ${session_exercise.rest_seconds}s` : ''}`}
+        banner={banner}
+        weightUnit={weightUnit}
+        onUseWeight={
+          progressionChoice || logged_sets.length > 0
+            ? undefined
+            : (w) => {
+                onLogWeightChange(formatWeight(w))
+                chooseProgression({ kind: 'lowered', weight: w })
+                setInfoOpen(false)
+              }
+        }
+        onKeep={
+          progressionChoice || logged_sets.length > 0
+            ? undefined
+            : () => {
+                chooseProgression({ kind: 'kept' })
+                setInfoOpen(false)
+              }
+        }
+        best={exerciseDetail.best_set}
+        weighted={allowWeightLogging}
+        previousSets={previous_sets}
+        minReps={minReps}
+        maxReps={maxReps}
+        progressionMode={progressionMode}
+        totalRepsTarget={session_exercise.total_reps_target}
+      />
 
       <SetOptionsMenu
         visible={setMenuSetNumber != null}

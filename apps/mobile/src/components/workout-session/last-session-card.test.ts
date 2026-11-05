@@ -8,10 +8,12 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const read = (rel: string) => readFileSync(join(HERE, rel), 'utf8')
 
 describe('LastSessionCard', () => {
-  it('is what the exercise page renders for the previous sets', () => {
-    const page = read('ExercisePage.tsx')
-    expect(page).toMatch(/<LastSessionCard/)
-    expect(page).not.toMatch(/LAST SESSION/)
+  it('is what the info sheet renders for the previous sets', () => {
+    // PROTOTYPE (variant D): the card moved from the exercise scroll into the ⓘ sheet.
+    const sheet = read('ExerciseInfoSheet.tsx')
+    expect(sheet).toMatch(/<LastSessionCard/)
+    expect(sheet).not.toMatch(/LAST SESSION/)
+    expect(read('ExercisePage.tsx')).not.toMatch(/LAST SESSION/)
   })
 
   it('takes its numbers from lastSessionSummary and uses no literal colours', () => {

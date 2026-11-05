@@ -12,7 +12,7 @@ import { useSharedValue, useFrameCallback } from 'react-native-reanimated'
 import { useKeepAwake } from 'expo-keep-awake'
 import * as Haptics from 'expo-haptics'
 import { usePreventRemove } from '@react-navigation/native'
-import { Clock, Check, X } from 'lucide-react-native'
+import { Check, X } from 'lucide-react-native'
 import {
   useSession,
   useCompleteSession,
@@ -424,15 +424,12 @@ export function WorkoutSessionScreen({ route, navigation }: Props) {
           </TouchableOpacity>
 
           <View className="items-center gap-0.5">
-            <View className="flex-row items-center gap-1.5">
-              <Clock size={14} color={colors.textMuted} />
-              <SessionClock
-                elapsedSV={elapsedSV}
-                color={colors.textPrimary}
-                fontSize={14}
-                fontWeight="500"
-              />
-            </View>
+            <SessionClock
+              elapsedSV={elapsedSV}
+              color={colors.textPrimary}
+              fontSize={14}
+              fontWeight="500"
+            />
             {exerciseCount > 0 && (
               <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
                 {safeIndex + 1} / {exerciseCount}

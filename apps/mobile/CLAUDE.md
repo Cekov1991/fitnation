@@ -43,6 +43,8 @@ spellings of the same caption.
 | The Profile hub's subscription status (plan or gym, renewal date, Manage Subscription / See Plans) | `profile/SubscriptionCard` |
 | An exercise with its thumbnail, name, second line, trailing control | `exercises/ExerciseRow` |
 | A row from an `ExerciseResource` in a FlatList | `exercises/ExerciseCard` (thin `ExerciseRow` wrapper) |
+| A − / + value control on a gradient set card (weight, reps) — tappable centre for keyboard entry, suggestion as placeholder | `workout-session/StepperField` |
+| The exercise's reference blocks behind the set card's ⓘ button — progression story (with its Use/Keep choice), all-time best, last-session table | `workout-session/ExerciseInfoSheet` |
 | A surface block in a stack | `ui/Card` |
 | The headline card of a screen, an auth form, a notes card (radius 24, hairline border) | `ui/Card variant="summary"` |
 | Loading placeholder | `ui/SkeletonBox` |
