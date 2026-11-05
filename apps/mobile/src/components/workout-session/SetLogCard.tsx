@@ -1,13 +1,13 @@
-import { useRef } from 'react'
-import { View, Text, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Timer, MoreVertical, Info, History, Sparkles, TrendingDown, TrendingUp, Minus, Plus } from 'lucide-react-native'
+import { Timer, MoreVertical, Info, History, Sparkles, TrendingDown, TrendingUp } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../ui/Button'
 import type { WeightUnit } from '@fit-nation/shared'
 import { withAlpha, formatWeight, sanitizeDecimalText } from '@fit-nation/shared'
 import { setLogHints } from './setLogHints'
+import { StepperField, DEFAULT_WEIGHT_STEP } from './StepperField'
 
 /**
  * PROTOTYPE (variant D of the logging-screen prototype): the weight/reps
@@ -17,9 +17,6 @@ import { setLogHints } from './setLogHints'
  */
 export const SET_LOG_HINT = { text: 12, icon: 12, chipRadius: 8, chipPaddingX: 8, chipPaddingY: 4, gap: 10, rowGap: 4 } as const
 
-/** The stepper control: [−] value [+]. */
-export const SET_LOG_STEPPER = { button: 38, buttonRadius: 9, icon: 18, value: 18, unit: 11 } as const
-
 /** The small badge on the Weight label: where today's suggested weight comes from. */
 export type WeightBadge = 'estimated' | 'raised' | 'lowered'
 const WEIGHT_BADGE: Record<WeightBadge, { label: string; Icon: LucideIcon }> = {
@@ -27,8 +24,6 @@ const WEIGHT_BADGE: Record<WeightBadge, { label: string; Icon: LucideIcon }> = {
   raised: { label: 'Raised', Icon: TrendingUp },
   lowered: { label: 'Lowered', Icon: TrendingDown },
 }
-
-const DEFAULT_WEIGHT_STEP = 2.5
 
 interface SetLogCardProps {
   setNumber: number
@@ -88,8 +83,6 @@ export function SetLogCard({
   weightUnit,
 }: SetLogCardProps) {
   const { colors } = useTheme()
-  const weightInputRef = useRef<TextInput>(null)
-  const repsInputRef = useRef<TextInput>(null)
 
   // The stepper's centre is a tappable input: the suggestion shows as a
   // placeholder until the user steps or types, and both paths write the same
@@ -119,24 +112,6 @@ export function SetLogCard({
     previousWeight,
     previousReps,
   })
-
-  const stepperButton = (onPress: () => void, Icon: LucideIcon) => (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-      style={{
-        width: SET_LOG_STEPPER.button,
-        height: SET_LOG_STEPPER.button,
-        borderRadius: SET_LOG_STEPPER.buttonRadius,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: withAlpha(colors.textButton, 0.18),
-      }}
-    >
-      <Icon size={SET_LOG_STEPPER.icon} color={colors.textButton} strokeWidth={3} />
-    </TouchableOpacity>
-  )
 
   return (
     <LinearGradient
@@ -248,47 +223,14 @@ export function SetLogCard({
                 )
               })()}
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: 12,
-                padding: 5,
-                gap: 4,
-                backgroundColor: withAlpha(colors.textButton, 0.122),
-                borderWidth: 2,
-                borderColor: withAlpha(colors.textButton, 0.2),
-              }}
-            >
-              {stepperButton(() => bumpWeight(-1), Minus)}
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => weightInputRef.current?.focus()}
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 }}
-              >
-                <TextInput
-                  ref={weightInputRef}
-                  value={weight}
-                  onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
-                  keyboardType="decimal-pad"
-                  placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
-                  placeholderTextColor={withAlpha(colors.textButton, 0.702)}
-                  style={{
-                    color: colors.textButton,
-                    fontSize: SET_LOG_STEPPER.value,
-                    fontWeight: '700',
-                    fontVariant: ['tabular-nums'],
-                    padding: 0,
-                    minWidth: 16,
-                    textAlign: 'center',
-                  }}
-                />
-                <Text style={{ color: withAlpha(colors.textButton, 0.851), fontSize: SET_LOG_STEPPER.unit, fontWeight: '600' }}>
-                  {weightUnit}
-                </Text>
-              </TouchableOpacity>
-              {stepperButton(() => bumpWeight(1), Plus)}
-            </View>
+            <StepperField
+              value={weight}
+              onChangeText={(t) => onWeightChange(sanitizeDecimalText(t))}
+              onStep={bumpWeight}
+              unit={weightUnit}
+              keyboardType="decimal-pad"
+              placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
+            />
             {previousWeight != null && previousReps != null && (
               <View style={{ flexDirection: 'row', marginTop: 8 }}>
                 <View
@@ -323,47 +265,14 @@ export function SetLogCard({
           >
             Reps
           </Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              borderRadius: 12,
-              padding: 5,
-              gap: 4,
-              backgroundColor: withAlpha(colors.textButton, 0.122),
-              borderWidth: 2,
-              borderColor: withAlpha(colors.textButton, 0.2),
-            }}
-          >
-            {stepperButton(() => bumpReps(-1), Minus)}
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => repsInputRef.current?.focus()}
-              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 }}
-            >
-              <TextInput
-                ref={repsInputRef}
-                value={reps}
-                onChangeText={onRepsChange}
-                keyboardType="number-pad"
-                placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
-                placeholderTextColor={withAlpha(colors.textButton, 0.702)}
-                style={{
-                  color: colors.textButton,
-                  fontSize: SET_LOG_STEPPER.value,
-                  fontWeight: '700',
-                  fontVariant: ['tabular-nums'],
-                  padding: 0,
-                  minWidth: 16,
-                  textAlign: 'center',
-                }}
-              />
-              <Text style={{ color: withAlpha(colors.textButton, 0.851), fontSize: SET_LOG_STEPPER.unit, fontWeight: '600' }}>
-                reps
-              </Text>
-            </TouchableOpacity>
-            {stepperButton(() => bumpReps(1), Plus)}
-          </View>
+          <StepperField
+            value={reps}
+            onChangeText={onRepsChange}
+            onStep={bumpReps}
+            unit="reps"
+            keyboardType="number-pad"
+            placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
+          />
           {(hints.reps.note || (!allowWeightLogging && hints.reps.last)) && (
             <View
               style={{

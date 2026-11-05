@@ -367,6 +367,7 @@ export function ExercisePage({
                   onSave={handleSaveEdit}
                   onCancel={handleCancelEdit}
                   allowWeightLogging={allowWeightLogging}
+                  weightStep={session_exercise.weight_step}
                   weightUnit={weightUnit}
                 />
               )
