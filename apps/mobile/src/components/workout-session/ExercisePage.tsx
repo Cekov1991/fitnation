@@ -508,7 +508,14 @@ export function ExercisePage({
                 setInfoOpen(false)
               }
         }
-        onKeep={progressionChoice ? undefined : () => chooseProgression({ kind: 'kept' })}
+        onKeep={
+          progressionChoice
+            ? undefined
+            : () => {
+                chooseProgression({ kind: 'kept' })
+                setInfoOpen(false)
+              }
+        }
         best={exerciseDetail.best_set}
         weighted={allowWeightLogging}
         previousSets={previous_sets}

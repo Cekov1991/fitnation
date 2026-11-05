@@ -1,8 +1,9 @@
-import { Modal, View, Text, Pressable, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
+import { Modal, View, Text, Pressable, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { X } from 'lucide-react-native'
 import type { BestSetResource, SetLogResource, WeightUnit } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
+import { RADIUS } from '../../constants/layout'
 import { ProgressionBanner } from './ProgressionBanner'
 import { BestSetCard } from './BestSetCard'
 import { LastSessionCard } from './LastSessionCard'
@@ -55,6 +56,7 @@ export function ExerciseInfoSheet({
   totalRepsTarget,
 }: ExerciseInfoSheetProps) {
   const { colors } = useTheme()
+  const { height } = useWindowDimensions()
 
   return (
     <Modal
@@ -67,7 +69,16 @@ export function ExerciseInfoSheet({
       <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
         <SafeAreaView edges={['bottom']}>
           <Pressable onPress={() => {}} style={styles.container}>
-            <View style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}>
+            <View
+              style={[
+                styles.card,
+                {
+                  backgroundColor: colors.bgSurface,
+                  borderColor: colors.border,
+                  maxHeight: Math.round(height * INFO_SHEET.maxHeightPct),
+                },
+              ]}
+            >
               <View style={styles.headerRow}>
                 <View style={styles.headerText}>
                   <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>
@@ -134,11 +145,10 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   card: {
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     borderWidth: 1,
     paddingTop: 8,
     paddingBottom: 16,
-    maxHeight: 640,
   },
   headerRow: {
     flexDirection: 'row',
