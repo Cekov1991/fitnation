@@ -16,6 +16,14 @@
     C — "One-tap"  suggestion-first: steppers around the suggested weight/reps,
                    one big "Log 60 kg × 8" button; Log|Details segment toggle.
 
+  Round 2 (current design kept — big nav tabs + gradient log card — but all
+  reference info moves behind A's ⓘ sheet and logging is one-tap like C):
+
+    D — "Steppers"     gradient card as today, inputs replaced by − / + steppers.
+    E — "Tap scale"    gradient card with tappable weight/rep value chips.
+    F — "Thumb bar"    compact gradient stepper bar pinned at the bottom,
+                       set list above, slim chip nav.
+
   Mock data only, state in memory, nothing persists. Double-click to open.
 -->
 <html lang="en">
@@ -150,6 +158,62 @@
   .c-step .val .lbl{font-size:11.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--text-3)}
   .c-log{width:100%; padding:15px; border-radius:16px; font-size:16px; font-weight:800; color:#fff;
     background:linear-gradient(135deg,var(--primary),var(--secondary))}
+
+  /* ---------- Variants D/E/F — current design, one-tap ---------- */
+  .tabs{display:flex; gap:8px; overflow-x:auto; padding:8px 16px 12px; scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none; width:290px; height:92px; border-radius:16px; display:flex; align-items:center; gap:12px;
+    padding:12px 14px; text-align:left; background:var(--bg-surface); border:1px solid var(--border-subtle); color:var(--text-1)}
+  .tab.active{background:var(--primary); border-color:var(--primary)}
+  .tab.done:not(.active){background:rgba(34,197,94,.06); border-color:rgba(34,197,94,.19)}
+  .tab .thumb{width:64px; height:64px; flex:none; border-radius:12px; background:var(--bg-elevated);
+    display:flex; align-items:center; justify-content:center; font-size:28px}
+  .tab.active .thumb{background:rgba(255,255,255,.15)}
+  .tab .body{flex:1; min-width:0}
+  .tab .nm{font-size:15px; font-weight:700; line-height:19px; max-height:38px; overflow:hidden}
+  .tab .meta{font-size:12px; font-weight:600; color:var(--text-3); margin-top:2px}
+  .tab.active .meta{color:rgba(255,255,255,.85)}
+  .tab.done:not(.active) .meta{color:var(--success)}
+  .tab .bar{margin-top:6px; height:4px; border-radius:2px; background:var(--border-subtle); overflow:hidden}
+  .tab.active .bar{background:rgba(255,255,255,.25)}
+  .tab .bar div{height:100%; border-radius:2px; background:var(--primary)}
+  .tab.active .bar div{background:#fff}
+  .tab.done:not(.active) .bar div{background:var(--success)}
+
+  .gcard{background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:24px;
+    padding:18px 20px; box-shadow:0 8px 24px rgba(0,180,197,.22); color:#fff}
+  .gcard .top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+  .gcard .setlbl{font-size:13px; font-weight:700; color:rgba(255,255,255,.9)}
+  .icon-btn{width:28px; height:28px; border-radius:14px; background:rgba(255,255,255,.18); color:#fff;
+    font-size:14px; font-weight:800; position:relative; display:inline-flex; align-items:center; justify-content:center}
+  .g-cols{display:flex; gap:14px}
+  .g-col{flex:1; min-width:0}
+  .g-lbl{font-size:11px; font-weight:600; color:rgba(255,255,255,.9); margin-bottom:8px}
+  .g-ctrl{display:flex; align-items:center; gap:4px; background:rgba(255,255,255,.12);
+    border:2px solid rgba(255,255,255,.2); border-radius:12px; padding:5px}
+  .g-ctrl button{width:36px; height:38px; border-radius:9px; background:rgba(255,255,255,.16);
+    color:#fff; font-size:19px; font-weight:800; flex:none}
+  .g-ctrl .v{flex:1; text-align:center; font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .g-ctrl .v small{font-size:11px; font-weight:600; color:rgba(255,255,255,.85); margin-left:3px}
+  .g-hint{font-size:12px; color:rgba(255,255,255,.92); margin-top:10px; display:flex; gap:12px; flex-wrap:wrap}
+  .g-actions{display:flex; gap:10px; margin-top:14px}
+  .g-log{flex:1; padding:14px; border-radius:16px; background:#fff; color:var(--primary); font-size:15px; font-weight:800}
+  .g-timer{width:54px; border-radius:16px; background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.3); color:#fff; font-size:18px}
+  .g-chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none}
+  .g-chips::-webkit-scrollbar{display:none}
+  .g-chip{flex:none; min-width:52px; padding:9px 10px; border-radius:11px; background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.25); color:#fff; font-size:14px; font-weight:700; text-align:center}
+  .g-chip.on{background:#fff; color:var(--primary); border-color:#fff}
+
+  .f-bottom{padding:10px 16px 16px}
+  .f-bar{display:flex; align-items:center; gap:8px; background:linear-gradient(135deg,var(--primary),var(--secondary));
+    border-radius:20px; padding:10px 12px; box-shadow:0 -4px 24px rgba(0,180,197,.25); color:#fff}
+  .f-bar .setlbl{font-size:10.5px; font-weight:800; width:34px; line-height:1.2; color:rgba(255,255,255,.9); letter-spacing:.5px}
+  .f-mini{display:flex; align-items:center; gap:3px; background:rgba(255,255,255,.14); border-radius:12px; padding:4px}
+  .f-mini button{width:30px; height:34px; border-radius:9px; background:rgba(255,255,255,.16); color:#fff; font-size:16px; font-weight:800}
+  .f-mini .v{min-width:46px; text-align:center; font-size:15px; font-weight:800; white-space:nowrap; font-variant-numeric:tabular-nums}
+  .f-mini .v small{font-size:10px; color:rgba(255,255,255,.8)}
+  .f-go{width:46px; height:46px; flex:none; border-radius:999px; background:#fff; color:var(--primary); font-size:19px; font-weight:800; margin-left:auto}
 </style>
 </head>
 <body>
@@ -169,30 +233,33 @@ const VARIANTS = [
   { key: 'A', name: 'Focus' },
   { key: 'B', name: 'Sheet' },
   { key: 'C', name: 'One-tap' },
+  { key: 'D', name: 'Steppers' },
+  { key: 'E', name: 'Tap scale' },
+  { key: 'F', name: 'Thumb bar' },
 ];
 
 function freshExercises() {
   return [
-    { id: 1, name: 'Barbell Bench Press', weighted: true, targetSets: 3, minReps: 8, maxReps: 12,
+    { id: 1, name: 'Barbell Bench Press', icon: '🏋️', weighted: true, targetSets: 3, minReps: 8, maxReps: 12,
       rest: 90, suggestedW: 60, step: 2.5, badge: 'Raised',
       prog: { tone: 'success', title: 'Moving up', body: 'You hit the top of the rep range last time — today suggests 60 kg (+2.5).' },
       prev: [{ w: 57.5, r: 12 }, { w: 57.5, r: 11 }, { w: 57.5, r: 10 }], prevDate: 'Mon',
       best: { w: 65, r: 8, date: 'Oct 12' }, logged: [] },
-    { id: 2, name: 'Incline Dumbbell Press', weighted: true, targetSets: 3, minReps: 10, maxReps: 12,
+    { id: 2, name: 'Incline Dumbbell Press', icon: '💪', weighted: true, targetSets: 3, minReps: 10, maxReps: 12,
       rest: 75, suggestedW: 22.5, step: 2.5, badge: null,
       prog: { tone: 'warning', title: 'Tough one last time', body: 'Reps fell under target. You could drop to 20 kg and rebuild.', offer: { use: 20, keep: 22.5 } },
       prev: [{ w: 22.5, r: 9 }, { w: 22.5, r: 8 }, { w: 22.5, r: 7 }], prevDate: 'Mon',
       best: { w: 25, r: 10, date: 'Sep 28' }, logged: [] },
-    { id: 3, name: 'Cable Fly', weighted: true, targetSets: 3, minReps: 12, maxReps: 15,
+    { id: 3, name: 'Cable Fly', icon: '🦋', weighted: true, targetSets: 3, minReps: 12, maxReps: 15,
       rest: 60, suggestedW: 15, step: 2.5, badge: null,
       prog: null,
       prev: [{ w: 15, r: 15 }, { w: 15, r: 14 }, { w: 15, r: 13 }], prevDate: 'Mon',
       best: { w: 17.5, r: 12, date: 'Oct 20' }, logged: [] },
-    { id: 4, name: 'Triceps Pushdown', weighted: true, targetSets: 3, minReps: 10, maxReps: 15,
+    { id: 4, name: 'Triceps Pushdown', icon: '⬇️', weighted: true, targetSets: 3, minReps: 10, maxReps: 15,
       rest: 60, suggestedW: 30, step: 2.5, badge: 'Estimated',
       prog: { tone: 'info', title: 'New exercise', body: 'No history yet — the 30 kg suggestion is an estimate. Log what you lift and it calibrates.' },
       prev: [], prevDate: null, best: null, logged: [] },
-    { id: 5, name: 'Pull-up', weighted: false, targetSets: 3, minReps: 6, maxReps: 10,
+    { id: 5, name: 'Pull-up', icon: '🧗', weighted: false, targetSets: 3, minReps: 6, maxReps: 10,
       rest: 90, suggestedW: 0, step: 0, badge: null,
       prog: null,
       prev: [{ w: 0, r: 8 }, { w: 0, r: 7 }, { w: 0, r: 6 }], prevDate: 'Mon',
@@ -339,6 +406,18 @@ function useOffer(id, w) {
 }
 function keepOffer(id) { state.progChoice[id] = true; render(); }
 
+function infoSheet(ex) {
+  if (!state.sheetOpen) return '';
+  return `<div class="sheet-scrim" onclick="if(event.target===this)toggleSheet(false)">
+    <div class="sheet">
+      <div class="grab"></div>
+      <div style="font-size:17px;font-weight:800;margin-bottom:2px">${esc(ex.name)}</div>
+      <div class="muted" style="font-size:13px">Target ${ex.targetSets} sets · ${ex.minReps}–${ex.maxReps} reps · rest ${ex.rest}s</div>
+      ${progBlock(ex)}${bestBlock(ex)}${lastSessionBlock(ex)}
+    </div></div>`;
+}
+function needsInfoDot(ex) { return !!(ex.prog && ex.prog.offer && !state.progChoice[ex.id] && ex.logged.length === 0); }
+
 function loggedLines(ex) {
   return ex.logged.map((s, i) => `<div class="logline">
     <span class="n">SET ${i + 1}</span>
@@ -355,10 +434,7 @@ function renderA() {
   const done = exDone(ex);
   const needsAttention = ex.prog && ex.prog.offer && !state.progChoice[ex.id] && ex.logged.length === 0;
 
-  const chips = state.exercises.map((e, i) => `
-    <button class="a-chip ${i === state.cur ? 'active' : ''} ${exDone(e) ? 'done' : ''}" onclick="goEx(${i})">
-      ${exDone(e) ? '✓ ' : ''}${esc(shortName(e.name))} <span style="opacity:.7;font-weight:600">${e.logged.length}/${e.targetSets}</span>
-    </button>`).join('');
+  const chips = aChips();
 
   const dots = Array.from({ length: Math.max(ex.targetSets, ex.logged.length) }, (_, i) =>
     `<span class="a-dot ${i < ex.logged.length ? 'done' : i === ex.logged.length && !done ? 'cur' : ''}"></span>`).join('');
@@ -396,16 +472,16 @@ function renderA() {
       ${ex.logged.length > 0 && !done ? '' : ''}
       <button onclick="addSet(${ex.id})" style="width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px dashed var(--border);color:var(--text-2);font-size:13px;font-weight:700">+ Add Set</button>
     </div>
-    ${state.sheetOpen ? `<div class="sheet-scrim" onclick="if(event.target===this)toggleSheet(false)">
-      <div class="sheet">
-        <div class="grab"></div>
-        <div style="font-size:17px;font-weight:800;margin-bottom:2px">${esc(ex.name)}</div>
-        <div class="muted" style="font-size:13px">Target ${ex.targetSets} sets · ${ex.minReps}–${ex.maxReps} reps · rest ${ex.rest}s</div>
-        ${progBlock(ex)}${bestBlock(ex)}${lastSessionBlock(ex)}
-      </div></div>` : ''}`;
+    ${infoSheet(ex)}`;
 }
 function shortName(n) {
   return n.replace('Barbell ', '').replace('Dumbbell ', 'DB ');
+}
+function aChips() {
+  return state.exercises.map((e, i) => `
+    <button class="a-chip ${i === state.cur ? 'active' : ''} ${exDone(e) ? 'done' : ''}" onclick="goEx(${i})">
+      ${exDone(e) ? '✓ ' : ''}${esc(shortName(e.name))} <span style="opacity:.7;font-weight:600">${e.logged.length}/${e.targetSets}</span>
+    </button>`).join('');
 }
 
 /* ================= Variant B — Sheet ================= */
@@ -510,6 +586,154 @@ function renderC() {
     </div>`;
 }
 
+/* ========== Variants D/E/F — current design, one-tap logging ========== */
+function hdrCenter() {
+  return `<div style="font-size:13px;font-weight:600">⏱ {CLOCK}</div><div class="faint" style="font-size:11.5px;margin-top:1px">${state.cur + 1} / ${state.exercises.length}</div>`;
+}
+function bigTabs() { // today's ExerciseNavTabs, emoji standing in for the thumbnail
+  return `<div class="tabs">` + state.exercises.map((e, i) => {
+    const active = i === state.cur, done = exDone(e);
+    const prog = e.targetSets ? Math.min(1, e.logged.length / e.targetSets) : 0;
+    return `<button class="tab ${active ? 'active' : ''} ${done ? 'done' : ''}" onclick="goEx(${i})">
+      <div class="thumb">${e.icon}</div>
+      <div class="body">
+        <div class="nm">${esc(e.name)}</div>
+        <div class="meta">${e.logged.length}/${e.targetSets} sets${done ? ' ✓' : ''}</div>
+        <div class="bar"><div style="width:${prog * 100}%"></div></div>
+      </div></button>`;
+  }).join('') + `</div>`;
+}
+function infoBtnG(ex) { // ⓘ on the gradient card; warning dot when progression wants an answer
+  return `<button class="icon-btn" onclick="toggleSheet(true)" title="Exercise info">ⓘ${needsInfoDot(ex) ? '<span style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:999px;background:var(--warning);border:1.5px solid rgba(0,0,0,.25)"></span>' : ''}</button>`;
+}
+function gHint(ex) {
+  const prev = prevFor(ex, nextSetNumber(ex) - 1);
+  return `<div class="g-hint">
+    ${prev ? `<span>Last: <b>${ex.weighted ? `${fmtW(prev.w)} kg × ${prev.r}` : `${prev.r} reps`}</b></span>` : ''}
+    <span>Target ${ex.minReps}–${ex.maxReps}</span>
+    ${ex.badge ? `<span>${ex.badge === 'Raised' ? '↗' : '✦'} ${ex.badge}</span>` : ''}</div>`;
+}
+function pendingLines(ex) {
+  const out = [];
+  for (let i = ex.logged.length + 1; i < ex.targetSets; i++)
+    out.push(`<div class="logline" style="opacity:.5"><span class="n">SET ${i + 1}</span><b class="faint">${ex.weighted ? '— kg × — reps' : '— reps'}</b></div>`);
+  return out.join('');
+}
+function listFooter(ex, done) { // Add Set + Next Exercise, as on today's screen
+  return `
+    <button onclick="addSet(${ex.id})" style="width:100%;margin-top:10px;padding:14px;border-radius:14px;border:1px solid rgba(0,180,197,.31);background:rgba(0,180,197,.08);color:var(--primary);font-size:14px;font-weight:700">+ Add Set</button>
+    <button onclick="nextEx()" style="width:100%;margin-top:10px;padding:14px;border-radius:14px;border:1px solid ${done ? 'var(--success)' : 'var(--border-subtle)'};background:${done ? 'var(--success)' : 'var(--bg-surface)'};color:${done ? '#fff' : 'var(--text-2)'};font-size:14px;font-weight:700">Next Exercise →</button>`;
+}
+
+/* D — gradient card as today, steppers instead of keyboard */
+function renderD() {
+  const ex = state.exercises[state.cur];
+  const done = exDone(ex);
+  const st = stepper(ex);
+  const card = done ? '' : `<div class="gcard">
+    <div class="top"><span class="setlbl">Set ${nextSetNumber(ex)}</span>
+      <div style="display:flex;gap:8px">${infoBtnG(ex)}<button class="icon-btn">⋯</button></div></div>
+    <div class="g-cols">
+      ${ex.weighted ? `<div class="g-col"><div class="g-lbl">Weight · ±${fmtW(ex.step)}</div>
+        <div class="g-ctrl"><button onclick="bump(${ex.id},'w',-1)">−</button><div class="v">${fmtW(st.w)}<small>kg</small></div><button onclick="bump(${ex.id},'w',1)">+</button></div></div>` : ''}
+      <div class="g-col"><div class="g-lbl">Reps</div>
+        <div class="g-ctrl"><button onclick="bump(${ex.id},'r',-1)">−</button><div class="v">${st.r}<small>reps</small></div><button onclick="bump(${ex.id},'r',1)">+</button></div></div>
+    </div>
+    ${gHint(ex)}
+    <div class="g-actions"><button class="g-log" onclick="logFromStepper(${ex.id})">Log Set</button>
+      ${!state.rest && ex.rest ? `<button class="g-timer" onclick="startRest(${ex.rest});render()">⏱</button>` : ''}</div>
+  </div>`;
+  return `
+    ${headerBar(hdrCenter())}
+    ${bigTabs()}
+    ${restPill()}
+    <div class="scroll" style="padding:4px 16px 24px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${loggedLines(ex)}${card}${pendingLines(ex)}
+      </div>
+      ${listFooter(ex, done)}
+    </div>
+    ${infoSheet(ex)}`;
+}
+
+/* E — gradient card with a tappable value scale instead of inputs */
+function weightScale(ex) {
+  const out = [];
+  for (let k = -2; k <= 2; k++) { const w = +(ex.suggestedW + k * ex.step).toFixed(2); if (w > 0) out.push(w); }
+  return out;
+}
+function repScale(ex) {
+  const out = [];
+  for (let r = Math.max(1, ex.minReps - 2); r <= ex.maxReps + 1; r++) out.push(r);
+  return out;
+}
+function pick(id, field, val) { const ex = state.exercises.find(e => e.id === id); stepper(ex)[field] = val; render(); }
+function renderE() {
+  const ex = state.exercises[state.cur];
+  const done = exDone(ex);
+  const st = stepper(ex);
+  const card = done ? '' : `<div class="gcard">
+    <div class="top"><span class="setlbl">Set ${nextSetNumber(ex)}</span>
+      <div style="display:flex;gap:8px">${infoBtnG(ex)}<button class="icon-btn">⋯</button></div></div>
+    ${ex.weighted ? `<div class="g-lbl">Weight (kg)</div>
+      <div class="g-chips" style="margin-bottom:12px">${weightScale(ex).map(w => `<button class="g-chip ${w === st.w ? 'on' : ''}" onclick="pick(${ex.id},'w',${w})">${fmtW(w)}</button>`).join('')}</div>` : ''}
+    <div class="g-lbl">Reps</div>
+    <div class="g-chips">${repScale(ex).map(r => `<button class="g-chip ${r === st.r ? 'on' : ''}" onclick="pick(${ex.id},'r',${r})">${r}</button>`).join('')}</div>
+    ${gHint(ex)}
+    <div class="g-actions"><button class="g-log" onclick="logFromStepper(${ex.id})">Log ${ex.weighted ? `${fmtW(st.w)} kg × ${st.r}` : `${st.r} reps`}</button>
+      ${!state.rest && ex.rest ? `<button class="g-timer" onclick="startRest(${ex.rest});render()">⏱</button>` : ''}</div>
+  </div>`;
+  return `
+    ${headerBar(hdrCenter())}
+    ${bigTabs()}
+    ${restPill()}
+    <div class="scroll" style="padding:4px 16px 24px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${loggedLines(ex)}${card}${pendingLines(ex)}
+      </div>
+      ${listFooter(ex, done)}
+    </div>
+    ${infoSheet(ex)}`;
+}
+
+/* F — compact gradient stepper bar pinned at the bottom (thumb reach) */
+function renderF() {
+  const ex = state.exercises[state.cur];
+  const done = exDone(ex);
+  const st = stepper(ex);
+  const setNo = nextSetNumber(ex);
+  const bottom = done
+    ? `<button onclick="nextEx()" style="width:100%;padding:15px;border-radius:18px;background:var(--success);color:#fff;font-size:15px;font-weight:800">Next Exercise →</button>`
+    : `<div class="f-bar">
+        <span class="setlbl">SET ${setNo}</span>
+        ${ex.weighted ? `<div class="f-mini"><button onclick="bump(${ex.id},'w',-1)">−</button><div class="v">${fmtW(st.w)}<small> kg</small></div><button onclick="bump(${ex.id},'w',1)">+</button></div>` : ''}
+        <div class="f-mini"><button onclick="bump(${ex.id},'r',-1)">−</button><div class="v">${st.r}<small> rp</small></div><button onclick="bump(${ex.id},'r',1)">+</button></div>
+        <button class="f-go" onclick="logFromStepper(${ex.id})">✓</button>
+      </div>`;
+  const prev = prevFor(ex, setNo - 1);
+  return `
+    ${headerBar(hdrCenter())}
+    <div class="a-chips">${aChips()}</div>
+    ${restPill()}
+    <div class="scroll" style="padding:4px 16px 12px">
+      <div style="display:flex;align-items:center;gap:10px;margin:2px 0 4px">
+        <div style="flex:1;min-width:0;font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ex.name)}</div>
+        <button onclick="toggleSheet(true)" style="position:relative;width:38px;height:38px;border-radius:12px;background:var(--bg-surface);border:1px solid var(--border-subtle);color:var(--text-2);font-size:16px;font-weight:700">ⓘ${needsInfoDot(ex) ? '<span style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:999px;background:var(--warning)"></span>' : ''}</button>
+      </div>
+      <div class="faint" style="font-size:12.5px;margin-bottom:12px">
+        ${prev && !done ? `Last: ${ex.weighted ? `${fmtW(prev.w)} kg × ${prev.r}` : `${prev.r} reps`} · ` : ''}Target ${ex.minReps}–${ex.maxReps}${ex.badge ? ` · ${ex.badge}` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${loggedLines(ex)}
+        ${done ? '' : `<div class="logline" style="border-color:rgba(0,180,197,.5)"><span class="n" style="color:var(--primary)">SET ${setNo}</span><b style="color:var(--primary)">${ex.weighted ? `${fmtW(st.w)} kg × ${st.r}` : `${st.r} reps`}</b><span style="margin-left:auto;font-size:10.5px;color:var(--primary);font-weight:800;letter-spacing:.5px">NOW ↓</span></div>`}
+        ${pendingLines(ex)}
+      </div>
+      <button onclick="addSet(${ex.id})" style="width:100%;margin-top:10px;padding:10px;border-radius:12px;border:1px dashed var(--border);color:var(--text-2);font-size:13px;font-weight:700">+ Add Set</button>
+    </div>
+    <div class="f-bottom">${bottom}</div>
+    ${infoSheet(ex)}`;
+}
+
 /* ================= Actions ================= */
 function draftIn(id, field, value) { const ex = state.exercises.find(e => e.id === id); draft(ex)[field] = value; }
 function logFromDraft(id) {
@@ -544,16 +768,18 @@ function toggleSheet(open) { state.sheetOpen = open; render(); }
 function cTab(t) { state.cTab = t; render(); }
 
 /* ================= Variant switching ================= */
+let variantKey = (new URLSearchParams(location.search).get('variant') || 'D').toUpperCase();
 function currentVariant() {
-  const k = new URLSearchParams(location.search).get('variant') || 'A';
-  return VARIANTS.find(v => v.key === k.toUpperCase()) || VARIANTS[0];
+  return VARIANTS.find(v => v.key === variantKey) || VARIANTS[0];
 }
 function cycle(dir) {
   const idx = VARIANTS.indexOf(currentVariant());
-  const next = VARIANTS[(idx + dir + VARIANTS.length) % VARIANTS.length];
-  const url = new URL(location.href);
-  url.searchParams.set('variant', next.key);
-  history.replaceState(null, '', url);
+  variantKey = VARIANTS[(idx + dir + VARIANTS.length) % VARIANTS.length].key;
+  try { // keeps the URL shareable; throws on file:// where it simply stays in memory
+    const url = new URL(location.href);
+    url.searchParams.set('variant', variantKey);
+    history.replaceState(null, '', url);
+  } catch (e) {}
   render();
 }
 document.addEventListener('keydown', e => {
@@ -568,7 +794,12 @@ function render() {
   const v = currentVariant();
   document.getElementById('switcherLabel').textContent = `${v.key} — ${v.name}`;
   const app = document.getElementById('app');
-  app.innerHTML = v.key === 'A' ? renderA() : v.key === 'B' ? renderB() : renderC();
+  app.innerHTML =
+    v.key === 'A' ? renderA() :
+    v.key === 'B' ? renderB() :
+    v.key === 'C' ? renderC() :
+    v.key === 'D' ? renderD() :
+    v.key === 'E' ? renderE() : renderF();
 }
 setInterval(() => { // tick the session clock in place — no full re-render, so focus and scroll survive
   document.querySelectorAll('.clockTxt').forEach(el => { el.textContent = clockStr(); });
