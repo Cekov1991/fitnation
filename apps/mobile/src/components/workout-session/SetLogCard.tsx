@@ -107,11 +107,27 @@ export function SetLogCard({
     goalMinReps,
     goalMaxReps,
     totalRepsTarget,
-    defaultWeight,
-    defaultReps,
     previousWeight,
     previousReps,
   })
+
+  // The "Last …" chip, identical under either column.
+  const renderHintChip = (label: string) => (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: SET_LOG_HINT.chipPaddingX,
+        paddingVertical: SET_LOG_HINT.chipPaddingY,
+        borderRadius: SET_LOG_HINT.chipRadius,
+        backgroundColor: colors.imageScrim,
+      }}
+    >
+      <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
+      <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>{label}</Text>
+    </View>
+  )
 
   return (
     <LinearGradient
@@ -231,25 +247,8 @@ export function SetLogCard({
               keyboardType="decimal-pad"
               placeholder={defaultWeight > 0 ? formatWeight(defaultWeight) : '0'}
             />
-            {previousWeight != null && previousReps != null && (
-              <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4,
-                    paddingHorizontal: SET_LOG_HINT.chipPaddingX,
-                    paddingVertical: SET_LOG_HINT.chipPaddingY,
-                    borderRadius: SET_LOG_HINT.chipRadius,
-                    backgroundColor: colors.imageScrim,
-                  }}
-                >
-                  <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
-                  <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>
-                    {`Last ${formatWeight(previousWeight)} ${weightUnit} × ${previousReps}`}
-                  </Text>
-                </View>
-              </View>
+            {hints.weight?.last && (
+              <View style={{ flexDirection: 'row', marginTop: 8 }}>{renderHintChip(hints.weight.last)}</View>
             )}
           </View>
         )}
@@ -273,7 +272,7 @@ export function SetLogCard({
             keyboardType="number-pad"
             placeholder={defaultReps > 0 ? defaultReps.toString() : '0'}
           />
-          {(hints.reps.note || (!allowWeightLogging && hints.reps.last)) && (
+          {(hints.reps.note || hints.reps.last) && (
             <View
               style={{
                 flexDirection: 'row',
@@ -284,24 +283,7 @@ export function SetLogCard({
                 marginTop: 8,
               }}
             >
-              {!allowWeightLogging && hints.reps.last && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4,
-                    paddingHorizontal: SET_LOG_HINT.chipPaddingX,
-                    paddingVertical: SET_LOG_HINT.chipPaddingY,
-                    borderRadius: SET_LOG_HINT.chipRadius,
-                    backgroundColor: colors.imageScrim,
-                  }}
-                >
-                  <History size={SET_LOG_HINT.icon} color={colors.textButton} strokeWidth={2.5} />
-                  <Text style={{ fontSize: SET_LOG_HINT.text, fontWeight: '700', color: colors.textButton }}>
-                    {hints.reps.last}
-                  </Text>
-                </View>
-              )}
+              {hints.reps.last && renderHintChip(hints.reps.last)}
               {hints.reps.note && (
                 <Text style={{ flexShrink: 1, fontSize: SET_LOG_HINT.text, fontWeight: '500', color: withAlpha(colors.textButton, 0.902) }}>
                   {hints.reps.note}
