@@ -8,8 +8,10 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const read = (rel: string) => readFileSync(join(HERE, rel), 'utf8')
 
 describe('BestSetCard', () => {
-  it('is what the exercise page renders for the API best_set', () => {
-    expect(read('ExercisePage.tsx')).toMatch(/<BestSetCard best=\{exerciseDetail\.best_set\}/)
+  it('is what the info sheet renders for the API best_set', () => {
+    // PROTOTYPE (variant D): the card moved from the exercise scroll into the ⓘ sheet.
+    expect(read('ExerciseInfoSheet.tsx')).toMatch(/<BestSetCard best=\{best\}/)
+    expect(read('ExercisePage.tsx')).toMatch(/best=\{exerciseDetail\.best_set\}/)
   })
 
   it('names itself All-time best, dates the set, and uses no literal colours', () => {
