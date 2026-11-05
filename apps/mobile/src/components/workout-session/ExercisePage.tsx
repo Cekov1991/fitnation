@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import * as Haptics from 'expo-haptics'
-import { ArrowRight, Plus } from 'lucide-react-native'
+import { ArrowRight, Info, Plus } from 'lucide-react-native'
 import {
   useLogSet,
   useUpdateSet,
@@ -461,33 +461,78 @@ export function ExercisePage({
 
         {/* Next exercise — tabs are the only other way to move, so the linear
             case gets a button. Filled once this exercise is done. */}
-        {onNext && !editingLogId && (
-          <TouchableOpacity
-            onPress={onNext}
-            activeOpacity={0.75}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              padding: 16,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: isComplete ? colors.success : colors.borderSubtle,
-              backgroundColor: isComplete ? colors.success : colors.bgSurface,
-            }}
-          >
-            <Text
-              style={{
-                color: isComplete ? colors.textButton : colors.textSecondary,
-                fontSize: 14,
-                fontWeight: '700',
-              }}
-            >
-              Next Exercise
-            </Text>
-            <ArrowRight size={18} color={isComplete ? colors.textButton : colors.textSecondary} />
-          </TouchableOpacity>
+        {!editingLogId && (onNext || isComplete) && (
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {onNext && (
+              <TouchableOpacity
+                onPress={onNext}
+                activeOpacity={0.75}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: 16,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: isComplete ? colors.success : colors.borderSubtle,
+                  backgroundColor: isComplete ? colors.success : colors.bgSurface,
+                }}
+              >
+                <Text
+                  style={{
+                    color: isComplete ? colors.textButton : colors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: '700',
+                  }}
+                >
+                  Next Exercise
+                </Text>
+                <ArrowRight size={18} color={isComplete ? colors.textButton : colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            {isComplete && onNext && (
+              <TouchableOpacity
+                onPress={() => setInfoOpen(true)}
+                activeOpacity={0.75}
+                style={{
+                  width: 52,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: colors.borderSubtle,
+                  backgroundColor: colors.bgSurface,
+                }}
+              >
+                <Info size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            {isComplete && !onNext && (
+              <TouchableOpacity
+                onPress={() => setInfoOpen(true)}
+                activeOpacity={0.75}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: 16,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: colors.borderSubtle,
+                  backgroundColor: colors.bgSurface,
+                }}
+              >
+                <Info size={18} color={colors.textSecondary} />
+                <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '700' }}>
+                  Exercise Info
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
       </View>
@@ -500,7 +545,7 @@ export function ExercisePage({
         banner={banner}
         weightUnit={weightUnit}
         onUseWeight={
-          progressionChoice
+          progressionChoice || logged_sets.length > 0
             ? undefined
             : (w) => {
                 onLogWeightChange(formatWeight(w))
@@ -509,7 +554,7 @@ export function ExercisePage({
               }
         }
         onKeep={
-          progressionChoice
+          progressionChoice || logged_sets.length > 0
             ? undefined
             : () => {
                 chooseProgression({ kind: 'kept' })
