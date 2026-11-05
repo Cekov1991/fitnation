@@ -1,0 +1,579 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway, not production code.
+
+  Question: the workout session screen shows too much at once and the active-set
+  logger is too tall. What should a calmer, faster logging screen look like,
+  while keeping last-session / best-set / progression info one tap away?
+
+  Three variants of the mobile WorkoutSessionScreen, switchable via ?variant=
+  (A | B | C) and the floating bottom bar (or ← / → keys):
+
+    A — "Focus"    one exercise at a time, slim chip nav, compact one-row
+                   logger, all reference info behind an ⓘ bottom sheet.
+    B — "Sheet"    every exercise on one scrolling page, spreadsheet-style
+                   rows with last time's set ghosted inline per row.
+    C — "One-tap"  suggestion-first: steppers around the suggested weight/reps,
+                   one big "Log 60 kg × 8" button; Log|Details segment toggle.
+
+  Mock data only, state in memory, nothing persists. Double-click to open.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workout Logging Prototypes</title>
+<style>
+  :root{
+    --bg-base:#0A0A0A; --bg-surface:rgb(20,27,36); --bg-elevated:rgb(17,24,39);
+    --text-1:#FFFFFF; --text-2:#9CA3AF; --text-3:#6B7280;
+    --border:rgba(255,255,255,.1); --border-subtle:rgba(255,255,255,.06);
+    --primary:#00B4C5; --secondary:#F97316;
+    --success:#22C55E; --error:#EF4444; --warning:#F59E0B;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; padding:0; background:#17191c; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  button{font-family:inherit; border:none; cursor:pointer; background:none; color:inherit; padding:0}
+  input{font-family:inherit; border:none; outline:none; background:transparent; color:var(--text-1)}
+  input::placeholder{color:rgba(255,255,255,.35)}
+
+  /* Phone frame */
+  .phone{width:390px; max-width:100vw; height:800px; max-height:100vh; margin:12px auto 72px;
+    background:var(--bg-base); border-radius:36px; border:1px solid rgba(255,255,255,.12);
+    overflow:hidden; display:flex; flex-direction:column; position:relative; color:var(--text-1)}
+  @media (max-width:420px){ .phone{margin:0; height:100vh; border-radius:0; border:none} }
+  .screen{flex:1; display:flex; flex-direction:column; overflow:hidden}
+  .scroll{flex:1; overflow-y:auto; scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
+
+  /* Shared bits */
+  .hairline{border-bottom:1px solid var(--border-subtle)}
+  .muted{color:var(--text-2)} .faint{color:var(--text-3)}
+  .chip{display:inline-flex; align-items:center; gap:4px; border-radius:8px; padding:3px 8px; font-size:12px; font-weight:700}
+  .card{background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:16px}
+
+  /* Floating variant switcher */
+  .switcher{position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+    display:flex; align-items:center; gap:4px; background:#fff; color:#111;
+    border-radius:999px; padding:6px 8px; box-shadow:0 6px 24px rgba(0,0,0,.5); z-index:99; user-select:none}
+  .switcher button{width:34px; height:34px; border-radius:999px; font-size:16px; font-weight:800; color:#111}
+  .switcher button:hover{background:#eee}
+  .switcher .label{font-size:13px; font-weight:800; padding:0 10px; min-width:170px; text-align:center}
+  .switcher .reset{font-size:14px}
+
+  /* Bottom sheet */
+  .sheet-scrim{position:absolute; inset:0; background:rgba(0,0,0,.55); z-index:40; display:flex; align-items:flex-end}
+  .sheet{width:100%; max-height:72%; overflow-y:auto; background:var(--bg-elevated);
+    border-radius:24px 24px 0 0; padding:8px 20px 28px; animation:up .18s ease-out}
+  @keyframes up{from{transform:translateY(40px); opacity:.4} to{transform:none; opacity:1}}
+  .sheet .grab{width:36px; height:4px; border-radius:2px; background:var(--border); margin:6px auto 14px}
+
+  .seclabel{font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-2)}
+
+  /* Rest pill */
+  .rest{display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, rgba(0,180,197,.18), rgba(249,115,22,.14));
+    border:1px solid rgba(0,180,197,.4); border-radius:16px; padding:10px 14px}
+  .rest .time{font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--primary)}
+  .rest button{font-size:13px; font-weight:700; padding:8px 12px; border-radius:10px; background:rgba(255,255,255,.08); color:var(--text-1)}
+
+  .logline{display:flex; align-items:center; gap:10px; padding:9px 14px; border-radius:12px;
+    background:var(--bg-surface); border:1px solid var(--border-subtle); font-size:14px}
+  .logline .n{font-size:12px; font-weight:700; color:var(--text-3); width:40px}
+  .logline b{font-weight:700}
+  .logline .ok{margin-left:auto; color:var(--success); font-weight:800}
+
+  /* ---------- Variant A ---------- */
+  .a-chips{display:flex; gap:8px; overflow-x:auto; padding:10px 16px 12px; scrollbar-width:none}
+  .a-chips::-webkit-scrollbar{display:none}
+  .a-chip{flex:none; display:flex; align-items:center; gap:6px; border-radius:999px; padding:7px 13px;
+    font-size:13px; font-weight:700; background:var(--bg-surface); border:1px solid var(--border-subtle); color:var(--text-2); white-space:nowrap}
+  .a-chip.active{background:var(--primary); color:#fff; border-color:var(--primary)}
+  .a-chip.done{color:var(--success); border-color:rgba(34,197,94,.3)}
+  .a-chip.done.active{background:var(--primary); color:#fff}
+  .a-logbar{display:flex; align-items:center; gap:10px; background:var(--bg-elevated);
+    border:1px solid rgba(0,180,197,.45); border-radius:18px; padding:12px 14px; box-shadow:0 8px 24px rgba(0,180,197,.12)}
+  .a-logbar .set{font-size:11px; font-weight:800; letter-spacing:.8px; color:var(--primary); width:36px; line-height:1.2}
+  .a-field{flex:1; display:flex; align-items:baseline; gap:4px; background:rgba(255,255,255,.06);
+    border-radius:12px; padding:9px 12px}
+  .a-field input{width:100%; font-size:19px; font-weight:800; padding:0}
+  .a-field span{font-size:12px; color:var(--text-3); font-weight:600}
+  .a-go{flex:none; width:48px; height:48px; border-radius:999px; background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:#fff; font-size:21px; font-weight:800; display:flex; align-items:center; justify-content:center}
+  .a-hint{font-size:12.5px; color:var(--text-2); padding:8px 4px 0; display:flex; gap:12px; flex-wrap:wrap}
+  .a-dots{display:flex; gap:7px; align-items:center}
+  .a-dot{width:9px; height:9px; border-radius:999px; background:var(--border); border:1px solid var(--border)}
+  .a-dot.done{background:var(--success); border-color:var(--success)}
+  .a-dot.cur{background:transparent; border:2px solid var(--primary); width:11px; height:11px}
+
+  /* ---------- Variant B ---------- */
+  .b-ex{margin:0 16px 14px}
+  .b-exhead{display:flex; align-items:center; gap:8px; padding:10px 2px 8px}
+  .b-exhead .name{font-size:15.5px; font-weight:800; flex:1; min-width:0}
+  .b-table{width:100%; border-collapse:collapse}
+  .b-table th{font-size:10.5px; font-weight:700; letter-spacing:.8px; color:var(--text-3); text-transform:uppercase;
+    text-align:center; padding:6px 2px}
+  .b-table th:first-child{text-align:left; padding-left:10px}
+  .b-table td{padding:4px 3px; text-align:center}
+  .b-row td{background:var(--bg-surface)}
+  .b-row td:first-child{border-radius:12px 0 0 12px; text-align:left; padding-left:10px}
+  .b-row td:last-child{border-radius:0 12px 12px 0}
+  .b-row.logged td{background:rgba(34,197,94,.1)}
+  .b-set{font-size:12.5px; font-weight:800; color:var(--text-3)}
+  .b-prev{font-size:12px; color:var(--text-3); white-space:nowrap}
+  .b-in{width:56px; background:rgba(255,255,255,.07); border-radius:9px; padding:8px 4px;
+    font-size:15px; font-weight:800; text-align:center}
+  .b-val{font-size:15px; font-weight:800}
+  .b-check{width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.08);
+    color:var(--text-2); font-size:15px; font-weight:800; line-height:34px}
+  .b-check.on{background:var(--success); color:#fff}
+  .b-note{font-size:12.5px; color:var(--text-2); padding:0 2px 8px; line-height:1.45}
+  .b-add{width:100%; margin-top:6px; padding:9px; border-radius:12px; font-size:13px; font-weight:700;
+    color:var(--text-2); background:transparent; border:1px dashed var(--border)}
+
+  /* ---------- Variant C ---------- */
+  .c-pager{display:flex; align-items:center; gap:6px; padding:12px 12px 4px}
+  .c-pager .nav{width:40px; height:40px; border-radius:12px; background:var(--bg-surface);
+    border:1px solid var(--border-subtle); color:var(--text-2); font-size:18px; font-weight:800}
+  .c-pager .nav:disabled{opacity:.3}
+  .c-pager .mid{flex:1; text-align:center; min-width:0}
+  .c-pager .mid .nm{font-size:17px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .c-pager .mid .ct{font-size:12px; color:var(--text-2); margin-top:1px}
+  .c-seg{display:flex; background:rgba(17,24,39,.6); border-radius:12px; padding:3px; margin:10px 16px}
+  .c-seg button{flex:1; padding:8px; border-radius:10px; font-size:13.5px; font-weight:700; color:var(--text-2)}
+  .c-seg button.on{background:rgb(31,41,55); color:var(--text-1)}
+  .c-step{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .c-step .pm{width:52px; height:52px; border-radius:14px; background:var(--bg-surface); border:1px solid var(--border);
+    font-size:22px; font-weight:800; color:var(--text-1)}
+  .c-step .pm:active{background:var(--bg-elevated)}
+  .c-step .val{flex:1; text-align:center}
+  .c-step .val .num{font-size:30px; font-weight:800; font-variant-numeric:tabular-nums}
+  .c-step .val .lbl{font-size:11.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--text-3)}
+  .c-log{width:100%; padding:15px; border-radius:16px; font-size:16px; font-weight:800; color:#fff;
+    background:linear-gradient(135deg,var(--primary),var(--secondary))}
+</style>
+</head>
+<body>
+
+<div class="phone"><div class="screen" id="app"></div></div>
+
+<div class="switcher">
+  <button onclick="cycle(-1)" title="Previous variant (←)">‹</button>
+  <div class="label" id="switcherLabel"></div>
+  <button onclick="cycle(1)" title="Next variant (→)">›</button>
+  <button class="reset" onclick="resetData()" title="Reset logged sets">↺</button>
+</div>
+
+<script>
+/* ================= Mock data ================= */
+const VARIANTS = [
+  { key: 'A', name: 'Focus' },
+  { key: 'B', name: 'Sheet' },
+  { key: 'C', name: 'One-tap' },
+];
+
+function freshExercises() {
+  return [
+    { id: 1, name: 'Barbell Bench Press', weighted: true, targetSets: 3, minReps: 8, maxReps: 12,
+      rest: 90, suggestedW: 60, step: 2.5, badge: 'Raised',
+      prog: { tone: 'success', title: 'Moving up', body: 'You hit the top of the rep range last time — today suggests 60 kg (+2.5).' },
+      prev: [{ w: 57.5, r: 12 }, { w: 57.5, r: 11 }, { w: 57.5, r: 10 }], prevDate: 'Mon',
+      best: { w: 65, r: 8, date: 'Oct 12' }, logged: [] },
+    { id: 2, name: 'Incline Dumbbell Press', weighted: true, targetSets: 3, minReps: 10, maxReps: 12,
+      rest: 75, suggestedW: 22.5, step: 2.5, badge: null,
+      prog: { tone: 'warning', title: 'Tough one last time', body: 'Reps fell under target. You could drop to 20 kg and rebuild.', offer: { use: 20, keep: 22.5 } },
+      prev: [{ w: 22.5, r: 9 }, { w: 22.5, r: 8 }, { w: 22.5, r: 7 }], prevDate: 'Mon',
+      best: { w: 25, r: 10, date: 'Sep 28' }, logged: [] },
+    { id: 3, name: 'Cable Fly', weighted: true, targetSets: 3, minReps: 12, maxReps: 15,
+      rest: 60, suggestedW: 15, step: 2.5, badge: null,
+      prog: null,
+      prev: [{ w: 15, r: 15 }, { w: 15, r: 14 }, { w: 15, r: 13 }], prevDate: 'Mon',
+      best: { w: 17.5, r: 12, date: 'Oct 20' }, logged: [] },
+    { id: 4, name: 'Triceps Pushdown', weighted: true, targetSets: 3, minReps: 10, maxReps: 15,
+      rest: 60, suggestedW: 30, step: 2.5, badge: 'Estimated',
+      prog: { tone: 'info', title: 'New exercise', body: 'No history yet — the 30 kg suggestion is an estimate. Log what you lift and it calibrates.' },
+      prev: [], prevDate: null, best: null, logged: [] },
+    { id: 5, name: 'Pull-up', weighted: false, targetSets: 3, minReps: 6, maxReps: 10,
+      rest: 90, suggestedW: 0, step: 0, badge: null,
+      prog: null,
+      prev: [{ w: 0, r: 8 }, { w: 0, r: 7 }, { w: 0, r: 6 }], prevDate: 'Mon',
+      best: { w: 0, r: 10, date: 'Oct 25' }, logged: [] },
+  ];
+}
+
+/* ================= State ================= */
+const state = {
+  exercises: freshExercises(),
+  cur: 0,                       // current exercise index (A & C)
+  drafts: {},                   // { exId: {w:'', r:''} }  typed values (A & B)
+  steppers: {},                 // { exId: {w, r} }        stepper values (C)
+  rest: null,                   // { remaining, total }
+  sheetOpen: false,             // A: info sheet
+  cTab: 'log',                  // C: 'log' | 'details'
+  startedAt: Date.now() - 14 * 60 * 1000 - 32 * 1000,
+  progChoice: {},               // { exId: true } banner answered
+};
+let restInterval = null;
+
+function resetData() {
+  clearInterval(restInterval);
+  Object.assign(state, { exercises: freshExercises(), cur: 0, drafts: {}, steppers: {}, rest: null, sheetOpen: false, cTab: 'log', progChoice: {} });
+  render();
+}
+
+/* ================= Helpers ================= */
+const fmtW = w => (w % 1 === 0 ? String(w) : w.toFixed(1));
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function clockStr() {
+  const s = Math.floor((Date.now() - state.startedAt) / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function exDone(ex) { return ex.logged.length >= ex.targetSets; }
+function draft(ex) { return state.drafts[ex.id] || (state.drafts[ex.id] = { w: '', r: '' }); }
+function stepper(ex) {
+  if (!state.steppers[ex.id]) {
+    const last = ex.logged[ex.logged.length - 1];
+    state.steppers[ex.id] = { w: last ? last.w : ex.suggestedW, r: ex.minReps };
+  }
+  return state.steppers[ex.id];
+}
+function nextSetNumber(ex) { return ex.logged.length + 1; }
+function prevFor(ex, setIdx) { return ex.prev[setIdx] || ex.prev[ex.prev.length - 1] || null; }
+
+function logSet(ex, w, r) {
+  if (exDone(ex)) return;
+  ex.logged.push({ w, r });
+  state.drafts[ex.id] = { w: '', r: '' };
+  if (ex.rest) startRest(ex.rest);
+  render();
+}
+function startRest(seconds) {
+  clearInterval(restInterval);
+  state.rest = { remaining: seconds, total: seconds };
+  restInterval = setInterval(() => {
+    if (!state.rest) return clearInterval(restInterval);
+    state.rest.remaining--;
+    if (state.rest.remaining <= 0) { state.rest = null; clearInterval(restInterval); render(); }
+    else {
+      const el = document.getElementById('restTime');
+      if (el) el.textContent = restStr(); else render();
+    }
+  }, 1000);
+}
+function skipRest() { state.rest = null; clearInterval(restInterval); render(); }
+function addRest(s) { if (state.rest) { state.rest.remaining += s; state.rest.total += s; const el = document.getElementById('restTime'); if (el) el.textContent = restStr(); } }
+function restStr() { const r = state.rest.remaining; return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`; }
+
+function restPill() {
+  if (!state.rest) return '';
+  return `<div class="rest" style="margin:0 16px 10px">
+    <div style="flex:1">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--text-2);text-transform:uppercase">Rest</div>
+      <div class="time" id="restTime">${restStr()}</div>
+    </div>
+    <button onclick="addRest(15)">+15s</button>
+    <button onclick="skipRest()">Skip</button>
+  </div>`;
+}
+
+function headerBar(center) {
+  return `<div class="hairline" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+    <button style="color:var(--error);font-size:13.5px;font-weight:700">✕ Cancel</button>
+    <div style="text-align:center">${center.replace('{CLOCK}', `<span class="clockTxt">${clockStr()}</span>`)}</div>
+    <button style="color:var(--success);font-size:13.5px;font-weight:700">✓ Finish</button>
+  </div>`;
+}
+
+/* Shared reference blocks (used by A's sheet and C's details) */
+function bestBlock(ex) {
+  if (!ex.best) return '';
+  const v = ex.weighted ? `${fmtW(ex.best.w)} kg × ${ex.best.r}` : `${ex.best.r} reps`;
+  return `<div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 16px;margin-top:10px">
+    <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center">🏆</div>
+    <div style="flex:1"><div class="seclabel" style="color:var(--warning)">All-time best</div>
+    <div style="font-size:19px;font-weight:800;margin-top:2px">${v}</div></div>
+    <div class="muted" style="font-size:13px">${ex.best.date}</div>
+  </div>`;
+}
+function lastSessionBlock(ex) {
+  if (!ex.prev.length) return '';
+  const rows = ex.prev.map((s, i) => {
+    const inRange = s.r >= ex.minReps;
+    const chip = `<span class="chip" style="background:${inRange ? 'rgba(34,197,94,.12)' : 'rgba(245,158,11,.12)'};color:${inRange ? 'var(--success)' : 'var(--warning)'}">${inRange ? 'In range' : 'Below'}</span>`;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:9px 16px;${i ? 'border-top:1px solid var(--border-subtle)' : ''}">
+      <span class="muted" style="font-size:13px;font-weight:600;width:44px">Set ${i + 1}</span>
+      <span style="flex:1;font-size:15px;font-weight:700">${ex.weighted ? `${fmtW(s.w)} <span class="faint" style="font-size:12px">kg</span> × ` : ''}${s.r}${ex.weighted ? '' : ' <span class="faint" style="font-size:12px">reps</span>'}</span>
+      ${chip}</div>`;
+  }).join('');
+  const vol = ex.weighted ? ex.prev.reduce((t, s) => t + s.w * s.r, 0) : null;
+  return `<div class="card" style="margin-top:10px;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 4px">
+      <span class="seclabel">Last session</span><span class="muted" style="font-size:13px">${ex.prevDate ?? ''}</span></div>
+    ${rows}
+    <div style="display:flex;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border-subtle)">
+      <span class="muted" style="font-size:13px">Target ${ex.minReps}–${ex.maxReps} reps · ${ex.prev.reduce((t, s) => t + s.r, 0)} reps total</span>
+      ${vol != null ? `<span style="font-size:15px;font-weight:800">${fmtW(vol)} kg</span>` : ''}
+    </div></div>`;
+}
+function progBlock(ex) {
+  if (!ex.prog) return '';
+  const tone = { success: 'var(--success)', warning: 'var(--warning)', info: 'var(--primary)' }[ex.prog.tone];
+  const answered = state.progChoice[ex.id];
+  return `<div class="card" style="padding:12px 16px;margin-top:10px">
+    <div style="display:flex;gap:12px">
+      <div style="width:34px;height:34px;flex:none;border-radius:10px;background:color-mix(in srgb, ${tone} 14%, transparent);display:flex;align-items:center;justify-content:center;color:${tone};font-weight:800">${ex.prog.tone === 'success' ? '↗' : ex.prog.tone === 'warning' ? '↘' : '✦'}</div>
+      <div><div style="font-size:14.5px;font-weight:700">${ex.prog.title}</div>
+      <div class="muted" style="font-size:13px;line-height:1.45;margin-top:2px">${ex.prog.body}</div></div>
+    </div>
+    ${ex.prog.offer && !answered ? `<div style="display:flex;gap:10px;margin-top:12px">
+      <button onclick="useOffer(${ex.id},${ex.prog.offer.use})" style="flex:1;padding:9px;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700">Use ${fmtW(ex.prog.offer.use)} kg</button>
+      <button onclick="keepOffer(${ex.id})" style="flex:1;padding:9px;border-radius:10px;background:var(--bg-surface);border:1px solid var(--border);font-size:13px;font-weight:700">Keep ${fmtW(ex.prog.offer.keep)}</button>
+    </div>` : ''}</div>`;
+}
+function useOffer(id, w) {
+  const ex = state.exercises.find(e => e.id === id);
+  state.progChoice[id] = true;
+  ex.suggestedW = w;
+  draft(ex).w = fmtW(w);
+  stepper(ex).w = w;
+  render();
+}
+function keepOffer(id) { state.progChoice[id] = true; render(); }
+
+function loggedLines(ex) {
+  return ex.logged.map((s, i) => `<div class="logline">
+    <span class="n">SET ${i + 1}</span>
+    <b>${ex.weighted ? `${fmtW(s.w)} kg × ${s.r}` : `${s.r} reps`}</b>
+    <span class="ok">✓</span></div>`).join('');
+}
+
+/* ================= Variant A — Focus ================= */
+function renderA() {
+  const ex = state.exercises[state.cur];
+  const d = draft(ex);
+  const setNo = nextSetNumber(ex);
+  const prev = prevFor(ex, setNo - 1);
+  const done = exDone(ex);
+  const needsAttention = ex.prog && ex.prog.offer && !state.progChoice[ex.id] && ex.logged.length === 0;
+
+  const chips = state.exercises.map((e, i) => `
+    <button class="a-chip ${i === state.cur ? 'active' : ''} ${exDone(e) ? 'done' : ''}" onclick="goEx(${i})">
+      ${exDone(e) ? '✓ ' : ''}${esc(shortName(e.name))} <span style="opacity:.7;font-weight:600">${e.logged.length}/${e.targetSets}</span>
+    </button>`).join('');
+
+  const dots = Array.from({ length: Math.max(ex.targetSets, ex.logged.length) }, (_, i) =>
+    `<span class="a-dot ${i < ex.logged.length ? 'done' : i === ex.logged.length && !done ? 'cur' : ''}"></span>`).join('');
+
+  const logger = done
+    ? `<button onclick="nextEx()" style="width:100%;padding:14px;border-radius:16px;background:var(--success);color:#fff;font-size:15px;font-weight:800">Next Exercise →</button>`
+    : `<div class="a-logbar">
+        <div class="set">SET ${setNo}</div>
+        ${ex.weighted ? `<div class="a-field"><input id="aW" inputmode="decimal" placeholder="${fmtW(ex.suggestedW)}" value="${d.w}" oninput="draftIn(${ex.id},'w',this.value)"><span>kg</span></div>` : ''}
+        <div class="a-field"><input id="aR" inputmode="numeric" placeholder="${ex.minReps}" value="${d.r}" oninput="draftIn(${ex.id},'r',this.value)"><span>reps</span></div>
+        <button class="a-go" onclick="logFromDraft(${ex.id})">✓</button>
+      </div>
+      <div class="a-hint">
+        ${prev && ex.weighted ? `<span>Last: <b style="color:var(--text-1)">${fmtW(prev.w)} kg × ${prev.r}</b></span>` : prev ? `<span>Last: <b style="color:var(--text-1)">${prev.r} reps</b></span>` : ''}
+        <span>Target ${ex.minReps}–${ex.maxReps}</span>
+        ${ex.badge ? `<span style="color:var(--primary)">${ex.badge === 'Raised' ? '↗' : '✦'} ${ex.badge}</span>` : ''}
+      </div>`;
+
+  return `
+    ${headerBar(`<div style="font-size:13px;font-weight:600">⏱ {CLOCK}</div><div class="faint" style="font-size:11.5px;margin-top:1px">${state.cur + 1} / ${state.exercises.length}</div>`)}
+    <div class="a-chips">${chips}</div>
+    ${restPill()}
+    <div class="scroll" style="padding:4px 16px 24px">
+      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:19px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ex.name)}</div>
+          <div class="a-dots" style="margin-top:7px">${dots}<span class="faint" style="font-size:12px;margin-left:4px">${ex.logged.length}/${ex.targetSets} sets</span></div>
+        </div>
+        <button onclick="toggleSheet(true)" title="Exercise info" style="position:relative;width:38px;height:38px;border-radius:12px;background:var(--bg-surface);border:1px solid var(--border-subtle);color:var(--text-2);font-size:16px;font-weight:700">ⓘ
+          ${needsAttention ? '<span style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:999px;background:var(--warning)"></span>' : ''}
+        </button>
+      </div>
+      ${logger}
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">${loggedLines(ex)}</div>
+      ${ex.logged.length > 0 && !done ? '' : ''}
+      <button onclick="addSet(${ex.id})" style="width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px dashed var(--border);color:var(--text-2);font-size:13px;font-weight:700">+ Add Set</button>
+    </div>
+    ${state.sheetOpen ? `<div class="sheet-scrim" onclick="if(event.target===this)toggleSheet(false)">
+      <div class="sheet">
+        <div class="grab"></div>
+        <div style="font-size:17px;font-weight:800;margin-bottom:2px">${esc(ex.name)}</div>
+        <div class="muted" style="font-size:13px">Target ${ex.targetSets} sets · ${ex.minReps}–${ex.maxReps} reps · rest ${ex.rest}s</div>
+        ${progBlock(ex)}${bestBlock(ex)}${lastSessionBlock(ex)}
+      </div></div>` : ''}`;
+}
+function shortName(n) {
+  return n.replace('Barbell ', '').replace('Dumbbell ', 'DB ');
+}
+
+/* ================= Variant B — Sheet ================= */
+function renderB() {
+  const blocks = state.exercises.map(ex => {
+    const rows = [];
+    const total = Math.max(ex.targetSets, ex.logged.length);
+    for (let i = 0; i < total; i++) {
+      const logged = ex.logged[i];
+      const prev = prevFor(ex, i);
+      const prevStr = prev ? (ex.weighted ? `${fmtW(prev.w)}×${prev.r}` : `${prev.r}`) : '—';
+      if (logged) {
+        rows.push(`<tr class="b-row logged">
+          <td class="b-set">${i + 1}</td><td class="b-prev">${prevStr}</td>
+          ${ex.weighted ? `<td class="b-val">${fmtW(logged.w)}</td>` : ''}
+          <td class="b-val">${logged.r}</td>
+          <td><button class="b-check on">✓</button></td></tr>`);
+      } else if (i === ex.logged.length) {
+        const d = draft(ex);
+        rows.push(`<tr class="b-row">
+          <td class="b-set">${i + 1}</td><td class="b-prev">${prevStr}</td>
+          ${ex.weighted ? `<td><input class="b-in" inputmode="decimal" placeholder="${fmtW(ex.suggestedW)}" value="${d.w}" oninput="draftIn(${ex.id},'w',this.value)"></td>` : ''}
+          <td><input class="b-in" inputmode="numeric" placeholder="${ex.minReps}" value="${d.r}" oninput="draftIn(${ex.id},'r',this.value)"></td>
+          <td><button class="b-check" onclick="logFromDraft(${ex.id})">✓</button></td></tr>`);
+      } else {
+        rows.push(`<tr class="b-row" style="opacity:.45">
+          <td class="b-set">${i + 1}</td><td class="b-prev">${prevStr}</td>
+          ${ex.weighted ? `<td class="b-val faint">—</td>` : ''}
+          <td class="b-val faint">—</td><td><button class="b-check">✓</button></td></tr>`);
+      }
+    }
+    const bestChip = ex.best ? `<span class="chip" style="background:rgba(245,158,11,.12);color:var(--warning)">🏆 ${ex.weighted ? `${fmtW(ex.best.w)}×${ex.best.r}` : ex.best.r}</span>` : '';
+    const note = ex.prog ? `<div class="b-note">${ex.prog.tone === 'success' ? '↗' : ex.prog.tone === 'warning' ? '↘' : '✦'} ${ex.prog.body}${ex.prog.offer && !state.progChoice[ex.id] ? ` <button onclick="useOffer(${ex.id},${ex.prog.offer.use})" style="color:var(--primary);font-weight:700;font-size:12.5px">Use ${fmtW(ex.prog.offer.use)} kg</button>` : ''}</div>` : '';
+    return `<div class="b-ex">
+      <div class="b-exhead">
+        <span class="name">${esc(ex.name)} ${exDone(ex) ? '<span style="color:var(--success)">✓</span>' : ''}</span>
+        ${bestChip}<button class="faint" style="font-size:18px;padding:0 4px">⋯</button>
+      </div>
+      ${note}
+      <table class="b-table">
+        <tr><th>Set</th><th>Prev</th>${ex.weighted ? '<th>kg</th>' : ''}<th>Reps</th><th></th></tr>
+        ${rows.join('')}
+      </table>
+      <button class="b-add" onclick="addSet(${ex.id})">+ Add Set</button>
+    </div>`;
+  }).join('');
+
+  const doneCount = state.exercises.filter(exDone).length;
+  return `
+    ${headerBar(`<div style="font-size:13px;font-weight:600">⏱ {CLOCK}</div><div class="faint" style="font-size:11.5px;margin-top:1px">${doneCount} of ${state.exercises.length} done</div>`)}
+    ${restPill()}
+    <div class="scroll" style="padding-top:8px">${blocks}<div style="height:24px"></div></div>`;
+}
+
+/* ================= Variant C — One-tap ================= */
+function renderC() {
+  const ex = state.exercises[state.cur];
+  const st = stepper(ex);
+  const done = exDone(ex);
+  const setNo = nextSetNumber(ex);
+
+  const dots = Array.from({ length: Math.max(ex.targetSets, ex.logged.length) }, (_, i) =>
+    `<span class="a-dot ${i < ex.logged.length ? 'done' : i === ex.logged.length && !done ? 'cur' : ''}"></span>`).join('');
+
+  const logTab = done
+    ? `<button onclick="nextEx()" style="width:100%;padding:15px;border-radius:16px;background:var(--success);color:#fff;font-size:15px;font-weight:800;margin-top:4px">Next Exercise →</button>`
+    : `
+    ${ex.weighted ? `<div class="c-step">
+      <button class="pm" onclick="bump(${ex.id},'w',-1)">−</button>
+      <div class="val"><div class="num">${fmtW(st.w)} <span style="font-size:15px;color:var(--text-3)">kg</span></div><div class="lbl">Weight · ±${fmtW(ex.step)}</div></div>
+      <button class="pm" onclick="bump(${ex.id},'w',1)">+</button>
+    </div>` : ''}
+    <div class="c-step">
+      <button class="pm" onclick="bump(${ex.id},'r',-1)">−</button>
+      <div class="val"><div class="num">${st.r} <span style="font-size:15px;color:var(--text-3)">reps</span></div><div class="lbl">Reps · target ${ex.minReps}–${ex.maxReps}</div></div>
+      <button class="pm" onclick="bump(${ex.id},'r',1)">+</button>
+    </div>
+    <button class="c-log" onclick="logFromStepper(${ex.id})">Log Set ${setNo}${ex.weighted ? ` — ${fmtW(st.w)} kg × ${st.r}` : ` — ${st.r} reps`}</button>`;
+
+  return `
+    ${headerBar(`<div style="font-size:13px;font-weight:600">⏱ {CLOCK}</div>`)}
+    <div class="c-pager">
+      <button class="nav" onclick="goEx(${state.cur - 1})" ${state.cur === 0 ? 'disabled' : ''}>‹</button>
+      <div class="mid"><div class="nm">${esc(ex.name)}</div><div class="ct">${state.cur + 1} of ${state.exercises.length} · ${ex.logged.length}/${ex.targetSets} sets ${exDone(ex) ? '✓' : ''}</div></div>
+      <button class="nav" onclick="goEx(${state.cur + 1})" ${state.cur === state.exercises.length - 1 ? 'disabled' : ''}>›</button>
+    </div>
+    <div class="c-seg">
+      <button class="${state.cTab === 'log' ? 'on' : ''}" onclick="cTab('log')">Log</button>
+      <button class="${state.cTab === 'details' ? 'on' : ''}" onclick="cTab('details')">Details</button>
+    </div>
+    ${restPill()}
+    <div class="scroll" style="padding:4px 16px 24px">
+      ${state.cTab === 'log' ? `
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 16px">${dots}</div>
+        ${logTab}
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:18px">${loggedLines(ex)}</div>
+        ${!done && ex.prev[setNo - 1] ? `<div class="faint" style="text-align:center;font-size:12.5px;margin-top:14px">Last time, set ${setNo}: ${ex.weighted ? `${fmtW(ex.prev[setNo - 1].w)} kg × ${ex.prev[setNo - 1].r}` : `${ex.prev[setNo - 1].r} reps`}</div>` : ''}
+      ` : `
+        ${progBlock(ex)}${bestBlock(ex)}${lastSessionBlock(ex)}
+        <button onclick="addSet(${ex.id})" style="width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px dashed var(--border);color:var(--text-2);font-size:13px;font-weight:700">+ Add Set</button>
+      `}
+    </div>`;
+}
+
+/* ================= Actions ================= */
+function draftIn(id, field, value) { const ex = state.exercises.find(e => e.id === id); draft(ex)[field] = value; }
+function logFromDraft(id) {
+  const ex = state.exercises.find(e => e.id === id);
+  const d = draft(ex);
+  const w = ex.weighted ? (parseFloat(d.w.replace(',', '.')) || ex.suggestedW) : 0;
+  const r = parseInt(d.r, 10) || ex.minReps;
+  logSet(ex, w, r);
+}
+function logFromStepper(id) {
+  const ex = state.exercises.find(e => e.id === id);
+  const st = stepper(ex);
+  logSet(ex, ex.weighted ? st.w : 0, st.r);
+}
+function bump(id, field, dir) {
+  const ex = state.exercises.find(e => e.id === id);
+  const st = stepper(ex);
+  if (field === 'w') st.w = Math.max(0, +(st.w + dir * ex.step).toFixed(2));
+  else st.r = Math.max(1, st.r + dir);
+  render();
+}
+function addSet(id) { const ex = state.exercises.find(e => e.id === id); ex.targetSets++; render(); }
+function goEx(i) {
+  if (i < 0 || i >= state.exercises.length) return;
+  state.cur = i; state.sheetOpen = false; state.cTab = 'log'; render();
+}
+function nextEx() {
+  for (let i = state.cur + 1; i < state.exercises.length; i++) if (!exDone(state.exercises[i])) return goEx(i);
+  if (state.cur + 1 < state.exercises.length) return goEx(state.cur + 1);
+}
+function toggleSheet(open) { state.sheetOpen = open; render(); }
+function cTab(t) { state.cTab = t; render(); }
+
+/* ================= Variant switching ================= */
+function currentVariant() {
+  const k = new URLSearchParams(location.search).get('variant') || 'A';
+  return VARIANTS.find(v => v.key === k.toUpperCase()) || VARIANTS[0];
+}
+function cycle(dir) {
+  const idx = VARIANTS.indexOf(currentVariant());
+  const next = VARIANTS[(idx + dir + VARIANTS.length) % VARIANTS.length];
+  const url = new URL(location.href);
+  url.searchParams.set('variant', next.key);
+  history.replaceState(null, '', url);
+  render();
+}
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.key === 'ArrowLeft') cycle(-1);
+  if (e.key === 'ArrowRight') cycle(1);
+});
+
+/* ================= Render ================= */
+function render() {
+  const v = currentVariant();
+  document.getElementById('switcherLabel').textContent = `${v.key} — ${v.name}`;
+  const app = document.getElementById('app');
+  app.innerHTML = v.key === 'A' ? renderA() : v.key === 'B' ? renderB() : renderC();
+}
+setInterval(() => { // tick the session clock in place — no full re-render, so focus and scroll survive
+  document.querySelectorAll('.clockTxt').forEach(el => { el.textContent = clockStr(); });
+}, 1000);
+render();
+</script>
+</body>
+</html>
