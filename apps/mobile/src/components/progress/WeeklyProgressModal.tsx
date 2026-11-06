@@ -1,12 +1,15 @@
 import { View, Text, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { LineChart } from 'react-native-gifted-charts'
+import { CurveType, LineChart } from 'react-native-gifted-charts'
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react-native'
 import { useFitnessMetrics, useProfile, useWeightUnit, withAlpha, getWeeklyGoalMessage, formatVolume, formatVolumeFull, signPrefix } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { ProgressDetailModal, InfoBlock, Pill } from './ProgressDetailModal'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+// Height of the tallest bar in "Workouts per week". The count above a bar and the week label
+// below it sit outside this, so a full bar never reaches the card title.
+const WEEK_BAR_MAX_HEIGHT = 80
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 interface WeeklyProgressModalProps {
@@ -159,7 +162,8 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               thickness={2}
               dataPointsColor={colors.primary}
               startFillColor={withAlpha(colors.primary, 0.251)}
-              endFillColor="transparent"
+              endFillColor={colors.primary}
+              endOpacity={0}
               areaChart
               hideRules
               xAxisColor={colors.bgElevated}
@@ -167,6 +171,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
               yAxisTextStyle={{ color: colors.textMuted, fontSize: 10 }}
               xAxisLabelTextStyle={{ color: colors.textMuted, fontSize: 10 }}
               curved
+              curveType={CurveType.QUADRATIC}
               initialSpacing={12}
             />
           </View>
@@ -179,9 +184,9 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
           <Text className="text-sm font-bold mb-4" style={{ color: colors.textPrimary }}>
             Workouts per week (last {historicalWeeks.length})
           </Text>
-          <View className="flex-row justify-between items-end" style={{ height: 120 }}>
+          <View className="flex-row justify-between items-end">
             {historicalWeeks.map((week: { week: string; workouts: number }, i: number) => {
-              const heightPercent = Math.max((week.workouts / maxHistoricalWorkouts) * 100, 4)
+              const barHeight = Math.max((week.workouts / maxHistoricalWorkouts) * WEEK_BAR_MAX_HEIGHT, 4)
               return (
                 <View key={i} className="items-center gap-2 flex-1">
                   <Text
@@ -193,7 +198,7 @@ export function WeeklyProgressModal({ visible, onClose }: WeeklyProgressModalPro
                   <View
                     className="w-full rounded-t-md"
                     style={{
-                      height: `${heightPercent}%`,
+                      height: barHeight,
                       backgroundColor: week.workouts > 0 ? colors.primary : colors.bgSurface,
                       maxWidth: 22,
                       alignSelf: 'center',
