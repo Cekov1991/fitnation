@@ -80,6 +80,22 @@ eas submit --profile production --platform all
 
 App version is managed remotely (`appVersionSource: remote`). Bump it in EAS before triggering a production build when shipping a new release.
 
+### OTA updates (EAS Update)
+
+JS-only changes ship over the air without a store release (set up Nov 2026):
+
+```bash
+cd apps/mobile
+eas update --channel production --environment production --message "<what changed>"
+eas update --channel preview --environment preview --message "<what changed>"
+```
+
+- Channels: `production` and `preview`, set per build profile in `eas.json`. The `development` profile has no channel (dev client loads from Metro).
+- **Always pass `--environment`** — the `EXPO_PUBLIC_*` vars (API URL, RevenueCat keys, Google client IDs) are inlined into the update bundle at publish time from EAS environment variables (`eas env:list <environment>`), not from the build. Omitting it ships a bundle with missing config.
+- `runtimeVersion` policy is `appVersion`: an update only reaches builds whose app version matches the version at publish time. After bumping the version, ship a store build first; older installed versions stop receiving updates.
+- OTA covers JS/asset changes only. Anything native — new native module or config plugin, Expo SDK upgrade, `app.json` native config — needs `eas build` + store release.
+- Builds made before Nov 2026 (≤ 1.0.12 binaries) predate the channel setup and can never receive OTA updates.
+
 ## Lockfile conflicts
 
 Never manually resolve `pnpm-lock.yaml` conflicts. Always regenerate it:
