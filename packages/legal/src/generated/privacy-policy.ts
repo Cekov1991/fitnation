@@ -7,7 +7,7 @@ import type { LegalDocument } from '../types';
 export const privacyPolicy: LegalDocument = {
   "slug": "privacy-policy",
   "title": "Privacy Policy",
-  "lastUpdated": "August 23, 2026",
+  "lastUpdated": "November 8, 2026",
   "path": "/privacy",
   "canonicalUrl": "https://joinfitnation.com/privacy",
   "description": "How Fit Nation collects, uses, stores and protects your personal and training data.",
@@ -169,7 +169,40 @@ export const privacyPolicy: LegalDocument = {
           "kind": "h3",
           "spans": [
             {
-              "text": "d. What We Do NOT Collect"
+              "text": "d. Location Data"
+            }
+          ]
+        },
+        {
+          "kind": "p",
+          "spans": [
+            {
+              "text": "Collected only if you grant the location permission, and only for the moment of a nearby-gym lookup — see "
+            },
+            {
+              "text": "Location & Nearby Gyms",
+              "href": "#location"
+            },
+            {
+              "text": ":"
+            }
+          ]
+        },
+        {
+          "kind": "ul",
+          "items": [
+            [
+              {
+                "text": "Your device's coordinates at the moment the app looks up partner gyms near you"
+              }
+            ]
+          ]
+        },
+        {
+          "kind": "h3",
+          "spans": [
+            {
+              "text": "e. What We Do NOT Collect"
             }
           ]
         },
@@ -183,7 +216,11 @@ export const privacyPolicy: LegalDocument = {
             ],
             [
               {
-                "text": "Precise location data"
+                "text": "Location history or background location. If you allow it, your location is read momentarily in the foreground only to find nearby partner gyms and is never stored — see "
+              },
+              {
+                "text": "Location & Nearby Gyms",
+                "href": "#location"
               }
             ],
             [
@@ -206,8 +243,64 @@ export const privacyPolicy: LegalDocument = {
       ]
     },
     {
-      "id": "how-we-use",
+      "id": "location",
       "number": 2,
+      "title": "Location & Nearby Gyms",
+      "blocks": [
+        {
+          "kind": "p",
+          "spans": [
+            {
+              "text": "If your gym partners with Fit Nation, the app can offer you that gym's membership when you are physically there. To make this offer, the app reads your device's location — only if you have granted the location permission, and only while the app is in the foreground. Your location is used solely to find partner gyms near you."
+            }
+          ]
+        },
+        {
+          "kind": "p",
+          "spans": [
+            {
+              "text": "When a lookup runs, your coordinates are sent to our server, compared against the registered partner gym locations, and immediately discarded. In particular:"
+            }
+          ]
+        },
+        {
+          "kind": "ul",
+          "items": [
+            [
+              {
+                "text": "Location is read in the foreground only, with your permission — never in the background"
+              }
+            ],
+            [
+              {
+                "text": "Coordinates are used solely to find nearby partner gyms"
+              }
+            ],
+            [
+              {
+                "text": "Coordinates are never stored: we keep no location history and do not track your movements"
+              }
+            ],
+            [
+              {
+                "text": "Location is never used for advertising or shared with anyone"
+              }
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "spans": [
+            {
+              "text": "If you decline the location permission, the app works exactly as before: declining disables only this feature, and nothing else."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "how-we-use",
+      "number": 3,
       "title": "How We Use Your Information",
       "blocks": [
         {
@@ -239,6 +332,18 @@ export const privacyPolicy: LegalDocument = {
             [
               {
                 "text": "Apply the correct partner branding to your experience"
+              }
+            ],
+            [
+              {
+                "text": "Offer you nearby partner gyms, if you have enabled location (see "
+              },
+              {
+                "text": "Location & Nearby Gyms",
+                "href": "#location"
+              },
+              {
+                "text": ")"
               }
             ],
             [
@@ -275,7 +380,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "legal-basis",
-      "number": 3,
+      "number": 4,
       "title": "Legal Basis for Processing",
       "blocks": [
         {
@@ -346,7 +451,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "workout-generator",
-      "number": 4,
+      "number": 5,
       "title": "Workout Generator & Data Processing",
       "blocks": [
         {
@@ -401,7 +506,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "data-sharing",
-      "number": 5,
+      "number": 6,
       "title": "Data Sharing & Third Parties",
       "blocks": [
         {
@@ -526,7 +631,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "international-transfers",
-      "number": 6,
+      "number": 7,
       "title": "International Data Transfers",
       "blocks": [
         {
@@ -549,7 +654,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "storage",
-      "number": 7,
+      "number": 8,
       "title": "Browser Storage & Authentication",
       "blocks": [
         {
@@ -609,7 +714,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "security",
-      "number": 8,
+      "number": 9,
       "title": "Data Storage & Security",
       "blocks": [
         {
@@ -665,7 +770,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "retention",
-      "number": 9,
+      "number": 10,
       "title": "Data Retention",
       "blocks": [
         {
@@ -703,7 +808,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "your-rights",
-      "number": 10,
+      "number": 11,
       "title": "Your Rights",
       "blocks": [
         {
@@ -809,7 +914,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "account-deletion",
-      "number": 11,
+      "number": 12,
       "title": "Account Deletion",
       "blocks": [
         {
@@ -890,7 +995,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "children",
-      "number": 12,
+      "number": 13,
       "title": "Children's Privacy",
       "blocks": [
         {
@@ -920,7 +1025,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "marketing",
-      "number": 13,
+      "number": 14,
       "title": "Marketing & Communications",
       "blocks": [
         {
@@ -963,7 +1068,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "breach",
-      "number": 14,
+      "number": 15,
       "title": "Data Breach Notification",
       "blocks": [
         {
@@ -978,7 +1083,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "governing-law",
-      "number": 15,
+      "number": 16,
       "title": "Governing Law",
       "blocks": [
         {
@@ -993,7 +1098,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "controller",
-      "number": 16,
+      "number": 17,
       "title": "Data Controller & Contact",
       "blocks": [
         {
@@ -1046,7 +1151,7 @@ export const privacyPolicy: LegalDocument = {
     },
     {
       "id": "acceptance",
-      "number": 17,
+      "number": 18,
       "title": "Acceptance",
       "blocks": [
         {

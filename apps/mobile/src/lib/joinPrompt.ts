@@ -93,3 +93,14 @@ export function dismissalKindOf(trigger: JoinPromptDismissalTrigger): JoinPrompt
 export function pickNearestPartner<T>(partners: readonly T[]): T | null {
   return partners[0] ?? null
 }
+
+/**
+ * The support line (ticket #96, ADR 0006): a Gym Join is one-way, and the only
+ * in-app mention of the way out is a low-prominence settings line — "to change
+ * gyms, contact support". It shows exactly to the customers it is for: those
+ * on a Partner. A House customer has no gym to change (their way onto one is
+ * the Join Prompt itself), and the line never appears in the prompt.
+ */
+export function showsChangeGymLine(userPartnerId: number | null): boolean {
+  return userPartnerId !== null && userPartnerId !== HOUSE_PARTNER_ID
+}

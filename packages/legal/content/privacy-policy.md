@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-lastUpdated: August 23, 2026
+lastUpdated: November 8, 2026
 path: /privacy
 canonicalUrl: https://joinfitnation.com/privacy
 description: How Fit Nation collects, uses, stores and protects your personal and training data.
@@ -42,17 +42,45 @@ By providing such data, you explicitly consent to the processing of your health-
 - IP address (logged by our hosting infrastructure)
 - General usage activity within the app
 
-### d. What We Do NOT Collect
+### d. Location Data
+
+Collected only if you grant the location permission, and only for the moment
+of a nearby-gym lookup — see [Location & Nearby Gyms](#location):
+
+- Your device's coordinates at the moment the app looks up partner gyms near you
+
+### e. What We Do NOT Collect
 
 - Payment card, bank account, or other financial account details. If paid
   features are offered, purchases are processed by the Apple App Store or
   Google Play; you provide your payment details directly to Apple or Google
   under their own terms, and those details are never transmitted to or stored
   by us
-- Precise location data
+- Location history or background location. If you allow it, your location is
+  read momentarily in the foreground only to find nearby partner gyms and is
+  never stored — see [Location & Nearby Gyms](#location)
 - Device contacts or calendar
 - Biometric data (fingerprint, Face ID, etc.)
 - Data from third-party analytics, advertising, or tracking SDKs
+
+## Location & Nearby Gyms {#location}
+
+If your gym partners with Fit Nation, the app can offer you that gym's
+membership when you are physically there. To make this offer, the app reads
+your device's location — only if you have granted the location permission, and
+only while the app is in the foreground. Your location is used solely to find
+partner gyms near you.
+
+When a lookup runs, your coordinates are sent to our server, compared against
+the registered partner gym locations, and immediately discarded. In particular:
+
+- Location is read in the foreground only, with your permission — never in the background
+- Coordinates are used solely to find nearby partner gyms
+- Coordinates are never stored: we keep no location history and do not track your movements
+- Location is never used for advertising or shared with anyone
+
+If you decline the location permission, the app works exactly as before:
+declining disables only this feature, and nothing else.
 
 ## How We Use Your Information {#how-we-use}
 
@@ -62,6 +90,7 @@ We use your data to:
 - Generate personalised workout recommendations using our algorithmic workout generator
 - Track and display your training progress and performance metrics
 - Apply the correct partner branding to your experience
+- Offer you nearby partner gyms, if you have enabled location (see [Location & Nearby Gyms](#location))
 - Send service-related communications (account verification, password reset, security alerts)
 - Improve Platform features, usability, and reliability
 - Ensure platform security and detect misuse

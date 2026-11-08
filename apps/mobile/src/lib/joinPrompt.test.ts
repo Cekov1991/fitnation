@@ -8,6 +8,7 @@ import {
   pickNearestPartner,
   shouldCheckOnForeground,
   shouldRunJoinPrompt,
+  showsChangeGymLine,
 } from './joinPrompt'
 
 /**
@@ -162,6 +163,24 @@ describe('canPresentJoinPromptOver', () => {
     expect(canPresentJoinPromptOver('Onboarding')).toBe(false)
     expect(canPresentJoinPromptOver('Paywall')).toBe(false)
     expect(canPresentJoinPromptOver(undefined)).toBe(false)
+  })
+})
+
+/**
+ * The support line (ticket #96, ADR 0006): a Gym Join is one-way, and the only
+ * in-app mention of the way out is a low-prominence settings line — "to change
+ * gyms, contact support". It shows exactly to the customers it is for: those
+ * standing on a Partner. House customers have no gym to change (their path is
+ * the Join Prompt itself), and the line must never appear in the prompt.
+ */
+describe('showsChangeGymLine', () => {
+  it('shows for a customer on a Partner — the one who might want to change gyms', () => {
+    expect(showsChangeGymLine(42)).toBe(true)
+  })
+
+  it('hides for a House customer and for a user without a partner — no gym to change', () => {
+    expect(showsChangeGymLine(HOUSE_PARTNER_ID)).toBe(false)
+    expect(showsChangeGymLine(null)).toBe(false)
   })
 })
 

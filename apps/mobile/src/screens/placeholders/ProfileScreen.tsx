@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { ScrollView, View, Text } from 'react-native'
+import { Linking, ScrollView, View, Text } from 'react-native'
 import * as Application from 'expo-application'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { User, Ruler, Target, Dumbbell, LogOut } from 'lucide-react-native'
+import { User, Ruler, Target, Dumbbell, LogOut, Building2 } from 'lucide-react-native'
+import { privacyPolicy } from '@fit-nation/legal'
 import type { LucideIcon } from 'lucide-react-native'
 import {
   useProfile,
@@ -32,6 +33,7 @@ import { subscriptionCopy } from '../../components/profile/subscriptionCopy'
 import { PROFILE_SECTIONS } from '../../components/profile'
 import type { ProfileSectionKey } from '../../components/profile'
 import { grantPushPermission } from '../../lib/notifications'
+import { showsChangeGymLine } from '../../lib/joinPrompt'
 import { usePushPermissionStatus } from '../../hooks/usePushPermissionStatus'
 import { Entitlement, useEntitlements } from '../../hooks/useEntitlements'
 import type { AppStackParamList } from '../../navigation/types'
@@ -197,6 +199,29 @@ export function ProfileScreen() {
           permissionStatus={pushPermission.status}
           onAllow={handleAllowPush}
         />
+
+        {/* The one-way Gym Join's only in-app mention of the way out (ADR 0006):
+            a low-prominence support line, shown only to customers on a gym. A
+            House customer has no gym to change. */}
+        {showsChangeGymLine(profile?.partner?.id ?? null) && (
+          <>
+            <SectionLabel style={{ marginTop: 8 }}>Your Gym</SectionLabel>
+            <Card style={{ padding: 0, overflow: 'hidden' }}>
+              <ProfileSectionRow
+                icon={Building2}
+                title={profile?.partner?.name ?? 'Your gym'}
+                summary="To change gyms, contact support"
+                first
+                chevron={false}
+                onPress={() =>
+                  Linking.openURL(
+                    `mailto:${privacyPolicy.contactEmail}?subject=${encodeURIComponent('Gym change request')}`
+                  )
+                }
+              />
+            </Card>
+          </>
+        )}
 
         {/* Log out: a row like the ones above, confirmed before it runs. */}
         <Card style={{ padding: 0, overflow: 'hidden' }}>

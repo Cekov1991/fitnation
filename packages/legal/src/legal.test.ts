@@ -28,3 +28,33 @@ describe('legal documents carry their own metadata', () => {
     expect(siblingOf(privacyPolicy).path).toBe('/terms');
   });
 });
+
+/**
+ * Ticket #96 (Gym Join spec, user story 14): the Join Prompt reads the device's
+ * location — in the foreground only, with permission, solely to find nearby
+ * partner gyms — and the coordinates are sent for that one lookup and never
+ * stored. The privacy policy must say so, and must no longer claim that
+ * precise location is never collected.
+ */
+describe('the privacy policy covers the nearby-gym location lookup', () => {
+  const location = privacyPolicy.sections.find(s => s.id === 'location');
+  const text = (blocks: unknown) => JSON.stringify(blocks);
+
+  it('has a #location section stating the lookup is foreground-only, permission-gated and never stored', () => {
+    expect(location).toBeDefined();
+    const body = text(location!.blocks);
+    expect(body).toContain('foreground');
+    expect(body).toContain('permission');
+    expect(body).toContain('nearby partner gyms');
+    expect(body).toMatch(/never stored|not stored/);
+  });
+
+  it('states that declining permission disables only this feature', () => {
+    const body = text(location!.blocks);
+    expect(body).toMatch(/only th(is|at) feature|disables only/);
+  });
+
+  it('no longer lists precise location under what is not collected', () => {
+    expect(text(privacyPolicy.sections)).not.toContain('Precise location data');
+  });
+});
