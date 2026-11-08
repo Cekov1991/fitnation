@@ -149,6 +149,23 @@ export interface ActivePartnersResponse {
   data: PartnerListResource[];
 }
 
+// The Join Prompt / Gym Join contract (mobile ticket #94, backend spec #86).
+// `GET /partners/nearby` answers nearest first and `[]` for an ineligible
+// user — never an error; `POST /me/partner` echoes the full user, the same
+// shape the profile endpoints return.
+export interface NearbyPartnerResource {
+  id: number;
+  name: string;
+  slug: string;
+  benefits: string[];
+  visual_identity: PartnerVisualIdentityResource | null;
+}
+
+export interface JoinPartnerResponse {
+  message: string;
+  user: UserResource;
+}
+
 export interface PartnerVisualIdentityResource {
   primary_color: string | null;
   secondary_color: string | null;

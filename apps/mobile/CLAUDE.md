@@ -50,6 +50,7 @@ spellings of the same caption.
 | Loading placeholder | `ui/SkeletonBox` |
 | Confirm before a destructive action | `ui/ConfirmDialog` |
 | Delete the account (a bottom sheet confirmed by typing DELETE, never a password) | `profile/DeleteAccountSheet`; copy in `profile/deleteAccountCopy.ts` |
+| The Join Prompt's nearby-gym offer (Partner name, benefits checklist, Join / Not Now) | `partners/JoinGymSheet`; the run/skip and nearest-pick rules live in `lib/joinPrompt.ts` |
 | Drag-to-reorder list, swipe actions | `ui/SortableList`, `ui/SwipeAction` |
 
 ### Rule 2 — numbers live in tokens, not in screens
@@ -152,7 +153,7 @@ Do not add a fourth way to ask for someone's weight.
 ### Adding a new shared component
 
 Put it in `src/components/ui/` (generic) or a domain folder
-(`exercises/`, `workout-session/`, `progress/`). Pin its numbers in an
+(`exercises/`, `workout-session/`, `progress/`, `partners/`). Pin its numbers in an
 exported `const` at the top, document the slots in the props interface, add a
 row to the table in Rule 1, and if screens must not re-draw it, add a rule to
 `ui-standards.test.ts`.

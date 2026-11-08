@@ -6,6 +6,7 @@ import { authApi, failureOf, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useEntitlements, Entitlement } from '../../hooks/useEntitlements'
 import { entryRoute } from '../../navigation/gate'
+import { offersJoinPromptStepFor } from '../../lib/joinPromptSession'
 import { useTheme } from '../../context/ThemeContext'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -43,9 +44,12 @@ export function EmailVerificationScreen({ navigation }: AppScreenProps<'EmailVer
   // manual refresh): on to onboarding, or past the subscription gate.
   useEffect(() => {
     if (user?.email_verified_at) {
+      // Ticket #94: a just-verified registration is "between registration and
+      // Onboarding" — exactly where the Join Prompt step may stand.
+      const offerJoinPrompt = offersJoinPromptStepFor(user)
       navigation.reset({
         index: 0,
-        routes: [{ name: entryRoute(user, has(Entitlement.AppAccess)) }],
+        routes: [{ name: entryRoute(user, has(Entitlement.AppAccess), offerJoinPrompt) }],
       })
     }
   }, [user?.email_verified_at])

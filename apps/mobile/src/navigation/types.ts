@@ -25,6 +25,8 @@ export type TabParamList = {
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList> | undefined
   EmailVerification: undefined
+  /** The Join Prompt step (ticket #94): only ever stands where Onboarding would. */
+  JoinPrompt: undefined
   Onboarding: undefined
   Paywall: undefined
   /** The paywall opened by choice (See Plans during the Signup Trial): not the gate, so it can be left. */

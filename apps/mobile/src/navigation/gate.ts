@@ -8,7 +8,7 @@ import { Entitlement } from '../lib/entitlements'
  * launch route; the prerequisite screens use it when they hand over, so none
  * of them can land someone on Tabs the gate would not let through.
  */
-export type EntryRoute = 'EmailVerification' | 'Onboarding' | 'Paywall' | 'Tabs'
+export type EntryRoute = 'EmailVerification' | 'JoinPrompt' | 'Onboarding' | 'Paywall' | 'Tabs'
 export type GateRoute = Extract<EntryRoute, 'Paywall' | 'Tabs'>
 
 type Prerequisites = Pick<UserResource, 'email_verified_at' | 'onboarding_completed_at'>
@@ -17,9 +17,16 @@ export function gateRoute(hasAppAccess: boolean): GateRoute {
   return hasAppAccess ? 'Tabs' : 'Paywall'
 }
 
-export function entryRoute(user: Prerequisites | null | undefined, hasAppAccess: boolean): EntryRoute {
+export function entryRoute(
+  user: Prerequisites | null | undefined,
+  hasAppAccess: boolean,
+  // Ticket #94: an unasked House Partner customer gets the Join Prompt step
+  // first; it can only ever stand where Onboarding would (lib/joinPrompt.ts
+  // decides the offer, the step itself hands over to Onboarding).
+  offerJoinPrompt = false
+): EntryRoute {
   if (!user?.email_verified_at) return 'EmailVerification'
-  if (!user.onboarding_completed_at) return 'Onboarding'
+  if (!user.onboarding_completed_at) return offerJoinPrompt ? 'JoinPrompt' : 'Onboarding'
   return gateRoute(hasAppAccess)
 }
 
@@ -60,7 +67,7 @@ export function purchaseLiftsRefusal(user: Pick<UserResource, 'entitlements'> | 
 }
 
 // Screens that come before the paywall and must never be overridden by it.
-const BLOCKING_SCREENS: ReadonlySet<string> = new Set<EntryRoute>(['EmailVerification', 'Onboarding'])
+const BLOCKING_SCREENS: ReadonlySet<string> = new Set<EntryRoute>(['EmailVerification', 'JoinPrompt', 'Onboarding'])
 
 /**
  * The reset EntitlementWatcher performs given the current route, or null to
