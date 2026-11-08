@@ -7,6 +7,7 @@
  * for anyone ineligible), so these rules only decide when asking is worth
  * the interruption at all.
  */
+import type { JoinPromptDismissalKind } from '@fit-nation/shared'
 
 /** The House Partner's id — Fit Nation itself, the partner every plain registration lands on. */
 export const HOUSE_PARTNER_ID = 1
@@ -35,6 +36,53 @@ export function shouldRunJoinPrompt(input: JoinPromptInput): boolean {
  */
 export function offersJoinPromptStep(input: Omit<JoinPromptInput, 'permissionStatus'>): boolean {
   return shouldRunJoinPrompt({ ...input, permissionStatus: 'undetermined' })
+}
+
+/** The foreground re-check runs at most once per hour — a client courtesy; the server's dismissal filter is the real gate. */
+export const JOIN_PROMPT_RECHECK_INTERVAL_MS = 60 * 60 * 1000
+
+export interface ForegroundRecheckInput {
+  /** `user.partner?.id ?? null` — a Gym Join is one-way, so only House customers are ever offered one. */
+  userPartnerId: number | null
+  /** The re-check never asks for permission — that happened (or not) in the post-registration step. */
+  permissionStatus: LocationPermissionStatus
+  /** Epoch ms of this user's last nearby check (step or foreground, persisted), null if never. */
+  lastCheckedAt: number | null
+  now: number
+}
+
+/**
+ * The foreground re-check decision (ticket #95): on every return to the
+ * foreground, check again whether an eligible customer is standing in a gym —
+ * silently, and at most once per hour.
+ */
+export function shouldCheckOnForeground(input: ForegroundRecheckInput): boolean {
+  if (input.permissionStatus !== 'granted') return false
+  if (input.userPartnerId !== HOUSE_PARTNER_ID) return false
+  if (input.lastCheckedAt === null) return true
+  // A future timestamp (clock moved back) reads as recently checked, not never.
+  return input.now - input.lastCheckedAt > JOIN_PROMPT_RECHECK_INTERVAL_MS
+}
+
+/**
+ * Whether the re-check's sheet may present over the given stack route (the
+ * AppNavigator's focused top-level route). Only the main tab container — the
+ * sheet is a courtesy and must never cover a blocking flow (Onboarding,
+ * Paywall) or a fullScreenModal like an active WorkoutSession.
+ */
+export function canPresentJoinPromptOver(stackRouteName: string | undefined): boolean {
+  return stackRouteName === 'Tabs'
+}
+
+/** Every way out of the Join Prompt sheet that is not the Join itself. */
+export type JoinPromptDismissalTrigger = 'not-interested' | 'maybe-later' | 'backdrop' | 'back'
+
+/**
+ * Dismissal-kind routing (GLOSSARY "Join Prompt"): terminal (`declined`) only
+ * ever from the explicit "Not Interested" tap; everything else snoozes.
+ */
+export function dismissalKindOf(trigger: JoinPromptDismissalTrigger): JoinPromptDismissalKind {
+  return trigger === 'not-interested' ? 'declined' : 'snoozed'
 }
 
 /**

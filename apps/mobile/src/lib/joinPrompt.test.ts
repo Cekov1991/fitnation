@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { HOUSE_PARTNER_ID, offersJoinPromptStep, pickNearestPartner, shouldRunJoinPrompt } from './joinPrompt'
+import {
+  canPresentJoinPromptOver,
+  dismissalKindOf,
+  HOUSE_PARTNER_ID,
+  offersJoinPromptStep,
+  JOIN_PROMPT_RECHECK_INTERVAL_MS,
+  pickNearestPartner,
+  shouldCheckOnForeground,
+  shouldRunJoinPrompt,
+} from './joinPrompt'
 
 /**
  * The Join Prompt decision (ticket #94): a House Partner customer standing in
@@ -66,6 +75,93 @@ describe('offersJoinPromptStep', () => {
   it('does not offer it to a Gym Signup, or twice in a session', () => {
     expect(offersJoinPromptStep({ userPartnerId: 42, alreadyAsked: false })).toBe(false)
     expect(offersJoinPromptStep({ userPartnerId: HOUSE_PARTNER_ID, alreadyAsked: true })).toBe(false)
+  })
+})
+
+/**
+ * The foreground re-check (ticket #95): whenever the app comes to the
+ * foreground, an eligible House customer whose location permission is already
+ * granted gets a location fix + nearby call — never an OS permission prompt,
+ * and at most once per hour.
+ */
+describe('shouldCheckOnForeground', () => {
+  const NOW = 1_800_000_000_000
+
+  it('checks a House Partner customer with permission granted and no check on record', () => {
+    expect(
+      shouldCheckOnForeground({
+        userPartnerId: HOUSE_PARTNER_ID,
+        permissionStatus: 'granted',
+        lastCheckedAt: null,
+        now: NOW,
+      })
+    ).toBe(true)
+  })
+
+  it('is throttled to once per hour: a check within the hour skips, an older one runs again', () => {
+    const base = { userPartnerId: HOUSE_PARTNER_ID, permissionStatus: 'granted', now: NOW } as const
+    expect(shouldCheckOnForeground({ ...base, lastCheckedAt: NOW - 59 * 60 * 1000 })).toBe(false)
+    expect(shouldCheckOnForeground({ ...base, lastCheckedAt: NOW - JOIN_PROMPT_RECHECK_INTERVAL_MS })).toBe(false)
+    expect(shouldCheckOnForeground({ ...base, lastCheckedAt: NOW - JOIN_PROMPT_RECHECK_INTERVAL_MS - 1 })).toBe(true)
+  })
+
+  it('never asks for permission: undetermined and denied both skip — only an already-granted permission checks', () => {
+    const base = { userPartnerId: HOUSE_PARTNER_ID, lastCheckedAt: null, now: NOW } as const
+    expect(shouldCheckOnForeground({ ...base, permissionStatus: 'undetermined' })).toBe(false)
+    expect(shouldCheckOnForeground({ ...base, permissionStatus: 'denied' })).toBe(false)
+  })
+
+  it('skips anyone not on the House Partner — a Gym Join is one-way, so there is nothing to offer', () => {
+    const base = { permissionStatus: 'granted', lastCheckedAt: null, now: NOW } as const
+    expect(shouldCheckOnForeground({ ...base, userPartnerId: 42 })).toBe(false)
+    expect(shouldCheckOnForeground({ ...base, userPartnerId: null })).toBe(false)
+  })
+
+  it('treats a timestamp in the future (clock moved back) as recently checked, not as never', () => {
+    expect(
+      shouldCheckOnForeground({
+        userPartnerId: HOUSE_PARTNER_ID,
+        permissionStatus: 'granted',
+        lastCheckedAt: NOW + 60_000,
+        now: NOW,
+      })
+    ).toBe(false)
+  })
+})
+
+/**
+ * Dismissal-kind routing (ticket #95, GLOSSARY "Join Prompt"): a terminal
+ * dismissal (`declined`, silencing the Partner permanently) only ever comes
+ * from the explicit "Not Interested" tap; every other way out — "Maybe Later",
+ * the backdrop, the back gesture — is a 24-hour snooze.
+ */
+describe('dismissalKindOf', () => {
+  it('routes only the explicit "Not Interested" tap to declined', () => {
+    expect(dismissalKindOf('not-interested')).toBe('declined')
+  })
+
+  it('routes everything else to snoozed', () => {
+    expect(dismissalKindOf('maybe-later')).toBe('snoozed')
+    expect(dismissalKindOf('backdrop')).toBe('snoozed')
+    expect(dismissalKindOf('back')).toBe('snoozed')
+  })
+})
+
+/**
+ * The re-check's sheet is a courtesy, never an interruption: it presents only
+ * over the main tab container, so a blocking flow (Onboarding, Paywall) or a
+ * fullScreenModal like an active WorkoutSession is never covered.
+ */
+describe('canPresentJoinPromptOver', () => {
+  it('presents over the main tab container', () => {
+    expect(canPresentJoinPromptOver('Tabs')).toBe(true)
+  })
+
+  it('stays away from every other stack route — WorkoutSession above all — and from an unready navigator', () => {
+    expect(canPresentJoinPromptOver('WorkoutSession')).toBe(false)
+    expect(canPresentJoinPromptOver('Onboarding')).toBe(false)
+    expect(canPresentJoinPromptOver('Paywall')).toBe(false)
+    expect(canPresentJoinPromptOver(undefined)).toBe(false)
   })
 })
 

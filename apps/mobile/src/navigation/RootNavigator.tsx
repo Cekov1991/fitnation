@@ -16,6 +16,7 @@ import { AuthNavigator } from './AuthNavigator'
 import { AppNavigator } from './AppNavigator'
 import { linking } from './linking'
 import { EntitlementWatcher } from './EntitlementWatcher'
+import { ForegroundJoinPrompt } from '../components/partners/ForegroundJoinPrompt'
 import type { AppStackParamList } from './types'
 
 // The native splash is background-colour only (a transparent image in app.json —
@@ -87,6 +88,9 @@ export function RootNavigator() {
             <>
               <AppNavigator launchReady={!showOverlay} />
               <EntitlementWatcher navRef={navRef} />
+              {/* Ticket #95: the Join Prompt's foreground re-check — presents
+                  its sheet only over Tabs, decided via the same navRef. */}
+              <ForegroundJoinPrompt navRef={navRef} ready={!showOverlay} />
             </>
           ) : (
             <AuthNavigator />

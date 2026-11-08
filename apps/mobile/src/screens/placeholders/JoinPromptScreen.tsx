@@ -4,21 +4,21 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Location from 'expo-location'
 import { MapPin } from 'lucide-react-native'
 import { useQueryClient } from '@tanstack/react-query'
-import { failureOf, partnersApi, withAlpha, type NearbyPartnerResource } from '@fit-nation/shared'
+import { partnersApi, withAlpha, type NearbyPartnerResource } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { useEntitlements, Entitlement } from '../../hooks/useEntitlements'
 import { entryRoute } from '../../navigation/gate'
 import { Button } from '../../components/ui/Button'
 import { JoinGymSheet, type JoinPromptDismissalKind } from '../../components/partners/JoinGymSheet'
-import { pickNearestPartner, shouldRunJoinPrompt, type LocationPermissionStatus } from '../../lib/joinPrompt'
+import { performGymJoin, postJoinPromptDismissal } from '../../lib/gymJoin'
+import { pickNearestPartner, shouldRunJoinPrompt } from '../../lib/joinPrompt'
 import { markJoinPromptAsked, wasJoinPromptAsked } from '../../lib/joinPromptSession'
+import { markJoinPromptChecked } from '../../lib/joinPromptThrottle'
+import { getLocationFix, permissionStatusOf } from '../../lib/locationFix'
 import { showToast } from '../../lib/toast'
 import { RADIUS, SCREEN, STACK_GAP } from '../../constants/layout'
 import type { AppScreenProps } from '../../navigation/types'
-
-/** One fix is all the step takes; a gym has wifi and walls, so don't wait on GPS forever. */
-const LOCATION_FIX_TIMEOUT_MS = 10_000
 
 const RATIONALE = { tile: 64, icon: 30 } as const
 
@@ -28,24 +28,14 @@ const RATIONALE = { tile: 64, icon: 30 } as const
 type Phase = 'deciding' | 'rationale' | 'locating' | 'offer'
 
 /**
- * expo-location's enum, folded to the module's literals. Any earlier denial
- * counts as 'denied' — even Android's soft one with canAskAgain still true —
- * because the spec wants the step invisible for someone who already said no,
- * not re-asked every session.
- */
-function permissionStatusOf(permission: Location.LocationPermissionResponse): LocationPermissionStatus {
-  if (permission.granted) return 'granted'
-  return permission.status === Location.PermissionStatus.UNDETERMINED ? 'undetermined' : 'denied'
-}
-
-/**
  * The Join Prompt step (ticket #94, GLOSSARY "Join Prompt"): a dedicated,
  * skippable moment between registration and Onboarding. It asks for the
  * while-in-use location permission with a "find your gym" rationale, takes one
  * fix, and offers the nearest Partner in a bottom sheet. Whenever anything
  * says no — rules (lib/joinPrompt.ts), permission, location, an empty nearby
  * answer, a 403 on the join — it hands over to Onboarding as if it never
- * existed. Dismissals are not persisted yet; that is ticket #95.
+ * existed. Dismissals post their kind to `/join-prompt/dismissals` (#95), and
+ * the check stamps the throttle the foreground re-check shares.
  */
 export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
   const { user, refreshUser, setUser } = useAuth()
@@ -70,12 +60,7 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
   const locate = useCallback(async () => {
     setPhase('locating')
     try {
-      const fix = await Promise.race([
-        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('location fix timed out')), LOCATION_FIX_TIMEOUT_MS)
-        ),
-      ])
+      const fix = await getLocationFix()
       if (leftRef.current) return
       const { data } = await partnersApi.getNearby(fix.coords.latitude, fix.coords.longitude)
       if (leftRef.current) return
@@ -91,7 +76,7 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
       // No fix, no network, a 422, the throttle: the step stays invisible.
       continueToOnboarding()
     }
-  }, [continueToOnboarding])
+  }, [continueToOnboarding, user])
 
   // Decide once, on arrival: the pure rules plus the real permission state.
   useEffect(() => {
@@ -134,35 +119,19 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
   const handleJoin = async () => {
     if (!partner || joining) return
     setJoining(true)
-    try {
-      const joined = await partnersApi.join(partner.id)
-      // The Gym Join changes the partner, and with it branding and the program
-      // library — refetch the profile so the identity visibly switches before
-      // Onboarding generates the welcome program. The join already echoed the
-      // full user, so a failed refetch falls back to that payload.
-      try {
-        await refreshUser()
-      } catch {
-        setUser(joined.user)
-      }
-      queryClient.invalidateQueries()
-      continueToOnboarding()
-    } catch (error) {
-      const failure = failureOf(error)
-      if (failure.status === 403) {
-        // The server declined the Gym Join (one-way rule, inactive, disabled):
-        // a verdict, not a user-facing error — continue as if never offered.
-        continueToOnboarding()
-        return
-      }
+    const outcome = await performGymJoin(partner.id, { refreshUser, setUser, queryClient })
+    if (outcome === 'failed') {
       showToast('Could not join right now. Please try again.', 'error')
       setJoining(false)
+      return
     }
+    // 'joined' switched the identity before Onboarding generates the welcome
+    // program; 'declined' is the server's quiet verdict — both continue.
+    continueToOnboarding()
   }
 
-  const handleDismiss = (_kind: JoinPromptDismissalKind) => {
-    // #95 posts the kind to /join-prompt/dismissals; today dismissing only
-    // continues to Onboarding.
+  const handleDismiss = (kind: JoinPromptDismissalKind) => {
+    if (partner) postJoinPromptDismissal(partner.id, kind)
     continueToOnboarding()
   }
 
