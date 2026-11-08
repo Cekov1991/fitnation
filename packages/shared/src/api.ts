@@ -31,6 +31,8 @@ import type {
   ListResponse,
   DataMessageResponse,
   PartnerBrandingResource,
+  NearbyPartnerResource,
+  JoinPartnerResponse,
   CompleteOnboardingResponse,
   ExerciseResource,
   ExerciseHistoryResponse,
@@ -159,6 +161,23 @@ export const partnersApi = {
   },
   getBrandingBySlug: async (slug: string): Promise<DataResponse<PartnerBrandingResource>> => {
     return unauthenticated<DataResponse<PartnerBrandingResource>>(`/partners/${slug}/branding`);
+  },
+  // The Join Prompt's one question: which Partners' Gym Locations is this
+  // spot inside of, nearest first. `[]` means "no prompt" (also how the
+  // server answers an ineligible user), never an error. Throttled 30/min.
+  getNearby: async (latitude: number, longitude: number): Promise<ListResponse<NearbyPartnerResource>> => {
+    return authed<ListResponse<NearbyPartnerResource>>(
+      `/partners/nearby?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`
+    );
+  },
+  // The Gym Join: the one-way move off the House Partner, accepted from a
+  // Join Prompt. 403 (one-way rule / inactive / disabled) is the server
+  // declining, not a user-facing error.
+  join: async (partnerId: number): Promise<JoinPartnerResponse> => {
+    return authed<JoinPartnerResponse>('/me/partner', {
+      method: 'POST',
+      body: JSON.stringify({ partner_id: partnerId }),
+    });
   },
 };
 

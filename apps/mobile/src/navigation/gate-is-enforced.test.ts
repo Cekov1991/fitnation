@@ -14,7 +14,7 @@ const read = (rel: string) => readFileSync(join(HERE, rel), 'utf8')
 
 describe('the subscription gate decides every entry route', () => {
   it('AppNavigator takes its launch route from entryRoute', () => {
-    expect(read('AppNavigator.tsx')).toMatch(/initialRouteName = entryRoute\(user, has\(Entitlement\.AppAccess\)\)/)
+    expect(read('AppNavigator.tsx')).toMatch(/initialRouteName = entryRoute\(user, has\(Entitlement\.AppAccess\), offerJoinPrompt\)/)
   })
 
   it('Onboarding hands over through gateRoute, never to a literal Tabs', () => {
@@ -25,8 +25,16 @@ describe('the subscription gate decides every entry route', () => {
 
   it('EmailVerification hands over through entryRoute', () => {
     const src = read('../screens/placeholders/EmailVerificationScreen.tsx')
-    expect(src).toMatch(/name: entryRoute\(user, has\(Entitlement\.AppAccess\)\)/)
+    expect(src).toMatch(/name: entryRoute\(user, has\(Entitlement\.AppAccess\), offerJoinPrompt\)/)
     expect(src).not.toMatch(/'Tabs'/)
+  })
+
+  // Ticket #94: the Join Prompt step sits before Onboarding, so its every exit
+  // must also go through the gate — never to a literal destination.
+  it('JoinPrompt hands over through entryRoute', () => {
+    const src = read('../screens/placeholders/JoinPromptScreen.tsx')
+    expect(src).toMatch(/navigation\.replace\(entryRoute\(user, has\(Entitlement\.AppAccess\)\)\)/)
+    expect(src).not.toMatch(/replace\('(?:Tabs|Onboarding)'\)/)
   })
 
   it('EntitlementWatcher re-checks on every navigation state change', () => {

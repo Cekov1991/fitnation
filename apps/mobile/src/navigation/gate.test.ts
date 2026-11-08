@@ -17,6 +17,16 @@ describe('entryRoute', () => {
     expect(gateRoute(false)).toBe('Paywall')
     expect(gateRoute(true)).toBe('Tabs')
   })
+
+  // Ticket #94: the Join Prompt step sits between registration and Onboarding.
+  // It only ever replaces Onboarding — never a prerequisite, never the gate.
+  it('offers the Join Prompt step only where Onboarding would be', () => {
+    expect(entryRoute(verified, true, true)).toBe('JoinPrompt')
+    expect(entryRoute(null, true, true)).toBe('EmailVerification')
+    expect(entryRoute(onboarded, true, true)).toBe('Tabs')
+    expect(entryRoute(onboarded, false, true)).toBe('Paywall')
+    expect(entryRoute(verified, true, false)).toBe('Onboarding')
+  })
 })
 
 describe('hasBackendAppAccess', () => {
@@ -63,6 +73,7 @@ describe('entitlementReroute', () => {
   it('never overrides a prerequisite screen', () => {
     expect(entitlementReroute('Onboarding', false)).toBeNull()
     expect(entitlementReroute('EmailVerification', false)).toBeNull()
+    expect(entitlementReroute('JoinPrompt', false)).toBeNull()
     expect(entitlementReroute(undefined, false)).toBeNull()
   })
 

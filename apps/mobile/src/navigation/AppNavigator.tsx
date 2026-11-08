@@ -4,9 +4,11 @@ import { useLaunchPermissionCheck } from '../hooks/useLaunchPermissionCheck'
 import { NotificationPermissionSheet } from '../components/ui/NotificationPermissionSheet'
 import { useEntitlements, Entitlement } from '../hooks/useEntitlements'
 import { entryRoute } from './gate'
+import { offersJoinPromptStepFor } from '../lib/joinPromptSession'
 import { TabNavigator } from './TabNavigator'
 import { EmailVerificationScreen } from '../screens/placeholders/EmailVerificationScreen'
 import { OnboardingScreen } from '../screens/placeholders/OnboardingScreen'
+import { JoinPromptScreen } from '../screens/placeholders/JoinPromptScreen'
 import { WorkoutSessionScreen } from '../screens/placeholders/WorkoutSessionScreen'
 import { WorkoutSummaryScreen } from '../screens/placeholders/WorkoutSummaryScreen'
 import { WorkoutSessionExerciseDetailScreen } from '../screens/placeholders/WorkoutSessionExerciseDetailScreen'
@@ -41,7 +43,11 @@ interface AppNavigatorProps {
 export function AppNavigator({ launchReady }: AppNavigatorProps) {
   const { user } = useAuth()
   const { has } = useEntitlements()
-  const initialRouteName = entryRoute(user, has(Entitlement.AppAccess))
+  // Ticket #94: an unasked House Partner customer takes the Join Prompt step
+  // where Onboarding would start; the step itself skips invisibly when
+  // permission or the nearby answer says no.
+  const offerJoinPrompt = offersJoinPromptStepFor(user)
+  const initialRouteName = entryRoute(user, has(Entitlement.AppAccess), offerJoinPrompt)
 
   // 0013 R10: the permission explainer, at most weekly, only on a launch that
   // lands on Tabs — EmailVerification and Onboarding keep their own moments.
@@ -57,6 +63,11 @@ export function AppNavigator({ launchReady }: AppNavigatorProps) {
       <Stack.Screen
         name="EmailVerification"
         component={EmailVerificationScreen}
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="JoinPrompt"
+        component={JoinPromptScreen}
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen

@@ -113,6 +113,12 @@ describe('ui standards', () => {
     expect(offenders(everything().filter((f) => !f.includes('/components/profile/')), optionMap, allow)).toEqual([]);
   });
 
+  it('the Join Prompt offer is <JoinGymSheet>, not re-drawn in a screen', () => {
+    // Rendering a Partner's benefits checklist directly is the signature of a hand-rolled Join Prompt sheet.
+    const benefits = /\bbenefits\.map\(/g;
+    expect(offenders(everything().filter((f) => !f.includes('/components/partners/')), benefits)).toEqual([]);
+  });
+
   it('screens use SCREEN.paddingX for their gutter, not a literal', () => {
     // 20 and 24 were the strays; 16 matches the token and is tolerated inline.
     const literal = /\b(?:paddingHorizontal:\s*(?:20|24)\b|px-[56]\b)/g;
