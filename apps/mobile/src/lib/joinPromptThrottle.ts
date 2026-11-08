@@ -8,10 +8,8 @@
 import * as SecureStore from 'expo-secure-store'
 
 // SecureStore key: 'joinPromptLastCheckedAt.<userId>' (alphanumeric plus '.' is valid).
-export const JOIN_PROMPT_LAST_CHECK_KEY_PREFIX = 'joinPromptLastCheckedAt.'
-
 function keyFor(userId: number): string {
-  return `${JOIN_PROMPT_LAST_CHECK_KEY_PREFIX}${userId}`
+  return `joinPromptLastCheckedAt.${userId}`
 }
 
 /** Garbage and null read as "never checked". */

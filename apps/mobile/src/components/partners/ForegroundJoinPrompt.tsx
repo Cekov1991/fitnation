@@ -3,11 +3,12 @@ import { AppState } from 'react-native'
 import type { NavigationContainerRef } from '@react-navigation/native'
 import * as Location from 'expo-location'
 import { useQueryClient } from '@tanstack/react-query'
-import { failureOf, partnersApi, type JoinPromptDismissalKind, type NearbyPartnerResource } from '@fit-nation/shared'
+import { partnersApi, type JoinPromptDismissalKind, type NearbyPartnerResource } from '@fit-nation/shared'
 import { useAuth } from '../../context/AuthContext'
+import { performGymJoin, postJoinPromptDismissal } from '../../lib/gymJoin'
 import { canPresentJoinPromptOver, pickNearestPartner, shouldCheckOnForeground } from '../../lib/joinPrompt'
 import { markJoinPromptChecked, readJoinPromptLastCheckedAt } from '../../lib/joinPromptThrottle'
-import { getLocationFix } from '../../lib/locationFix'
+import { getLocationFix, permissionStatusOf } from '../../lib/locationFix'
 import { showToast } from '../../lib/toast'
 import type { AppStackParamList } from '../../navigation/types'
 import { JoinGymSheet } from './JoinGymSheet'
@@ -68,17 +69,19 @@ export function ForegroundJoinPrompt({ navRef, ready }: Props) {
       const lastCheckedAt = await readJoinPromptLastCheckedAt(u.id)
       const due = shouldCheckOnForeground({
         userPartnerId: u.partner?.id ?? null,
-        permissionStatus: permission.granted ? 'granted' : 'denied',
+        permissionStatus: permissionStatusOf(permission),
         lastCheckedAt,
         now: Date.now(),
       })
       if (!due) return
-      // Stamped when a check starts, not when it succeeds: the throttle is a
-      // courtesy against hammering, so a failed fix must not retry every
-      // foreground. The server's dismissal filter is the real gate.
-      await markJoinPromptChecked(u.id)
       const fix = await getLocationFix()
       const { data } = await partnersApi.getNearby(fix.coords.latitude, fix.coords.longitude)
+      // Stamped once the check completed (the server answered), not when it
+      // started: a slow GPS fix inside the gym must not burn the hour, or the
+      // demo moment — walk in, open the app, get prompted — misses. A failed
+      // check retries on the next foreground, which is user-paced, and the
+      // server throttles /partners/nearby itself.
+      await markJoinPromptChecked(u.id)
       const nearest = pickNearestPartner(data)
       // Re-read the route: the person may have started a workout meanwhile.
       if (nearest && canPresentJoinPromptOver(focusedStackRoute(navRef.current))) {
@@ -105,35 +108,22 @@ export function ForegroundJoinPrompt({ navRef, ready }: Props) {
   const handleDismiss = (kind: JoinPromptDismissalKind) => {
     const dismissed = partner
     setPartner(null)
-    // Fire-and-forget: the server's filter is the source of truth, and nearby
-    // simply offers the Partner again next time if this write was lost.
-    if (dismissed) void partnersApi.dismissJoinPrompt(dismissed.id, kind).catch(() => {})
+    if (dismissed) postJoinPromptDismissal(dismissed.id, kind)
   }
 
   const handleJoin = async () => {
     if (!partner || joining) return
     setJoining(true)
     try {
-      const joined = await partnersApi.join(partner.id)
-      // The Gym Join switches partner, branding and program library — refetch
-      // the profile so the identity visibly changes under the closing sheet.
-      try {
-        await refreshUser()
-      } catch {
-        setUser(joined.user)
-      }
-      queryClient.invalidateQueries()
-      showToast(`Welcome to ${partner.name}!`, 'success')
-      setPartner(null)
-    } catch (error) {
-      const failure = failureOf(error)
-      if (failure.status === 403) {
-        // The server declined the Gym Join (one-way rule, inactive, disabled):
-        // a verdict, not a user-facing error — the offer quietly withdraws.
-        setPartner(null)
+      const outcome = await performGymJoin(partner.id, { refreshUser, setUser, queryClient })
+      if (outcome === 'failed') {
+        showToast('Could not join right now. Please try again.', 'error')
         return
       }
-      showToast('Could not join right now. Please try again.', 'error')
+      // 'declined' is the server's quiet verdict; 'joined' switched the
+      // identity under the closing sheet — either way the offer withdraws.
+      if (outcome === 'joined') showToast(`Welcome to ${partner.name}!`, 'success')
+      setPartner(null)
     } finally {
       setJoining(false)
     }
