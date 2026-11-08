@@ -84,6 +84,8 @@ export interface UserPartner {
   name: string;
   slug: string;
   visual_identity: PartnerVisualIdentityResource | null;
+  /** The RevenueCat offering the paywall sells, e.g. "discount-30" (the partner's Paywall Discount); null = the default offering. */
+  paywall_offering_id: string | null;
 }
 
 // ============================================

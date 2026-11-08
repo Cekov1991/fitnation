@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Image } from 'expo-image'
 import Purchases, { type CustomerInfo, type PurchasesPackage, PURCHASES_ERROR_CODE } from 'react-native-purchases'
 import { useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Zap } from 'lucide-react-native'
+import { BadgePercent, CheckCircle2, Zap } from 'lucide-react-native'
 import { privacyPolicy, termsOfService } from '@fit-nation/legal'
 import { authApi, queryKeys, withAlpha } from '@fit-nation/shared'
 import { useAuth } from '../context/AuthContext'
@@ -13,9 +14,18 @@ import { Card } from '../components/ui/Card'
 import { ErrorState } from '../components/ui/ErrorState'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { SectionLabel } from '../components/ui/SectionLabel'
-import { RADIUS, SCREEN, STACK_GAP } from '../constants/layout'
+import { RADIUS, SCREEN, SECTION_GAP, STACK_GAP } from '../constants/layout'
 import { Entitlement, useEntitlements } from '../hooks/useEntitlements'
-import { paywallHero, purchaseOutcomeMessage, SUBSCRIBED_MESSAGE, type PurchaseAction } from './paywallCopy'
+import {
+  PARTNER_DISCOUNT_NOTE,
+  partnerDiscountLine,
+  paywallHero,
+  purchaseOutcomeMessage,
+  SUBSCRIBED_MESSAGE,
+  yearlyBadge,
+  type PurchaseAction,
+} from './paywallCopy'
+import { packageDiscount, paywallPlans } from './paywallOffering'
 import { runPurchaseFlow, type PurchaseFlowResult } from '../lib/purchaseFlow'
 import { purchaseLiftsRefusal } from '../navigation/gate'
 import { revenueCatIdentity } from '../lib/revenuecat'
@@ -31,6 +41,11 @@ import type { AppScreenProps } from '../navigation/types'
  * The same screen, as SubscriptionPlans, is the plans opened by choice during
  * the Signup Trial (See Plans on the Profile tab). That one is not the gate: it
  * has a back button instead of Sign Out, and goes back after a purchase.
+ *
+ * Both sell the default RevenueCat offering, unless the user's partner has a
+ * Paywall Discount: then its offering (`partner.paywall_offering_id`), with
+ * the standard prices struck through (paywallOffering.ts) and a banner that
+ * names the partner giving the discount.
  */
 const FEATURES = [
   'Personalized workout plans',
@@ -42,7 +57,7 @@ const FEATURES = [
 const hasAppAccess = (info: CustomerInfo) => !!info.entitlements.active[Entitlement.AppAccess]
 
 /** Sizes this screen owns; everything else comes from the primitives. */
-const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2 } as const
+const PAYWALL = { heroTile: 64, heroIcon: 30, featureIcon: 20, planBorder: 2, discountLogo: 48, discountIcon: 24 } as const
 
 export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 'SubscriptionPlans'>) {
   const { colors } = useTheme()
@@ -52,31 +67,37 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
   const isGate = route.name === 'Paywall'
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([])
+  // The default offering's packages while a partner's discount offering is on sale.
+  const [standardPackages, setStandardPackages] = useState<PurchasesPackage[]>([])
   const [selectedPkg, setSelectedPkg] = useState<PurchasesPackage | null>(null)
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   const [restoring, setRestoring] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const discountOfferingId = user?.partner?.paywall_offering_id ?? null
+
   const loadOfferings = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const offerings = await Purchases.getOfferings()
-      const current = offerings.current
-      if (!current || current.availablePackages.length === 0) {
+      const plans = paywallPlans(await Purchases.getOfferings(), discountOfferingId)
+      if (!plans) {
         setError('No plans are available right now. Please try again later.')
         return
       }
-      const pkgs = current.availablePackages
-      setPackages(pkgs)
-      setSelectedPkg(pkgs.find(p => p.packageType === 'ANNUAL') ?? pkgs[0])
+      if (discountOfferingId && !plans.discounted) {
+        console.warn(`[RC] Offering ${discountOfferingId} is missing or empty; selling the default offering`)
+      }
+      setPackages(plans.packages)
+      setStandardPackages(plans.standardPackages)
+      setSelectedPkg(plans.packages.find(p => p.packageType === 'ANNUAL') ?? plans.packages[0])
     } catch {
       setError('Unable to load plans. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [discountOfferingId])
 
   useEffect(() => {
     loadOfferings()
@@ -169,6 +190,13 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
       ? Math.round((1 - annualPkg.product.price / 12 / monthlyPkg.product.price) * 100)
       : 0
 
+  // A Paywall Discount: each plan strikes through its standard price, and the
+  // banner names the selected plan's saving and the partner giving it.
+  const standardPriceOf = (pkg: PurchasesPackage) => packageDiscount(pkg, standardPackages)?.standardPrice
+  const selectedDiscount = selectedPkg ? packageDiscount(selectedPkg, standardPackages) : null
+  const discountLine =
+    selectedDiscount && user?.partner ? partnerDiscountLine(selectedDiscount.percentOff, user.partner.name) : null
+
   const { headline, subheadline, ctaLabel } = paywallHero(subscription)
 
   // The gate has nothing behind it, so it signs out; the plans opened by choice go back.
@@ -220,6 +248,7 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
           <Text className="text-base text-center leading-6" style={{ color: colors.textSecondary }}>
             {subheadline}
           </Text>
+          {discountLine && <PartnerDiscountBanner title={discountLine} logoUrl={user?.partner?.visual_identity?.logo} />}
         </View>
 
         {/* What the subscription unlocks */}
@@ -238,6 +267,7 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
             <PlanTile
               caption="Monthly"
               price={monthlyPkg.product.priceString}
+              standardPrice={standardPriceOf(monthlyPkg)}
               period="per month"
               selected={selectedPkg?.identifier === monthlyPkg.identifier}
               onPress={() => setSelectedPkg(monthlyPkg)}
@@ -247,6 +277,7 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
             <PlanTile
               caption="Yearly"
               price={annualPkg.product.priceString}
+              standardPrice={standardPriceOf(annualPkg)}
               period="per year"
               note={
                 annualPkg.product.price > 0
@@ -257,7 +288,7 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
                     })}/mo`
                   : undefined
               }
-              badge={savings > 0 ? `Save ${savings}%` : undefined}
+              badge={yearlyBadge(savings, !!discountLine)}
               selected={selectedPkg?.identifier === annualPkg.identifier}
               onPress={() => setSelectedPkg(annualPkg)}
             />
@@ -268,6 +299,7 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
             key={pkg.identifier}
             caption={pkg.product.title}
             price={pkg.product.priceString}
+            standardPrice={standardPriceOf(pkg)}
             selected={selectedPkg?.identifier === pkg.identifier}
             onPress={() => setSelectedPkg(pkg)}
             style={{ marginBottom: STACK_GAP }}
@@ -308,10 +340,12 @@ export function PaywallScreen({ navigation, route }: AppScreenProps<'Paywall' | 
 interface PlanTileProps {
   caption: string
   price: string
+  /** The full price, struck through above a discounted `price`. */
+  standardPrice?: string
   period?: string
   /** A second line under the price, e.g. the yearly plan's monthly equivalent. */
   note?: string
-  /** A corner pill, e.g. "Save 33%". */
+  /** A corner pill, e.g. "Save 33%" (yearlyBadge). */
   badge?: string
   selected: boolean
   onPress: () => void
@@ -319,7 +353,7 @@ interface PlanTileProps {
 }
 
 /** A selectable plan: a Card with a brand border when chosen. Not a Button — it holds several lines. */
-function PlanTile({ caption, price, period, note, badge, selected, onPress, style }: PlanTileProps) {
+function PlanTile({ caption, price, standardPrice, period, note, badge, selected, onPress, style }: PlanTileProps) {
   const { colors } = useTheme()
   return (
     <TouchableOpacity
@@ -327,7 +361,7 @@ function PlanTile({ caption, price, period, note, badge, selected, onPress, styl
       activeOpacity={0.8}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${caption}, ${price}${period ? ` ${period}` : ''}`}
+      accessibilityLabel={`${caption}, ${price}${period ? ` ${period}` : ''}${standardPrice ? `, was ${standardPrice}` : ''}`}
       style={[styles.plan, style]}
     >
       <Card style={[styles.planCard, { borderColor: selected ? colors.primary : colors.border }]}>
@@ -337,11 +371,52 @@ function PlanTile({ caption, price, period, note, badge, selected, onPress, styl
           </View>
         )}
         <SectionLabel tone="muted" style={{ marginBottom: 8 }}>{caption}</SectionLabel>
+        {!!standardPrice && (
+          <Text className="text-xs" style={{ color: colors.textMuted, textDecorationLine: 'line-through' }}>{standardPrice}</Text>
+        )}
         <Text className="text-xl font-bold" style={{ color: colors.textPrimary }}>{price}</Text>
         {!!period && <Text className="text-xs mt-1" style={{ color: colors.textMuted }}>{period}</Text>}
         {!!note && <Text className="text-xs mt-1" style={{ color: colors.primary }}>{note}</Text>}
       </Card>
     </TouchableOpacity>
+  )
+}
+
+interface PartnerDiscountBannerProps {
+  /** Who gives the discount and how much: "30% off from Synergy Fitness Center" (partnerDiscountLine). */
+  title: string
+  /** The partner's logo. The discount icon stands in when there is none or it fails to load. */
+  logoUrl?: string | null
+}
+
+/**
+ * A partner's Paywall Discount under the hero: the partner's logo beside who
+ * gives the discount and that the prices below already include it. A tinted
+ * Card rather than a pill, so the partner reads as the reason for the price.
+ */
+function PartnerDiscountBanner({ title, logoUrl }: PartnerDiscountBannerProps) {
+  const { colors } = useTheme()
+  // A logo that fails to load (a missing file on the server) would leave an
+  // empty square; the discount icon takes its place.
+  const [logoFailed, setLogoFailed] = useState(false)
+  return (
+    <Card
+      accessible
+      accessibilityLabel={`${title}. ${PARTNER_DISCOUNT_NOTE}.`}
+      style={[styles.discount, { backgroundColor: withAlpha(colors.primary, 0.15), borderColor: withAlpha(colors.primary, 0.3) }]}
+    >
+      {logoUrl && !logoFailed ? (
+        <Image source={logoUrl} onError={() => setLogoFailed(true)} style={styles.discountLogo} contentFit="contain" />
+      ) : (
+        <View style={[styles.discountLogo, { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
+          <BadgePercent size={PAYWALL.discountIcon} color={colors.primary} />
+        </View>
+      )}
+      <View style={styles.discountBody}>
+        <Text className="text-base font-bold" style={{ color: colors.textPrimary }}>{title}</Text>
+        <Text className="text-sm mt-1" style={{ color: colors.textSecondary }}>{PARTNER_DISCOUNT_NOTE}</Text>
+      </View>
+    </Card>
   )
 }
 
@@ -358,6 +433,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
+  discount: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: STACK_GAP,
+    padding: 16,
+    borderWidth: 1,
+    marginTop: SECTION_GAP,
+    marginBottom: 0,
+  },
+  discountLogo: {
+    width: PAYWALL.discountLogo,
+    height: PAYWALL.discountLogo,
+    borderRadius: RADIUS.control,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  discountBody: { flex: 1 },
   features: { gap: STACK_GAP, marginBottom: 32 },
   feature: { flexDirection: 'row', alignItems: 'center', gap: STACK_GAP },
   plans: { flexDirection: 'row', gap: STACK_GAP, marginBottom: STACK_GAP },
