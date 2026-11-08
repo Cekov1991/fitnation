@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { initAuth } from './auth';
 import { initApi } from './config';
-import { authApi, devicesApi } from './api';
+import { authApi, devicesApi, partnersApi } from './api';
 
 const store = new Map<string, string>();
 initAuth({ storage: { getItem: k => store.get(k) ?? null, setItem: (k, v) => void store.set(k, v), removeItem: k => void store.delete(k) } });
@@ -58,5 +58,31 @@ describe('authApi.syncSubscription', () => {
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
     expect(out.user.entitlements).toEqual(['app_access']);
+  });
+});
+
+describe('partnersApi.dismissJoinPrompt', () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    store.clear();
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  // A Join Prompt dismissal (ticket #95, backend #89): snoozed silences the
+  // Partner for 24h, declined permanently. The server answers 204; the client
+  // fires and forgets — a lost write only means being offered again.
+  it('POSTs the partner and kind to /join-prompt/dismissals with the bearer token and resolves on 204', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    store.set('authToken', 'tok');
+
+    await expect(partnersApi.dismissJoinPrompt(7, 'snoozed')).resolves.toBeUndefined();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.test/join-prompt/dismissals');
+    expect(init.method).toBe('POST');
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
+    expect(JSON.parse(init.body as string)).toEqual({ partner_id: 7, kind: 'snoozed' });
   });
 });

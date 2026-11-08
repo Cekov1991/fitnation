@@ -33,6 +33,7 @@ import type {
   PartnerBrandingResource,
   NearbyPartnerResource,
   JoinPartnerResponse,
+  JoinPromptDismissalKind,
   CompleteOnboardingResponse,
   ExerciseResource,
   ExerciseHistoryResponse,
@@ -177,6 +178,17 @@ export const partnersApi = {
     return authed<JoinPartnerResponse>('/me/partner', {
       method: 'POST',
       body: JSON.stringify({ partner_id: partnerId }),
+    });
+  },
+  // A Join Prompt dismissal (ticket #95): "Maybe later" and every implicit
+  // dismissal are `snoozed` (24h, indefinitely repeatable), the explicit "Not
+  // interested" is `declined` (permanent). 204 on success; fire-and-forget —
+  // the server's filter is the source of truth and `/partners/nearby` simply
+  // offers the Partner again if this write was lost. 422 on bad input.
+  dismissJoinPrompt: async (partnerId: number, kind: JoinPromptDismissalKind): Promise<void> => {
+    await authed<unknown>('/join-prompt/dismissals', {
+      method: 'POST',
+      body: JSON.stringify({ partner_id: partnerId, kind }),
     });
   },
 };

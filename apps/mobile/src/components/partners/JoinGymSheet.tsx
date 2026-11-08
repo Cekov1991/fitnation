@@ -1,27 +1,28 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Check, MapPin } from 'lucide-react-native'
-import { withAlpha } from '@fit-nation/shared'
+import { withAlpha, type JoinPromptDismissalKind } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { STACK_GAP } from '../../constants/layout'
+import { dismissalKindOf, type JoinPromptDismissalTrigger } from '../../lib/joinPrompt'
 import { Button } from '../ui/Button'
 
 /**
- * The Join Prompt's bottom sheet (ticket #94): the nearest Partner's name and
- * benefits checklist over a Join action. Styled like DeleteAccountSheet — the
- * app's bottom-card family.
+ * The Join Prompt's bottom sheet (tickets #94/#95): the nearest Partner's name
+ * and benefits checklist over a Join action. Styled like DeleteAccountSheet —
+ * the app's bottom-card family.
  *
- * Dismissal semantics are ticket #95's: `onDismiss` carries the kind so the
- * caller can post it to `/join-prompt/dismissals` once that ships. Today the
- * sheet only emits 'snoozed' ("Not Now", the backdrop, the back gesture); #95
- * adds a "Not Interested" affordance that emits 'declined'.
+ * `onDismiss` carries the dismissal's kind for `/join-prompt/dismissals`:
+ * 'declined' (permanent) only ever from the explicit "Not Interested" tap;
+ * "Maybe Later", the backdrop and the back gesture all emit 'snoozed' (24h).
+ * The routing itself is lib/joinPrompt.dismissalKindOf.
  */
 // radius/tileRadius are the bottom-card family's 20/14 (DeleteAccountSheet,
 // NotificationPermissionSheet) — kept equal to them, not RADIUS.card, so the
 // sheets move together when that drift is resolved.
 export const JOIN_GYM_SHEET = { radius: 20, padding: 20, tile: 48, tileRadius: 14, icon: 22, title: 22, benefitIcon: 16 } as const
 
-export type JoinPromptDismissalKind = 'snoozed' | 'declined'
+export type { JoinPromptDismissalKind }
 
 interface JoinGymSheetProps {
   visible: boolean
@@ -38,14 +39,14 @@ interface JoinGymSheetProps {
 export function JoinGymSheet({ visible, partnerName, benefits, joining, onJoin, onDismiss }: JoinGymSheetProps) {
   const { colors } = useTheme()
 
-  const handleSnooze = () => {
+  const handleDismiss = (trigger: JoinPromptDismissalTrigger) => () => {
     if (joining) return
-    onDismiss('snoozed')
+    onDismiss(dismissalKindOf(trigger))
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleSnooze} statusBarTranslucent>
-      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={handleSnooze}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleDismiss('back')} statusBarTranslucent>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={handleDismiss('backdrop')}>
         <SafeAreaView edges={['bottom']}>
           <Pressable onPress={() => {}} style={styles.container}>
             <View style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.border }]}>
@@ -69,7 +70,24 @@ export function JoinGymSheet({ visible, partnerName, benefits, joining, onJoin, 
               )}
 
               <Button label={`Join ${partnerName}`} loading={joining} onPress={onJoin} />
-              <Button label="Not Now" variant="ghost" size="sm" disabled={joining} onPress={handleSnooze} style={styles.dismiss} />
+              <View style={styles.dismissRow}>
+                <Button
+                  label="Not Interested"
+                  variant="ghost"
+                  size="sm"
+                  disabled={joining}
+                  onPress={handleDismiss('not-interested')}
+                  style={styles.dismissButton}
+                />
+                <Button
+                  label="Maybe Later"
+                  variant="ghost"
+                  size="sm"
+                  disabled={joining}
+                  onPress={handleDismiss('maybe-later')}
+                  style={styles.dismissButton}
+                />
+              </View>
             </View>
           </Pressable>
         </SafeAreaView>
@@ -95,5 +113,6 @@ const styles = StyleSheet.create({
   benefits: { gap: 10, marginBottom: 20 },
   benefitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   benefitText: { flex: 1, fontSize: 14, lineHeight: 20 },
-  dismiss: { marginTop: STACK_GAP },
+  dismissRow: { flexDirection: 'row', gap: 12, marginTop: STACK_GAP },
+  dismissButton: { flex: 1 },
 })

@@ -13,12 +13,11 @@ import { Button } from '../../components/ui/Button'
 import { JoinGymSheet, type JoinPromptDismissalKind } from '../../components/partners/JoinGymSheet'
 import { pickNearestPartner, shouldRunJoinPrompt, type LocationPermissionStatus } from '../../lib/joinPrompt'
 import { markJoinPromptAsked, wasJoinPromptAsked } from '../../lib/joinPromptSession'
+import { markJoinPromptChecked } from '../../lib/joinPromptThrottle'
+import { getLocationFix } from '../../lib/locationFix'
 import { showToast } from '../../lib/toast'
 import { RADIUS, SCREEN, STACK_GAP } from '../../constants/layout'
 import type { AppScreenProps } from '../../navigation/types'
-
-/** One fix is all the step takes; a gym has wifi and walls, so don't wait on GPS forever. */
-const LOCATION_FIX_TIMEOUT_MS = 10_000
 
 const RATIONALE = { tile: 64, icon: 30 } as const
 
@@ -45,7 +44,8 @@ function permissionStatusOf(permission: Location.LocationPermissionResponse): Lo
  * fix, and offers the nearest Partner in a bottom sheet. Whenever anything
  * says no — rules (lib/joinPrompt.ts), permission, location, an empty nearby
  * answer, a 403 on the join — it hands over to Onboarding as if it never
- * existed. Dismissals are not persisted yet; that is ticket #95.
+ * existed. Dismissals post their kind to `/join-prompt/dismissals` (#95), and
+ * the check stamps the throttle the foreground re-check shares.
  */
 export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
   const { user, refreshUser, setUser } = useAuth()
@@ -69,13 +69,11 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
 
   const locate = useCallback(async () => {
     setPhase('locating')
+    // The step's check stamps the shared throttle (#95), so the foreground
+    // re-check stays quiet for the hour after registration.
+    if (user) void markJoinPromptChecked(user.id)
     try {
-      const fix = await Promise.race([
-        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('location fix timed out')), LOCATION_FIX_TIMEOUT_MS)
-        ),
-      ])
+      const fix = await getLocationFix()
       if (leftRef.current) return
       const { data } = await partnersApi.getNearby(fix.coords.latitude, fix.coords.longitude)
       if (leftRef.current) return
@@ -91,7 +89,7 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
       // No fix, no network, a 422, the throttle: the step stays invisible.
       continueToOnboarding()
     }
-  }, [continueToOnboarding])
+  }, [continueToOnboarding, user])
 
   // Decide once, on arrival: the pure rules plus the real permission state.
   useEffect(() => {
@@ -160,9 +158,10 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
     }
   }
 
-  const handleDismiss = (_kind: JoinPromptDismissalKind) => {
-    // #95 posts the kind to /join-prompt/dismissals; today dismissing only
-    // continues to Onboarding.
+  const handleDismiss = (kind: JoinPromptDismissalKind) => {
+    // Fire-and-forget (#95): the server's dismissal filter is the source of
+    // truth, and nearby simply offers the Partner again if this write is lost.
+    if (partner) void partnersApi.dismissJoinPrompt(partner.id, kind).catch(() => {})
     continueToOnboarding()
   }
 

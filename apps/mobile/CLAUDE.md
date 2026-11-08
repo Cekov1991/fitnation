@@ -50,7 +50,7 @@ spellings of the same caption.
 | Loading placeholder | `ui/SkeletonBox` |
 | Confirm before a destructive action | `ui/ConfirmDialog` |
 | Delete the account (a bottom sheet confirmed by typing DELETE, never a password) | `profile/DeleteAccountSheet`; copy in `profile/deleteAccountCopy.ts` |
-| The Join Prompt's nearby-gym offer (Partner name, benefits checklist, Join / Not Now) | `partners/JoinGymSheet`; the run/skip and nearest-pick rules live in `lib/joinPrompt.ts` |
+| The Join Prompt's nearby-gym offer (Partner name, benefits checklist, Join / Not Interested / Maybe Later) | `partners/JoinGymSheet`; the run/skip, throttle, dismissal-routing and nearest-pick rules live in `lib/joinPrompt.ts`; the foreground re-check host is `partners/ForegroundJoinPrompt` |
 | Drag-to-reorder list, swipe actions | `ui/SortableList`, `ui/SwipeAction` |
 
 ### Rule 2 — numbers live in tokens, not in screens

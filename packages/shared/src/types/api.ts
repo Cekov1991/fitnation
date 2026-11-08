@@ -166,6 +166,12 @@ export interface JoinPartnerResponse {
   user: UserResource;
 }
 
+// A Join Prompt dismissal's kind (mobile ticket #95, backend spec #86):
+// `snoozed` silences the Partner for 24 hours (indefinitely repeatable),
+// `declined` silences it permanently. The server filters `/partners/nearby`
+// by these, so a lost dismissal only means being offered again.
+export type JoinPromptDismissalKind = 'snoozed' | 'declined';
+
 export interface PartnerVisualIdentityResource {
   primary_color: string | null;
   secondary_color: string | null;
