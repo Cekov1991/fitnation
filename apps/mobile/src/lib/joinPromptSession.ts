@@ -14,13 +14,15 @@ const askedUserIds = new Set<number>()
 
 /**
  * The routing question both navigation callers ask, in one place: should this
- * user's next Onboarding entry be the Join Prompt step instead?
+ * user's next Onboarding entry be the Join Prompt step instead? Keyed on the
+ * API's `is_house` flag (ticket #98); a payload without it — a user cached
+ * before the backend sent the flag — fails closed and is never offered.
  */
 export function offersJoinPromptStepFor(
-  user: { id: number; partner: { id: number } | null } | null | undefined
+  user: { id: number; partner: { is_house?: boolean } | null } | null | undefined
 ): boolean {
   return offersJoinPromptStep({
-    userPartnerId: user?.partner?.id ?? null,
+    userPartnerIsHouse: user?.partner?.is_house,
     alreadyAsked: wasJoinPromptAsked(user?.id),
   })
 }

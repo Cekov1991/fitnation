@@ -68,7 +68,7 @@ export function ForegroundJoinPrompt({ navRef, ready }: Props) {
       const permission = await Location.getForegroundPermissionsAsync()
       const lastCheckedAt = await readJoinPromptLastCheckedAt(u.id)
       const due = shouldCheckOnForeground({
-        userPartnerId: u.partner?.id ?? null,
+        userPartnerIsHouse: u.partner?.is_house,
         permissionStatus: permissionStatusOf(permission),
         lastCheckedAt,
         now: Date.now(),

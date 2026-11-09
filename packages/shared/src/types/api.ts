@@ -83,6 +83,12 @@ export interface UserPartner {
   id: number;
   name: string;
   slug: string;
+  // Whether this is the House Partner — Fit Nation itself, the partner every
+  // plain registration lands on (backend #95, mobile #98). Sent on every
+  // partner payload since backend PR #96; a user payload cached before that
+  // release lacks it at runtime, so decision code treats `undefined` as
+  // ineligible (see apps/mobile/src/lib/joinPrompt.ts).
+  is_house: boolean;
   visual_identity: PartnerVisualIdentityResource | null;
 }
 
@@ -157,6 +163,9 @@ export interface NearbyPartnerResource {
   id: number;
   name: string;
   slug: string;
+  // Always false in practice — only joinable Partners are listed and the House
+  // Partner never is — but every partner payload carries the flag (backend #95).
+  is_house: boolean;
   benefits: string[];
   visual_identity: PartnerVisualIdentityResource | null;
 }

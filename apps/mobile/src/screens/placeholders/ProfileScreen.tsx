@@ -201,9 +201,9 @@ export function ProfileScreen() {
         />
 
         {/* The one-way Gym Join's only in-app mention of the way out (ADR 0006):
-            a low-prominence support line, shown only to customers on a gym. A
-            House customer has no gym to change. */}
-        {showsChangeGymLine(profile?.partner?.id ?? null) && (
+            a low-prominence support line, shown only to customers the API marks
+            as on a real gym (is_house === false); fails quiet on a missing flag. */}
+        {showsChangeGymLine(profile?.partner?.is_house) && (
           <>
             <SectionLabel style={{ marginTop: 8 }}>Your Gym</SectionLabel>
             <Card style={{ padding: 0, overflow: 'hidden' }}>
