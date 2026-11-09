@@ -88,7 +88,7 @@ export function JoinPromptScreen({ navigation }: AppScreenProps<'JoinPrompt'>) {
         user != null &&
         permission != null &&
         shouldRunJoinPrompt({
-          userPartnerId: user.partner?.id ?? null,
+          userPartnerIsHouse: user.partner?.is_house,
           alreadyAsked: wasJoinPromptAsked(user.id),
           permissionStatus: permissionStatusOf(permission),
         })

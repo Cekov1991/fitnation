@@ -30,6 +30,9 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    // partner_id 1 is the House Partner — the registration default every plain
+    // signup lands on. It says what to register UNDER, not what the user is on:
+    // eligibility reads the API's is_house flag (lib/joinPrompt.ts, ticket #98).
     defaultValues: { email: '', password: '', partner_id: 1 },
   })
 
