@@ -48,6 +48,20 @@ describe('the Profile hub', () => {
     expect(account).not.toMatch(/has_password/)
   })
 
+  // Ticket #96, ADR 0006: a Gym Join is one-way, and the only in-app mention of
+  // the way out is this low-prominence settings line. It shows exactly to
+  // customers on a Partner (showsChangeGymLine), and never inside the Join
+  // Prompt itself.
+  it('carries the change-gyms support line, gated to customers on a gym', () => {
+    expect(hub).toMatch(/showsChangeGymLine\(/)
+    expect(hub).toMatch(/To change gyms, contact support/)
+  })
+
+  it('the Join Prompt itself never mentions the support path (ADR 0006)', () => {
+    const sheet = read('../../components/partners/JoinGymSheet.tsx')
+    expect(sheet).not.toMatch(/contact support|change gyms?/i)
+  })
+
   it('the Subscription page is registered and manages through the shared card', () => {
     expect(read('../../navigation/AppNavigator.tsx')).toMatch(/<Stack\.Screen name="Subscription" component=\{SubscriptionScreen\}/)
     const page = read('SubscriptionScreen.tsx')
