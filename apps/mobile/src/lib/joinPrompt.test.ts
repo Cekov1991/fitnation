@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest'
 import {
   canPresentJoinPromptOver,
   dismissalKindOf,
-  HOUSE_PARTNER_ID,
   offersJoinPromptStep,
   JOIN_PROMPT_RECHECK_INTERVAL_MS,
   pickNearestPartner,
   shouldCheckOnForeground,
   shouldRunJoinPrompt,
+  showsChangeGymLine,
 } from './joinPrompt'
 
 /**
@@ -23,7 +23,7 @@ describe('shouldRunJoinPrompt', () => {
   it('runs for a House Partner customer who has not been asked and can still be asked', () => {
     expect(
       shouldRunJoinPrompt({
-        userPartnerId: HOUSE_PARTNER_ID,
+        userPartnerIsHouse: true,
         alreadyAsked: false,
         permissionStatus: 'undetermined',
       })
@@ -32,31 +32,31 @@ describe('shouldRunJoinPrompt', () => {
 
   it('skips a customer already on a Partner — a Gym Join is one-way and only starts from the House Partner', () => {
     expect(
-      shouldRunJoinPrompt({ userPartnerId: 42, alreadyAsked: false, permissionStatus: 'undetermined' })
+      shouldRunJoinPrompt({ userPartnerIsHouse: false, alreadyAsked: false, permissionStatus: 'undetermined' })
     ).toBe(false)
   })
 
-  it('skips a user without a partner — nothing to move from, and the shape is unexpected', () => {
+  it('fails closed on a missing flag — no partner, or a cached pre-flag user payload', () => {
     expect(
-      shouldRunJoinPrompt({ userPartnerId: null, alreadyAsked: false, permissionStatus: 'undetermined' })
+      shouldRunJoinPrompt({ userPartnerIsHouse: undefined, alreadyAsked: false, permissionStatus: 'undetermined' })
     ).toBe(false)
   })
 
   it('asks once per session: already asked means skip', () => {
     expect(
-      shouldRunJoinPrompt({ userPartnerId: HOUSE_PARTNER_ID, alreadyAsked: true, permissionStatus: 'granted' })
+      shouldRunJoinPrompt({ userPartnerIsHouse: true, alreadyAsked: true, permissionStatus: 'granted' })
     ).toBe(false)
   })
 
   it('skips when location permission is denied — the person already said no, and the step stays invisible', () => {
     expect(
-      shouldRunJoinPrompt({ userPartnerId: HOUSE_PARTNER_ID, alreadyAsked: false, permissionStatus: 'denied' })
+      shouldRunJoinPrompt({ userPartnerIsHouse: true, alreadyAsked: false, permissionStatus: 'denied' })
     ).toBe(false)
   })
 
   it('runs when permission is already granted — no OS prompt needed, straight to the location fix', () => {
     expect(
-      shouldRunJoinPrompt({ userPartnerId: HOUSE_PARTNER_ID, alreadyAsked: false, permissionStatus: 'granted' })
+      shouldRunJoinPrompt({ userPartnerIsHouse: true, alreadyAsked: false, permissionStatus: 'granted' })
     ).toBe(true)
   })
 })
@@ -69,12 +69,12 @@ describe('shouldRunJoinPrompt', () => {
  */
 describe('offersJoinPromptStep', () => {
   it('offers the step to an unasked House Partner customer', () => {
-    expect(offersJoinPromptStep({ userPartnerId: HOUSE_PARTNER_ID, alreadyAsked: false })).toBe(true)
+    expect(offersJoinPromptStep({ userPartnerIsHouse: true, alreadyAsked: false })).toBe(true)
   })
 
   it('does not offer it to a Gym Signup, or twice in a session', () => {
-    expect(offersJoinPromptStep({ userPartnerId: 42, alreadyAsked: false })).toBe(false)
-    expect(offersJoinPromptStep({ userPartnerId: HOUSE_PARTNER_ID, alreadyAsked: true })).toBe(false)
+    expect(offersJoinPromptStep({ userPartnerIsHouse: false, alreadyAsked: false })).toBe(false)
+    expect(offersJoinPromptStep({ userPartnerIsHouse: true, alreadyAsked: true })).toBe(false)
   })
 })
 
@@ -90,7 +90,7 @@ describe('shouldCheckOnForeground', () => {
   it('checks a House Partner customer with permission granted and no check on record', () => {
     expect(
       shouldCheckOnForeground({
-        userPartnerId: HOUSE_PARTNER_ID,
+        userPartnerIsHouse: true,
         permissionStatus: 'granted',
         lastCheckedAt: null,
         now: NOW,
@@ -99,28 +99,28 @@ describe('shouldCheckOnForeground', () => {
   })
 
   it('is throttled to once per hour: a check within the hour skips, an older one runs again', () => {
-    const base = { userPartnerId: HOUSE_PARTNER_ID, permissionStatus: 'granted', now: NOW } as const
+    const base = { userPartnerIsHouse: true, permissionStatus: 'granted', now: NOW } as const
     expect(shouldCheckOnForeground({ ...base, lastCheckedAt: NOW - 59 * 60 * 1000 })).toBe(false)
     expect(shouldCheckOnForeground({ ...base, lastCheckedAt: NOW - JOIN_PROMPT_RECHECK_INTERVAL_MS })).toBe(false)
     expect(shouldCheckOnForeground({ ...base, lastCheckedAt: NOW - JOIN_PROMPT_RECHECK_INTERVAL_MS - 1 })).toBe(true)
   })
 
   it('never asks for permission: undetermined and denied both skip — only an already-granted permission checks', () => {
-    const base = { userPartnerId: HOUSE_PARTNER_ID, lastCheckedAt: null, now: NOW } as const
+    const base = { userPartnerIsHouse: true, lastCheckedAt: null, now: NOW } as const
     expect(shouldCheckOnForeground({ ...base, permissionStatus: 'undetermined' })).toBe(false)
     expect(shouldCheckOnForeground({ ...base, permissionStatus: 'denied' })).toBe(false)
   })
 
-  it('skips anyone not on the House Partner — a Gym Join is one-way, so there is nothing to offer', () => {
+  it('skips anyone not on the House Partner — a Gym Join is one-way, so there is nothing to offer — and fails closed on a missing flag', () => {
     const base = { permissionStatus: 'granted', lastCheckedAt: null, now: NOW } as const
-    expect(shouldCheckOnForeground({ ...base, userPartnerId: 42 })).toBe(false)
-    expect(shouldCheckOnForeground({ ...base, userPartnerId: null })).toBe(false)
+    expect(shouldCheckOnForeground({ ...base, userPartnerIsHouse: false })).toBe(false)
+    expect(shouldCheckOnForeground({ ...base, userPartnerIsHouse: undefined })).toBe(false)
   })
 
   it('treats a timestamp in the future (clock moved back) as recently checked, not as never', () => {
     expect(
       shouldCheckOnForeground({
-        userPartnerId: HOUSE_PARTNER_ID,
+        userPartnerIsHouse: true,
         permissionStatus: 'granted',
         lastCheckedAt: NOW + 60_000,
         now: NOW,
@@ -162,6 +162,28 @@ describe('canPresentJoinPromptOver', () => {
     expect(canPresentJoinPromptOver('Onboarding')).toBe(false)
     expect(canPresentJoinPromptOver('Paywall')).toBe(false)
     expect(canPresentJoinPromptOver(undefined)).toBe(false)
+  })
+})
+
+/**
+ * The support line (ticket #96, backend ADR 0006): a Gym Join is one-way, and the only
+ * in-app mention of the way out is a low-prominence settings line — "to change
+ * gyms, contact support". It shows exactly to the customers it is for: those
+ * the API explicitly marks as standing on a real Partner (`is_house === false`).
+ * Fail quiet: a missing flag (no partner, or a cached pre-flag payload) shows
+ * nothing rather than a wrong line.
+ */
+describe('showsChangeGymLine', () => {
+  it('shows for a customer the API marks as on a real Partner — the one who might want to change gyms', () => {
+    expect(showsChangeGymLine(false)).toBe(true)
+  })
+
+  it('hides for a House customer — no gym to change; their way onto one is the Join Prompt itself', () => {
+    expect(showsChangeGymLine(true)).toBe(false)
+  })
+
+  it('fails quiet on a missing flag — no partner, or a cached pre-flag payload: no line until the API says false', () => {
+    expect(showsChangeGymLine(undefined)).toBe(false)
   })
 })
 

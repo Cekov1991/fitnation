@@ -6,18 +6,29 @@
  * server is the real eligibility gate (`GET /partners/nearby` answers `[]`
  * for anyone ineligible), so these rules only decide when asking is worth
  * the interruption at all.
+ *
+ * Who counts as "House" comes from the API's `is_house` flag on the user's
+ * partner payload (ticket #98) — never a hardcoded id. A user payload cached
+ * before the backend sent the flag has `is_house: undefined`, and the rules
+ * treat the two directions differently:
+ *   - the prompt FAILS CLOSED: only an explicit `true` is eligible, so a
+ *     stale cache means silently not offering, never a wrong offer;
+ *   - the change-gym support line FAILS QUIET: it shows only on an explicit
+ *     `false`, so a stale cache shows nothing rather than a wrong line.
  */
 import type { JoinPromptDismissalKind } from '@fit-nation/shared'
-
-/** The House Partner's id — Fit Nation itself, the partner every plain registration lands on. */
-export const HOUSE_PARTNER_ID = 1
 
 /** expo-location's foreground statuses, stated here so this module needs no import from it. */
 export type LocationPermissionStatus = 'granted' | 'denied' | 'undetermined'
 
 export interface JoinPromptInput {
-  /** `user.partner?.id ?? null` — null skips: a user without a partner is not a House customer we can move. */
-  userPartnerId: number | null
+  /**
+   * `user.partner?.is_house` — the API's flag, sent on every partner payload.
+   * Fail closed: only an explicit `true` is eligible. `undefined` (no partner,
+   * or a cached user payload from before the backend sent the flag) skips —
+   * the worst case of a stale cache is silently not offering, never a wrong offer.
+   */
+  userPartnerIsHouse: boolean | undefined
   /** Whether this session already ran the step for this user (see joinPromptSession). */
   alreadyAsked: boolean
   permissionStatus: LocationPermissionStatus
@@ -26,7 +37,7 @@ export interface JoinPromptInput {
 export function shouldRunJoinPrompt(input: JoinPromptInput): boolean {
   if (input.alreadyAsked) return false
   if (input.permissionStatus === 'denied') return false
-  return input.userPartnerId === HOUSE_PARTNER_ID
+  return input.userPartnerIsHouse === true
 }
 
 /**
@@ -42,8 +53,11 @@ export function offersJoinPromptStep(input: Omit<JoinPromptInput, 'permissionSta
 export const JOIN_PROMPT_RECHECK_INTERVAL_MS = 60 * 60 * 1000
 
 export interface ForegroundRecheckInput {
-  /** `user.partner?.id ?? null` — a Gym Join is one-way, so only House customers are ever offered one. */
-  userPartnerId: number | null
+  /**
+   * `user.partner?.is_house` — a Gym Join is one-way, so only House customers
+   * are ever offered one. Fail closed like JoinPromptInput: `undefined` skips.
+   */
+  userPartnerIsHouse: boolean | undefined
   /** The re-check never asks for permission — that happened (or not) in the post-registration step. */
   permissionStatus: LocationPermissionStatus
   /** Epoch ms of this user's last nearby check (step or foreground, persisted), null if never. */
@@ -58,7 +72,7 @@ export interface ForegroundRecheckInput {
  */
 export function shouldCheckOnForeground(input: ForegroundRecheckInput): boolean {
   if (input.permissionStatus !== 'granted') return false
-  if (input.userPartnerId !== HOUSE_PARTNER_ID) return false
+  if (input.userPartnerIsHouse !== true) return false
   if (input.lastCheckedAt === null) return true
   // A future timestamp (clock moved back) reads as recently checked, not never.
   return input.now - input.lastCheckedAt > JOIN_PROMPT_RECHECK_INTERVAL_MS
@@ -92,4 +106,17 @@ export function dismissalKindOf(trigger: JoinPromptDismissalTrigger): JoinPrompt
  */
 export function pickNearestPartner<T>(partners: readonly T[]): T | null {
   return partners[0] ?? null
+}
+
+/**
+ * The support line (ticket #96, backend ADR 0006): a Gym Join is one-way, and the only
+ * in-app mention of the way out is a low-prominence settings line — "to change
+ * gyms, contact support". It shows exactly to the customers it is for: those
+ * the API explicitly marks as on a real Partner (`is_house === false`). A House
+ * customer has no gym to change (their way onto one is the Join Prompt itself),
+ * and a missing flag — no partner, or a cached pre-flag payload — fails quiet:
+ * no line until the API says `false`.
+ */
+export function showsChangeGymLine(userPartnerIsHouse: boolean | undefined): boolean {
+  return userPartnerIsHouse === false
 }
