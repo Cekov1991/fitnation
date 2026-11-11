@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import { DEFAULT_TRAINING_STYLES, TRAINING_STYLE_OPTIONS, useEquipmentTypes } from '@fit-nation/shared';
+import { DEFAULT_TRAINING_STYLES, useEquipmentTypes } from '@fit-nation/shared';
 import type { EquipmentTypeResource } from '@fit-nation/shared';
 import { useModalTransition } from '../../utils/animations';
 
@@ -24,12 +24,10 @@ export function RegeneratePlanModal({
   const { data: equipmentTypes = [] } = useEquipmentTypes();
 
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([...DEFAULT_TRAINING_STYLES]);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedEquipment([]);
-      setSelectedStyles([...DEFAULT_TRAINING_STYLES]);
     }
   }, [isOpen]);
 
@@ -39,16 +37,11 @@ export function RegeneratePlanModal({
     );
   };
 
-  const toggleStyle = (code: string) => {
-    setSelectedStyles((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
-    );
-  };
-
   const handleConfirm = () => {
     onConfirm({
       equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
-      training_styles: selectedStyles.length > 0 ? selectedStyles : [...DEFAULT_TRAINING_STYLES],
+      // Style picker is hidden; every plan is bodybuilding.
+      training_styles: [...DEFAULT_TRAINING_STYLES],
     });
   };
 
@@ -130,52 +123,6 @@ export function RegeneratePlanModal({
                   </div>
                 </div>
               )}
-
-              {/* Training Style */}
-              <div className="mb-4">
-                <h2
-                  className="text-sm font-bold mb-3 uppercase tracking-wider"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  Training Style
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {TRAINING_STYLE_OPTIONS.map((style) => {
-                    const isSelected = selectedStyles.includes(style.code);
-                    return (
-                      <button
-                        key={style.code}
-                        onClick={() => toggleStyle(style.code)}
-                        className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap ${
-                          isSelected ? 'shadow-lg' : 'border'
-                        }`}
-                        style={
-                          isSelected
-                            ? {
-                                background:
-                                  'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-                                boxShadow:
-                                  '0 4px 12px color-mix(in srgb, var(--color-primary) 20%, transparent)',
-                              }
-                            : {
-                                backgroundColor: 'var(--color-bg-surface)',
-                                borderColor: 'var(--color-border-subtle)',
-                              }
-                        }
-                      >
-                        <span
-                          className="text-xs font-medium"
-                          style={{
-                            color: isSelected ? '#ffffff' : 'var(--color-text-primary)',
-                          }}
-                        >
-                          {style.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
 
               {/* Warning block */}
               {showWarning && (

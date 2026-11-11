@@ -16,7 +16,6 @@ import {
   FITNESS_GOAL_OPTIONS,
   TRAINING_DAYS_OPTIONS,
   TRAINING_EXPERIENCE_OPTIONS,
-  TRAINING_STYLE_OPTIONS,
   WORKOUT_DURATION_OPTIONS,
   labelFor,
   useEquipmentTypes,
@@ -62,7 +61,7 @@ interface AdjustPlanSheetProps {
   error?: string | null
 }
 
-type Picker = 'goal' | 'experience' | 'duration' | 'equipment' | 'style'
+type Picker = 'goal' | 'experience' | 'duration' | 'equipment'
 
 /**
  * Everything that shapes the personalised plan, in one full-height sheet that
@@ -98,7 +97,6 @@ export function AdjustPlanSheet({
   const [days, setDays] = useState<number | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([])
-  const [selectedStyle, setSelectedStyle] = useState<string>(DEFAULT_TRAINING_STYLES[0])
   const [picker, setPicker] = useState<Picker | null>(null)
   // Measured so the rows can scroll clear of the footer that floats over them.
   const [footerHeight, setFooterHeight] = useState(0)
@@ -111,7 +109,6 @@ export function AdjustPlanSheet({
       setDays(profile?.training_days_per_week ?? null)
       setDuration(profile?.workout_duration_minutes ?? null)
       setSelectedEquipment([])
-      setSelectedStyle(DEFAULT_TRAINING_STYLES[0])
       setPicker(null)
       isPresentedRef.current = true
       sheetRef.current?.present()
@@ -154,11 +151,11 @@ export function AdjustPlanSheet({
       },
       plan: {
         equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
-        // One style per plan; the API field is a list, so it travels as a list of one.
-        training_styles: [selectedStyle],
+        // Style picker is hidden; every plan is bodybuilding.
+        training_styles: [...DEFAULT_TRAINING_STYLES],
       },
     })
-  }, [isComplete, goal, experience, days, duration, selectedEquipment, selectedStyle, onConfirm])
+  }, [isComplete, goal, experience, days, duration, selectedEquipment, onConfirm])
 
   // The grabber and the title form the handle, so a downward drag closes the
   // sheet only from up there. Dragging the settings themselves does nothing —
@@ -196,7 +193,6 @@ export function AdjustPlanSheet({
     equipmentNames.length === 0
       ? 'Tap to limit the plan to what you have'
       : `+ ${equipmentTypes.length - equipmentNames.length} more available`
-  const styleValue = TRAINING_STYLE_OPTIONS.find((s) => s.code === selectedStyle)?.label ?? 'Select'
 
   const workoutCount = program?.workout_templates?.length ?? 0
   const note = program
@@ -309,7 +305,6 @@ export function AdjustPlanSheet({
               detail={equipmentDetail}
               onPress={() => setPicker('equipment')}
             />
-            <SettingRow label="Training style" value={styleValue} onPress={() => setPicker('style')} />
           </BottomSheetScrollView>
 
         </View>
@@ -347,14 +342,6 @@ export function AdjustPlanSheet({
         selected={selectedEquipment}
         onSelect={(code) => setSelectedEquipment((prev) => toggleIn(prev, code))}
         multi
-      />
-      <OptionSheet
-        visible={picker === 'style'}
-        onClose={() => setPicker(null)}
-        title="Training style"
-        options={TRAINING_STYLE_OPTIONS.map((s) => ({ value: s.code, label: s.label }))}
-        selected={selectedStyle}
-        onSelect={setSelectedStyle}
       />
     </>
   )
