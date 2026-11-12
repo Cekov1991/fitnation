@@ -26,6 +26,7 @@ import { CompletedSetRow, PendingSetRow } from './SetRow'
 import { SetLogCard } from './SetLogCard'
 import { SetEditCard } from './SetEditCard'
 import { progressionCopy } from './progressionCopy'
+import { weightBadgeFor } from './setLogHints'
 import { ExerciseInfoSheet } from './ExerciseInfoSheet'
 import { SetOptionsMenu } from './SetOptionsMenu'
 import { showToast } from '../../lib/toast'
@@ -40,8 +41,8 @@ import type { SessionExerciseDetail } from '@fit-nation/shared'
 const autoFixedSessionExerciseIds = new Set<number>()
 
 // The progression banner's answer per exercise, for this app session: "Use
-// <lighter>" takes that weight for every set still to log, "Keep" stays with
-// today's suggestion. Held here rather than in the page, which remounts on
+// <lighter>" fills the Weight field (buildSlots then carries it to the sets
+// after), "Keep" stays with today's suggestion. Held here rather than in the page, which remounts on
 // every exercise switch; like the screen's drafts, an app restart forgets it.
 // Keyed like the drafts, so a swapped-in exercise never inherits the answer.
 type ProgressionChoice = { kind: 'lowered'; weight: number } | { kind: 'kept' }
@@ -93,8 +94,7 @@ export function ExercisePage({
   const exercise = session_exercise.exercise
 
   // The progression banner's one choice (see progressionChoices): "Use
-  // <lighter>" fills the Weight field and makes that weight the default for
-  // every set of this exercise; "Keep" just dismisses.
+  // <lighter>" fills the Weight field; "Keep" just dismisses.
   const choiceKey = `${session_exercise.id}:${session_exercise.exercise_id}`
   const [progressionChoice, setProgressionChoice] = useState(() => progressionChoices.get(choiceKey) ?? null)
   const chooseProgression = (choice: ProgressionChoice) => {
@@ -115,9 +115,9 @@ export function ExercisePage({
 
   const firstPending = slots.find(s => s.kind === 'pending')
   const firstPendingSetNumber = firstPending?.setNumber ?? null
-  // A lighter weight taken from the banner holds for every set, not just the first.
-  const defaultWeight =
-    loweredWeight ?? (firstPending?.kind === 'pending' ? firstPending.prefill.weight : (session_exercise.target_weight ?? 0))
+  // After the first set this is the weight just logged (buildSlots carries it),
+  // so a lighter weight taken from the banner holds without its own rule here.
+  const defaultWeight = firstPending?.kind === 'pending' ? firstPending.prefill.weight : 0
   const defaultReps = firstPending?.kind === 'pending' ? firstPending.prefill.reps : minReps
 
   const banner = useMemo(
@@ -137,15 +137,13 @@ export function ExercisePage({
       }),
     [progressionStatus, progressionMode, allowWeightLogging, weightUnit, session_exercise, maxReps, previous_sets]
   )
-  const weightBadge = !allowWeightLogging
-    ? null
-    : loweredWeight != null
-      ? 'lowered'
-      : progressionStatus === 'no_history'
-        ? 'estimated'
-        : progressionStatus === 'ready'
-          ? 'raised'
-          : null
+  const weightBadge = weightBadgeFor({
+    allowWeightLogging,
+    loggedSets: logged_sets.length,
+    lowered: loweredWeight != null,
+    status: progressionStatus,
+    suggestedWeight: defaultWeight,
+  })
 
   // logSet is deliberately absent: it is optimistic, so an in-flight log is
   // not a reason to grey out the rest of the page.
@@ -549,6 +547,9 @@ export function ExercisePage({
             ? undefined
             : (w) => {
                 onLogWeightChange(formatWeight(w))
+                // Last time's reps were at the heavier weight (buildSlots' rule:
+                // a changed load opens at the bottom of the range).
+                onLogRepsChange(String(minReps))
                 chooseProgression({ kind: 'lowered', weight: w })
                 setInfoOpen(false)
               }

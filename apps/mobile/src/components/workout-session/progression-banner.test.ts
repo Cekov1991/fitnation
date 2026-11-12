@@ -28,11 +28,14 @@ describe('ProgressionBanner', () => {
   })
 
   // Reported 2026-10-12: "Use 60 kg" reached the first set only; the second fell back to the suggestion.
+  // The offer writes the Weight draft; buildSlots carries the logged weight to
+  // every later set (readModel.test.ts, "carries today's logged weight").
   it('the lighter weight holds for every set of the exercise, past a remount', () => {
     const page = read('ExercisePage.tsx')
     expect(page).toMatch(/const progressionChoices = new Map</)
     expect(page).toMatch(/progressionChoices\.set\(choiceKey, choice\)/)
-    expect(page).toMatch(/const defaultWeight =\s+loweredWeight \?\?/)
+    expect(page).toMatch(/onLogWeightChange\(formatWeight\(w\)\)/)
+    expect(page).toMatch(/const defaultWeight = firstPending\?\.kind === 'pending' \? firstPending\.prefill\.weight/)
     expect(page).not.toMatch(/setBannerDismissed|setLoweredApplied/)
   })
 })

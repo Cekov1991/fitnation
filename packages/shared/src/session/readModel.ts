@@ -116,10 +116,13 @@ export function slotCount(detail: SessionExerciseDetail): number {
 
 /**
  * The rows of one exercise, `1..slotCount`, each filled from the log whose
- * `set_number` matches. Prefill for a pending row: the plan's target weight if
- * it has one (the server derives it from the user's latest completed session),
- * else last time's weight for that set, else 0; reps from last time, else the
- * minimum target — or 0 for a total-reps exercise, where a count is the point.
+ * `set_number` matches. Prefill for a pending row: the nearest set already
+ * logged below it today, weight and reps both (what the user is actually
+ * doing — an adjusted set 1 carries to set 2). Before any set is logged:
+ * weight is the plan's target (the server derives it from the user's latest
+ * completed session), else last time's weight for that set, else 0; reps are
+ * last time's for that set when that weight matches today's, else the minimum
+ * target — or 0 for a total-reps exercise, where a count is the point.
  */
 export function buildSlots(detail: SessionExerciseDetail): SetSlot[] {
   const targets = exerciseTargets(detail);
@@ -140,12 +143,21 @@ export function buildSlots(detail: SessionExerciseDetail): SetSlot[] {
       };
     }
     const prev = previous.find(p => p.set_number === setNumber);
+    const carried = logged.reduce<SetLogResource | null>(
+      (best, l) => (l.set_number < setNumber && (!best || l.set_number > best.set_number) ? l : best),
+      null
+    );
+    const weight = carried?.weight ?? row.target_weight ?? prev?.weight ?? 0;
+    // Last time's reps only stand at last time's load: after a raise they were
+    // done at a lighter weight, so the set opens at the bottom of the range.
+    const sameLoadAsLastTime = prev != null && Math.abs(prev.weight - weight) < 0.001;
+    const noHistoryReps = row.progression_mode === 'total_reps' ? 0 : targets.minReps;
     return {
       kind: 'pending',
       setNumber,
       prefill: {
-        weight: row.target_weight ?? prev?.weight ?? 0,
-        reps: prev?.reps ?? (row.progression_mode === 'total_reps' ? 0 : targets.minReps),
+        weight,
+        reps: carried?.reps ?? (sameLoadAsLastTime ? prev.reps : noHistoryReps),
       },
       previousReps: prev?.reps ?? null,
       previousWeight: prev?.weight ?? null,
