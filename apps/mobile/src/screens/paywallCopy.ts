@@ -53,6 +53,29 @@ function trialLeft(endsAt: string, now: Date): string {
 }
 
 /**
+ * The banner under the hero while a partner's Paywall Discount is on sale:
+ * `30% off from Iron Temple`. It names the partner, never "your gym": on the
+ * House Partner the discount goes to people who joined without one.
+ */
+export function partnerDiscountLine(percentOff: number, partnerName: string): string {
+  return `${percentOff}% off from ${partnerName}`
+}
+
+/** The banner's second line: the prices on the plans already include the discount. */
+export const PARTNER_DISCOUNT_NOTE = 'Already applied to the prices below'
+
+/**
+ * The yearly plan's corner badge: its saving against twelve monthly payments
+ * (`Save 33%`). While a Paywall Discount is on sale it says `Best value`
+ * instead, because a second percentage beside the banner's "30% off" reads as
+ * a different discount. None when the yearly plan saves nothing.
+ */
+export function yearlyBadge(savingsPercent: number, discounted: boolean): string | undefined {
+  if (savingsPercent <= 0) return undefined
+  return discounted ? 'Best value' : `Save ${savingsPercent}%`
+}
+
+/**
  * The toast after buying or restoring from the plans opened during the Signup
  * Trial: the screen goes back to where it was opened, and nothing else there
  * says the plan is on.

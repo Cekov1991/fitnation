@@ -90,6 +90,8 @@ export interface UserPartner {
   // ineligible (see apps/mobile/src/lib/joinPrompt.ts).
   is_house: boolean;
   visual_identity: PartnerVisualIdentityResource | null;
+  /** The RevenueCat offering the paywall sells, e.g. "discount-30" (the partner's Paywall Discount); null = the default offering. */
+  paywall_offering_id: string | null;
 }
 
 // ============================================

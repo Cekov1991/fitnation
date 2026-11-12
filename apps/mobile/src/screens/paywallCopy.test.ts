@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { paywallHero, purchaseOutcomeMessage } from './paywallCopy'
+import { partnerDiscountLine, paywallHero, purchaseOutcomeMessage, yearlyBadge } from './paywallCopy'
 import { sub } from '../test/fixtures'
 
 const NOW = new Date(2026, 9, 13, 12)
@@ -71,5 +71,26 @@ describe('purchaseOutcomeMessage', () => {
   it('entering needs no message', () => {
     expect(purchaseOutcomeMessage('purchase', 'entered')).toBeNull()
     expect(purchaseOutcomeMessage('restore', 'entered')).toBeNull()
+  })
+})
+
+describe('partnerDiscountLine', () => {
+  it('names the saving and the partner it comes from', () => {
+    expect(partnerDiscountLine(30, 'Iron Temple')).toBe('30% off from Iron Temple')
+  })
+})
+
+describe('yearlyBadge', () => {
+  it('shows the yearly saving against twelve monthly payments', () => {
+    expect(yearlyBadge(33, false)).toBe('Save 33%')
+  })
+
+  it('says Best value while a Paywall Discount is on sale, so two percentages never sit side by side', () => {
+    expect(yearlyBadge(33, true)).toBe('Best value')
+  })
+
+  it('shows nothing when the yearly plan saves nothing', () => {
+    expect(yearlyBadge(0, false)).toBeUndefined()
+    expect(yearlyBadge(0, true)).toBeUndefined()
   })
 })
