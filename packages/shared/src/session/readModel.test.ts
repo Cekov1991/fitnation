@@ -111,9 +111,44 @@ describe('pending-row prefill — identical on both platforms', () => {
     const withTarget = buildSlots(detail([], 3, { target_weight: 62.5 }, [log(1, 60, 9)]))[0];
     const withPrevious = buildSlots(detail([], 3, {}, [log(1, 60, 9)]))[0];
     const withNothing = buildSlots(detail([]))[0];
-    expect(withTarget).toMatchObject({ kind: 'pending', prefill: { weight: 62.5, reps: 9 }, previousReps: 9 });
+    expect(withTarget).toMatchObject({ kind: 'pending', prefill: { weight: 62.5 }, previousReps: 9 });
     expect(withPrevious).toMatchObject({ kind: 'pending', prefill: { weight: 60, reps: 9 } });
     expect(withNothing).toMatchObject({ kind: 'pending', prefill: { weight: 0, reps: DEFAULT_MIN_REPS }, previousReps: null });
+  });
+
+  it("starts at the bottom of the range when today's weight is not last time's — last reps were at another load", () => {
+    const raised = buildSlots(detail([], 3, { target_weight: 62.5 }, [log(1, 60, 12)]))[0];
+    const held = buildSlots(detail([], 3, { target_weight: 60 }, [log(1, 60, 11)]))[0];
+    expect(raised).toMatchObject({ kind: 'pending', prefill: { weight: 62.5, reps: DEFAULT_MIN_REPS }, previousReps: 12 });
+    expect(held).toMatchObject({ kind: 'pending', prefill: { weight: 60, reps: 11 } });
+  });
+
+  it("keeps last time's reps on a total-reps exercise, which carries no weight to differ", () => {
+    const slot = buildSlots(
+      detail([], 3, { progression_mode: 'total_reps', min_target_reps: null, target_weight: null }, [log(1, 0, 18)])
+    )[0];
+    expect(slot).toMatchObject({ kind: 'pending', prefill: { weight: 0, reps: 18 } });
+  });
+
+  it("carries today's logged set to the sets still to log, over the target and last time", () => {
+    const slots = buildSlots(detail([log(1, 55, 10)], 3, { target_weight: 62.5 }, [log(2, 60, 9)]));
+    expect(slots.map(s => (s.kind === 'pending' ? s.prefill : null))).toEqual([
+      null,
+      { weight: 55, reps: 10 },
+      { weight: 55, reps: 10 },
+    ]);
+    // The "last time" hint still names last session's set in this slot.
+    expect(slots[1]).toMatchObject({ previousWeight: 60, previousReps: 9 });
+  });
+
+  it('carries reps on a total-reps exercise too, so set 2 never opens at zero', () => {
+    const slots = buildSlots(detail([log(1, 0, 20)], 3, { progression_mode: 'total_reps', min_target_reps: null }));
+    expect(slots[1]).toMatchObject({ kind: 'pending', prefill: { weight: 0, reps: 20 } });
+  });
+
+  it('carries from the nearest set below, so a set logged out of order does not leak backwards', () => {
+    const slots = buildSlots(detail([log(1, 50, 10), log(3, 57.5, 8)], 4, { target_weight: 62.5 }));
+    expect(slots.map(s => (s.kind === 'pending' ? s.prefill.weight : null))).toEqual([null, 50, null, 57.5]);
   });
 
   it('looks up last time per slot, not once for the active one', () => {

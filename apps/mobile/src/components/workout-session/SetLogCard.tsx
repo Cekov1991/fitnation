@@ -7,6 +7,7 @@ import { Button } from '../ui/Button'
 import type { WeightUnit } from '@fit-nation/shared'
 import { withAlpha, formatWeight, sanitizeDecimalText } from '@fit-nation/shared'
 import { setLogHints } from './setLogHints'
+import type { WeightBadge } from './setLogHints'
 import { StepperField, DEFAULT_WEIGHT_STEP } from './StepperField'
 
 /**
@@ -17,8 +18,6 @@ import { StepperField, DEFAULT_WEIGHT_STEP } from './StepperField'
  */
 export const SET_LOG_HINT = { text: 12, icon: 12, chipRadius: 8, chipPaddingX: 8, chipPaddingY: 4, gap: 10, rowGap: 4 } as const
 
-/** The small badge on the Weight label: where today's suggested weight comes from. */
-export type WeightBadge = 'estimated' | 'raised' | 'lowered'
 const WEIGHT_BADGE: Record<WeightBadge, { label: string; Icon: LucideIcon }> = {
   estimated: { label: 'Estimated', Icon: Sparkles },
   raised: { label: 'Raised', Icon: TrendingUp },
@@ -298,8 +297,10 @@ export function SetLogCard({
         {/* No pending state: useLogSet is optimistic, so by the time a request
             is in flight this card already belongs to the *next* set. A spinner
             here would sit on a set nobody has logged, and disabling the button
-            would stop a fast user logging back-to-back sets. */}
-        <Button variant="onBrand" label="Log Set" onPress={onLog} style={{ flex: 1 }} />
+            would stop a fast user logging back-to-back sets. It is disabled only
+            when there is no count to log: a first-time total-reps exercise
+            opens at 0, and a silent no-op tap read as a broken button. */}
+        <Button variant="onBrand" label="Log Set" onPress={onLog} disabled={currentReps <= 0} style={{ flex: 1 }} />
         {showTimerButton && onStartTimer && (
           <TouchableOpacity
             onPress={onStartTimer}

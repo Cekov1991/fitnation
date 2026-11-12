@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { setLogHints } from './setLogHints'
+import { setLogHints, weightBadgeFor } from './setLogHints'
 
 const base = { allowWeightLogging: true, weightUnit: 'kg' as const, goalMinReps: 6, goalMaxReps: 10 }
 
@@ -41,4 +41,19 @@ describe('setLogHints', () => {
     expect(setLogHints({ ...base, weightUnit: 'lbs', previousWeight: 110.5, previousReps: 8 }).weight?.last)
       .toBe('Last 110.5 lbs × 8')
   })
+})
+
+describe('weightBadgeFor', () => {
+  const fresh = { allowWeightLogging: true, loggedSets: 0, lowered: false, status: 'no_history' as const, suggestedWeight: 40 }
+
+  it('names an estimate the first time', () => expect(weightBadgeFor(fresh)).toBe('estimated'))
+  it('says nothing when the estimate is 0 — the server had no body weight to go on', () =>
+    expect(weightBadgeFor({ ...fresh, suggestedWeight: 0 })).toBeNull())
+  it('names a raise', () => expect(weightBadgeFor({ ...fresh, status: 'ready' })).toBe('raised'))
+  it('names the lighter weight the user took, over the status', () =>
+    expect(weightBadgeFor({ ...fresh, status: 'ready', lowered: true })).toBe('lowered'))
+  it('says nothing once a set is logged — the field then carries the user’s own weight', () =>
+    expect(weightBadgeFor({ ...fresh, loggedSets: 1 })).toBeNull())
+  it('says nothing on an exercise that takes no weight', () =>
+    expect(weightBadgeFor({ ...fresh, allowWeightLogging: false })).toBeNull())
 })

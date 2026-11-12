@@ -61,3 +61,30 @@ export function setLogHints(i: SetLogHintInput): SetLogHints {
     },
   }
 }
+
+/** The small badge on the Weight label: where today's suggested weight comes from. */
+export type WeightBadge = 'estimated' | 'raised' | 'lowered'
+
+export interface WeightBadgeInput {
+  allowWeightLogging: boolean
+  /** Sets already logged on this exercise today. */
+  loggedSets: number
+  /** The user took the progression banner's lighter weight. */
+  lowered: boolean
+  status: 'no_history' | 'below_min' | 'working' | 'ready'
+  /** The weight the field suggests for the set being logged. */
+  suggestedWeight: number
+}
+
+/**
+ * The badge names where a *suggestion* came from, so it shows only before the
+ * first set: after that the field carries the user's own weight. A 0 estimate
+ * (the server had no body weight to go on) is not worth naming.
+ */
+export function weightBadgeFor(i: WeightBadgeInput): WeightBadge | null {
+  if (!i.allowWeightLogging || i.loggedSets > 0) return null
+  if (i.lowered) return 'lowered'
+  if (i.status === 'no_history') return i.suggestedWeight > 0 ? 'estimated' : null
+  if (i.status === 'ready') return 'raised'
+  return null
+}
