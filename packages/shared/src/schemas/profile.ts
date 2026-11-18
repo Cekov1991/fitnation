@@ -62,6 +62,9 @@ export function createProfileSchema(unitSystem: UnitSystem) {
         message: `Weight must be between ${weight.min} and ${weight.max} ${weight.unit}`,
       }),
     training_experience: z.enum(['beginner', 'intermediate', 'advanced']),
+    // Required with Balanced preselected, not optional: a null on the server
+    // means Balanced, so there is no "unset" state worth carrying in a form.
+    split_focus: z.enum(['balanced', 'upper_focus', 'lower_focus']),
     training_days_per_week: numberCoerce.refine((val) => val == null || val >= 1, { message: 'Training days must be 1 or greater' })
       .refine((val) => val == null || val <= 7, { message: 'Training days must be 7 or less' }),
     workout_duration_minutes: numberCoerce.refine((val) => val == null || val >= 1, { message: 'Duration must be 1 minute or greater' })

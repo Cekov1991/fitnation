@@ -14,7 +14,7 @@ import {
 } from '@fit-nation/shared';
 import type { UnitSystem } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { createProfileSchema, ProfileFormData, failureOf, firstFieldError, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS } from '@fit-nation/shared';
+import { createProfileSchema, ProfileFormData, failureOf, firstFieldError, DEFAULT_SPLIT_FOCUS, FITNESS_GOAL_OPTIONS, SPLIT_FOCUS_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 import { ProfilePageSkeleton } from './ProfilePageSkeleton';
 
@@ -58,6 +58,9 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       fitness_goal: 'general_fitness',
       gender: 'other',
       training_experience: 'beginner',
+      // A member who has never chosen is Balanced — the focus a stored null
+      // already means, so the control opens answered rather than blank.
+      split_focus: DEFAULT_SPLIT_FOCUS,
       age: null,
       height: null,
       weight: null,
@@ -80,6 +83,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
         height: profile.profile?.height || null,
         weight: profile.profile?.weight || null,
         training_experience: profile.profile?.training_experience || 'beginner',
+        // A stored null means Balanced (back-end ADR-0013).
+        split_focus: profile.profile?.split_focus || DEFAULT_SPLIT_FOCUS,
         training_days_per_week: profile.profile?.training_days_per_week || null,
         workout_duration_minutes: profile.profile?.workout_duration_minutes || null,
       });
@@ -141,6 +146,7 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       weight: data.weight ?? undefined,
       training_experience: data.training_experience,
       training_days_per_week: data.training_days_per_week ?? undefined,
+      split_focus: data.split_focus,
       workout_duration_minutes: data.workout_duration_minutes ?? undefined,
     });
   };
@@ -586,6 +592,45 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
                       )}
                     />
                     {errors.workout_duration_minutes && <p className="text-xs text-red-400 mt-1">{errors.workout_duration_minutes.message}</p>}
+                  </div>
+
+                  {/* Split Focus */}
+                  <div>
+                    <label className="text-xs mb-2 block" style={{ color: 'var(--color-text-secondary)' }}>
+                      Split Focus
+                    </label>
+                    <Controller
+                      name="split_focus"
+                      control={control}
+                      render={({ field }) => (
+                        <>
+                          <div className="flex gap-2 flex-wrap">
+                            {SPLIT_FOCUS_OPTIONS.map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => field.onChange(option.value)}
+                                className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all"
+                                style={{
+                                  backgroundColor: field.value === option.value
+                                    ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
+                                    : 'var(--color-border-subtle)',
+                                  color: field.value === option.value
+                                    ? 'var(--color-primary)'
+                                    : 'var(--color-text-secondary)',
+                                }}
+                              >
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                            {(SPLIT_FOCUS_OPTIONS.find(o => o.value === field.value) ?? SPLIT_FOCUS_OPTIONS[0]).description}
+                            {' '}Applied the next time your program is refreshed.
+                          </p>
+                        </>
+                      )}
+                    />
                   </div>
                 </div>
               </div>

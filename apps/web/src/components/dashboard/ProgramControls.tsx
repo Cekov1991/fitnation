@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, RefreshCw } from 'lucide-react';
-import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys, WORKOUT_DURATION_OPTIONS, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared';
-import type { FitnessGoal, ProgramResource, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
+import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys, DEFAULT_SPLIT_FOCUS, WORKOUT_DURATION_OPTIONS, FITNESS_GOAL_OPTIONS, SPLIT_FOCUS_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared';
+import type { FitnessGoal, ProgramResource, SplitFocus, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
 import { PlanGeneratingOverlay } from '../ui';
 import { RegeneratePlanModal } from './RegeneratePlanModal';
 
@@ -17,6 +17,13 @@ interface ProfileControlsState {
   fitness_goal: FitnessGoal | '';
   training_experience: TrainingExperience | '';
   training_days_per_week: number | '';
+  /**
+   * '' only until the profile loads, like its neighbours: a stored null is
+   * seeded as Balanced, the focus the program is actually built from. Without
+   * this control the web would refresh a program from a setting its pages
+   * never showed.
+   */
+  split_focus: SplitFocus | '';
   workout_duration_minutes: number | '';
 }
 
@@ -36,6 +43,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
     fitness_goal: '',
     training_experience: '',
     training_days_per_week: '',
+    split_focus: '',
     workout_duration_minutes: '',
   });
 
@@ -45,6 +53,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
       fitness_goal: profile.fitness_goal ?? '',
       training_experience: profile.training_experience ?? '',
       training_days_per_week: profile.training_days_per_week ?? '',
+      split_focus: profile.split_focus ?? DEFAULT_SPLIT_FOCUS,
       workout_duration_minutes: profile.workout_duration_minutes ?? '',
     });
   }, [profile]);
@@ -90,7 +99,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
 
   const handleProfileChange = async (
     key: keyof ProfileControlsState,
-    value: FitnessGoal | TrainingExperience | number | ''
+    value: FitnessGoal | TrainingExperience | SplitFocus | number | ''
   ) => {
     if (isBusy) return;
     const nextValues = { ...values, [key]: value } as ProfileControlsState;
@@ -100,6 +109,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
       fitness_goal: nextValues.fitness_goal || undefined,
       training_experience: nextValues.training_experience || undefined,
       training_days_per_week: nextValues.training_days_per_week || undefined,
+      split_focus: nextValues.split_focus || undefined,
       workout_duration_minutes: nextValues.workout_duration_minutes || undefined,
     };
 
@@ -112,6 +122,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           fitness_goal: profile.fitness_goal ?? '',
           training_experience: profile.training_experience ?? '',
           training_days_per_week: profile.training_days_per_week ?? '',
+          split_focus: profile.split_focus ?? DEFAULT_SPLIT_FOCUS,
           workout_duration_minutes: profile.workout_duration_minutes ?? '',
         });
       }
@@ -185,6 +196,23 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
           <option value="" disabled>Days/week</option>
           {TRAINING_DAYS_OPTIONS.map(({ value: days }) => (
             <option key={days} value={days}>{days} day{days > 1 ? 's' : ''}</option>
+          ))}
+        </select>
+
+        <select
+          value={values.split_focus}
+          onChange={(e) => handleProfileChange('split_focus', e.target.value as SplitFocus)}
+          disabled={isBusy}
+          className="flex-shrink-0 min-w-[130px] px-3 py-2 rounded-xl text-sm font-semibold border"
+          style={{
+            backgroundColor: 'var(--color-bg-surface)',
+            color: 'var(--color-text-primary)',
+            borderColor: 'var(--color-border)',
+          }}
+        >
+          <option value="" disabled>Split Focus</option>
+          {SPLIT_FOCUS_OPTIONS.map(option => (
+            <option key={option.value} value={option.value} title={option.description}>{option.label}</option>
           ))}
         </select>
 

@@ -22,8 +22,25 @@ describe('profile sections', () => {
       }
     }
     expect([...seen].sort()).toEqual(
-      ['age', 'fitness_goal', 'gender', 'height', 'training_days_per_week', 'training_experience', 'unit_system', 'weight', 'workout_duration_minutes'].sort()
+      ['age', 'fitness_goal', 'gender', 'height', 'split_focus', 'training_days_per_week', 'training_experience', 'unit_system', 'weight', 'workout_duration_minutes'].sort()
     )
+  })
+
+  // Split Focus is asked in the training step rather than a step of its own,
+  // and it is required — but every draft is seeded with 'balanced', so the
+  // requirement never costs anyone a tap. Dropping it from `required` would
+  // let a member reach the plan build with no focus at all.
+  it('asks for the split focus in the training section, and requires it', () => {
+    expect(PROFILE_SECTIONS.training.fields).toContain('split_focus')
+    expect(PROFILE_SECTIONS.training.required).toContain('split_focus')
+    expect(ONBOARDING_SECTIONS).toEqual(['goal', 'about', 'training'])
+  })
+
+  it('a seeded split focus does not block Continue, and a missing one does', () => {
+    const training = { training_experience: 'beginner' as const, training_days_per_week: 3, workout_duration_minutes: 60 }
+    expect(isSectionComplete('training', training)).toBe(false)
+    expect(isSectionComplete('training', { ...training, split_focus: 'balanced' })).toBe(true)
+    expect(pickSection('training', { ...training, split_focus: 'upper_focus' }).split_focus).toBe('upper_focus')
   })
 
   it('isSectionComplete gates on every required field', () => {

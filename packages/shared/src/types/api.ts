@@ -8,6 +8,13 @@ export type FitnessGoal = 'fat_loss' | 'muscle_gain' | 'strength' | 'general_fit
 export type Gender = 'male' | 'female' | 'other';
 export type UnitSystem = 'metric' | 'imperial';
 export type TrainingExperience = 'beginner' | 'intermediate' | 'advanced';
+/**
+ * Which curated weekly split a generated program is built from (back-end
+ * ADR-0013). `null` on a profile means the member has never chosen: their
+ * programs are built `balanced`. The emphasis takes effect the next time a
+ * program is generated — storing it does not touch the active program.
+ */
+export type SplitFocus = 'balanced' | 'upper_focus' | 'lower_focus';
 export type StrengthLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 export type BalanceLevel = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_IMPROVEMENT';
 export type TrendDirection = 'up' | 'down' | 'same';
@@ -77,6 +84,8 @@ export interface UserProfileResource {
   unit_system: UnitSystem | null;
   training_experience: TrainingExperience | null;
   training_days_per_week: number | null;
+  /** null = never chosen; programs are built Balanced. */
+  split_focus: SplitFocus | null;
   workout_duration_minutes: number | null;
 }
 export interface UserPartner {
@@ -705,6 +714,11 @@ export interface UpdateProfileInput {
   weight?: number; // in the unit_system being submitted (kg if metric/omitted, lbs if imperial)
   training_experience?: TrainingExperience;
   training_days_per_week?: number;
+  /**
+   * Saved on the profile, never sent with a regenerate request: the clients
+   * save the profile and then regenerate (back-end ADR-0013).
+   */
+  split_focus?: SplitFocus;
   workout_duration_minutes?: number;
 }
 

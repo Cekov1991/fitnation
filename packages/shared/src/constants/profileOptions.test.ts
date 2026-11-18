@@ -2,13 +2,21 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { FITNESS_GOAL_OPTIONS, TRAINING_DAYS_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS, durationOptionFor, labelFor } from './profileOptions';
+import { DEFAULT_SPLIT_FOCUS, FITNESS_GOAL_OPTIONS, SPLIT_FOCUS_OPTIONS, TRAINING_DAYS_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS, durationOptionFor, labelFor } from './profileOptions';
 
 describe('profile option tables', () => {
   it('cover every enum value exactly once', () => {
     expect(FITNESS_GOAL_OPTIONS.map(o => o.value).sort()).toEqual(['fat_loss', 'general_fitness', 'muscle_gain', 'strength']);
     expect(TRAINING_EXPERIENCE_OPTIONS.map(o => o.value)).toEqual(['beginner', 'intermediate', 'advanced']);
     expect(TRAINING_DAYS_OPTIONS.map(o => o.value)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(SPLIT_FOCUS_OPTIONS.map(o => o.value)).toEqual(['balanced', 'upper_focus', 'lower_focus']);
+  });
+
+  it('describes a Split Focus as more of something, never only', () => {
+    // At three or more training days every focus still trains the whole body,
+    // so "Only legs" would be a promise the generated program does not keep.
+    for (const option of SPLIT_FOCUS_OPTIONS) expect(option.description).not.toMatch(/\bonly\b/i);
+    expect(SPLIT_FOCUS_OPTIONS[0].value).toBe(DEFAULT_SPLIT_FOCUS);
   });
 
   it('durations ascend and send the higher end of each range', () => {

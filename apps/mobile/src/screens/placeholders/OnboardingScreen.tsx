@@ -2,7 +2,7 @@ import { useReducer, useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, Animated, StyleSheet } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useMutation } from '@tanstack/react-query'
-import { profileApi, onboardingApi, plansApi, submitOnboarding, withAlpha, FITNESS_GOAL_OPTIONS, labelFor } from '@fit-nation/shared'
+import { profileApi, onboardingApi, plansApi, submitOnboarding, withAlpha, DEFAULT_SPLIT_FOCUS, FITNESS_GOAL_OPTIONS, labelFor } from '@fit-nation/shared'
 import type { UpdateProfileInput, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
@@ -54,6 +54,9 @@ export function OnboardingScreen({ navigation }: AppScreenProps<'Onboarding'>) {
     unit_system: user?.profile?.unit_system ?? 'metric',
     training_experience: user?.profile?.training_experience ?? undefined,
     training_days_per_week: user?.profile?.training_days_per_week ?? undefined,
+    // Preselected so the new question never blocks Continue: a member who
+    // skips past it is saved as Balanced, which is what a null already means.
+    split_focus: user?.profile?.split_focus ?? DEFAULT_SPLIT_FOCUS,
     workout_duration_minutes: user?.profile?.workout_duration_minutes ?? undefined,
   })
   const [phase, setPhase] = useState<Phase>('saving-profile')

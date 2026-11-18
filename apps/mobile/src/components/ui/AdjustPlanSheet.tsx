@@ -12,8 +12,10 @@ import {
 import type { BottomSheetBackdropProps, BottomSheetFooterProps } from '@gorhom/bottom-sheet'
 import { ChevronRight } from 'lucide-react-native'
 import {
+  DEFAULT_SPLIT_FOCUS,
   DEFAULT_TRAINING_STYLES,
   FITNESS_GOAL_OPTIONS,
+  SPLIT_FOCUS_OPTIONS,
   TRAINING_DAYS_OPTIONS,
   TRAINING_EXPERIENCE_OPTIONS,
   WORKOUT_DURATION_OPTIONS,
@@ -25,6 +27,7 @@ import type {
   FitnessGoal,
   ProgramResource,
   RegeneratePlanInput,
+  SplitFocus,
   TrainingExperience,
   UserProfileResource,
 } from '@fit-nation/shared'
@@ -33,11 +36,12 @@ import { Button } from './Button'
 import { OptionSheet } from './OptionSheet'
 import { SectionLabel } from './SectionLabel'
 
-/** The four profile fields the server builds a plan from. All are required. */
+/** The five profile fields the server builds a plan from. All are required. */
 export interface PlanProfileSettings {
   fitness_goal: FitnessGoal
   training_experience: TrainingExperience
   training_days_per_week: number
+  split_focus: SplitFocus
   workout_duration_minutes: number
 }
 
@@ -61,11 +65,11 @@ interface AdjustPlanSheetProps {
   error?: string | null
 }
 
-type Picker = 'goal' | 'experience' | 'duration' | 'equipment'
+type Picker = 'goal' | 'experience' | 'duration' | 'focus' | 'equipment'
 
 /**
  * Everything that shapes the personalised plan, in one full-height sheet that
- * slides up from the bottom and swipes down to close: the four profile
+ * slides up from the bottom and swipes down to close: the five profile
  * settings the plan is generated from, then equipment (several) and one training
  * style for this refresh. Each row opens a picker; days per week is picked inline.
  * Nothing is saved until "Refresh Plan"; closing discards the changes.
@@ -96,6 +100,7 @@ export function AdjustPlanSheet({
   const [experience, setExperience] = useState<TrainingExperience | null>(null)
   const [days, setDays] = useState<number | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
+  const [focus, setFocus] = useState<SplitFocus>(DEFAULT_SPLIT_FOCUS)
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([])
   const [picker, setPicker] = useState<Picker | null>(null)
   // Measured so the rows can scroll clear of the footer that floats over them.
@@ -108,6 +113,9 @@ export function AdjustPlanSheet({
       setExperience(profile?.training_experience ?? null)
       setDays(profile?.training_days_per_week ?? null)
       setDuration(profile?.workout_duration_minutes ?? null)
+      // A stored null means Balanced, so the row opens on the focus the
+      // member's program is actually built from, never blank.
+      setFocus(profile?.split_focus ?? DEFAULT_SPLIT_FOCUS)
       setSelectedEquipment([])
       setPicker(null)
       isPresentedRef.current = true
@@ -147,6 +155,7 @@ export function AdjustPlanSheet({
         fitness_goal: goal,
         training_experience: experience,
         training_days_per_week: days,
+        split_focus: focus,
         workout_duration_minutes: duration,
       },
       plan: {
@@ -155,7 +164,7 @@ export function AdjustPlanSheet({
         training_styles: [...DEFAULT_TRAINING_STYLES],
       },
     })
-  }, [isComplete, goal, experience, days, duration, selectedEquipment, onConfirm])
+  }, [isComplete, goal, experience, days, duration, focus, selectedEquipment, onConfirm])
 
   // The grabber and the title form the handle, so a downward drag closes the
   // sheet only from up there. Dragging the settings themselves does nothing —
@@ -182,6 +191,7 @@ export function AdjustPlanSheet({
 
   // ─── Row values ───
   const experienceOption = TRAINING_EXPERIENCE_OPTIONS.find((o) => o.value === experience)
+  const focusOption = SPLIT_FOCUS_OPTIONS.find((o) => o.value === focus) ?? SPLIT_FOCUS_OPTIONS[0]
   const equipmentNames = equipmentTypes.filter((eq) => selectedEquipment.includes(eq.code)).map((eq) => eq.name)
   const equipmentValue =
     equipmentNames.length === 0
@@ -300,6 +310,12 @@ export function AdjustPlanSheet({
               onPress={() => setPicker('duration')}
             />
             <SettingRow
+              label="Split Focus"
+              value={focusOption.label}
+              detail={focusOption.description}
+              onPress={() => setPicker('focus')}
+            />
+            <SettingRow
               label="Equipment"
               value={equipmentValue}
               detail={equipmentDetail}
@@ -333,6 +349,14 @@ export function AdjustPlanSheet({
         options={WORKOUT_DURATION_OPTIONS}
         selected={duration}
         onSelect={setDuration}
+      />
+      <OptionSheet
+        visible={picker === 'focus'}
+        onClose={() => setPicker(null)}
+        title="Split Focus"
+        options={SPLIT_FOCUS_OPTIONS.map((o) => ({ value: o.value, label: o.label, detail: o.description }))}
+        selected={focus}
+        onSelect={setFocus}
       />
       <OptionSheet
         visible={picker === 'equipment'}
