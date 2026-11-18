@@ -1,4 +1,4 @@
-import type { FitnessGoal, TrainingExperience } from '../types/api';
+import type { FitnessGoal, SplitFocus, TrainingExperience } from '../types/api';
 
 /**
  * The option tables behind the profile and onboarding forms (0031 #2). They
@@ -33,6 +33,28 @@ export const TRAINING_EXPERIENCE_OPTIONS: readonly TrainingExperienceOption[] = 
   { value: 'intermediate', label: 'Intermediate', detail: '1-3 years' },
   { value: 'advanced', label: 'Advanced', detail: '3+ years' },
 ];
+
+export interface SplitFocusOption {
+  value: SplitFocus;
+  label: string;
+  description: string;
+}
+
+/**
+ * Which curated weekly split the program is built from. The descriptions say
+ * "more", not "only", on purpose: at three or more training days every focus
+ * still trains the whole body. A member who has never chosen is Balanced —
+ * the server reads a null `split_focus` that way (back-end ADR-0013) — so the
+ * clients preselect Balanced rather than leaving the question unanswered.
+ */
+export const SPLIT_FOCUS_OPTIONS: readonly SplitFocusOption[] = [
+  { value: 'balanced', label: 'Balanced', description: 'Even split across your whole body' },
+  { value: 'upper_focus', label: 'Upper Body', description: 'More chest, back and arm work' },
+  { value: 'lower_focus', label: 'Lower Body', description: 'More legs and glutes' },
+];
+
+/** What a profile with no stored Split Focus is built from. */
+export const DEFAULT_SPLIT_FOCUS: SplitFocus = 'balanced';
 
 /** Label → the value sent to the server: always the higher end of the range. */
 export const WORKOUT_DURATION_OPTIONS: readonly { value: number; label: string }[] = [

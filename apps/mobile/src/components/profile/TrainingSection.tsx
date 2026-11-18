@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import {
   FITNESS_GOAL_OPTIONS,
+  SPLIT_FOCUS_OPTIONS,
   TRAINING_DAYS_OPTIONS,
   TRAINING_EXPERIENCE_OPTIONS,
   WORKOUT_DURATION_OPTIONS,
@@ -19,11 +20,19 @@ interface TrainingSectionProps {
   summary?: boolean
 }
 
-/** "How do you train?" — experience, days per week, session length. Headline is the shell's. */
+/** "How do you train?" — experience, days per week, session length, split focus. Headline is the shell's. */
 export function TrainingSection({ draft, onChange, summary = true }: TrainingSectionProps) {
   const { colors } = useTheme()
-  const { training_experience: experience, training_days_per_week: days, workout_duration_minutes: duration } = draft
+  const {
+    training_experience: experience,
+    training_days_per_week: days,
+    workout_duration_minutes: duration,
+    split_focus: focus,
+  } = draft
   const complete = !!(experience && days && duration)
+  // Every draft is seeded with 'balanced', so this only falls back for a draft
+  // built before the field existed — the server reads a missing focus the same way.
+  const focusOption = SPLIT_FOCUS_OPTIONS.find((o) => o.value === focus) ?? SPLIT_FOCUS_OPTIONS[0]
 
   return (
     <View>
@@ -61,6 +70,20 @@ export function TrainingSection({ draft, onChange, summary = true }: TrainingSec
         ))}
       </View>
 
+      <FieldLabel style={{ marginTop: 20, marginBottom: 8 }}>Split Focus</FieldLabel>
+      <View style={fieldStyles.chipRow}>
+        {SPLIT_FOCUS_OPTIONS.map((option) => (
+          <Chip
+            key={option.value}
+            label={option.label}
+            selected={focusOption.value === option.value}
+            onPress={() => onChange({ split_focus: option.value })}
+            size="lg"
+          />
+        ))}
+      </View>
+      <Text style={[styles.focusHint, { color: colors.textSecondary }]}>{focusOption.description}</Text>
+
       {summary && complete && (
         <View style={[styles.summary, { backgroundColor: colors.bgSurface }]}>
           <SectionLabel tone="muted" style={{ marginBottom: 6 }}>Your plan will be</SectionLabel>
@@ -69,6 +92,7 @@ export function TrainingSection({ draft, onChange, summary = true }: TrainingSec
             {` · ${labelFor(TRAINING_DAYS_OPTIONS, days)} a week`}
             {` · ${labelFor(WORKOUT_DURATION_OPTIONS, duration)} sessions`}
             {` · ${labelFor(TRAINING_EXPERIENCE_OPTIONS, experience).toLowerCase()} loads`}
+            {` · ${focusOption.label.toLowerCase()} split`}
           </Text>
         </View>
       )}
@@ -77,6 +101,7 @@ export function TrainingSection({ draft, onChange, summary = true }: TrainingSec
 }
 
 const styles = StyleSheet.create({
+  focusHint: { fontSize: 13, marginTop: 8 },
   summary: { marginTop: 24, padding: 16, borderRadius: RADIUS.row },
   summaryText: { fontSize: 16, fontWeight: '700', lineHeight: 23 },
 })

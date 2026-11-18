@@ -50,8 +50,11 @@ export const PROFILE_SECTIONS: Record<ProfileSectionKey, ProfileSectionMeta> = {
     title: 'Training',
     question: 'How do you train?',
     hint: 'How experienced you are, how often, and for how long.',
-    fields: ['training_experience', 'training_days_per_week', 'workout_duration_minutes'],
-    required: ['training_experience', 'training_days_per_week', 'workout_duration_minutes'],
+    // split_focus is required, but every draft is seeded with Balanced (the
+    // focus a null means on the server), so it never blocks Continue — it is
+    // a question with an answer already in it, not one more gate.
+    fields: ['training_experience', 'training_days_per_week', 'workout_duration_minutes', 'split_focus'],
+    required: ['training_experience', 'training_days_per_week', 'workout_duration_minutes', 'split_focus'],
   },
 }
 

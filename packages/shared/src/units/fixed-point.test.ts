@@ -126,6 +126,7 @@ describe('a rounded value stays valid', () => {
         weight: rounded,
         training_experience: 'intermediate',
         training_days_per_week: 4,
+        split_focus: 'balanced',
         workout_duration_minutes: 60,
       });
       expect(result.success).toBe(true);

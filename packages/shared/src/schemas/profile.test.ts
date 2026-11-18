@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createProfileSchema } from './profile';
+import { SPLIT_FOCUS_OPTIONS } from '../constants/profileOptions';
 import { BOUNDS } from '../units';
 import type { UnitSystem } from '../types/api';
 
@@ -13,6 +14,7 @@ const valid = {
   weight: 82,
   training_experience: 'intermediate' as const,
   training_days_per_week: 4,
+  split_focus: 'balanced' as const,
   workout_duration_minutes: 60,
 };
 
@@ -71,6 +73,27 @@ describe.each<UnitSystem>(['metric', 'imperial'])('createProfileSchema — %s bo
 
   it('allows height and weight to be absent', () => {
     expect(parseWith(system, { height: null, weight: null }).success).toBe(true);
+  });
+});
+
+describe('createProfileSchema — split focus', () => {
+  // The values are the server's enum verbatim; the redundant-looking
+  // `upper_focus` is deliberate (back-end ADR-0013) and must not be shortened.
+  it.each(SPLIT_FOCUS_OPTIONS.map(o => o.value))('accepts %s', value => {
+    expect(parseWith('metric', { split_focus: value }).success).toBe(true);
+  });
+
+  it('rejects a value outside the enum', () => {
+    expect(parseWith('metric', { split_focus: 'upper' }).success).toBe(false);
+    expect(parseWith('metric', { split_focus: 'arms' }).success).toBe(false);
+  });
+
+  // Required rather than optional: null means Balanced on the server, so the
+  // clients preselect Balanced instead of carrying an unanswered state. A
+  // form that forgets to seed it should fail here, not at the API.
+  it('is required, and not satisfied by null', () => {
+    expect(parseWith('metric', { split_focus: undefined }).success).toBe(false);
+    expect(parseWith('metric', { split_focus: null }).success).toBe(false);
   });
 });
 

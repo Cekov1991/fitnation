@@ -14,7 +14,7 @@ import {
 } from '@fit-nation/shared';
 import type { UnitSystem } from '@fit-nation/shared';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import { createProfileSchema, ProfileFormData, failureOf, firstFieldError, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS } from '@fit-nation/shared';
+import { createProfileSchema, ProfileFormData, failureOf, firstFieldError, DEFAULT_SPLIT_FOCUS, FITNESS_GOAL_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, WORKOUT_DURATION_OPTIONS } from '@fit-nation/shared';
 import { LoadingButton } from './ui';
 import { ProfilePageSkeleton } from './ProfilePageSkeleton';
 
@@ -58,6 +58,10 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
       fitness_goal: 'general_fitness',
       gender: 'other',
       training_experience: 'beginner',
+      // The schema requires a Split Focus, so the form carries one even before
+      // the control for it exists (#107): without it the resolver would fail
+      // on a field nothing renders and the save would do nothing.
+      split_focus: DEFAULT_SPLIT_FOCUS,
       age: null,
       height: null,
       weight: null,
@@ -80,6 +84,8 @@ export function ProfilePage({ onLogout }: ProfilePageProps) {
         height: profile.profile?.height || null,
         weight: profile.profile?.weight || null,
         training_experience: profile.profile?.training_experience || 'beginner',
+        // A stored null means Balanced (back-end ADR-0013).
+        split_focus: profile.profile?.split_focus || DEFAULT_SPLIT_FOCUS,
         training_days_per_week: profile.profile?.training_days_per_week || null,
         workout_duration_minutes: profile.profile?.workout_duration_minutes || null,
       });

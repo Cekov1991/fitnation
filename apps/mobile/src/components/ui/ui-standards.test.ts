@@ -105,7 +105,7 @@ describe('ui standards', () => {
 
   it('profile questions are asked by the sections in components/profile, not re-drawn in screens', () => {
     // Rendering the option lists directly is the signature of a re-drawn goal / experience / days / units picker.
-    const optionMap = /\b(?:FITNESS_GOAL_OPTIONS|TRAINING_EXPERIENCE_OPTIONS|WORKOUT_DURATION_OPTIONS|TRAINING_DAYS_OPTIONS|UNIT_OPTIONS)\.map\(/g;
+    const optionMap = /\b(?:FITNESS_GOAL_OPTIONS|TRAINING_EXPERIENCE_OPTIONS|WORKOUT_DURATION_OPTIONS|TRAINING_DAYS_OPTIONS|SPLIT_FOCUS_OPTIONS|UNIT_OPTIONS)\.map\(/g;
     const allow = new Set<string>([
       // The plan-adjust sheet is a plan action, not a profile edit; it has its own compact pickers.
       'components/ui/AdjustPlanSheet.tsx',

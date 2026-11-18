@@ -253,8 +253,10 @@ export function DashboardScreen() {
     setBuildStage('building')
     try {
       // The server builds the plan from the stored profile, not from the
-      // regenerate request, so the four settings are saved first — and only
-      // when they changed, so an unchanged profile costs no request.
+      // regenerate request, so the five settings are saved first — and only
+      // when they changed, so an unchanged profile costs no request. A member
+      // whose split_focus is still null counts as changed the first time: the
+      // PUT writes the Balanced they were already being built from.
       const settingsChanged = (Object.keys(settings) as Array<keyof typeof settings>).some(
         (key) => profile?.[key] !== settings[key],
       )

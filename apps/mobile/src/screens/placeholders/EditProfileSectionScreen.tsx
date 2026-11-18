@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CreditCard, Trash2 } from 'lucide-react-native'
-import { useProfile, useUpdateProfile, usePrograms, useDeleteAccount, deleteAccountAndSignOut } from '@fit-nation/shared'
+import { useProfile, useUpdateProfile, usePrograms, useDeleteAccount, deleteAccountAndSignOut, DEFAULT_SPLIT_FOCUS } from '@fit-nation/shared'
 import type { UnitSystem, UserResource } from '@fit-nation/shared'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
@@ -277,6 +277,10 @@ function seedDraft(profile: UserResource | undefined): ProfileDraft {
     weight: p?.weight ?? undefined,
     training_experience: p?.training_experience ?? undefined,
     training_days_per_week: p?.training_days_per_week ?? undefined,
+    // A stored null means Balanced (back-end ADR-0013), so the question opens
+    // answered rather than blank — and `saved` is seeded the same way, so
+    // seeing it does not make the section dirty.
+    split_focus: p?.split_focus ?? DEFAULT_SPLIT_FOCUS,
     workout_duration_minutes: p?.workout_duration_minutes ?? undefined,
   }
 }
