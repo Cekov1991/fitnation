@@ -87,6 +87,8 @@ export interface UserProfileResource {
   /** null = never chosen; programs are built Balanced. */
   split_focus: SplitFocus | null;
   workout_duration_minutes: number | null;
+  /** The Equipment Selection (EquipmentType codes). null = Full gym: every EquipmentType except the opt-in ones. */
+  equipment_types?: string[] | null;
 }
 export interface UserPartner {
   id: number;
@@ -720,6 +722,11 @@ export interface UpdateProfileInput {
    */
   split_focus?: SplitFocus;
   workout_duration_minutes?: number;
+  /**
+   * The Equipment Selection. Saved on the profile with the other plan settings
+   * before a regenerate; null (or []) clears it back to Full gym.
+   */
+  equipment_types?: string[] | null;
 }
 
 // ============================================

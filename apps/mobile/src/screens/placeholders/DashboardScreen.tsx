@@ -34,6 +34,7 @@ import {
   useStartSession,
   useTodayWorkout,
   useUpdateProfile,
+  sameEquipmentSelection,
   withAlpha,
 } from '@fit-nation/shared'
 import type {
@@ -253,13 +254,15 @@ export function DashboardScreen() {
     setBuildStage('building')
     try {
       // The server builds the plan from the stored profile, not from the
-      // regenerate request, so the five settings are saved first — and only
+      // regenerate request, so the settings (with the Equipment Selection) are saved first — and only
       // when they changed, so an unchanged profile costs no request. A member
       // whose split_focus is still null counts as changed the first time: the
       // PUT writes the Balanced they were already being built from.
-      const settingsChanged = (Object.keys(settings) as Array<keyof typeof settings>).some(
-        (key) => profile?.[key] !== settings[key],
-      )
+      const { equipment_types, ...fiveSettings } = settings
+      const settingsChanged =
+        (Object.keys(fiveSettings) as Array<keyof typeof fiveSettings>).some(
+          (key) => profile?.[key] !== fiveSettings[key],
+        ) || !sameEquipmentSelection(profile?.equipment_types, equipment_types)
       if (settingsChanged) {
         await updateProfile.mutateAsync(settings)
       }

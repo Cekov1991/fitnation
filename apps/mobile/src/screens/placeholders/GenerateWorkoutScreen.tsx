@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Sparkles } from 'lucide-react-native'
@@ -7,6 +7,7 @@ import {
   useEquipmentTypes,
   useGenerateDraftSession,
   useProfile,
+  selectableEquipment,
   withAlpha,
   WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared'
@@ -53,6 +54,16 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
       setSelectedDuration(45)
     }
   }, [profile?.profile?.workout_duration_minutes])
+
+  // Starts on the stored Equipment Selection, once, when both the profile and
+  // the chip list are in. A session-only starting point: edits are never saved,
+  // and the server does not fall back to the profile, so generate sends it.
+  const equipmentSeededRef = useRef(false)
+  useEffect(() => {
+    if (equipmentSeededRef.current || !profile?.profile || equipmentTypes.length === 0) return
+    equipmentSeededRef.current = true
+    setSelectedEquipment(selectableEquipment(profile.profile.equipment_types, equipmentTypes))
+  }, [profile, equipmentTypes])
 
   const toggleEquipment = (code: string) => {
     setSelectedEquipment(prev =>
