@@ -36,7 +36,7 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
   const generateContentColor = useButtonContentColor('primary')
   const { data: profile } = useProfile()
   const generateDraft = useGenerateDraftSession()
-  const { data: equipmentTypes = [] } = useEquipmentTypes()
+  const { data: equipmentTypes = [] } = useEquipmentTypes(DEFAULT_TRAINING_STYLES[0])
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null)

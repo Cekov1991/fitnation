@@ -24,6 +24,7 @@ import type {
 } from '../types/api';
 import { logSetMutationOptions, updateSetMutationOptions, deleteSetMutationOptions } from './setLogMutations';
 import { updateSessionExerciseMutationOptions, removeSessionExerciseMutationOptions } from './sessionExerciseMutations';
+import type { TrainingStyleCode } from '../constants/trainingStyles';
 import { queryKeys, type ExerciseHistoryParams } from '../queryKeys';
 
 // ============================================================================
@@ -594,11 +595,11 @@ export function useCategories(type?: 'workout') {
 // EXERCISE CLASSIFICATIONS HOOKS
 // ============================================================================
 
-export function useEquipmentTypes() {
+export function useEquipmentTypes(trainingStyle?: TrainingStyleCode) {
   return useQuery({
-    queryKey: queryKeys.taxonomy.equipmentTypes(),
+    queryKey: queryKeys.taxonomy.equipmentTypes(trainingStyle),
     queryFn: async () => {
-      const response = await classificationsApi.getEquipmentTypes();
+      const response = await classificationsApi.getEquipmentTypes(trainingStyle);
       return response.data;
     },
   });

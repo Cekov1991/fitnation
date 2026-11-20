@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { initAuth } from './auth';
 import { initApi } from './config';
-import { authApi, devicesApi, partnersApi } from './api';
+import { authApi, classificationsApi, devicesApi, partnersApi } from './api';
 
 const store = new Map<string, string>();
 initAuth({ storage: { getItem: k => store.get(k) ?? null, setItem: (k, v) => void store.set(k, v), removeItem: k => void store.delete(k) } });
@@ -84,5 +84,27 @@ describe('partnersApi.dismissJoinPrompt', () => {
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok');
     expect(JSON.parse(init.body as string)).toEqual({ partner_id: 7, kind: 'snoozed' });
+  });
+});
+
+describe('classificationsApi.getEquipmentTypes', () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    store.clear();
+    fetchMock.mockReset();
+    fetchMock.mockImplementation(async () => ok({ data: [] }));
+    vi.stubGlobal('fetch', fetchMock);
+    store.set('authToken', 'tok');
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('sends no query string without a training style', async () => {
+    await classificationsApi.getEquipmentTypes();
+    expect(fetchMock.mock.calls[0][0]).toBe('https://api.test/equipment-types');
+  });
+
+  it('sends training_style when given one', async () => {
+    await classificationsApi.getEquipmentTypes('BODYBUILDING');
+    expect(fetchMock.mock.calls[0][0]).toBe('https://api.test/equipment-types?training_style=BODYBUILDING');
   });
 });

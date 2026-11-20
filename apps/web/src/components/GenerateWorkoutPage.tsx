@@ -30,7 +30,7 @@ export function GenerateWorkoutPage() {
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
 
-  const { data: equipmentTypes = [] } = useEquipmentTypes();
+  const { data: equipmentTypes = [] } = useEquipmentTypes(DEFAULT_TRAINING_STYLES[0]);
 
   // Sync duration from profile when it loads - map to closest option
   useEffect(() => {

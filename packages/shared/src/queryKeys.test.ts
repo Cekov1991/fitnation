@@ -4,6 +4,17 @@ import { queryKeys } from './queryKeys';
 const isPrefix = (prefix: readonly unknown[], key: readonly unknown[]) =>
   prefix.length <= key.length && prefix.every((seg, i) => seg === key[i]);
 
+describe('equipment-types keys', () => {
+  it('keeps the unfiltered key unchanged and gives each training style its own key', () => {
+    expect(queryKeys.taxonomy.equipmentTypes()).toEqual(['equipment-types']);
+    const filtered = queryKeys.taxonomy.equipmentTypes('BODYBUILDING');
+    expect(filtered).not.toEqual(queryKeys.taxonomy.equipmentTypes());
+    expect(filtered).not.toEqual(queryKeys.taxonomy.equipmentTypes('FUNCTIONAL'));
+    // Both still sit under the shared prefix, so invalidating it reaches every list.
+    expect(isPrefix(queryKeys.taxonomy.equipmentTypes(), filtered)).toBe(true);
+  });
+});
+
 describe('query key registry', () => {
   it('keeps the segment names the hooks have always used', () => {
     expect(queryKeys.sessions.all()).toEqual(['sessions']);
