@@ -1,6 +1,7 @@
 // Fit Nation API Service Layer
 
 import { publicGet, request } from './http'
+import type { TrainingStyleCode } from './constants/trainingStyles'
 import type {
   CreatePlanInput,
   UpdatePlanInput,
@@ -369,8 +370,14 @@ export const categoriesApi = {
 // ============================================================================
 
 export const classificationsApi = {
-  getEquipmentTypes: async (): Promise<ListResponse<EquipmentTypeResource>> => {
-    return authed<ListResponse<EquipmentTypeResource>>('/equipment-types');
+  /** With a training style, only EquipmentTypes that have that style's exercises are returned. */
+  getEquipmentTypes: async (
+    trainingStyle?: TrainingStyleCode
+  ): Promise<ListResponse<EquipmentTypeResource>> => {
+    const query = trainingStyle
+      ? `?${new URLSearchParams({ training_style: trainingStyle }).toString()}`
+      : '';
+    return authed<ListResponse<EquipmentTypeResource>>(`/equipment-types${query}`);
   },
   getTargetRegions: async (): Promise<ListResponse<TargetRegionResource>> => {
     return authed<ListResponse<TargetRegionResource>>('/target-regions');

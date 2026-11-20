@@ -27,6 +27,8 @@ export interface ExerciseHistoryParams {
   end_date?: string;
 }
 
+import type { TrainingStyleCode } from './constants/trainingStyles';
+
 export type BodyRegion = 'upper' | 'lower' | 'core';
 
 const profileRoot = ['profile'] as const;
@@ -116,7 +118,10 @@ export const queryKeys = {
   taxonomy: {
     muscleGroups: (bodyRegion?: BodyRegion) => ['muscle-groups', bodyRegion] as const,
     movementPatterns: () => ['movement-patterns'] as const,
-    equipmentTypes: () => ['equipment-types'] as const,
+    equipmentTypes: (trainingStyle?: TrainingStyleCode) =>
+      trainingStyle
+        ? (['equipment-types', { trainingStyle }] as const)
+        : (['equipment-types'] as const),
     targetRegions: () => ['target-regions'] as const,
     angles: () => ['angles'] as const,
     categories: (type?: 'workout') => ['categories', type] as const,

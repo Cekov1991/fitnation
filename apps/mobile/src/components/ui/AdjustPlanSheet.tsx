@@ -94,7 +94,7 @@ export function AdjustPlanSheet({
   // A page-sized sheet should glide, not snap: the library's default spring
   // lands in about a quarter of a second, which reads as abrupt at this size.
   const animationConfigs = useBottomSheetTimingConfigs({ duration: 420, easing: Easing.out(Easing.cubic) })
-  const { data: equipmentTypes = [] } = useEquipmentTypes()
+  const { data: equipmentTypes = [] } = useEquipmentTypes(DEFAULT_TRAINING_STYLES[0])
 
   const [goal, setGoal] = useState<FitnessGoal | null>(null)
   const [experience, setExperience] = useState<TrainingExperience | null>(null)

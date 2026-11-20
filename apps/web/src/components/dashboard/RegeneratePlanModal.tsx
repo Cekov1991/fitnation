@@ -21,7 +21,7 @@ export function RegeneratePlanModal({
   isLoading,
 }: RegeneratePlanModalProps) {
   const { backdrop, panel } = useModalTransition();
-  const { data: equipmentTypes = [] } = useEquipmentTypes();
+  const { data: equipmentTypes = [] } = useEquipmentTypes(DEFAULT_TRAINING_STYLES[0]);
 
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
 
