@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import {
@@ -6,6 +6,7 @@ import {
   useGenerateDraftSession,
   useProfile,
   useEquipmentTypes,
+  selectableEquipment,
   WORKOUT_DURATION_OPTIONS,
 } from '@fit-nation/shared';
 import type { EquipmentTypeResource, GenerateWorkoutInput } from '@fit-nation/shared';
@@ -46,7 +47,19 @@ export function GenerateWorkoutPage() {
     }
   }, [profile?.profile?.workout_duration_minutes]);
 
+  // Starts on the stored Equipment Selection, once, when both the profile and
+  // the chip list are in. A session-only starting point: edits are never saved,
+  // and the server does not fall back to the profile, so generate sends it.
+  const equipmentSeededRef = useRef(false);
+  useEffect(() => {
+    if (equipmentSeededRef.current || !profile?.profile || equipmentTypes.length === 0) return;
+    equipmentSeededRef.current = true;
+    setSelectedEquipment(selectableEquipment(profile.profile.equipment_types, equipmentTypes));
+  }, [profile, equipmentTypes]);
+
   const toggleEquipment = (code: string) => {
+    // A tap before the profile loads is the member's choice; the late seed must not overwrite it.
+    equipmentSeededRef.current = true;
     setSelectedEquipment(prev =>
       prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
     );

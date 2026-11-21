@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import { DEFAULT_TRAINING_STYLES, useEquipmentTypes } from '@fit-nation/shared';
+import { DEFAULT_TRAINING_STYLES, equipmentToSave, selectableEquipment, useEquipmentTypes } from '@fit-nation/shared';
 import type { EquipmentTypeResource } from '@fit-nation/shared';
 import { useModalTransition } from '../../utils/animations';
 
 interface RegeneratePlanModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (params: { equipment_types?: string[]; training_styles?: string[] }) => void;
+  /** The Equipment Selection is saved to the profile by the caller; null = Full gym. */
+  onConfirm: (params: { equipment_types: string[] | null; training_styles: string[] }) => void;
+  /** The stored Equipment Selection, preselected every time the modal opens. */
+  storedEquipment?: string[] | null;
   showWarning: boolean;
   isLoading: boolean;
 }
@@ -17,6 +20,7 @@ export function RegeneratePlanModal({
   isOpen,
   onClose,
   onConfirm,
+  storedEquipment,
   showWarning,
   isLoading,
 }: RegeneratePlanModalProps) {
@@ -25,11 +29,19 @@ export function RegeneratePlanModal({
 
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
 
+  // Seed once per opening, as soon as the chip list is there, never over edits.
+  const seededRef = useRef(false);
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
+      seededRef.current = false;
       setSelectedEquipment([]);
+      return;
     }
-  }, [isOpen]);
+    if (seededRef.current || equipmentTypes.length === 0) return;
+    seededRef.current = true;
+    setSelectedEquipment(selectableEquipment(storedEquipment, equipmentTypes));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- stored selection is read only at open time
+  }, [isOpen, equipmentTypes]);
 
   const toggleEquipment = (code: string) => {
     setSelectedEquipment((prev) =>
@@ -39,7 +51,7 @@ export function RegeneratePlanModal({
 
   const handleConfirm = () => {
     onConfirm({
-      equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
+      equipment_types: equipmentToSave(storedEquipment, seededRef.current, selectedEquipment),
       // Style picker is hidden; every plan is bodybuilding.
       training_styles: [...DEFAULT_TRAINING_STYLES],
     });

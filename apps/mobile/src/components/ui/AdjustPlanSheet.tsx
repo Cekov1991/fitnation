@@ -19,7 +19,9 @@ import {
   TRAINING_DAYS_OPTIONS,
   TRAINING_EXPERIENCE_OPTIONS,
   WORKOUT_DURATION_OPTIONS,
+  equipmentToSave,
   labelFor,
+  selectableEquipment,
   useEquipmentTypes,
   withAlpha,
 } from '@fit-nation/shared'
@@ -46,8 +48,11 @@ export interface PlanProfileSettings {
 }
 
 export interface AdjustPlanInput {
-  /** Saved to the profile before the plan is regenerated. */
-  profile: PlanProfileSettings
+  /**
+   * Saved to the profile before the plan is regenerated. `equipment_types` is
+   * the Equipment Selection: null (nothing ticked) means Full gym.
+   */
+  profile: PlanProfileSettings & { equipment_types: string[] | null }
   /** Sent with the regenerate request itself. */
   plan: RegeneratePlanInput
 }
@@ -70,8 +75,7 @@ type Picker = 'goal' | 'experience' | 'duration' | 'focus' | 'equipment'
 /**
  * Everything that shapes the personalised plan, in one full-height sheet that
  * slides up from the bottom and swipes down to close: the five profile
- * settings the plan is generated from, then equipment (several) and one training
- * style for this refresh. Each row opens a picker; days per week is picked inline.
+ * settings the plan is generated from, including the Equipment Selection (several). Each row opens a picker; days per week is picked inline.
  * Nothing is saved until "Refresh Plan"; closing discards the changes.
  */
 export function AdjustPlanSheet({
@@ -90,6 +94,7 @@ export function AdjustPlanSheet({
   // on top of that leaves it half-dismissed and deaf to the next present().
   // So present/dismiss only on real transitions, tracked here.
   const isPresentedRef = useRef(false)
+  const equipmentSeededRef = useRef(false)
   const snapPoints = useMemo(() => ['100%'], [])
   // A page-sized sheet should glide, not snap: the library's default spring
   // lands in about a quarter of a second, which reads as abrupt at this size.
@@ -116,6 +121,7 @@ export function AdjustPlanSheet({
       // A stored null means Balanced, so the row opens on the focus the
       // member's program is actually built from, never blank.
       setFocus(profile?.split_focus ?? DEFAULT_SPLIT_FOCUS)
+      equipmentSeededRef.current = false
       setSelectedEquipment([])
       setPicker(null)
       isPresentedRef.current = true
@@ -125,6 +131,16 @@ export function AdjustPlanSheet({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- profile is read only at open time
   }, [visible])
+
+  // The Equipment Selection opens on the stored one, narrowed to the chips on
+  // offer. The list can arrive after the sheet opens, so seed once per opening,
+  // as soon as it is there, and never again over the member's edits.
+  useEffect(() => {
+    if (!visible || equipmentSeededRef.current || equipmentTypes.length === 0) return
+    equipmentSeededRef.current = true
+    setSelectedEquipment(selectableEquipment(profile?.equipment_types, equipmentTypes))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- profile is read only at open time
+  }, [visible, equipmentTypes])
 
   const handleDismissed = useCallback(() => {
     isPresentedRef.current = false
@@ -157,14 +173,14 @@ export function AdjustPlanSheet({
         training_days_per_week: days,
         split_focus: focus,
         workout_duration_minutes: duration,
+        equipment_types: equipmentToSave(profile?.equipment_types, equipmentSeededRef.current, selectedEquipment),
       },
       plan: {
-        equipment_types: selectedEquipment.length > 0 ? selectedEquipment : undefined,
         // Style picker is hidden; every plan is bodybuilding.
         training_styles: [...DEFAULT_TRAINING_STYLES],
       },
     })
-  }, [isComplete, goal, experience, days, duration, focus, selectedEquipment, onConfirm])
+  }, [isComplete, goal, experience, days, duration, focus, selectedEquipment, profile, onConfirm])
 
   // The grabber and the title form the handle, so a downward drag closes the
   // sheet only from up there. Dragging the settings themselves does nothing —

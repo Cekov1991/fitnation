@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, RefreshCw } from 'lucide-react';
-import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys, DEFAULT_SPLIT_FOCUS, WORKOUT_DURATION_OPTIONS, FITNESS_GOAL_OPTIONS, SPLIT_FOCUS_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared';
+import { useProfile, useRegeneratePlan, useUpdateProfile, queryKeys, DEFAULT_SPLIT_FOCUS, sameEquipmentSelection, WORKOUT_DURATION_OPTIONS, FITNESS_GOAL_OPTIONS, SPLIT_FOCUS_OPTIONS, TRAINING_EXPERIENCE_OPTIONS, TRAINING_DAYS_OPTIONS } from '@fit-nation/shared';
 import type { FitnessGoal, ProgramResource, SplitFocus, TrainingExperience, UpdateProfileInput } from '@fit-nation/shared';
 import { PlanGeneratingOverlay } from '../ui';
 import { RegeneratePlanModal } from './RegeneratePlanModal';
@@ -71,14 +71,23 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
 
   const isBusy = isRegenerating || updateProfile.isPending || regeneratePlan.isPending;
 
-  const executeRegenerate = async (params: {
-    equipment_types?: string[];
-    training_styles?: string[];
+  const executeRegenerate = async ({
+    equipment_types,
+    training_styles,
+  }: {
+    equipment_types: string[] | null;
+    training_styles: string[];
   }) => {
     setIsRegenerating(true);
     const delayPromise = sleep(MIN_LOADING_DELAY_MS);
     try {
-      await regeneratePlan.mutateAsync(params);
+      // The server builds the plan from the stored profile, so the Equipment
+      // Selection is saved first (only when it changed), then the regenerate
+      // request carries no equipment.
+      if (!sameEquipmentSelection(profile?.equipment_types, equipment_types)) {
+        await updateProfile.mutateAsync({ equipment_types });
+      }
+      await regeneratePlan.mutateAsync({ training_styles });
       // Refetch the new plan data before hiding the overlay so the UI is
       // already updated when the loading screen fades out.
       await queryClient.refetchQueries({ queryKey: queryKeys.programs.all() });
@@ -254,6 +263,7 @@ export function ProgramControls({ activeProgram }: ProgramControlsProps) {
         isOpen={isRegenerateModalOpen}
         onClose={() => setIsRegenerateModalOpen(false)}
         onConfirm={executeRegenerate}
+        storedEquipment={profile?.equipment_types}
         showWarning={hasCompletedWorkouts}
         isLoading={isRegenerating}
       />

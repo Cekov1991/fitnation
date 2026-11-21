@@ -32,6 +32,7 @@ export * from './constants/profileOptions'
 export * from './utils/workoutHelpers'
 export * from './utils/repRange'
 export * from './utils/calendarWeek'
+export * from './utils/equipmentSelection'
 
 // The typed HTTP seam — one request function, one failure type (0025)
 export { request, publicGet, ApiFailure, isApiFailure, failureOf, firstFieldError, type ApiFailureKind } from './http'
