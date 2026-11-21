@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { equipmentToStore, sameEquipmentSelection, selectableEquipment } from './equipmentSelection';
+import { equipmentToSave, equipmentToStore, sameEquipmentSelection, selectableEquipment } from './equipmentSelection';
 
 const list = [{ code: 'barbell' }, { code: 'dumbbell' }, { code: 'cable' }];
 
@@ -34,5 +34,21 @@ describe('sameEquipmentSelection', () => {
     expect(sameEquipmentSelection(undefined, null)).toBe(true);
     expect(sameEquipmentSelection(['a'], null)).toBe(false);
     expect(sameEquipmentSelection(['a'], ['a', 'b'])).toBe(false);
+  });
+  it('compares as sets, so duplicates do not mask a difference', () => {
+    expect(sameEquipmentSelection(['A', 'A'], ['A', 'B'])).toBe(false);
+    expect(sameEquipmentSelection(['A', 'A'], ['A'])).toBe(true);
+  });
+});
+
+describe('equipmentToSave', () => {
+  it('passes the stored selection through when seeding has not run', () => {
+    expect(equipmentToSave(['barbell'], false, [])).toEqual(['barbell']);
+    expect(equipmentToSave(null, false, [])).toBeNull();
+    expect(equipmentToSave(undefined, false, [])).toBeNull();
+  });
+  it('saves the current selection once seeded, empty meaning null', () => {
+    expect(equipmentToSave(['barbell'], true, ['cable'])).toEqual(['cable']);
+    expect(equipmentToSave(['barbell'], true, [])).toBeNull();
   });
 });

@@ -19,7 +19,7 @@ import {
   TRAINING_DAYS_OPTIONS,
   TRAINING_EXPERIENCE_OPTIONS,
   WORKOUT_DURATION_OPTIONS,
-  equipmentToStore,
+  equipmentToSave,
   labelFor,
   selectableEquipment,
   useEquipmentTypes,
@@ -122,6 +122,7 @@ export function AdjustPlanSheet({
       // member's program is actually built from, never blank.
       setFocus(profile?.split_focus ?? DEFAULT_SPLIT_FOCUS)
       equipmentSeededRef.current = false
+      setSelectedEquipment([])
       setPicker(null)
       isPresentedRef.current = true
       sheetRef.current?.present()
@@ -172,14 +173,14 @@ export function AdjustPlanSheet({
         training_days_per_week: days,
         split_focus: focus,
         workout_duration_minutes: duration,
-        equipment_types: equipmentToStore(selectedEquipment),
+        equipment_types: equipmentToSave(profile?.equipment_types, equipmentSeededRef.current, selectedEquipment),
       },
       plan: {
         // Style picker is hidden; every plan is bodybuilding.
         training_styles: [...DEFAULT_TRAINING_STYLES],
       },
     })
-  }, [isComplete, goal, experience, days, duration, focus, selectedEquipment, onConfirm])
+  }, [isComplete, goal, experience, days, duration, focus, selectedEquipment, profile, onConfirm])
 
   // The grabber and the title form the handle, so a downward drag closes the
   // sheet only from up there. Dragging the settings themselves does nothing —

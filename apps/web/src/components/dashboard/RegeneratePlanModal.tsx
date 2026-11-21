@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import { DEFAULT_TRAINING_STYLES, equipmentToStore, selectableEquipment, useEquipmentTypes } from '@fit-nation/shared';
+import { DEFAULT_TRAINING_STYLES, equipmentToSave, selectableEquipment, useEquipmentTypes } from '@fit-nation/shared';
 import type { EquipmentTypeResource } from '@fit-nation/shared';
 import { useModalTransition } from '../../utils/animations';
 
@@ -34,6 +34,7 @@ export function RegeneratePlanModal({
   useEffect(() => {
     if (!isOpen) {
       seededRef.current = false;
+      setSelectedEquipment([]);
       return;
     }
     if (seededRef.current || equipmentTypes.length === 0) return;
@@ -50,7 +51,7 @@ export function RegeneratePlanModal({
 
   const handleConfirm = () => {
     onConfirm({
-      equipment_types: equipmentToStore(selectedEquipment),
+      equipment_types: equipmentToSave(storedEquipment, seededRef.current, selectedEquipment),
       // Style picker is hidden; every plan is bodybuilding.
       training_styles: [...DEFAULT_TRAINING_STYLES],
     });

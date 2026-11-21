@@ -66,6 +66,8 @@ export function GenerateWorkoutScreen({ navigation }: Props) {
   }, [profile, equipmentTypes])
 
   const toggleEquipment = (code: string) => {
+    // A tap before the profile loads is the member's choice; the late seed must not overwrite it.
+    equipmentSeededRef.current = true
     setSelectedEquipment(prev =>
       prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
     )

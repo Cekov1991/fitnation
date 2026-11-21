@@ -17,12 +17,27 @@ export function equipmentToStore(selected: readonly string[]): string[] | null {
   return selected.length > 0 ? [...selected] : null;
 }
 
-/** Order-insensitive equality of two selections, treating null/undefined as empty. */
+/**
+ * What a refresh sheet saves on confirm. Until the sheet has seeded its
+ * selection (the EquipmentType list had not loaded), the member has not seen
+ * the stored selection, so it is passed through unchanged rather than wiped
+ * to Full gym by an empty, never-seeded selection.
+ */
+export function equipmentToSave(
+  stored: readonly string[] | null | undefined,
+  seeded: boolean,
+  selected: readonly string[],
+): string[] | null {
+  if (seeded) return equipmentToStore(selected);
+  return stored && stored.length > 0 ? [...stored] : null;
+}
+
+/** Equality of two selections as sets, treating null/undefined as empty. */
 export function sameEquipmentSelection(
   a: readonly string[] | null | undefined,
   b: readonly string[] | null | undefined,
 ): boolean {
-  const x = a ?? [];
-  const y = b ?? [];
-  return x.length === y.length && x.every((code) => y.includes(code));
+  const x = new Set(a ?? []);
+  const y = new Set(b ?? []);
+  return x.size === y.size && [...x].every((code) => y.has(code));
 }
